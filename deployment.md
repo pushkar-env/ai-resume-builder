@@ -52,13 +52,12 @@ The frontend `resume-maker` is built with Vite and works perfectly on Vercel.
    - **Output Directory**: `dist/public` (as defined in your `vite.config.ts`)
 5. **Environment Variables**:
    - `VITE_CLERK_PUBLISHABLE_KEY` (Your Clerk publishable key)
-   - `PORT`: `8080` (or leave default if not strictly needed in the UI layer)
-   - `API_PROXY_TARGET`: **The URL of your deployed backend** (e.g., `https://api-service.up.railway.app`)
+   - `VITE_API_URL`: **The URL of your deployed backend** (e.g., `https://api-service.up.railway.app`)
    - `BASE_PATH`: `/`
 6. Click **Deploy**.
 
 > [!TIP]
-> If you experience CORS issues, ensure your Backend (`api-server`) is configured to accept requests from your Vercel domain.
+> If you experience CORS issues, ensure your Backend (`api-server`) is configured to accept requests from your Vercel domain. To avoid iOS Safari authentication issues (ITP), configure your Clerk proxy domain and set `VITE_CLERK_PROXY_URL` in Vercel.
 
 ## Final Steps
 1. In the **Clerk Dashboard**, go to **Paths** and configure your proxy/custom domain settings as required.

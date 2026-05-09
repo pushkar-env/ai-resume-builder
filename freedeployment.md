@@ -61,10 +61,13 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
    * **Build Command:** `pnpm run build`
    * **Output Directory:** `dist`
 4. **Environment Variables:**
-   * `VITE_API_URL`: Your Render backend URL (e.g., `https://ai-resume-api.onrender.com/api`)
+   * `VITE_API_URL`: Your Render (or Railway) backend URL (e.g., `https://ai-resume-api.onrender.com/api`)
    * `VITE_CLERK_PUBLISHABLE_KEY`: Your Clerk frontend key.
    * `VITE_RAZORPAY_KEY_ID`: Your Razorpay public key.
 5. Click **Deploy**. Vercel will build and assign you a fast, global CDN link (e.g., `https://ai-resume-builder.vercel.app`).
+
+> [!TIP]
+> If you experience CORS issues, ensure your Backend (`api-server`) is configured to accept requests from your Vercel domain. To avoid iOS Safari authentication issues (ITP), configure your Clerk proxy domain and set `VITE_CLERK_PROXY_URL` in Vercel. Point it to `https://ai-resume-api.onrender.com/api/webhooks/clerk`.
 
 ## 4. Final Setup (Webhooks & CORS)
 1. **Clerk Webhooks:** Go to Clerk Dashboard -> Webhooks. Point it to `https://ai-resume-api.onrender.com/api/webhooks/clerk`.
