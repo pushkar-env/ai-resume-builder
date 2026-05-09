@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /templates
+Allow: /contact
+
+# Prevent crawling of private/dynamic routes
+Disallow: /dashboard
+Disallow: /builder/
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://resumeai.example.com/sitemap.xml

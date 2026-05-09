@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: ai-resume-api
+    env: node
+    plan: free
+    # We build from the root to ensure monorepo workspace dependencies are installed
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm --dir artifacts/api-server run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # The following must be configured in the Render Dashboard
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

@@ -1,0 +1,173 @@
+Build a full-stack, production-ready AI-powered Resume Maker web app with a modern UI/UX similar to premium SaaS products. The app should allow users to create professional resumes by selecting templates, answering guided questions, customizing layouts, rearranging sections with drag-and-drop, and exporting resumes as high-quality PDFs.
+
+Tech Stack:
+
+Frontend: Next.js 15 + TypeScript + Tailwind CSS + shadcn/ui
+Backend: Next.js API routes or Express
+Database: PostgreSQL with Prisma ORM
+Authentication: Clerk or NextAuth
+State Management: Zustand
+Drag & Drop: dnd-kit
+PDF Generation: react-pdf or Puppeteer
+Rich Text Editing: TipTap
+Deployment Ready for Vercel
+Stripe integration for premium templates/export limits
+Fully responsive mobile + desktop
+Dark/light mode
+Clean modular architecture
+SEO optimized landing page
+
+Main Features:
+
+Landing Page
+Beautiful hero section
+Feature showcase
+Resume template previews
+Pricing section
+Testimonials
+CTA buttons
+Modern animations using Framer Motion
+Authentication
+Sign up/login
+Google authentication
+User dashboard
+Save resumes to account
+Resume Builder Flow
+Step-by-step wizard:
+Personal details
+Education
+Experience
+Skills
+Projects
+Certifications
+Achievements
+Social links
+Custom sections
+AI Assistance
+Integrate OpenAI API:
+Generate professional summaries
+Improve bullet points
+Rewrite job descriptions
+Suggest skills based on role
+ATS optimization suggestions
+Resume Templates
+Create at least 8 professional templates:
+Modern
+Minimal
+Corporate
+Creative
+ATS Friendly
+Developer
+Executive
+Startup
+
+Templates should:
+
+Be fully customizable
+Support multiple accent colors
+Allow font changes
+Allow spacing adjustments
+Allow section visibility toggles
+Advanced Resume Customization
+Very important:
+Users can drag-and-drop sections to reorder them
+Users can drag sections vertically on the preview
+Users can resize section spacing
+Users can choose left/right column layouts
+Users can customize typography
+Users can edit directly inside preview
+Live preview updates instantly
+Auto pagination support for multi-page resumes
+Resume Preview
+Real-time preview
+Zoom controls
+Multi-page rendering
+Print-ready rendering
+A4 page simulation
+ATS score indicator
+Export Features
+Export as PDF
+Export as DOCX
+Export as JSON
+Shareable public link
+Download without watermark for premium users
+Dashboard
+List all resumes
+Duplicate resume
+Delete resume
+Track last edited
+Resume analytics (views/downloads)
+Admin Panel
+Manage templates
+Manage users
+Manage subscriptions
+Analytics dashboard
+Database Schema
+Include proper Prisma schema for:
+Users
+Resumes
+ResumeSections
+Templates
+Payments
+SharedLinks
+Production Requirements
+Proper folder structure
+Reusable components
+Error boundaries
+Loading skeletons
+Form validation using Zod
+Rate limiting
+API security
+Environment variable setup
+Docker support
+CI/CD ready
+Optimized performance
+Lazy loading
+Image optimization
+Resume Builder UX
+The resume editor should feel similar to:
+Canva
+Resume.io
+Reactive Resume
+FlowCV
+Important Implementation Details
+Use drag-and-drop canvas editor
+Store section positions in DB
+Support undo/redo
+Auto-save every few seconds
+Keyboard shortcuts
+Snap-to-grid alignment
+Template engine architecture for future templates
+Generate Complete Code
+Generate:
+Full frontend
+Backend APIs
+Prisma schema
+Database migrations
+Reusable components
+Tailwind config
+Authentication setup
+PDF export system
+Drag-drop system
+AI integration
+Dockerfile
+README with setup instructions
+Seed data
+Deployment instructions
+UI Requirements
+Extremely polished SaaS UI
+Smooth animations
+Modern cards
+Glassmorphism where appropriate
+Beautiful typography
+Premium feel
+Minimal clutter
+Bonus Features
+AI resume scoring
+Keyword matching against job descriptions
+LinkedIn import
+Portfolio website generator from resume
+Resume version history
+Multi-language support
+
+Generate the entire project in a scalable architecture with production-quality code and best practices.

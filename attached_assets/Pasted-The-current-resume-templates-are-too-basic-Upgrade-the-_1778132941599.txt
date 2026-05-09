@@ -1,0 +1,89 @@
+The current resume templates are too basic. Upgrade the resume template system to production-grade premium templates similar to Canva, FlowCV, Resume.io, and Reactive Resume.
+
+Requirements:
+
+Create visually stunning resume templates with premium-level design quality.
+Each template must have:
+Professional typography hierarchy
+Proper whitespace system
+Modern layouts
+Accent color system
+Icons for sections
+Elegant dividers
+Advanced alignment
+Grid-based layout
+Pixel-perfect spacing
+Add at least 12 highly polished templates:
+Silicon Valley Startup
+FAANG Engineer
+Modern Minimal
+Elegant Executive
+Creative Designer
+Luxury Black & Gold
+ATS Optimized
+Academic CV
+Corporate Professional
+Compact One-Page
+European Style
+Two Column Premium
+Templates should not look like plain HTML documents.
+They should look like professionally designed products people would pay for.
+Use:
+Tailwind typography utilities
+Advanced CSS grids
+Dynamic color themes
+Custom font pairing
+Lucide React icons
+Section cards
+Timeline designs
+Skill progress bars
+Modern badges/chips
+Sidebar profile layouts
+Add a visual template gallery page with preview thumbnails.
+Implement a true template engine:
+Each template must be its own component
+Shared data schema
+Dynamic rendering
+Easy future template addition
+Add advanced customization:
+Change fonts live
+Change colors live
+Change spacing live
+Drag-and-drop section ordering
+Toggle sections on/off
+Multiple page layouts
+Live scaling preview
+Improve PDF rendering quality:
+Exact spacing preservation
+Page-break optimization
+Professional print rendering
+Avoid HTML-looking exports
+Add animations:
+Smooth template switching
+Hover preview effects
+Animated section transitions
+Use modern design inspiration from:
+Dribbble resume UI concepts
+Behance CV layouts
+FlowCV
+Resume.io
+Canva resumes
+Important:
+Do NOT generate generic resume templates.
+The templates should feel like premium marketplace templates suitable for a paid SaaS product.
+Add reusable design tokens:
+spacing
+font sizes
+colors
+shadows
+border radius
+layout constants
+Add mobile responsive editing experience.
+Improve overall UI polish dramatically:
+Better shadows
+Better typography
+Better alignment
+Better visual hierarchy
+Better component consistency
+
+Rewrite the template system completely with a premium SaaS-quality design approach.

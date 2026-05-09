@@ -1,0 +1,230 @@
+import { useEffect, useRef } from "react";
+import { ClerkProvider, SignIn, SignUp, Show, useClerk, useAuth } from "@clerk/react";
+import { publishableKeyFromHost } from "@clerk/react/internal";
+import { shadcn } from "@clerk/themes";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
+import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import LandingPage from "@/pages/landing";
+import DashboardPage from "@/pages/dashboard";
+import BuilderPage from "@/pages/builder";
+import TemplatesPage from "@/pages/templates";
+import SettingsPage from "@/pages/settings";
+import ContactPage from "@/pages/contact";
+import PricingPage from "@/pages/pricing";
+import NotFound from "@/pages/not-found";
+
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+
+const clerkProxyUrl =
+  import.meta.env.PROD && import.meta.env.VITE_CLERK_PROXY_URL
+    ? import.meta.env.VITE_CLERK_PROXY_URL
+    : undefined;
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
+}
+
+if (!clerkPubKey) {
+  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: "clerk",
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: "#7c3aed",
+    colorForeground: "#0a0e1a",
+    colorMutedForeground: "#6b7280",
+    colorDanger: "#dc2626",
+    colorBackground: "#ffffff",
+    colorInput: "#f3f4f6",
+    colorInputForeground: "#0a0e1a",
+    colorNeutral: "#e5e7eb",
+    fontFamily: "Inter, system-ui, sans-serif",
+    borderRadius: "0.5rem",
+  },
+  elements: {
+    rootBox: "w-full flex justify-center",
+    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-gray-100",
+    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    headerTitle: "text-gray-900 font-semibold",
+    headerSubtitle: "text-gray-500",
+    socialButtonsBlockButtonText: "text-gray-700 font-medium",
+    formFieldLabel: "text-gray-700 font-medium",
+    footerActionLink: "text-violet-600 font-medium hover:text-violet-700",
+    footerActionText: "text-gray-500",
+    dividerText: "text-gray-400",
+    identityPreviewEditButton: "text-violet-600",
+    formFieldSuccessText: "text-green-600",
+    alertText: "text-red-600",
+    logoBox: "flex justify-center mb-1",
+    logoImage: "h-10 w-auto",
+    socialButtonsBlockButton: "border border-gray-200 hover:bg-gray-50",
+    formButtonPrimary: "bg-violet-600 hover:bg-violet-700 text-white font-medium",
+    formFieldInput: "border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white text-gray-900",
+    footerAction: "bg-gray-50",
+    dividerLine: "bg-gray-200",
+    alert: "border border-red-100 bg-red-50",
+    otpCodeFieldInput: "border-gray-200 text-gray-900",
+    formFieldRow: "",
+    main: "",
+  },
+};
+
+function SignInPage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 px-4">
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+    </div>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 px-4">
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    </div>
+  );
+}
+
+function HomeRedirect() {
+  return (
+    <>
+      <Show when="signed-in">
+        <Redirect to="/dashboard" />
+      </Show>
+      <Show when="signed-out">
+        <LandingPage />
+      </Show>
+    </>
+  );
+}
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <>
+      <Show when="signed-in">
+        <Component />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/" />
+      </Show>
+    </>
+  );
+}
+
+function ClerkAuthTokenInitializer() {
+  const { getToken, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      setAuthTokenGetter(() => getToken());
+    } else {
+      setAuthTokenGetter(null);
+    }
+  }, [getToken, isSignedIn]);
+
+  return null;
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const qc = useQueryClient();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const unsubscribe = addListener(({ user }) => {
+      const userId = user?.id ?? null;
+      if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
+        qc.clear();
+        if (!userId) setAuthTokenGetter(null);
+      }
+      prevUserIdRef.current = userId;
+    });
+    return unsubscribe;
+  }, [addListener, qc]);
+
+  return null;
+}
+
+function AppRouter() {
+  return (
+    <Switch>
+      <Route path="/" component={HomeRedirect} />
+      <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardPage} />} />
+      <Route path="/builder/:id" component={() => <ProtectedRoute component={BuilderPage} />} />
+      <Route path="/templates" component={() => <ProtectedRoute component={TemplatesPage} />} />
+      <Route path="/pricing" component={PricingPage} />
+      <Route path="/settings/*?" component={() => <ProtectedRoute component={SettingsPage} />} />
+      <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} />} />
+      <Route path="/sign-in/*?" component={SignInPage} />
+      <Route path="/sign-up/*?" component={SignUpPage} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      {...(clerkProxyUrl ? { proxyUrl: clerkProxyUrl } : {})}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      localization={{
+        signIn: {
+          start: {
+            title: "Welcome back to ResumeAI",
+            subtitle: "Sign in to continue building your resume",
+          },
+        },
+        signUp: {
+          start: {
+            title: "Create your ResumeAI account",
+            subtitle: "Join thousands of professionals landing great jobs",
+          },
+        },
+      }}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ClerkAuthTokenInitializer />
+        <ClerkQueryClientCacheInvalidator />
+        <TooltipProvider>
+          <AppRouter />
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
+}
+
+function App() {
+  return (
+    <WouterRouter base={basePath}>
+      <ClerkProviderWithRoutes />
+    </WouterRouter>
+  );
+}
+
+export default App;

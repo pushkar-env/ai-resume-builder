@@ -1,0 +1,756 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: AI-powered Resume Maker API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: resumes
+    description: Resume management
+  - name: templates
+    description: Resume templates
+  - name: ai
+    description: AI assistance
+  - name: dashboard
+    description: Dashboard analytics
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /resumes:
+    get:
+      operationId: listResumes
+      tags: [resumes]
+      summary: List all resumes for the authenticated user
+      responses:
+        "200":
+          description: List of resumes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resume"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createResume
+      tags: [resumes]
+      summary: Create a new resume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResumeBody"
+      responses:
+        "201":
+          description: Created resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resume"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/{id}:
+    get:
+      operationId: getResume
+      tags: [resumes]
+      summary: Get a resume by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateResume
+      tags: [resumes]
+      summary: Update a resume
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResumeBody"
+      responses:
+        "200":
+          description: Updated resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDetail"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteResume
+      tags: [resumes]
+      summary: Delete a resume
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/{id}/duplicate:
+    post:
+      operationId: duplicateResume
+      tags: [resumes]
+      summary: Duplicate a resume
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Duplicated resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resume"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/{id}/export:
+    post:
+      operationId: exportResume
+      tags: [resumes]
+      summary: Export resume to PDF or DOCX
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportResumeBody"
+      responses:
+        "200":
+          description: Export URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/{id}/ats-score:
+    get:
+      operationId: getAtsScore
+      tags: [resumes]
+      summary: Get ATS score for a resume
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: ATS score result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AtsScore"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /templates:
+    get:
+      operationId: listTemplates
+      tags: [templates]
+      summary: List all available resume templates
+      responses:
+        "200":
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics for the user
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/generate-summary:
+    post:
+      operationId: generateSummary
+      tags: [ai]
+      summary: Generate a professional summary using AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateSummaryBody"
+      responses:
+        "200":
+          description: Generated summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiTextResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/improve-bullet:
+    post:
+      operationId: improveBullet
+      tags: [ai]
+      summary: Improve a bullet point using AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImproveBulletBody"
+      responses:
+        "200":
+          description: Improved bullet point
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiTextResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/suggest-skills:
+    post:
+      operationId: suggestSkills
+      tags: [ai]
+      summary: Suggest skills based on job role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestSkillsBody"
+      responses:
+        "200":
+          description: Suggested skills
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSkillsResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/ats-suggestions:
+    post:
+      operationId: getAtsSuggestions
+      tags: [ai]
+      summary: Get ATS optimization suggestions for resume content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtsSuggestionsBody"
+      responses:
+        "200":
+          description: ATS suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AtsSuggestionsResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Resume:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        title:
+          type: string
+        templateId:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+        isPublic:
+          type: boolean
+        shareToken:
+          type: ["string", "null"]
+        viewCount:
+          type: integer
+        downloadCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - userId
+        - title
+        - templateId
+        - accentColor
+        - fontFamily
+        - isPublic
+        - shareToken
+        - viewCount
+        - downloadCount
+        - createdAt
+        - updatedAt
+
+    ResumeDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        title:
+          type: string
+        templateId:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+        isPublic:
+          type: boolean
+        shareToken:
+          type: ["string", "null"]
+        viewCount:
+          type: integer
+        downloadCount:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResumeSection"
+      required:
+        - id
+        - userId
+        - title
+        - templateId
+        - accentColor
+        - fontFamily
+        - isPublic
+        - shareToken
+        - viewCount
+        - downloadCount
+        - createdAt
+        - updatedAt
+        - sections
+
+    ResumeSection:
+      type: object
+      properties:
+        id:
+          type: integer
+        resumeId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        content:
+          type: object
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+      required:
+        - id
+        - resumeId
+        - type
+        - title
+        - content
+        - displayOrder
+        - isVisible
+
+    CreateResumeBody:
+      type: object
+      properties:
+        title:
+          type: string
+        templateId:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+      required:
+        - title
+        - templateId
+
+    UpdateResumeBody:
+      type: object
+      properties:
+        title:
+          type: string
+        templateId:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+        isPublic:
+          type: boolean
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateSectionItem"
+
+    UpdateSectionItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        content:
+          type: object
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+      required:
+        - id
+
+    ExportResumeBody:
+      type: object
+      properties:
+        format:
+          type: string
+          enum: [pdf, docx, json]
+      required:
+        - format
+
+    ExportResult:
+      type: object
+      properties:
+        url:
+          type: string
+        format:
+          type: string
+      required:
+        - url
+        - format
+
+    AtsScore:
+      type: object
+      properties:
+        score:
+          type: integer
+        maxScore:
+          type: integer
+        feedback:
+          type: array
+          items:
+            type: string
+        passedChecks:
+          type: array
+          items:
+            type: string
+        failedChecks:
+          type: array
+          items:
+            type: string
+      required:
+        - score
+        - maxScore
+        - feedback
+        - passedChecks
+        - failedChecks
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        previewImageUrl:
+          type: string
+        isPremium:
+          type: boolean
+      required:
+        - id
+        - name
+        - description
+        - category
+        - previewImageUrl
+        - isPremium
+
+    DashboardStats:
+      type: object
+      properties:
+        totalResumes:
+          type: integer
+        totalViews:
+          type: integer
+        totalDownloads:
+          type: integer
+        recentResumes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Resume"
+        resumesByTemplate:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateCount"
+      required:
+        - totalResumes
+        - totalViews
+        - totalDownloads
+        - recentResumes
+        - resumesByTemplate
+
+    TemplateCount:
+      type: object
+      properties:
+        templateId:
+          type: string
+        count:
+          type: integer
+      required:
+        - templateId
+        - count
+
+    GenerateSummaryBody:
+      type: object
+      properties:
+        jobTitle:
+          type: string
+        yearsOfExperience:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: string
+        industry:
+          type: string
+        currentText:
+          type: string
+          description: Existing summary text or notes the user has typed; AI will refine/expand on this rather than starting from scratch.
+      required:
+        - jobTitle
+
+    ImproveBulletBody:
+      type: object
+      properties:
+        bullet:
+          type: string
+        context:
+          type: string
+      required:
+        - bullet
+
+    SuggestSkillsBody:
+      type: object
+      properties:
+        jobTitle:
+          type: string
+        industry:
+          type: string
+        existingSkills:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+          description: Optional summary or experience context to ground skill suggestions.
+      required:
+        - jobTitle
+
+    AiTextResult:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+
+    AiSkillsResult:
+      type: object
+      properties:
+        skills:
+          type: array
+          items:
+            type: string
+      required:
+        - skills
+
+    AtsSuggestionsBody:
+      type: object
+      properties:
+        resumeContent:
+          type: string
+        jobDescription:
+          type: string
+      required:
+        - resumeContent
+
+    AtsSuggestionsResult:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            type: string
+        keywords:
+          type: array
+          items:
+            type: string
+        score:
+          type: integer
+      required:
+        - suggestions
+        - keywords
+        - score
