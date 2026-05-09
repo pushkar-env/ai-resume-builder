@@ -6,7 +6,7 @@ import path from "path";
 export default defineConfig(async ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const rawPort = env.PORT || "5173";
-  const apiProxyTarget = env.API_PROXY_TARGET ?? "http://localhost:8080";
+  const apiProxyTarget = env.API_PROXY_TARGET ?? "https://ai-resume-api-production.up.railway.app";
 
   const port = Number(rawPort);
 

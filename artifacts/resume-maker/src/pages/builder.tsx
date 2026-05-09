@@ -200,6 +200,16 @@ function SortableSectionItem({
 
 /* ─── ExportDialog — fully client-side ─── */
 
+const loadHtml2Pdf = () => {
+  return new Promise<any>((resolve) => {
+    if ((window as any).html2pdf) return resolve((window as any).html2pdf);
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    script.onload = () => resolve((window as any).html2pdf);
+    document.body.appendChild(script);
+  });
+};
+
 function ExportDialog({
   open,
   onClose,
@@ -226,6 +236,34 @@ function ExportDialog({
           return;
         }
         if (format === "pdf") {
+          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+          
+          if (isMobile) {
+            toast({ title: "Generating PDF...", description: "Please wait a moment." });
+            try {
+              const html2pdf = await loadHtml2Pdf();
+              const previewEl = document.querySelector<HTMLElement>("[data-resume-export-target]");
+              if (!previewEl) throw new Error("Preview element not found");
+              
+              const opt = {
+                margin:       0,
+                filename:     `${name}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+              };
+              
+              await html2pdf().set(opt).from(previewEl).save();
+              toast({ title: "PDF downloaded successfully" });
+              onClose();
+              return;
+            } catch (err) {
+              console.error("PDF generation failed:", err);
+              toast({ title: "PDF Generation Failed", description: "Falling back to print dialog.", variant: "destructive" });
+              // fall through to print dialog
+            }
+          }
+
           const win = window.open("", "_blank");
           if (!win) {
             toast({ title: "Pop-ups blocked — please allow pop-ups", variant: "destructive" });
@@ -588,7 +626,7 @@ export default function BuilderPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-[100dvh] overflow-hidden">
       <SEO 
         title={`${resume?.title || 'Untitled Resume'} - Editor | ResumeAI`}
         description="Edit your professional resume with real-time AI suggestions."
@@ -607,9 +645,12 @@ export default function BuilderPage() {
 
       <div className="flex flex-1 overflow-hidden relative pb-14 lg:pb-0">
         {/* Left sidebar — sections */}
-        <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
-          <div className="px-3 pt-3 pb-2">
+        <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
+          <div className="px-3 pt-3 pb-2 shrink-0">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">Sections</p>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="px-3 pb-2">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-0.5">
@@ -627,9 +668,10 @@ export default function BuilderPage() {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
+            </div>
+          </ScrollArea>
 
-          <div className="mt-auto border-t border-border p-3 space-y-2">
+          <div className="mt-auto border-t border-border p-3 space-y-2 shrink-0">
             {/* Template selector */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
@@ -802,9 +844,9 @@ export default function BuilderPage() {
         {/* Right — live preview */}
         <div 
           ref={containerRef}
-          className={`flex-1 overflow-auto bg-muted/40 flex-col items-center py-6 ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
+          className={`flex-1 overflow-auto bg-muted/40 flex-col py-6 ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
         >
-          <div className="w-full flex flex-col items-center pb-20 relative">
+          <div className="min-w-max w-full flex flex-col items-center pb-20 relative px-4 mx-auto">
             <div className="mb-4 flex flex-col items-center justify-center gap-3">
               <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">Live Preview — A4</span>
               
@@ -840,8 +882,10 @@ export default function BuilderPage() {
                 className="absolute top-0 left-0 transition-transform duration-200" 
                 style={{ 
                   width: "794px", 
-                  transform: `scale(${scale})`, 
-                  transformOrigin: "top left" 
+                  transform: `scale(${scale}) translateZ(0)`, 
+                  transformOrigin: "top left",
+                  backfaceVisibility: "hidden",
+                  WebkitFontSmoothing: "antialiased"
                 }}
               >
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
