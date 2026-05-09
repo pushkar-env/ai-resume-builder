@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const rawPort = env.PORT || "5173";
   const apiProxyTarget = env.API_PROXY_TARGET ?? "https://ai-resume-api-production.up.railway.app";

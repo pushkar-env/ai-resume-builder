@@ -352,10 +352,10 @@ export default function BuilderPage() {
     return window.localStorage.getItem(`resumeFontColor:${id}`) || "#111827";
   });
   const [fontScale, setFontScale] = useState<number>(() => {
-    if (typeof window === "undefined" || !id) return 1;
+    if (typeof window === "undefined" || !id) return 1.2;
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
     const n = v ? Number(v) : NaN;
-    return Number.isFinite(n) && n > 0 ? n : 1;
+    return Number.isFinite(n) && n > 0 ? n : 1.2;
   });
   const [templateId, setTemplateId] = useState("modern");
   const [showPaywall, setShowPaywall] = useState(false);
@@ -368,7 +368,7 @@ export default function BuilderPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [autoScale, setAutoScale] = useState(0.7);
-  const [userScale, setUserScale] = useState<number | null>(null);
+  const [userScale, setUserScale] = useState<number | null>(1);
   const [contentHeight, setContentHeight] = useState(1123);
 
   const scale = userScale ?? autoScale;
@@ -425,7 +425,8 @@ export default function BuilderPage() {
           e.touches[0].clientY - e.touches[1].clientY
         );
         const ratio = dist / initialPinchDistRef.current;
-        const newScale = Math.min(Math.max(0.2, initialScaleRef.current * ratio), 2.5);
+        const dampedRatio = 1 + (ratio - 1) * 0.4; // Dampen for smoother, finer control
+        const newScale = Math.min(Math.max(0.2, initialScaleRef.current * dampedRatio), 2.5);
         setUserScale(newScale);
       }
     };
@@ -497,7 +498,7 @@ export default function BuilderPage() {
     if (typeof window === "undefined" || !id) return;
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
     const n = v ? Number(v) : NaN;
-    setFontScale(Number.isFinite(n) && n > 0 ? n : 1);
+    setFontScale(Number.isFinite(n) && n > 0 ? n : 1.2);
     
     const c = window.localStorage.getItem(`resumeFontColor:${id}`);
     setFontColor(c || "#111827");
