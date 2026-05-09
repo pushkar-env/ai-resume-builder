@@ -24,10 +24,10 @@ This guide provides step-by-step instructions to deploy the AI Resume Builder pr
 4. Connect your GitHub account and select your repository.
 5. **Configuration:**
    * **Name:** `ai-resume-api`
-   * **Root Directory:** `artifacts/api-server`
+   * **Root Directory:** *(leave blank / empty)*
    * **Environment:** `Node`
-   * **Build Command:** `pnpm install && pnpm run build`
-   * **Start Command:** `pnpm run start`
+   * **Build Command:** `pnpm install && pnpm --filter @workspace/api-server run build`
+   * **Start Command:** `pnpm --filter @workspace/api-server run start`
    * **Instance Type:** Free
 6. **Environment Variables:**
    * Add `DATABASE_URL` (from Neon)
@@ -46,9 +46,9 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
 1. Log into [Railway.app](https://railway.app/).
 2. Create a **New Project** and select **Deploy from GitHub repo**.
 3. Choose your repository.
-4. Go to **Settings > General** for the service and set the **Root Directory** to `/artifacts/api-server`.
-5. Set the **Build Command** to `pnpm install && pnpm run build`.
-6. Set the **Start Command** to `pnpm run start`.
+4. Go to **Settings > General** for the service and ensure the **Root Directory** is left blank (or `/`). This is critical for monorepos!
+5. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/api-server run build`.
+6. Set the **Start Command** to `pnpm --filter @workspace/api-server run start`.
 7. Go to **Variables** and add all the necessary environment variables listed in the Render section above (including `DATABASE_URL`, `FRONTEND_URL`, Clerk keys, and Razorpay keys).
 8. Railway will automatically build and deploy. Once complete, copy the provided URL (e.g., `https://ai-resume-api.up.railway.app`) and use it for your `VITE_API_URL` on Vercel.
 

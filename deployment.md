@@ -12,8 +12,8 @@ You can deploy the backend on Render, Railway, or any Node.js hosting platform.
 1. Log into [Railway](https://railway.app/).
 2. Create a **New Project** and select **Deploy from GitHub repo**.
 3. Choose your repository containing this project.
-4. Go to **Settings > General** for the service and set the **Root Directory** to `/artifacts/api-server` (or if Railway detects the monorepo, configure it to run the api-server).
-5. Ensure the start command is configured appropriately (e.g. `pnpm run build && pnpm run start`).
+4. Go to **Settings > General** for the service and ensure the **Root Directory** is left blank (or `/`). This is critical for monorepos!
+5. Ensure the build command is configured to `pnpm install && pnpm --filter @workspace/api-server run build` and start command to `pnpm --filter @workspace/api-server run start`.
 6. Go to **Variables** and add all necessary environment variables:
    - `CLERK_SECRET_KEY`
    - `DATABASE_URL`
@@ -29,10 +29,10 @@ You can deploy the backend on Render, Railway, or any Node.js hosting platform.
 1. Log into [Render](https://render.com/).
 2. Click **New > Web Service**.
 3. Connect your GitHub repository.
-4. Set the **Root Directory** to `artifacts/api-server`.
+4. Ensure the **Root Directory** is left blank / empty.
 5. Set the **Environment** to `Node`.
-6. Set the **Build Command** to `pnpm install && pnpm build`.
-7. Set the **Start Command** to `pnpm start` (or `node dist/index.js`).
+6. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/api-server run build`.
+7. Set the **Start Command** to `pnpm --filter @workspace/api-server run start`.
 8. Add your Environment Variables.
 9. Click **Create Web Service**.
 
