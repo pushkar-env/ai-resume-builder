@@ -200,16 +200,6 @@ function SortableSectionItem({
 
 /* ─── ExportDialog — fully client-side ─── */
 
-const loadHtml2Pdf = () => {
-  return new Promise<any>((resolve) => {
-    if ((window as any).html2pdf) return resolve((window as any).html2pdf);
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-    script.onload = () => resolve((window as any).html2pdf);
-    document.body.appendChild(script);
-  });
-};
-
 function ExportDialog({
   open,
   onClose,
@@ -236,41 +226,16 @@ function ExportDialog({
           return;
         }
         if (format === "pdf") {
-          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-          
-          if (isMobile) {
-            toast({ title: "Generating PDF...", description: "Please wait a moment." });
-            try {
-              const html2pdf = await loadHtml2Pdf();
-              const previewEl = document.querySelector<HTMLElement>("[data-resume-export-target]");
-              if (!previewEl) throw new Error("Preview element not found");
-              
-              const opt = {
-                margin:       0,
-                filename:     `${name}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-              };
-              
-              await html2pdf().set(opt).from(previewEl).save();
-              toast({ title: "PDF downloaded successfully" });
-              onClose();
-              return;
-            } catch (err) {
-              console.error("PDF generation failed:", err);
-              toast({ title: "PDF Generation Failed", description: "Falling back to print dialog.", variant: "destructive" });
-              // fall through to print dialog
-            }
-          }
+          // Use a hidden iframe for printing instead of window.open popups to prevent Safari from freezing
+          const iframe = document.createElement("iframe");
+          iframe.style.position = "fixed";
+          iframe.style.right = "0";
+          iframe.style.bottom = "0";
+          iframe.style.width = "0";
+          iframe.style.height = "0";
+          iframe.style.border = "0";
+          document.body.appendChild(iframe);
 
-          const win = window.open("", "_blank");
-          if (!win) {
-            toast({ title: "Pop-ups blocked — please allow pop-ups", variant: "destructive" });
-            return;
-          }
-          // Inject a tiny ready-detection script that waits for stylesheets + fonts
-          // before triggering print, so output is never partially styled.
           const htmlWithReady = html.replace(
             "</body>",
             `<script>
@@ -285,7 +250,6 @@ function ExportDialog({
                     l.addEventListener('load', finish);
                     l.addEventListener('error', finish);
                   });
-                  // Safety net: never block more than 3s
                   setTimeout(cb, 3000);
                 }
                 function go(){
@@ -293,7 +257,6 @@ function ExportDialog({
                   Promise.resolve(fontsReady).then(function(){
                     requestAnimationFrame(function(){
                       window.focus();
-                      window.onafterprint = function() { window.close(); };
                       window.print();
                     });
                   });
@@ -303,10 +266,23 @@ function ExportDialog({
               })();
             </script></body>`
           );
-          win.document.open();
-          win.document.write(htmlWithReady);
-          win.document.close();
-          toast({ title: 'Print dialog opened — click "Save" to download PDF' });
+
+          const doc = iframe.contentWindow?.document;
+          if (doc) {
+            doc.open();
+            doc.write(htmlWithReady);
+            doc.close();
+            toast({ title: 'Print dialog opened — save as PDF', description: "On mobile, use the share button to Save to Files." });
+            
+            // Clean up iframe safely after a delay to ensure print dialog doesn't close immediately
+            setTimeout(() => {
+              if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+              }
+            }, 60000);
+          } else {
+            toast({ title: "Failed to open print frame", variant: "destructive" });
+          }
         } else {
           downloadBlob(html, `${name}.doc`, "application/msword");
           toast({ title: "Word document downloaded" });
