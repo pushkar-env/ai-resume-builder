@@ -93,7 +93,13 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     <div className="w-full h-full relative overflow-hidden bg-muted/10 pointer-events-none">
       <div 
         className="absolute top-0 left-1/2 -translate-x-1/2" 
-        style={{ width: 794, transform: "scale(0.32)", transformOrigin: "top center" }}
+        style={{ 
+          width: 794, 
+          transform: "scale(0.32) translateZ(0)", 
+          transformOrigin: "top center",
+          backfaceVisibility: "hidden",
+          WebkitFontSmoothing: "antialiased",
+        }}
       >
         <ResumePreview 
           resume={resume} 
@@ -145,7 +151,7 @@ export default function DashboardPage() {
         setCreateOpen(false);
         navigate(`/builder/${data.id}`);
       },
-      onError: () => toast({ title: "Failed to create resume", variant: "destructive" }),
+      onError: (error: any) => toast({ title: "Failed to create resume", description: error?.message || "Unknown error occurred", variant: "destructive" }),
     },
   });
 

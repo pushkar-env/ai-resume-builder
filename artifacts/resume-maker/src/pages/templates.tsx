@@ -57,7 +57,9 @@ function TemplateThumbnail({ templateId, accent }: { templateId: string; accent:
         style={{
           width: 794,
           transformOrigin: "top left",
-          transform: "scale(0.36)",
+          transform: "scale(0.36) translateZ(0)",
+          backfaceVisibility: "hidden",
+          WebkitFontSmoothing: "antialiased",
           pointerEvents: "none",
         }}
       >
@@ -87,7 +89,7 @@ export default function TemplatesPage() {
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         navigate(`/builder/${data.id}`);
       },
-      onError: () => toast({ title: "Failed to create resume", variant: "destructive" }),
+      onError: (error: any) => toast({ title: "Failed to create resume", description: error?.message || "Unknown error occurred", variant: "destructive" }),
     },
   });
 
