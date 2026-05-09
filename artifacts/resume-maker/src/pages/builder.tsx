@@ -398,6 +398,56 @@ export default function BuilderPage() {
     return () => obs.disconnect();
   }, []);
 
+  // Pinch-to-zoom implementation
+  const initialPinchDistRef = useRef<number | null>(null);
+  const initialScaleRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialPinchDistRef.current = dist;
+        initialScaleRef.current = userScale ?? autoScale;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialPinchDistRef.current !== null && initialScaleRef.current !== null) {
+        e.preventDefault(); // prevent native page zoom to allow custom scaling
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const ratio = dist / initialPinchDistRef.current;
+        const newScale = Math.min(Math.max(0.2, initialScaleRef.current * ratio), 2.5);
+        setUserScale(newScale);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        initialPinchDistRef.current = null;
+        initialScaleRef.current = null;
+      }
+    };
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [userScale, autoScale]);
+
   // Track which resume ID we've initialized from so re-fetches don't overwrite local edits
   const initializedResumeIdRef = useRef<number | null>(null);
 
