@@ -366,7 +366,8 @@ export default function BuilderPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [autoScale, setAutoScale] = useState(0.7);
-  const [userScale, setUserScale] = useState<number | null>(1);
+  // null => auto "fit to screen" mode
+  const [userScale, setUserScale] = useState<number | null>(null);
   const [contentHeight, setContentHeight] = useState(1123);
 
   const scale = userScale ?? autoScale;
@@ -376,16 +377,22 @@ export default function BuilderPage() {
   useEffect(() => {
     const updateScale = () => {
       if (!containerRef.current) return;
-      const width = containerRef.current.clientWidth;
-      const availableWidth = width - 48; 
-      const newScale = Math.min(1, availableWidth / 794);
+      const el = containerRef.current;
+      const width = el.clientWidth;
+      const height = el.clientHeight;
+      const availableWidth = Math.max(0, width - 48);
+      // leave room for the sticky controls + breathing space
+      const availableHeight = Math.max(0, height - 140);
+      const byWidth = availableWidth / 794;
+      const byHeight = availableHeight / Math.max(1123, contentHeight);
+      const newScale = Math.min(1, byWidth, byHeight);
       setAutoScale(newScale);
     };
     
     updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
-  }, [mobileTab]);
+  }, [mobileTab, contentHeight]);
 
   // Smoothly animate preview scale toward a target (more like image pinch zoom).
   const animateScaleToward = useCallback(() => {
@@ -448,8 +455,8 @@ export default function BuilderPage() {
           e.touches[0].clientY - e.touches[1].clientY
         );
         const ratio = dist / initialPinchDistRef.current;
-        const dampedRatio = 1 + (ratio - 1) * 0.22; // finer, less snappy
-        const newTarget = Math.min(Math.max(0.2, initialScaleRef.current * dampedRatio), 2.5);
+        const dampedRatio = 1 + (ratio - 1) * 0.35; // responsive but still controllable
+        const newTarget = Math.min(Math.max(0.1, initialScaleRef.current * dampedRatio), 3);
         targetScaleRef.current = newTarget;
         animateScaleToward();
       }
@@ -967,11 +974,11 @@ export default function BuilderPage() {
               
               {/* Zoom Controls */}
               <div className="sticky top-4 z-10 flex items-center gap-1 bg-background/80 backdrop-blur-md border border-border p-1 rounded-full shadow-sm">
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.max(0.2, (s || autoScale) - 0.1))}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.max(0.1, (s ?? autoScale) - 0.1))}>
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <span className="text-[10px] font-medium w-10 text-center">{Math.round(scale * 100)}%</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.min(2, (s || autoScale) + 0.1))}>
+                <span className="text-[10px] font-medium w-12 text-center">{(Math.round(scale * 1000) / 10).toFixed(1)}%</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.min(3, (s ?? autoScale) + 0.1))}>
                   <ZoomIn className="h-4 w-4" />
                 </Button>
                 {userScale !== null && (
