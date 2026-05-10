@@ -664,7 +664,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
   );
 
   return (
-    <div className="px-12 py-10" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+    <div className="px-12 py-10" style={{ fontFamily: font }}>
       {/* Header */}
       <div className="text-center mb-1">
         <h1 className="text-[22px] tracking-[0.06em] text-gray-900" style={{ fontWeight: 400 }}>
@@ -1055,7 +1055,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
   );
 
   return (
-    <div className="px-8 py-7" style={{ fontFamily: "'Arial', 'Helvetica', sans-serif" }}>
+    <div className="px-8 py-7" style={{ fontFamily: font }}>
       <div className="text-center mb-3">
         <h1 className="text-[17px] font-black text-gray-950">{str(p.name) || "Your Name"}</h1>
         <p className="text-[8.5px] text-gray-700 mt-0.5">
@@ -1140,7 +1140,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
   );
 
   return (
-    <div className="px-10 py-8" style={{ fontFamily: "Georgia, serif" }}>
+    <div className="px-10 py-8" style={{ fontFamily: font }}>
       <div className="text-center mb-4 pb-3" style={{ borderBottom: `2px solid ${color}` }}>
         <h1 className="text-[20px] font-bold text-gray-900 tracking-wide">{str(p.name) || "Your Name"}</h1>
         {roleOf(p) && <p className="text-[10px] text-gray-600 italic mt-0.5">{roleOf(p)}</p>}
