@@ -21,6 +21,7 @@ const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
 );
+const isE2E = import.meta.env.VITE_E2E === "true";
 
 const clerkProxyUrl =
   import.meta.env.PROD && import.meta.env.VITE_CLERK_PROXY_URL
@@ -34,7 +35,7 @@ function stripBase(path: string): string {
     : path;
 }
 
-if (!clerkPubKey) {
+if (!clerkPubKey && !isE2E) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
 }
 
@@ -220,6 +221,42 @@ function ClerkProviderWithRoutes() {
 }
 
 function App() {
+  if (isE2E) {
+    // E2E mode: allow responsive tests to run without Clerk secrets.
+    return (
+      <WouterRouter base={basePath}>
+        <Switch>
+          <Route path="/" component={LandingPage} />
+          <Route path="/pricing" component={PricingPage} />
+          <Route path="/sign-in/*?" component={() => (
+            <div className="flex min-h-[100dvh] items-center justify-center px-4">
+              <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
+                <h1 className="text-lg font-semibold">Sign in</h1>
+                <p className="text-sm text-muted-foreground mt-1">E2E placeholder (Clerk disabled).</p>
+              </div>
+            </div>
+          )} />
+          <Route path="/sign-up/*?" component={() => (
+            <div className="flex min-h-[100dvh] items-center justify-center px-4">
+              <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
+                <h1 className="text-lg font-semibold">Sign up</h1>
+                <p className="text-sm text-muted-foreground mt-1">E2E placeholder (Clerk disabled).</p>
+              </div>
+            </div>
+          )} />
+          {/* Protected routes redirect to home in E2E mode */}
+          <Route path="/dashboard" component={() => <Redirect to="/" />} />
+          <Route path="/builder/:id" component={() => <Redirect to="/" />} />
+          <Route path="/templates" component={() => <Redirect to="/" />} />
+          <Route path="/settings/*?" component={() => <Redirect to="/" />} />
+          <Route path="/contact" component={() => <Redirect to="/" />} />
+          <Route component={NotFound} />
+        </Switch>
+        <Toaster />
+      </WouterRouter>
+    );
+  }
+
   return (
     <WouterRouter base={basePath}>
       <ClerkProviderWithRoutes />

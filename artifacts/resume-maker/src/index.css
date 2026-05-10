@@ -257,6 +257,19 @@
     background-color: hsl(var(--muted) / 0.3);
     padding: 4px !important;
   }
+  /* Add Undo / Redo buttons (Quill has handlers but no default icons). */
+  .ql-snow.ql-toolbar button.ql-undo::before,
+  .ql-snow .ql-toolbar button.ql-undo::before {
+    content: "↶";
+    font-size: 14px;
+    line-height: 1;
+  }
+  .ql-snow.ql-toolbar button.ql-redo::before,
+  .ql-snow .ql-toolbar button.ql-redo::before {
+    content: "↷";
+    font-size: 14px;
+    line-height: 1;
+  }
   .ql-container.ql-snow {
     border-bottom-left-radius: var(--radius);
     border-bottom-right-radius: var(--radius);

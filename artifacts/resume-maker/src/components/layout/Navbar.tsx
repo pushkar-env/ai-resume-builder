@@ -223,7 +223,7 @@ export function BuilderNavbar({ title, atsScore, onExport, onRename }: { title: 
             onChange={(e) => setEditTitle(e.target.value)}
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
-            className="h-7 w-48 px-2 text-sm font-medium bg-muted border-border rounded-md outline-none focus:ring-1 focus:ring-primary"
+            className="h-7 w-40 sm:w-48 max-w-[55vw] px-2 text-sm font-medium bg-muted border-border rounded-md outline-none focus:ring-1 focus:ring-primary"
             autoFocus
           />
         ) : (

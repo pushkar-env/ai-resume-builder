@@ -9,10 +9,27 @@ interface RichTextEditorProps {
 }
 
 const modules = {
-  toolbar: [
-    ["bold", "italic"],
-    ["clean"],
-  ],
+  toolbar: {
+    container: [
+      ["bold", "italic"],
+      ["undo", "redo", "clean"],
+    ],
+    handlers: {
+      undo: function () {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any).quill?.history?.undo?.();
+      },
+      redo: function () {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any).quill?.history?.redo?.();
+      },
+    },
+  },
+  history: {
+    delay: 800,
+    maxStack: 200,
+    userOnly: true,
+  },
 };
 
 const formats = ["bold", "italic"];
