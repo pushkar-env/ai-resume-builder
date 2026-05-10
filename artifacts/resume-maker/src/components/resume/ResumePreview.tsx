@@ -136,7 +136,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   if (!text && !label && !link) return null;
   return (
     <>
-      <span dangerouslySetInnerHTML={{ __html: text }} />
+      <div dangerouslySetInnerHTML={{ __html: text }} className="inline [&>p]:inline [&>p]:m-0" />
       {link ? (
         <>{" "}<a href={ensureProto(link)} target="_blank" rel="noreferrer noopener"
               className="underline underline-offset-2 font-semibold"
@@ -359,7 +359,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <p className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></p>
+                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -450,7 +450,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                       <div key={j} className="flex gap-1.5 mt-1">
                         <span className="text-[8px] text-gray-400 shrink-0">▸</span>
-                        <p className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></p>
+                        <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
@@ -583,7 +583,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
                   <p className="text-[10.5px] font-semibold text-gray-800">{str(e.title)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <p key={j} className="text-[8.5px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></p>
+                    <div key={j} className="text-[8.5px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></div>
                   ))}
                 </div>
               </div>
@@ -709,7 +709,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-2 mt-1">
                     <span className="text-[8px] shrink-0 mt-0.5" style={{ color }}>—</span>
-                    <p className="text-[8.5px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></p>
+                    <div className="text-[8.5px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -875,7 +875,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <p className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></p>
+                      <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -966,7 +966,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-1.5 mt-1.5">
                     <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: gold }} />
-                    <p className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></p>
+                    <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -1075,7 +1075,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
                 <p className="text-[8.5px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <p key={j} className="text-[8.5px] text-gray-700 leading-relaxed ml-3">• <BulletContent b={b} color={color} /></p>
+                <div key={j} className="text-[8.5px] text-gray-700 leading-relaxed ml-3">• <BulletContent b={b} color={color} /></div>
               ))}
             </div>
           ))}
@@ -1184,7 +1184,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                 <p className="text-[8.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <p key={j} className="text-[8.5px] text-gray-700 ml-3 mt-0.5">• <BulletContent b={b} color={color} /></p>
+                <div key={j} className="text-[8.5px] text-gray-700 ml-3 mt-0.5">• <BulletContent b={b} color={color} /></div>
               ))}
             </div>
           ))}
@@ -1283,7 +1283,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="text-[7.5px] shrink-0 mt-0.5 font-bold" style={{ color: navy }}>›</span>
-                      <p className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></p>
+                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1403,7 +1403,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
                   <p className="text-[7.5px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
                 </div>
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
-                  <p key={j} className="text-[8px] text-gray-600 leading-[1.5] ml-1">· <BulletContent b={b} color={color} /></p>
+                  <div key={j} className="text-[8px] text-gray-600 leading-[1.5] ml-1">· <BulletContent b={b} color={color} /></div>
                 ))}
               </div>
             ))}
@@ -1546,7 +1546,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                       <div key={j} className="flex gap-1.5 mt-1">
                         <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                        <p className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></p>
+                        <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
@@ -1676,7 +1676,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <p className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></p>
+                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1724,6 +1724,11 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
       {fColor && (
         <style dangerouslySetInnerHTML={{
           __html: `
+            .a4-page {
+              word-break: break-word;
+              overflow-wrap: break-word;
+            }
+
             .a4-page .text-gray-950, .a4-page .text-gray-900,
             .a4-page .text-gray-800, .a4-page .text-gray-700,
             .a4-page .text-black, .a4-page .text-slate-800,

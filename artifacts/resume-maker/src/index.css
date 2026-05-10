@@ -265,6 +265,9 @@
     font-family: inherit !important;
   }
   .ql-editor {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
     min-height: 80px;
     font-size: 0.875rem; /* text-sm */
     line-height: 1.5;
