@@ -370,6 +370,8 @@ export default function BuilderPage() {
   const [contentHeight, setContentHeight] = useState(1123);
 
   const scale = userScale ?? autoScale;
+  const targetScaleRef = useRef<number>(scale);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const updateScale = () => {
@@ -384,6 +386,25 @@ export default function BuilderPage() {
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
   }, [mobileTab]);
+
+  // Smoothly animate preview scale toward a target (more like image pinch zoom).
+  const animateScaleToward = useCallback(() => {
+    if (rafRef.current) return;
+    const tick = () => {
+      rafRef.current = null;
+      const current = userScale ?? autoScale;
+      const target = targetScaleRef.current;
+      const delta = target - current;
+      if (Math.abs(delta) < 0.002) {
+        if (userScale !== null) setUserScale(target);
+        return;
+      }
+      const next = current + delta * 0.18; // easing factor for fine control
+      if (userScale !== null) setUserScale(next);
+      rafRef.current = window.requestAnimationFrame(tick);
+    };
+    rafRef.current = window.requestAnimationFrame(tick);
+  }, [autoScale, userScale]);
 
   useEffect(() => {
     if (!contentRef.current) return;
@@ -406,12 +427,16 @@ export default function BuilderPage() {
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
+        // Ensure we're in manual scaling mode once the user pinches.
+        if (userScale === null) setUserScale(autoScale);
         const dist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY
         );
         initialPinchDistRef.current = dist;
-        initialScaleRef.current = userScale ?? autoScale;
+        const base = (userScale ?? autoScale);
+        initialScaleRef.current = base;
+        targetScaleRef.current = base;
       }
     };
 
@@ -423,9 +448,10 @@ export default function BuilderPage() {
           e.touches[0].clientY - e.touches[1].clientY
         );
         const ratio = dist / initialPinchDistRef.current;
-        const dampedRatio = 1 + (ratio - 1) * 0.4; // Dampen for smoother, finer control
-        const newScale = Math.min(Math.max(0.2, initialScaleRef.current * dampedRatio), 2.5);
-        setUserScale(newScale);
+        const dampedRatio = 1 + (ratio - 1) * 0.22; // finer, less snappy
+        const newTarget = Math.min(Math.max(0.2, initialScaleRef.current * dampedRatio), 2.5);
+        targetScaleRef.current = newTarget;
+        animateScaleToward();
       }
     };
 
@@ -445,7 +471,7 @@ export default function BuilderPage() {
       el.removeEventListener("touchmove", handleTouchMove);
       el.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [userScale, autoScale]);
+  }, [userScale, autoScale, animateScaleToward]);
 
   // Track which resume ID we've initialized from so re-fetches don't overwrite local edits
   const initializedResumeIdRef = useRef<number | null>(null);
@@ -472,9 +498,12 @@ export default function BuilderPage() {
         // Update cache directly — no re-fetch that would overwrite local edits
         queryClient.setQueryData(getGetResumeQueryKey(resumeId), data);
       },
-      onError: () => toast({ title: "Failed to save", variant: "destructive" }),
+      // Handle errors per-save attempt to avoid stale failures showing toasts.
     },
   });
+
+  const saveSeqRef = useRef(0);
+  const latestSaveSeqRef = useRef(0);
 
   // Only initialize local state the first time this resume loads (not on every save/re-fetch)
   useEffect(() => {
@@ -518,23 +547,37 @@ export default function BuilderPage() {
   const scheduleSave = useCallback(
     (sections: Section[], accent: string, font: string, template: string, fColor: string, bColor: string) => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      const seq = ++saveSeqRef.current;
+      latestSaveSeqRef.current = seq;
       saveTimeoutRef.current = setTimeout(() => {
-        updateResume.mutate({
-          id: resumeId,
-          data: {
-            accentColor: accent,
-            fontFamily: font,
-            fontColor: fColor,
-            backgroundColor: bColor,
-            templateId: template,
-            sections: sections.map((s) => ({
-              id: s.id,
-              content: s.content as Record<string, unknown>,
-              displayOrder: s.displayOrder,
-              isVisible: s.isVisible,
-            })),
+        updateResume.mutate(
+          {
+            id: resumeId,
+            data: {
+              accentColor: accent,
+              fontFamily: font,
+              fontColor: fColor,
+              backgroundColor: bColor,
+              templateId: template,
+              sections: sections.map((s) => ({
+                id: s.id,
+                content: s.content as Record<string, unknown>,
+                displayOrder: s.displayOrder,
+                isVisible: s.isVisible,
+              })),
+            },
           },
-        });
+          {
+            onError: (err: unknown) => {
+              // Only show errors for the latest attempted save.
+              if (seq !== latestSaveSeqRef.current) return;
+              const msg = (err as { message?: string })?.message ?? "";
+              // Ignore common "request cancelled" style errors.
+              if (/aborted|cancelled|canceled|AbortError/i.test(msg)) return;
+              toast({ title: "Failed to save", description: msg || undefined, variant: "destructive" });
+            },
+          },
+        );
       }, 800);
     },
     [resumeId, updateResume]
@@ -692,170 +735,174 @@ export default function BuilderPage() {
 
       <div className="flex flex-1 overflow-hidden relative pb-14 lg:pb-0">
         {/* Left sidebar — sections */}
-        <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
+        <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden min-h-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
           <div className="px-3 pt-3 pb-2 shrink-0">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2">Sections</p>
           </div>
-          <ScrollArea className="flex-1">
-            <div className="px-3 pb-2">
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-0.5">
-                  {localSections.map((s) => (
-                    <SortableSectionItem
-                      key={s.id}
-                      section={s}
-                      isActive={activeSectionId === s.id}
-                      onSelect={() => {
-                        setActiveSectionId(s.id);
-                        if (window.innerWidth < 1024) setMobileTab("edit");
-                      }}
-                    />
-                  ))}
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="px-3 pb-3">
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-0.5">
+                    {localSections.map((s) => (
+                      <SortableSectionItem
+                        key={s.id}
+                        section={s}
+                        isActive={activeSectionId === s.id}
+                        onSelect={() => {
+                          setActiveSectionId(s.id);
+                          if (window.innerWidth < 1024) setMobileTab("edit");
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              {/* Controls (scrollable on mobile) */}
+              <div className="mt-3 border-t border-border pt-3 space-y-2">
+                {/* Template selector */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
+                  <Select value={templateId} onValueChange={handleTemplateChange}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <LayoutTemplate className="h-3 w-3 mr-1.5 shrink-0" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Array.isArray(templates) ? templates : []).map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs">
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </SortableContext>
-            </DndContext>
+
+                {/* Font selector */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font</p>
+                  <Select value={fontFamily} onValueChange={handleFontChange}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONT_OPTIONS.map((f) => (
+                        <SelectItem key={f.value} value={f.value} className="text-xs">
+                          <div className="flex items-center justify-between w-full">
+                            <span>{f.label}</span>
+                            {f.isPremium && <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Font size */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font Size</p>
+                  <Select value={String(fontScale)} onValueChange={(v) => setFontScale(Number(v))}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0.85" className="text-xs">Extra Small (85%)</SelectItem>
+                      <SelectItem value="0.9" className="text-xs">Small (90%)</SelectItem>
+                      <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
+                      <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
+                      <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Font Color */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Text Color</p>
+                  <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
+                    <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
+                      {fontColor.toUpperCase()}
+                    </div>
+                    <input
+                      type="color"
+                      value={fontColor}
+                      onChange={(e) => handleFontColorChange(e.target.value)}
+                      className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
+                      title="Pick custom text color (Premium)"
+                    />
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: fontColor }} />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Background Color */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Background Color</p>
+                  <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
+                    <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
+                      {backgroundColor.toUpperCase()}
+                    </div>
+                    <input
+                      type="color"
+                      value={backgroundColor}
+                      onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                      className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
+                      title="Pick custom background color (Premium)"
+                    />
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: backgroundColor }} />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Accent color */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Accent Color</p>
+                  <div className="flex items-center gap-1.5">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-2 text-xs justify-start px-2 overflow-hidden">
+                          <div className="h-3.5 w-3.5 rounded-full shrink-0" style={{ background: accentColor }} />
+                          <span className="truncate">{ACCENT_COLORS.find((c) => c.value === accentColor)?.label ?? "Custom"}</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent side="top" className="w-40 p-2">
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {ACCENT_COLORS.map((c) => (
+                            <div key={c.value} className="relative">
+                              <button
+                                title={c.label}
+                                className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${accentColor === c.value ? "ring-2 ring-offset-1 ring-foreground/40" : ""}`}
+                                style={{ background: c.value }}
+                                onClick={() => handleAccentChange(c.value)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <div className="relative h-8 w-9 rounded-md border border-input overflow-hidden shrink-0 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center">
+                      <Star className="absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500 pointer-events-none" />
+                      <Palette className="h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        type="color"
+                        value={accentColor}
+                        onChange={(e) => handleAccentChange(e.target.value)}
+                        className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
+                        title="Pick custom color (Premium)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </ScrollArea>
 
-          <div className="mt-auto border-t border-border p-3 space-y-2 shrink-0">
-            {/* Template selector */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
-              <Select value={templateId} onValueChange={handleTemplateChange}>
-                <SelectTrigger className="h-8 text-xs">
-                  <LayoutTemplate className="h-3 w-3 mr-1.5 shrink-0" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Array.isArray(templates) ? templates : []).map((t) => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs">
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Font selector */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font</p>
-              <Select value={fontFamily} onValueChange={handleFontChange}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FONT_OPTIONS.map((f) => (
-                    <SelectItem key={f.value} value={f.value} className="text-xs">
-                      <div className="flex items-center justify-between w-full">
-                        <span>{f.label}</span>
-                        {f.isPremium && <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Font size */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font Size</p>
-              <Select value={String(fontScale)} onValueChange={(v) => setFontScale(Number(v))}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0.85" className="text-xs">Extra Small (85%)</SelectItem>
-                  <SelectItem value="0.9" className="text-xs">Small (90%)</SelectItem>
-                  <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
-                  <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
-                  <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Font Color */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Text Color</p>
-              <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
-                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
-                  {fontColor.toUpperCase()}
-                </div>
-                <input
-                  type="color"
-                  value={fontColor}
-                  onChange={(e) => handleFontColorChange(e.target.value)}
-                  className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                  title="Pick custom text color (Premium)"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: fontColor }} />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                </div>
-              </div>
-            </div>
-
-            {/* Background Color */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Background Color</p>
-              <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
-                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
-                  {backgroundColor.toUpperCase()}
-                </div>
-                <input
-                  type="color"
-                  value={backgroundColor}
-                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                  className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                  title="Pick custom background color (Premium)"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: backgroundColor }} />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                </div>
-              </div>
-            </div>
-
-            {/* Accent color */}
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Accent Color</p>
-              <div className="flex items-center gap-1.5">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1 h-8 gap-2 text-xs justify-start px-2 overflow-hidden">
-                      <div className="h-3.5 w-3.5 rounded-full shrink-0" style={{ background: accentColor }} />
-                      <span className="truncate">{ACCENT_COLORS.find((c) => c.value === accentColor)?.label ?? "Custom"}</span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent side="top" className="w-40 p-2">
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {ACCENT_COLORS.map((c) => (
-                        <div key={c.value} className="relative">
-                          <button
-                            title={c.label}
-                            className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${accentColor === c.value ? "ring-2 ring-offset-1 ring-foreground/40" : ""}`}
-                            style={{ background: c.value }}
-                            onClick={() => handleAccentChange(c.value)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <div className="relative h-8 w-9 rounded-md border border-input overflow-hidden shrink-0 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center">
-                  <Star className="absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500 pointer-events-none" />
-                  <Palette className="h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <input
-                    type="color"
-                    value={accentColor}
-                    onChange={(e) => handleAccentChange(e.target.value)}
-                    className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                    title="Pick custom color (Premium)"
-                  />
-                </div>
-              </div>
-            </div>
-
+          {/* Pinned footer */}
+          <div className="border-t border-border p-3 shrink-0 bg-background">
             <Button variant="ghost" size="sm" className="w-full gap-1.5 h-8 text-xs text-muted-foreground justify-start" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to dashboard

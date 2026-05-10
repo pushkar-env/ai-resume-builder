@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, FileText, Zap, Shield, Star, Check, User, AlignLeft, Briefcase, GraduationCap, Wrench, LayoutTemplate, PlusCircle } from "lucide-react";
+import { ArrowRight, Sparkles, FileText, Zap, Shield, Star, Check, User, AlignLeft, Briefcase, GraduationCap, Wrench, LayoutTemplate, PlusCircle, Smartphone, Tablet, Monitor, HelpCircle, Facebook, Instagram, Youtube, Linkedin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
 import { SEO } from "@/components/shared/SEO";
@@ -34,7 +34,33 @@ const testimonials = [
   { name: "Sarah K.", role: "Software Engineer at Meta", quote: "Landed my dream job after using ResumeAI. The ATS score feature was a game changer." },
   { name: "James T.", role: "Product Manager at Stripe", quote: "The AI bullet point improvements saved me hours. My resume went from good to exceptional." },
   { name: "Priya M.", role: "Data Scientist at Google", quote: "I had 3 interviews within a week of updating my resume with ResumeAI. Highly recommend." },
+  { name: "Aman R.", role: "Frontend Engineer", quote: "The live preview is insanely accurate — what I saw on mobile matched the PDF export perfectly." },
+  { name: "Lucia G.", role: "MBA Candidate", quote: "Templates are clean and professional. I could tailor versions for consulting and tech in minutes." },
+  { name: "Noah P.", role: "DevOps Engineer", quote: "Loved the multi-device workflow — edit on my phone, fine-tune on desktop, export anywhere." },
 ];
+
+const faqs = [
+  {
+    q: "Is ResumeAI responsive on mobile and tablets?",
+    a: "Yes. The editor and preview are designed to work smoothly on phones, tablets, and desktops — including pinch-to-zoom in the preview on mobile.",
+  },
+  {
+    q: "Will my resume look the same when exported?",
+    a: "The export uses the same rendered preview DOM and styles, so the PDF/print output matches what you see on screen.",
+  },
+  {
+    q: "Is it ATS-friendly?",
+    a: "Templates are built to be clean, readable, and compatible with applicant tracking systems. You can also check your ATS score in the dashboard.",
+  },
+  {
+    q: "Do I need a credit card to try it?",
+    a: "No. You can start on the free plan with no credit card required.",
+  },
+  {
+    q: "Can I create multiple resumes?",
+    a: "Pro users can create unlimited resumes. The free plan includes 1 resume so you can try the full workflow end-to-end.",
+  },
+] as const;
 
 const plans = [
   {
@@ -269,6 +295,73 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Works everywhere */}
+      <section className="py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Monitor className="h-3.5 w-3.5" />
+                Built for every screen
+              </div>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight">Edit on any device. Export anywhere.</h2>
+              <p className="mt-3 text-muted-foreground leading-relaxed max-w-xl">
+                ResumeAI is responsive by default — optimized layouts for mobile, tablets, and desktops.
+                Your content stays readable, your preview stays accurate, and exports stay consistent.
+              </p>
+
+              <div className="mt-6 grid sm:grid-cols-3 gap-3">
+                {[
+                  { icon: Smartphone, title: "Mobile", desc: "Bottom tabs, pinch-to-zoom preview" },
+                  { icon: Tablet, title: "Tablet", desc: "Comfortable split panes and scrolling" },
+                  { icon: Monitor, title: "Desktop", desc: "Full editor + live A4 preview" },
+                ].map((x) => (
+                  <div key={x.title} className="rounded-xl border border-border bg-background p-4">
+                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                      <x.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <p className="font-semibold text-sm">{x.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{x.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-gradient-to-b from-muted/30 to-background p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="h-4 w-4 text-primary" />
+                <p className="text-sm font-semibold">What you get</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[
+                  "Real-time live preview",
+                  "Word-safe wrapping and clean typography",
+                  "Undo/redo rich text editing",
+                  "ATS score tracking",
+                  "PDF and DOC export",
+                  "12 modern templates",
+                ].map((t) => (
+                  <div key={t} className="flex items-start gap-2 rounded-xl border border-border bg-background p-4">
+                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-sm">{t}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Button asChild className="gap-2">
+                  <Link href="/sign-up">
+                    Start free <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/pricing">See pricing</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Templates */}
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -291,8 +384,11 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-12">
             <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">Trusted by professionals</motion.h2>
+            <motion.p variants={fadeUp} className="mt-3 text-muted-foreground max-w-xl mx-auto">
+              Fast to use, clean exports, and built to work on every screen.
+            </motion.p>
           </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid sm:grid-cols-3 gap-6">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {testimonials.map((t) => (
               <motion.div key={t.name} variants={fadeUp} className="rounded-xl border border-border bg-background p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex gap-0.5 mb-4">
@@ -308,6 +404,39 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* FAQs */}
+      <section className="py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+              <HelpCircle className="h-3.5 w-3.5" />
+              FAQs
+            </div>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight">Questions, answered</h2>
+            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to know before you start.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            {faqs.map((f) => (
+              <details key={f.q} className="group rounded-2xl border border-border bg-background px-5 py-4">
+                <summary className="list-none cursor-pointer flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <HelpCircle className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="font-semibold text-sm">{f.q}</p>
+                  </div>
+                  <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">⌄</span>
+                </summary>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed pl-10">{f.a}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -373,13 +502,68 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border py-8">
-        <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeAI" className="h-5 w-5" />
-            <span className="font-medium text-foreground">ResumeAI</span>
+      <footer className="border-t border-border">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeAI" className="h-7 w-7" />
+                <span className="text-base font-bold tracking-tight">ResumeAI</span>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm">
+                A production-grade, responsive resume builder with AI writing help, ATS insights, and exports that match your preview.
+              </p>
+              <div className="mt-4 flex items-center gap-2">
+                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="Facebook">
+                  <Facebook className="h-4 w-4" />
+                </a>
+                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="Instagram">
+                  <Instagram className="h-4 w-4" />
+                </a>
+                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="YouTube">
+                  <Youtube className="h-4 w-4" />
+                </a>
+                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="LinkedIn">
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">Product</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
+                <li><Link href="/sign-up" className="hover:text-foreground transition-colors">Get started</Link></li>
+                <li><Link href="/sign-in" className="hover:text-foreground transition-colors">Sign in</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">Resources</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li><span className="inline-flex items-center gap-2"><Shield className="h-4 w-4" /> ATS-friendly templates</span></li>
+                <li><span className="inline-flex items-center gap-2"><Zap className="h-4 w-4" /> Live preview export</span></li>
+                <li><span className="inline-flex items-center gap-2"><Smartphone className="h-4 w-4" /> Mobile-first editor</span></li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">Contact</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> support@resumeai.example</li>
+                <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact us</Link></li>
+              </ul>
+            </div>
           </div>
-          <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
+
+          <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
+            <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <a className="hover:text-foreground transition-colors" href="#">Privacy</a>
+              <a className="hover:text-foreground transition-colors" href="#">Terms</a>
+              <a className="hover:text-foreground transition-colors" href="#">Status</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
