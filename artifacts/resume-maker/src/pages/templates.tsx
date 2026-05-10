@@ -192,10 +192,10 @@ export default function TemplatesPage() {
                 <motion.div
                   key={template.id}
                   variants={fadeUp}
-                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-all duration-200 ${
+                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 ${
                     isSelected
-                      ? "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
-                      : "border-border hover:border-primary/40 hover:shadow-lg"
+                      ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10 -translate-y-1"
+                      : "border-border hover:border-primary/40 hover:shadow-xl hover:-translate-y-1"
                   }`}
                   onClick={() => setSelected(isSelected ? null : template.id)}
                   onMouseEnter={() => setHoveredId(template.id)}

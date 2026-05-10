@@ -231,7 +231,7 @@ export default function DashboardPage() {
             <motion.div variants={fadeUp}>
               <div
                 onClick={handleCreateRequest}
-                className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
               >
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                   <Plus className="h-5 w-5 text-primary" />
@@ -244,7 +244,7 @@ export default function DashboardPage() {
             {/* Existing Resumes */}
             {resumeList.map((resume) => (
               <motion.div key={resume.id} variants={fadeUp} className="h-full">
-                <Card className="h-full flex flex-col group hover:shadow-md transition-all duration-200 cursor-pointer border-border hover:border-primary/40 relative overflow-hidden"
+                <Card className="h-full flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-border hover:border-primary/40 relative overflow-hidden"
                   onClick={() => navigate(`/builder/${resume.id}`)}>
                   
                   {/* Preview Banner */}

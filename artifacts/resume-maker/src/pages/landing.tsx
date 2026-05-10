@@ -257,7 +257,7 @@ export default function LandingPage() {
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {features.map((f) => (
-              <motion.div key={f.title} variants={fadeUp} className="rounded-xl border border-border bg-background p-5 hover:shadow-md transition-shadow">
+              <motion.div key={f.title} variants={fadeUp} className="group rounded-xl border border-border bg-background p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <f.icon className="h-5 w-5 text-primary" />
                 </div>
@@ -294,7 +294,7 @@ export default function LandingPage() {
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid sm:grid-cols-3 gap-6">
             {testimonials.map((t) => (
-              <motion.div key={t.name} variants={fadeUp} className="rounded-xl border border-border bg-background p-6">
+              <motion.div key={t.name} variants={fadeUp} className="rounded-xl border border-border bg-background p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="flex gap-0.5 mb-4">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-primary text-primary" />
@@ -323,7 +323,7 @@ export default function LandingPage() {
               <motion.div
                 key={plan.name}
                 variants={fadeUp}
-                className={`rounded-2xl border p-6 ${plan.highlighted ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background"}`}
+                className={`rounded-2xl border p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${plan.highlighted ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background"}`}
               >
                 {plan.highlighted && (
                   <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full mb-3">Most popular</span>
