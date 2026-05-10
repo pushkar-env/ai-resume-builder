@@ -69,6 +69,14 @@ const ACCENT_COLORS = [
   { label: "Indigo", value: "#4338ca" },
 ];
 
+const PREVIEW_ZOOM_STEP = 0.05;
+const PREVIEW_ZOOM_MIN = 0.25;
+const PREVIEW_ZOOM_MAX = 3;
+
+function clampPreviewZoom(n: number) {
+  return Math.min(PREVIEW_ZOOM_MAX, Math.max(PREVIEW_ZOOM_MIN, n));
+}
+
 const FONT_OPTIONS = [
   { label: "Inter", value: "Inter, sans-serif" },
   { label: "Roboto", value: "Roboto, sans-serif" },
@@ -365,53 +373,19 @@ export default function BuilderPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [autoScale, setAutoScale] = useState(0.7);
-  // null => auto "fit to screen" mode
-  const [userScale, setUserScale] = useState<number | null>(null);
+  /** Page preview zoom (not font size). Opens at 100% on desktop and mobile. */
+  const [previewScale, setPreviewScale] = useState(1);
+  const previewScaleRef = useRef(1);
   const [contentHeight, setContentHeight] = useState(1123);
 
-  const scale = userScale ?? autoScale;
-  const targetScaleRef = useRef<number>(scale);
-  const rafRef = useRef<number | null>(null);
-
   useEffect(() => {
-    const updateScale = () => {
-      if (!containerRef.current) return;
-      const el = containerRef.current;
-      const width = el.clientWidth;
-      const height = el.clientHeight;
-      const availableWidth = Math.max(0, width - 48);
-      // leave room for the sticky controls + breathing space
-      const availableHeight = Math.max(0, height - 140);
-      const byWidth = availableWidth / 794;
-      const byHeight = availableHeight / Math.max(1123, contentHeight);
-      const newScale = Math.min(1, byWidth, byHeight);
-      setAutoScale(newScale);
-    };
-    
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
-  }, [mobileTab, contentHeight]);
+    previewScaleRef.current = previewScale;
+  }, [previewScale]);
 
-  // Smoothly animate preview scale toward a target (more like image pinch zoom).
-  const animateScaleToward = useCallback(() => {
-    if (rafRef.current) return;
-    const tick = () => {
-      rafRef.current = null;
-      const current = userScale ?? autoScale;
-      const target = targetScaleRef.current;
-      const delta = target - current;
-      if (Math.abs(delta) < 0.002) {
-        if (userScale !== null) setUserScale(target);
-        return;
-      }
-      const next = current + delta * 0.18; // easing factor for fine control
-      if (userScale !== null) setUserScale(next);
-      rafRef.current = window.requestAnimationFrame(tick);
-    };
-    rafRef.current = window.requestAnimationFrame(tick);
-  }, [autoScale, userScale]);
+  /** New resume or route change: always start at 100%. */
+  useEffect(() => {
+    setPreviewScale(1);
+  }, [resumeId]);
 
   useEffect(() => {
     if (!contentRef.current) return;
@@ -424,61 +398,28 @@ export default function BuilderPage() {
     return () => obs.disconnect();
   }, []);
 
-  // Pinch-to-zoom implementation
-  const initialPinchDistRef = useRef<number | null>(null);
-  const initialScaleRef = useRef<number | null>(null);
-
-  useEffect(() => {
+  /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
+  const handleFitPreview = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const isMobile = window.innerWidth < 1024;
+    if (!isMobile) {
+      setPreviewScale(1);
+      return;
+    }
     const el = containerRef.current;
     if (!el) return;
+    const width = el.clientWidth;
+    const height = el.clientHeight;
+    const availableWidth = Math.max(1, width - 48);
+    const availableHeight = Math.max(1, height - 140);
+    const byWidth = availableWidth / 794;
+    const byHeight = availableHeight / Math.max(1123, contentHeight);
+    setPreviewScale(clampPreviewZoom(Math.min(1, byWidth, byHeight)));
+  }, [contentHeight]);
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        // Ensure we're in manual scaling mode once the user pinches.
-        if (userScale === null) setUserScale(autoScale);
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        initialPinchDistRef.current = dist;
-        const base = (userScale ?? autoScale);
-        initialScaleRef.current = base;
-        targetScaleRef.current = base;
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2 && initialPinchDistRef.current !== null && initialScaleRef.current !== null) {
-        e.preventDefault(); // prevent native page zoom to allow custom scaling
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const ratio = dist / initialPinchDistRef.current;
-        const dampedRatio = 1 + (ratio - 1) * 0.35; // responsive but still controllable
-        const newTarget = Math.min(Math.max(0.1, initialScaleRef.current * dampedRatio), 3);
-        targetScaleRef.current = newTarget;
-        animateScaleToward();
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length < 2) {
-        initialPinchDistRef.current = null;
-        initialScaleRef.current = null;
-      }
-    };
-
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: true });
-
-    return () => {
-      el.removeEventListener("touchstart", handleTouchStart);
-      el.removeEventListener("touchmove", handleTouchMove);
-      el.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [userScale, autoScale, animateScaleToward]);
+  // Pinch-to-zoom — apply scale synchronously each move (avoid RAF lerping fights with gestures).
+  const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartScaleRef = useRef<number | null>(null);
 
   // Track which resume ID we've initialized from so re-fetches don't overwrite local edits
   const initializedResumeIdRef = useRef<number | null>(null);
@@ -489,6 +430,56 @@ export default function BuilderPage() {
       enabled: !!resumeId,
     },
   });
+
+  /* Bind after skeleton unmount — ref is missing until the main editor DOM exists. Re-bind when Preview tab mounts on mobile. */
+  useEffect(() => {
+    if (isLoading) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    const fingerDist = (t: TouchList) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        pinchStartDistRef.current = fingerDist(e.touches);
+        pinchStartScaleRef.current = previewScaleRef.current;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (
+        e.touches.length === 2 &&
+        pinchStartDistRef.current !== null &&
+        pinchStartScaleRef.current !== null &&
+        pinchStartDistRef.current > 8
+      ) {
+        e.preventDefault();
+        const d = fingerDist(e.touches);
+        const ratio = d / pinchStartDistRef.current;
+        setPreviewScale(clampPreviewZoom(pinchStartScaleRef.current * ratio));
+      }
+    };
+
+    const resetPinch = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        pinchStartDistRef.current = null;
+        pinchStartScaleRef.current = null;
+      }
+    };
+
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchend", resetPinch);
+    el.addEventListener("touchcancel", resetPinch);
+
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", resetPinch);
+      el.removeEventListener("touchcancel", resetPinch);
+    };
+  }, [isLoading, mobileTab]);
 
   const { data: atsScoreData } = useGetAtsScore(resumeId, {
     query: {
@@ -966,7 +957,7 @@ export default function BuilderPage() {
         {/* Right — live preview */}
         <div 
           ref={containerRef}
-          className={`flex-1 overflow-auto bg-muted/40 flex-col py-6 ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
+          className={`flex-1 overflow-auto bg-muted/40 flex-col py-6 touch-pan-y ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
         >
           <div className="min-w-max w-full flex flex-col items-center pb-20 relative px-4 mx-auto">
             <div className="mb-4 flex flex-col items-center justify-center gap-3">
@@ -974,40 +965,52 @@ export default function BuilderPage() {
               
               {/* Zoom Controls */}
               <div className="sticky top-4 z-10 flex items-center gap-1 bg-background/80 backdrop-blur-md border border-border p-1 rounded-full shadow-sm">
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.max(0.1, (s ?? autoScale) - 0.1))}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full"
+                  onClick={() => setPreviewScale((s) => clampPreviewZoom(s - PREVIEW_ZOOM_STEP))}
+                >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <span className="text-[10px] font-medium w-12 text-center">{(Math.round(scale * 1000) / 10).toFixed(1)}%</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(s => Math.min(3, (s ?? autoScale) + 0.1))}>
+                <span className="text-[10px] font-medium w-14 text-center tabular-nums">{(Math.round(previewScale * 1000) / 10).toFixed(1)}%</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full"
+                  onClick={() => setPreviewScale((s) => clampPreviewZoom(s + PREVIEW_ZOOM_STEP))}
+                >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
-                {userScale !== null && (
-                  <>
-                    <div className="w-px h-4 bg-border mx-1" />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => setUserScale(null)} title="Fit to screen">
-                      <Maximize className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+                <div className="w-px h-4 bg-border mx-1" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full"
+                  onClick={handleFitPreview}
+                  title="Fit whole page on small screens; reset to 100% on desktop"
+                >
+                  <Maximize className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             
             {/* Dynamic Scaling Wrapper */}
             <div 
-              className="relative mx-auto transition-all duration-200" 
+              className="relative mx-auto" 
               style={{ 
-                width: `${794 * scale}px`, 
-                height: `${contentHeight * scale}px` 
+                width: `${794 * previewScale}px`, 
+                height: `${contentHeight * previewScale}px`,
               }}
             >
               <div 
-                className="absolute top-0 left-0 transition-transform duration-200" 
+                className="absolute top-0 left-0 will-change-transform" 
                 style={{ 
                   width: "794px", 
-                  transform: `scale(${scale}) translateZ(0)`, 
+                  transform: `scale(${previewScale}) translateZ(0)`, 
                   transformOrigin: "top left",
                   backfaceVisibility: "hidden",
-                  WebkitFontSmoothing: "antialiased"
+                  WebkitFontSmoothing: "antialiased",
                 }}
               >
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
