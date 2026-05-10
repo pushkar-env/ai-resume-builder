@@ -271,46 +271,46 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const sidebar = "#1a1f2e";
+  const sidebar = alpha(color, 0.05);
 
   return (
     <div className="flex h-full" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Sidebar */}
       <div className="w-[240px] shrink-0 flex flex-col" style={{ background: sidebar, minHeight: "100%" }}>
         {/* Name block */}
-        <div className="p-6 pb-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.08)` }}>
+        <div className="p-6 pb-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.08)` }}>
           <div className="mb-3">
             <Avatar p={p} bg={color} />
           </div>
-          <h1 className="text-[15px] font-bold text-white leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[10px] mt-0.5 font-medium" style={{ color: alpha(color, 0.9) }}>{roleOf(p)}</p>}
+          <h1 className="text-[15px] font-bold text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[10px] mt-0.5 font-medium" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-white/40 mb-2">Contact</p>
+        <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8.5px] text-white/70 mb-0.5 leading-relaxed break-all">{v}</p>
+            <p key={i} className="text-[8.5px] text-gray-600 mb-0.5 leading-relaxed break-all">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-white/40 mb-2.5">Skills</p>
-            {renderSkills(skills, skillsStyle, color, true)}
+          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Skills</p>
+            {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-white/40 mb-2.5">Education</p>
+          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Education</p>
             {edu.map((e, i) => (
               <div key={i} className="mb-2">
-                <p className="text-[9px] font-semibold text-white/90">{str(e.school)}</p>
-                <p className="text-[8px] text-white/55">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-white/35 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                <p className="text-[9px] font-semibold text-gray-900">{str(e.school)}</p>
+                <p className="text-[8px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[7.5px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -319,9 +319,9 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
         {/* Certifications */}
         {certs.length > 0 && (
           <div className="px-5 py-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-white/40 mb-2.5">Certifications</p>
+            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-white/65 mb-0.5" dark color={alpha(color, 0.95)} />
+              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
             ))}
           </div>
         )}
@@ -795,42 +795,41 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
   return (
     <div className="flex" style={{ fontFamily: font, minHeight: "100%" }}>
-      {/* Colored sidebar */}
-      <div className="w-[195px] shrink-0 flex flex-col" style={{ background: color, minHeight: "100%" }}>
+      <div className="w-[195px] shrink-0 flex flex-col" style={{ background: alpha(color, 0.08), minHeight: "100%", borderRight: `1px solid ${alpha(color, 0.15)}` }}>
         {/* Avatar + name */}
         <div className="p-5 pb-4">
           <div className="mb-3">
-            <Avatar p={p} bg="rgba(255,255,255,0.20)" sizeClass="h-16 w-16 text-[22px]" />
+            <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[13px] font-black text-white leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[8.5px] font-semibold text-white/70 mt-1 uppercase tracking-wide">{roleOf(p)}</p>}
+          <h1 className="text-[13px] font-black text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[8.5px] font-semibold mt-1 uppercase tracking-wide" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-3" style={{ background: "rgba(0,0,0,0.12)" }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-white/50 mb-1.5">Contact</p>
+        <div className="px-5 py-3" style={{ background: alpha(color, 0.04) }}>
+          <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-1.5" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8px] text-white/80 break-all leading-relaxed">{v}</p>
+            <p key={i} className="text-[8px] text-gray-600 break-all leading-relaxed">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-3" style={{ background: "rgba(0,0,0,0.08)" }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-white/50 mb-2">Skills</p>
-            {renderSkills(skills, skillsStyle, "#ffffff", true)}
+          <div className="px-5 py-3" style={{ background: alpha(color, 0.02) }}>
+            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Skills</p>
+            {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
           <div className="px-5 py-3">
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-white/50 mb-2">Education</p>
+            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Education</p>
             {edu.map((e, i) => (
               <div key={i} className="mb-2">
-                <p className="text-[8.5px] font-bold text-white">{str(e.school)}</p>
-                <p className="text-[7.5px] text-white/65">{str(e.degree)}</p>
-                <p className="text-[7px] text-white/40">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                <p className="text-[8.5px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[7.5px] text-gray-600">{str(e.degree)}</p>
+                <p className="text-[7px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -838,16 +837,16 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
         {certs.length > 0 && (
           <div className="px-5 py-3">
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-white/50 mb-2">Certifications</p>
+            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-white/70 mb-0.5" dark />
+              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
             ))}
           </div>
         )}
       </div>
 
       {/* Main */}
-      <div className="flex-1 px-6 py-6 overflow-hidden bg-white">
+      <div className="flex-1 px-6 py-6 overflow-hidden">
         {str(summary.text) && (
           <div className="mb-5 p-3.5 rounded-xl" style={{ background: alpha(color, 0.06) }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color }}>About Me</p>
@@ -920,24 +919,23 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
   const gold = color === "#7c3aed" ? "#d4a853" : color;
-  const bg = "#0d1117";
-  const card = "#161b22";
-  const border = "#21262d";
+  const card = alpha(color, 0.04);
+  const border = alpha(color, 0.15);
 
   return (
-    <div className="px-9 py-8" style={{ fontFamily: font, background: bg, minHeight: "100%" }}>
+    <div className="px-9 py-8" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header */}
       <div className="mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-[22px] font-black text-white tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
+            <h1 className="text-[22px] font-black text-gray-900 tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
             {roleOf(p) && <p className="text-[9.5px] font-semibold mt-1.5 tracking-[0.14em] uppercase" style={{ color: gold }}>{roleOf(p)}</p>}
           </div>
-          <Avatar p={p} bg={gold} textColor={bg} sizeClass="h-12 w-12 text-lg" />
+          <Avatar p={p} bg={gold} textColor="#ffffff" sizeClass="h-12 w-12 text-lg" />
         </div>
         <div className="flex gap-5 mt-3 flex-wrap">
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8px] text-gray-400">{v}</span>
+            <span key={i} className="text-[8px] text-gray-600">{v}</span>
           ))}
         </div>
       </div>
@@ -945,7 +943,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
       {str(summary.text) && (
         <div className="mb-5">
           <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: gold }}>Profile</p>
-          <p className="text-[9px] text-gray-400 leading-[1.75]">{str(summary.text)}</p>
+          <p className="text-[9px] text-gray-600 leading-[1.75]">{str(summary.text)}</p>
         </div>
       )}
 
@@ -960,7 +958,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               <div key={i} className="rounded-lg p-3.5" style={{ background: card, border: `1px solid ${border}` }}>
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10.5px] font-bold text-white">{str(e.title)}</p>
+                    <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
                     <p className="text-[8.5px] font-medium mt-0.5" style={{ color: gold }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                   </div>
                   <p className="text-[7.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
@@ -968,7 +966,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-1.5 mt-1.5">
                     <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: gold }} />
-                    <p className="text-[8.5px] text-gray-400 leading-[1.5]"><BulletContent b={b} color={color} /></p>
+                    <p className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></p>
                   </div>
                 ))}
               </div>
@@ -987,9 +985,9 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               </div>
               {edu.map((e, i) => (
                 <div key={i} className="rounded-lg p-2.5 mb-2" style={{ background: card, border: `1px solid ${border}` }}>
-                  <p className="text-[9px] font-semibold text-white">{str(e.school)}</p>
-                  <p className="text-[8px] text-gray-400">{str(e.degree)}</p>
-                  <p className="text-[7.5px] text-gray-600 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <p className="text-[9px] font-semibold text-gray-900">{str(e.school)}</p>
+                  <p className="text-[8px] text-gray-600">{str(e.degree)}</p>
+                  <p className="text-[7.5px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -1001,7 +999,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                 <div className="flex-1 h-px" style={{ background: border }} />
               </div>
               {certs.map((c, i) => (
-                <CertLine key={i} c={c} className="text-[8.5px] text-gray-400 mb-0.5" color={gold} />
+                <CertLine key={i} c={c} className="text-[8.5px] text-gray-600 mb-0.5" color={gold} />
               ))}
             </div>
           )}
@@ -1024,8 +1022,8 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               </div>
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
-                  <p className="text-[9px] font-semibold text-white">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[8px] text-gray-500">{str(pr.description)}</p>}
+                  <p className="text-[9px] font-semibold text-gray-900">{str(pr.name)}</p>
+                  {str(pr.description) && <p className="text-[8px] text-gray-600">{str(pr.description)}</p>}
                 </div>
               ))}
             </div>
@@ -1588,46 +1586,46 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const sidebarBg = "#2d3748";
+  const sidebarBg = alpha(color, 0.05);
 
   return (
     <div className="flex" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Left 35% sidebar */}
       <div className="w-[270px] shrink-0 flex flex-col" style={{ background: sidebarBg, minHeight: "100%" }}>
         {/* Avatar + name */}
-        <div className="px-6 pt-7 pb-5" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
+        <div className="px-6 pt-7 pb-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
           <div className="mb-3">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[14px] font-bold text-white leading-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[8.5px] mt-1 font-medium tracking-wide uppercase" style={{ color: alpha(color, 0.95) }}>{roleOf(p)}</p>}
+          <h1 className="text-[14px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[8.5px] mt-1 font-medium tracking-wide uppercase" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white/35 mb-2">Contact</p>
+        <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8px] text-white/65 mb-0.5 break-all leading-relaxed">{v}</p>
+            <p key={i} className="text-[8px] text-gray-600 mb-0.5 break-all leading-relaxed">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white/35 mb-2.5">Skills</p>
-            {renderSkills(skills, skillsStyle, color, true)}
+          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Skills</p>
+            {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(255,255,255,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white/35 mb-2.5">Education</p>
+          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Education</p>
             {edu.map((e, i) => (
               <div key={i} className="mb-2.5">
-                <p className="text-[9px] font-bold text-white/90">{str(e.school)}</p>
-                <p className="text-[8px] text-white/55">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-white/35 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                <p className="text-[9px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[8px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[7.5px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -1636,9 +1634,9 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
         {/* Certifications */}
         {certs.length > 0 && (
           <div className="px-6 py-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-white/35 mb-2">Certifications</p>
+            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-white/60 mb-0.5" dark color={alpha(color, 0.95)} />
+              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
             ))}
           </div>
         )}
