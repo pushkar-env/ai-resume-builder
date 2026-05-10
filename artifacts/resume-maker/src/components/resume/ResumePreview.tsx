@@ -1077,7 +1077,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
                 <p className="text-[8.5px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <div key={j} className="text-[8.5px] text-gray-700 leading-relaxed ml-3">• <BulletContent b={b} color={color} /></div>
+                <div key={j} className="flex gap-1.5 text-[8.5px] text-gray-700 leading-relaxed ml-3"><span className="shrink-0 font-bold">•</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
               ))}
             </div>
           ))}
@@ -1186,7 +1186,10 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                 <p className="text-[8.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <div key={j} className="text-[8.5px] text-gray-700 ml-3 mt-0.5">• <BulletContent b={b} color={color} /></div>
+                <div key={j} className="flex gap-1.5 text-[8.5px] text-gray-700 ml-3 mt-0.5">
+                  <span className="shrink-0">•</span>
+                  <div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div>
+                </div>
               ))}
             </div>
           ))}
@@ -1405,7 +1408,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
                   <p className="text-[7.5px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
                 </div>
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
-                  <div key={j} className="text-[8px] text-gray-600 leading-[1.5] ml-1">· <BulletContent b={b} color={color} /></div>
+                  <div key={j} className="flex gap-1.5 text-[8px] text-gray-600 leading-[1.5] ml-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
                 ))}
               </div>
             ))}
@@ -1526,7 +1529,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Right */}
-        <div className="flex-1 px-6 py-4">
+        <div className="flex-1 min-w-0 px-6 py-4">
           {str(summary.text) && (
             <>
               <SH label="Profile" />

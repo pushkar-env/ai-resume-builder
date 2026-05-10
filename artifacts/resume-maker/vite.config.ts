@@ -6,7 +6,9 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const rawPort = env.PORT || "5173";
-  const apiProxyTarget = env.API_PROXY_TARGET ?? "https://ai-resume-api-production.up.railway.app";
+  // Default to local API in development to prevent hitting sleeping production instances
+  const defaultApiTarget = mode === "development" ? "http://localhost:8080" : "https://ai-resume-api-production.up.railway.app";
+  const apiProxyTarget = env.API_PROXY_TARGET ?? defaultApiTarget;
 
   const port = Number(rawPort);
 
