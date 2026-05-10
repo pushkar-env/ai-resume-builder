@@ -9,6 +9,8 @@ export const resumesTable = pgTable("resumes", {
   templateId: text("template_id").notNull().default("modern"),
   accentColor: text("accent_color").notNull().default("#6366f1"),
   fontFamily: text("font_family").notNull().default("Inter"),
+  fontColor: text("font_color").notNull().default("#111827"),
+  backgroundColor: text("background_color").notNull().default("#ffffff"),
   isPublic: boolean("is_public").notNull().default(false),
   shareToken: text("share_token"),
   viewCount: integer("view_count").notNull().default(0),

@@ -20,6 +20,8 @@ export interface Resume {
   templateId: string;
   accentColor: string;
   fontFamily: string;
+  fontColor: string;
+  backgroundColor: string;
   isPublic: boolean;
   /** @nullable */
   shareToken: string | null;
@@ -48,6 +50,8 @@ export interface ResumeDetail {
   templateId: string;
   accentColor: string;
   fontFamily: string;
+  fontColor: string;
+  backgroundColor: string;
   isPublic: boolean;
   /** @nullable */
   shareToken: string | null;
@@ -63,6 +67,8 @@ export interface CreateResumeBody {
   templateId: string;
   accentColor?: string;
   fontFamily?: string;
+  fontColor?: string;
+  backgroundColor?: string;
 }
 
 export type UpdateSectionItemContent = { [key: string]: unknown };
@@ -81,6 +87,8 @@ export interface UpdateResumeBody {
   templateId?: string;
   accentColor?: string;
   fontFamily?: string;
+  fontColor?: string;
+  backgroundColor?: string;
   isPublic?: boolean;
   sections?: UpdateSectionItem[];
 }

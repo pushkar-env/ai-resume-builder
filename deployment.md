@@ -13,7 +13,8 @@ You can deploy the backend on Render, Railway, or any Node.js hosting platform.
 2. Create a **New Project** and select **Deploy from GitHub repo**.
 3. Choose your repository containing this project.
 4. Go to **Settings > General** for the service and ensure the **Root Directory** is left blank (or `/`). This is critical for monorepos!
-5. Ensure the build command is configured to `pnpm install && pnpm --filter @workspace/api-server run build` and start command to `pnpm --filter @workspace/api-server run start`.
+5. Ensure the build command is configured to `pnpm install && pnpm --filter @workspace/db run push && pnpm --filter @workspace/api-server run build` and start command to `pnpm --filter @workspace/api-server run start`.
+   *(Note: Adding the db push command ensures your remote database automatically receives any schema updates like the new color fields).*
 6. Go to **Variables** and add all necessary environment variables:
    - `CLERK_SECRET_KEY`
    - `DATABASE_URL`
@@ -31,7 +32,7 @@ You can deploy the backend on Render, Railway, or any Node.js hosting platform.
 3. Connect your GitHub repository.
 4. Ensure the **Root Directory** is left blank / empty.
 5. Set the **Environment** to `Node`.
-6. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/api-server run build`.
+6. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/db run push && pnpm --filter @workspace/api-server run build`.
 7. Set the **Start Command** to `pnpm --filter @workspace/api-server run start`.
 8. Add your Environment Variables.
 9. Click **Create Web Service**.

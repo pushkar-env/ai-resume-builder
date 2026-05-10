@@ -410,6 +410,10 @@ components:
           type: string
         fontFamily:
           type: string
+        fontColor:
+          type: string
+        backgroundColor:
+          type: string
         isPublic:
           type: boolean
         shareToken:
@@ -429,6 +433,8 @@ components:
         - templateId
         - accentColor
         - fontFamily
+        - fontColor
+        - backgroundColor
         - isPublic
         - shareToken
         - viewCount
@@ -450,6 +456,10 @@ components:
         accentColor:
           type: string
         fontFamily:
+          type: string
+        fontColor:
+          type: string
+        backgroundColor:
           type: string
         isPublic:
           type: boolean
@@ -474,6 +484,8 @@ components:
         - templateId
         - accentColor
         - fontFamily
+        - fontColor
+        - backgroundColor
         - isPublic
         - shareToken
         - viewCount
@@ -519,6 +531,10 @@ components:
           type: string
         fontFamily:
           type: string
+        fontColor:
+          type: string
+        backgroundColor:
+          type: string
       required:
         - title
         - templateId
@@ -533,6 +549,10 @@ components:
         accentColor:
           type: string
         fontFamily:
+          type: string
+        fontColor:
+          type: string
+        backgroundColor:
           type: string
         isPublic:
           type: boolean

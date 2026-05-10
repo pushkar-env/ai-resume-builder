@@ -161,6 +161,8 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
     templateId: parsed.data.templateId,
     accentColor: parsed.data.accentColor ?? "#7c3aed",
     fontFamily: parsed.data.fontFamily ?? "Inter, sans-serif",
+    fontColor: parsed.data.fontColor ?? "#111827",
+    backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
   }).returning();
 
   const sectionsToInsert = SEEDED_SECTIONS.map((s) => ({
@@ -226,6 +228,8 @@ router.patch("/resumes/:id", requireAuth, async (req: Request, res: Response): P
   if (resumeFields.templateId != null) updateData.templateId = resumeFields.templateId;
   if (resumeFields.accentColor != null) updateData.accentColor = resumeFields.accentColor;
   if (resumeFields.fontFamily != null) updateData.fontFamily = resumeFields.fontFamily;
+  if (resumeFields.fontColor != null) updateData.fontColor = resumeFields.fontColor;
+  if (resumeFields.backgroundColor != null) updateData.backgroundColor = resumeFields.backgroundColor;
   if (resumeFields.isPublic != null) updateData.isPublic = resumeFields.isPublic;
 
   let updatedResume = existing;
@@ -302,6 +306,8 @@ router.post("/resumes/:id/duplicate", requireAuth, async (req: Request, res: Res
     templateId: existing.templateId,
     accentColor: existing.accentColor,
     fontFamily: existing.fontFamily,
+    fontColor: existing.fontColor,
+    backgroundColor: existing.backgroundColor,
     isPublic: false,
   }).returning();
 

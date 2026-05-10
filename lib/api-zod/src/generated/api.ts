@@ -24,6 +24,8 @@ export const ListResumesResponseItem = zod.object({
   templateId: zod.string(),
   accentColor: zod.string(),
   fontFamily: zod.string(),
+  fontColor: zod.string(),
+  backgroundColor: zod.string(),
   isPublic: zod.boolean(),
   shareToken: zod.string().nullable(),
   viewCount: zod.number(),
@@ -41,6 +43,8 @@ export const CreateResumeBody = zod.object({
   templateId: zod.string(),
   accentColor: zod.string().optional(),
   fontFamily: zod.string().optional(),
+  fontColor: zod.string().optional(),
+  backgroundColor: zod.string().optional(),
 });
 
 /**
@@ -57,6 +61,8 @@ export const GetResumeResponse = zod.object({
   templateId: zod.string(),
   accentColor: zod.string(),
   fontFamily: zod.string(),
+  fontColor: zod.string(),
+  backgroundColor: zod.string(),
   isPublic: zod.boolean(),
   shareToken: zod.string().nullable(),
   viewCount: zod.number(),
@@ -88,6 +94,8 @@ export const UpdateResumeBody = zod.object({
   templateId: zod.string().optional(),
   accentColor: zod.string().optional(),
   fontFamily: zod.string().optional(),
+  fontColor: zod.string().optional(),
+  backgroundColor: zod.string().optional(),
   isPublic: zod.boolean().optional(),
   sections: zod
     .array(
@@ -110,6 +118,8 @@ export const UpdateResumeResponse = zod.object({
   templateId: zod.string(),
   accentColor: zod.string(),
   fontFamily: zod.string(),
+  fontColor: zod.string(),
+  backgroundColor: zod.string(),
   isPublic: zod.boolean(),
   shareToken: zod.string().nullable(),
   viewCount: zod.number(),
@@ -202,6 +212,8 @@ export const GetDashboardStatsResponse = zod.object({
       templateId: zod.string(),
       accentColor: zod.string(),
       fontFamily: zod.string(),
+      fontColor: zod.string(),
+      backgroundColor: zod.string(),
       isPublic: zod.boolean(),
       shareToken: zod.string().nullable(),
       viewCount: zod.number(),

@@ -62,11 +62,11 @@ const ACCENT_COLORS = [
   { label: "Violet", value: "#7c3aed" },
   { label: "Blue", value: "#2563eb" },
   { label: "Slate", value: "#475569" },
-  { label: "Teal", value: "#0d9488", isPremium: true },
-  { label: "Rose", value: "#e11d48", isPremium: true },
-  { label: "Amber", value: "#d97706", isPremium: true },
-  { label: "Emerald", value: "#059669", isPremium: true },
-  { label: "Indigo", value: "#4338ca", isPremium: true },
+  { label: "Teal", value: "#0d9488" },
+  { label: "Rose", value: "#e11d48" },
+  { label: "Amber", value: "#d97706" },
+  { label: "Emerald", value: "#059669" },
+  { label: "Indigo", value: "#4338ca" },
 ];
 
 const FONT_OPTIONS = [
@@ -347,10 +347,8 @@ export default function BuilderPage() {
   const [localSections, setLocalSections] = useState<Section[]>([]);
   const [accentColor, setAccentColor] = useState("#7c3aed");
   const [fontFamily, setFontFamily] = useState("Inter, sans-serif");
-  const [fontColor, setFontColor] = useState<string>(() => {
-    if (typeof window === "undefined" || !id) return "#111827";
-    return window.localStorage.getItem(`resumeFontColor:${id}`) || "#111827";
-  });
+  const [fontColor, setFontColor] = useState("#111827");
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [fontScale, setFontScale] = useState<number>(() => {
     if (typeof window === "undefined" || !id) return 1.2;
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
@@ -485,6 +483,8 @@ export default function BuilderPage() {
       setLocalSections((resume.sections ?? []).map((s) => ({ ...s })));
       setAccentColor(resume.accentColor ?? "#7c3aed");
       setFontFamily(resume.fontFamily ?? "Inter, sans-serif");
+      setFontColor(resume.fontColor ?? "#111827");
+      setBackgroundColor(resume.backgroundColor ?? "#ffffff");
       setTemplateId(resume.templateId ?? "modern");
       if ((resume.sections ?? []).length > 0) {
         setActiveSectionId(resume.sections![0].id);
@@ -500,19 +500,15 @@ export default function BuilderPage() {
     const n = v ? Number(v) : NaN;
     setFontScale(Number.isFinite(n) && n > 0 ? n : 1.2);
     
-    const c = window.localStorage.getItem(`resumeFontColor:${id}`);
-    setFontColor(c || "#111827");
-    
     fontScaleHydratedFor.current = id;
   }, [id]);
 
-  // Persist font scale and color per-resume
+  // Persist font scale per-resume
   useEffect(() => {
     if (typeof window === "undefined" || !id) return;
     if (fontScaleHydratedFor.current !== id) return;
     window.localStorage.setItem(`resumeFontScale:${id}`, String(fontScale));
-    window.localStorage.setItem(`resumeFontColor:${id}`, fontColor);
-  }, [fontScale, fontColor, id]);
+  }, [fontScale, id]);
 
   // Reset when navigating to a different resume
   useEffect(() => {
@@ -520,7 +516,7 @@ export default function BuilderPage() {
   }, [resumeId]);
 
   const scheduleSave = useCallback(
-    (sections: Section[], accent: string, font: string, template: string) => {
+    (sections: Section[], accent: string, font: string, template: string, fColor: string, bColor: string) => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(() => {
         updateResume.mutate({
@@ -528,6 +524,8 @@ export default function BuilderPage() {
           data: {
             accentColor: accent,
             fontFamily: font,
+            fontColor: fColor,
+            backgroundColor: bColor,
             templateId: template,
             sections: sections.map((s) => ({
               id: s.id,
@@ -548,11 +546,11 @@ export default function BuilderPage() {
         const updated = prev.map((s) =>
           s.id === sectionId ? { ...s, content } : s
         );
-        scheduleSave(updated, accentColor, fontFamily, templateId);
+        scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return updated;
       });
     },
-    [accentColor, fontFamily, templateId, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
   );
 
   const handleVisibilityToggle = useCallback(
@@ -561,11 +559,11 @@ export default function BuilderPage() {
         const updated = prev.map((s) =>
           s.id === sectionId ? { ...s, isVisible: s.isVisible !== false ? false : true } : s
         );
-        scheduleSave(updated, accentColor, fontFamily, templateId);
+        scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return updated;
       });
     },
-    [accentColor, fontFamily, templateId, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
   );
 
   const handleDragEnd = useCallback(
@@ -580,23 +578,23 @@ export default function BuilderPage() {
         const [moved] = reordered.splice(oldIndex, 1);
         reordered.splice(newIndex, 0, moved);
         const withOrder = reordered.map((s, i) => ({ ...s, displayOrder: i }));
-        scheduleSave(withOrder, accentColor, fontFamily, templateId);
+        scheduleSave(withOrder, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return withOrder;
       });
     },
-    [accentColor, fontFamily, templateId, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
   );
 
   const handleAccentChange = (color: string) => {
     const isPreset = ACCENT_COLORS.find((c) => c.value === color);
-    if (!isPremiumUser && ((isPreset && isPreset.isPremium) || !isPreset)) {
+    if (!isPremiumUser && !isPreset) {
       setPaywallTitle("Premium Color Picker");
       setPaywallDescription("Custom colors and premium palettes are reserved for Pro users. Upgrade to unlock all customization options.");
       setShowPaywall(true);
       return;
     }
     setAccentColor(color);
-    scheduleSave(localSections, color, fontFamily, templateId);
+    scheduleSave(localSections, color, fontFamily, templateId, fontColor, backgroundColor);
   };
 
   const handleFontChange = (font: string) => {
@@ -608,7 +606,7 @@ export default function BuilderPage() {
       return;
     }
     setFontFamily(font);
-    scheduleSave(localSections, accentColor, font, templateId);
+    scheduleSave(localSections, accentColor, font, templateId, fontColor, backgroundColor);
   };
 
   const handleTemplateChange = (t: string) => {
@@ -620,7 +618,29 @@ export default function BuilderPage() {
       return;
     }
     setTemplateId(t);
-    scheduleSave(localSections, accentColor, fontFamily, t);
+    scheduleSave(localSections, accentColor, fontFamily, t, fontColor, backgroundColor);
+  };
+
+  const handleFontColorChange = (color: string) => {
+    if (!isPremiumUser) {
+      setPaywallTitle("Premium Text Color");
+      setPaywallDescription("Custom text colors are reserved for Pro users. Upgrade to unlock full color customization.");
+      setShowPaywall(true);
+      return;
+    }
+    setFontColor(color);
+    scheduleSave(localSections, accentColor, fontFamily, templateId, color, backgroundColor);
+  };
+
+  const handleBackgroundColorChange = (color: string) => {
+    if (!isPremiumUser) {
+      setPaywallTitle("Premium Background Color");
+      setPaywallDescription("Custom background colors are reserved for Pro users. Upgrade to unlock full color customization.");
+      setShowPaywall(true);
+      return;
+    }
+    setBackgroundColor(color);
+    scheduleSave(localSections, accentColor, fontFamily, templateId, fontColor, color);
   };
 
   const sensors = useSensors(
@@ -631,8 +651,8 @@ export default function BuilderPage() {
   const activeSection = localSections.find((s) => s.id === activeSectionId);
 
   const previewResume: ResumeDetail = resume
-    ? { ...resume, sections: localSections, accentColor, fontFamily, templateId }
-    : { id: resumeId, title: "", userId: "", templateId, accentColor, fontFamily, isPublic: false, shareToken: null, viewCount: 0, downloadCount: 0, createdAt: "", updatedAt: "", sections: localSections };
+    ? { ...resume, sections: localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId }
+    : { id: resumeId, title: "", userId: "", templateId, accentColor, fontFamily, fontColor, backgroundColor, isPublic: false, shareToken: null, viewCount: 0, downloadCount: 0, createdAt: "", updatedAt: "", sections: localSections };
 
   if (isLoading) {
     return (
@@ -764,10 +784,35 @@ export default function BuilderPage() {
                 <input
                   type="color"
                   value={fontColor}
-                  onChange={(e) => setFontColor(e.target.value)}
+                  onChange={(e) => handleFontColorChange(e.target.value)}
                   className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
+                  title="Pick custom text color (Premium)"
                 />
                 <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: fontColor }} />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Background Color */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Background Color</p>
+              <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
+                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
+                  {backgroundColor.toUpperCase()}
+                </div>
+                <input
+                  type="color"
+                  value={backgroundColor}
+                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                  className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
+                  title="Pick custom background color (Premium)"
+                />
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: backgroundColor }} />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                </div>
               </div>
             </div>
 
@@ -792,24 +837,20 @@ export default function BuilderPage() {
                             style={{ background: c.value }}
                             onClick={() => handleAccentChange(c.value)}
                           />
-                          {c.isPremium && (
-                            <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px]">
-                              <Star className="h-2 w-2 text-amber-500 fill-amber-500" />
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
                   </PopoverContent>
                 </Popover>
                 <div className="relative h-8 w-9 rounded-md border border-input overflow-hidden shrink-0 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center">
+                  <Star className="absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500 pointer-events-none" />
                   <Palette className="h-4 w-4 text-muted-foreground pointer-events-none" />
                   <input
                     type="color"
                     value={accentColor}
                     onChange={(e) => handleAccentChange(e.target.value)}
                     className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                    title="Pick custom color"
+                    title="Pick custom color (Premium)"
                   />
                 </div>
               </div>
@@ -916,7 +957,7 @@ export default function BuilderPage() {
                 }}
               >
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
-                  <ResumePreview key={templateId} resume={previewResume} accentColor={accentColor} fontScale={fontScale} fontColor={fontColor} />
+                  <ResumePreview key={templateId} resume={previewResume} accentColor={accentColor} fontScale={fontScale} fontColor={fontColor} backgroundColor={backgroundColor} />
                 </div>
               </div>
             </div>

@@ -194,7 +194,7 @@ function renderSkills(
                 <span className={`text-[7px] ${dark ? "text-white/60" : "text-gray-400"}`}>{pct}%</span>
               </div>
               <div className={`h-1 rounded-full ${dark ? "bg-white/20" : "bg-gray-100"}`}>
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: dark ? "#fff" : color }} />
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
               </div>
             </div>
           );
@@ -214,9 +214,9 @@ function renderSkills(
             <div key={i} className="flex flex-col items-center">
               <svg width="34" height="34" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="14" fill="none" stroke={dark ? "rgba(255,255,255,0.18)" : "#e5e7eb"} strokeWidth="3" />
-                <circle cx="18" cy="18" r="14" fill="none" stroke={dark ? "#fff" : color} strokeWidth="3" strokeLinecap="round"
+                <circle cx="18" cy="18" r="14" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
                   strokeDasharray={C} strokeDashoffset={offset} transform="rotate(-90 18 18)" />
-                <text x="18" y="20.5" textAnchor="middle" fontSize="7.5" fontWeight={700} fill={dark ? "#fff" : "#111"}>{lvl}</text>
+                <text x="18" y="20.5" textAnchor="middle" fontSize="7.5" fontWeight={700} fill={color}>{lvl}</text>
               </svg>
               <span className={`text-[7px] mt-0.5 text-center leading-tight ${dark ? "text-white/85" : "text-gray-700"}`}>{str(s.name)}</span>
             </div>
@@ -239,7 +239,7 @@ function renderSkills(
     <div className="flex flex-wrap gap-1">
       {skills.map((s, i) => (
         <span key={i} className="text-[8px] px-2 py-0.5 rounded font-semibold"
-          style={{ background: dark ? alpha(color, 0.3) : alpha(color, 0.12), color: dark ? "#fff" : color }}>
+          style={{ background: dark ? alpha(color, 0.3) : alpha(color, 0.12), color: color }}>
           {str(s.name)}
         </span>
       ))}
@@ -503,13 +503,13 @@ export function FaangTemplate({ sections, color, font }: TP) {
           <div className="w-[145px] shrink-0">
             {skills.length > 0 && (
               <div className="mb-4">
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2.5">Skills</p>
+                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2.5" style={{ color }}>Skills</p>
                 {renderSkills(skills, skillsStyle, color, false)}
               </div>
             )}
             {certs.length > 0 && (
               <div>
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2">Certs</p>
+                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2" style={{ color }}>Certs</p>
                 {certs.map((c, i) => {
                   const url = (str(c.credentialUrl) || str(c.url)).trim();
                   return (
@@ -564,14 +564,14 @@ export function NovaTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <div className="mb-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-2 text-center">Profile</p>
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2 text-center" style={{ color }}>Profile</p>
           <p className="text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto">{str(summary.text)}</p>
         </div>
       )}
 
       {exp.length > 0 && (
         <div className="mb-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-3">Experience</p>
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Experience</p>
           <div className="space-y-4">
             {exp.map((e, i) => (
               <div key={i} className="flex gap-6">
@@ -595,7 +595,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
       <div className="grid grid-cols-2 gap-8">
         {edu.length > 0 && (
           <div>
-            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-3">Education</p>
+            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Education</p>
             {edu.map((e, i) => (
               <div key={i} className="mb-2.5">
                 <p className="text-[9.5px] font-semibold text-gray-800">{str(e.school)}</p>
@@ -607,7 +607,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
         )}
         {skills.length > 0 && (
           <div>
-            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-3">Expertise</p>
+            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Expertise</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
@@ -615,7 +615,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
 
       {projects.length > 0 && (
         <div className="mt-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-3">Selected Projects</p>
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Selected Projects</p>
           <div className="space-y-2">
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
@@ -629,7 +629,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
 
       {certs.length > 0 && (
         <div className="mt-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] text-gray-300 mb-3">Certifications</p>
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Certifications</p>
           <div className="flex flex-wrap gap-3">
             {certs.map((c, i) => (
               <CertLine key={i} c={c} className="text-[8.5px] text-gray-500" color={color} />
@@ -692,7 +692,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
         <div className="mb-4">
           <div className="flex items-center gap-3 mb-2.5">
             <div className="flex-1 h-px bg-gray-200" />
-            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400">Professional Experience</p>
+            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Professional Experience</p>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
           <div className="space-y-3.5">
@@ -723,7 +723,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="flex-1 h-px bg-gray-200" />
-              <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400">Education</p>
+              <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Education</p>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
             {edu.map((e, i) => (
@@ -742,7 +742,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
               <>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex-1 h-px bg-gray-200" />
-                  <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400">Core Competencies</p>
+                  <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Core Competencies</p>
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
                 {renderSkills(skills, skillsStyle, color, false)}
@@ -750,7 +750,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
             )}
             {certs.length > 0 && (
               <div className="mt-3">
-                <p className="text-[7.5px] uppercase tracking-[0.15em] text-gray-400 mb-1">Certifications</p>
+                <p className="text-[7.5px] uppercase tracking-[0.15em] text-gray-400 mb-1" style={{ color }}>Certifications</p>
                 {certs.map((c, i) => (
                   <CertLine key={i} c={c} className="text-[8px] italic text-gray-600" color={color} />
                 ))}
@@ -764,7 +764,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
         <div className="mt-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="flex-1 h-px bg-gray-200" />
-            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400">Notable Projects</p>
+            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Notable Projects</p>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
           {projects.map((pr, i) => (
@@ -818,7 +818,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
         {skills.length > 0 && (
           <div className="px-5 py-3" style={{ background: "rgba(0,0,0,0.08)" }}>
             <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-white/50 mb-2">Skills</p>
-            {renderSkills(skills, skillsStyle, color, true)}
+            {renderSkills(skills, skillsStyle, "#ffffff", true)}
           </div>
         )}
 
@@ -859,7 +859,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
-              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800">Experience</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Experience</p>
             </div>
             <div className="space-y-3">
               {exp.map((e, i) => (
@@ -889,7 +889,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
           <div>
             <div className="flex items-center gap-2 mb-2.5">
               <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
-              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800">Projects</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Projects</p>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {projects.map((pr, i) => (
@@ -1051,8 +1051,8 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
 
   const SH = ({ label }: { label: string }) => (
     <div className="mt-4 first:mt-0">
-      <p className="text-[9px] font-black uppercase text-gray-900 tracking-wide">{label}</p>
-      <div className="h-px bg-gray-900 mt-0.5 mb-2" />
+      <p className="text-[9px] font-black uppercase tracking-wide" style={{ color }}>{label}</p>
+      <div className="h-px mt-0.5 mb-2" style={{ background: color }} />
     </div>
   );
 
@@ -1136,7 +1136,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
 
   const SH = ({ label }: { label: string }) => (
     <div className="flex items-center gap-2 mt-4 first:mt-0 mb-2">
-      <h2 className="text-[9px] font-bold text-gray-800 uppercase tracking-[0.1em]">{label}</h2>
+      <h2 className="text-[9px] font-bold uppercase tracking-[0.1em]" style={{ color }}>{label}</h2>
       <div className="flex-1 h-px bg-gray-300" />
     </div>
   );
@@ -1468,7 +1468,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   const SH = ({ label }: { label: string }) => (
     <div className="flex items-center gap-2 mb-2 mt-3 first:mt-0">
       <div className="h-3 w-[3px] rounded-full" style={{ background: color }} />
-      <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-700">{label}</p>
+      <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</p>
       <div className="flex-1 h-px bg-gray-100" />
     </div>
   );
@@ -1713,22 +1713,39 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 /* ═══════════════════════════════════════════════════════════
    Main ResumePreview — route to correct template
 ═══════════════════════════════════════════════════════════ */
-export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor }: { resume: ResumeDetail; accentColor?: string; fontScale?: number; fontColor?: string }) {
+export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, backgroundColor }: { resume: ResumeDetail; accentColor?: string; fontScale?: number; fontColor?: string; backgroundColor?: string }) {
   const color = accentColor ?? resume.accentColor ?? "#7c3aed";
   const font = resume.fontFamily ?? "Inter, sans-serif";
+  const fColor = fontColor ?? resume.fontColor ?? "#111827";
+  const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
   const templateId = resume.templateId ?? "silicon-valley";
   const props = { sections: resume.sections, color, font };
 
   return (
-    <div className="a4-page bg-white overflow-hidden relative" style={{ fontFamily: font }}>
-      {fontColor && fontColor !== "#111827" && (
+    <div className="a4-page overflow-hidden relative" style={{ fontFamily: font, backgroundColor: bColor }}>
+      {fColor && (
         <style dangerouslySetInnerHTML={{
           __html: `
             .a4-page .text-gray-950, .a4-page .text-gray-900,
             .a4-page .text-gray-800, .a4-page .text-gray-700,
-            .a4-page .text-black { color: ${fontColor}; }
+            .a4-page .text-black, .a4-page .text-slate-800,
+            .a4-page .text-slate-900 { color: ${fColor}; }
+
             .a4-page .text-gray-600, .a4-page .text-gray-500,
-            .a4-page .text-gray-400 { color: ${fontColor}; opacity: 0.75; }
+            .a4-page .text-gray-400, .a4-page .text-slate-600,
+            .a4-page .text-slate-500, .a4-page .text-slate-400 { color: ${alpha(fColor, 0.75)}; }
+
+            .a4-page .bg-gray-100, .a4-page .bg-gray-200, 
+            .a4-page .bg-gray-300, .a4-page .bg-gray-50, 
+            .a4-page .bg-slate-100, .a4-page .bg-slate-200,
+            .a4-page .bg-muted { background-color: ${alpha(fColor, 0.15)}; }
+
+            .a4-page .border-gray-100, .a4-page .border-gray-200,
+            .a4-page .border-gray-300, .a4-page .border-slate-200,
+            .a4-page .border-slate-300, .a4-page .border-border { border-color: ${alpha(fColor, 0.25)}; }
+
+            .a4-page svg circle[stroke="#e5e7eb"], .a4-page svg circle[stroke="rgba(255,255,255,0.18)"] { stroke: ${alpha(fColor, 0.15)}; }
+            .a4-page svg text { fill: ${fColor}; }
           `
         }} />
       )}
