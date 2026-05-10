@@ -265,8 +265,9 @@
     font-family: inherit !important;
   }
   .ql-editor {
-    word-break: break-word;
-    overflow-wrap: break-word;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: break-word; word-break: break-word;
     white-space: pre-wrap;
     min-height: 80px;
     font-size: 0.875rem; /* text-sm */
@@ -365,4 +366,20 @@
 .cl-formFieldInput::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 1;
+}
+
+.rich-text-container {
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+.ql-container {
+  max-width: 100%;
+  width: 100%;
+}
+
+.quill {
+  max-width: 100%;
+  width: 100%;
 }

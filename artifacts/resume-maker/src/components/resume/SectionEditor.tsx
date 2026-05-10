@@ -393,7 +393,7 @@ function ExperienceEditor({
               return (
                 <div key={bi} className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2">
                   <div className="flex gap-1.5">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <RichTextEditor
                         value={b.text}
                         onChange={(val) => updateBulletAt(bi, { text: val })}
@@ -726,7 +726,10 @@ function SkillsEditor({
   );
 }
 
-function ProjectsEditor({ content, onChange }: { content: SectionContent; onChange: (c: SectionContent) => void }) {
+function ProjectsEditor({
+  content, onChange, isPremium, onShowPaywall,
+}: { content: SectionContent; onChange: (c: SectionContent) => void; isPremium: boolean; onShowPaywall: () => void; }) {
+  const { toast } = useToast();
   const items: Array<Record<string, unknown>> = (content.items as Array<Record<string, unknown>>) ?? [];
 
   const updateItem = (i: number, key: string, val: unknown) => {
@@ -734,6 +737,23 @@ function ProjectsEditor({ content, onChange }: { content: SectionContent; onChan
     updated[i] = { ...updated[i], [key]: val };
     onChange({ ...content, items: updated });
   };
+
+  const [pendingProject, setPendingProject] = useState<number | null>(null);
+
+  const improveDescription = useImproveBullet({
+    mutation: {
+      onSuccess: (data) => {
+        if (pendingProject === null) return;
+        const idx = pendingProject;
+        const updatedItems = [...items];
+        updatedItems[idx] = { ...updatedItems[idx], description: data.text };
+        onChange({ ...content, items: updatedItems });
+        setPendingProject(null);
+        toast({ title: "Description improved" });
+      },
+      onError: () => { setPendingProject(null); toast({ title: "Failed to improve description", variant: "destructive" }); },
+    },
+  });
 
   return (
     <div className="space-y-3">
@@ -749,11 +769,32 @@ function ProjectsEditor({ content, onChange }: { content: SectionContent; onChan
             </Field>
           </div>
           <Field label="Description">
-            <RichTextEditor 
-              value={(item.description as string) ?? ""} 
-              onChange={(val) => updateItem(i, "description", val)} 
-              placeholder="Brief description..." 
-            />
+            <div className="flex gap-1.5">
+              <div className="flex-1 min-w-0">
+                <RichTextEditor 
+                  value={(item.description as string) ?? ""} 
+                  onChange={(val) => updateItem(i, "description", val)} 
+                  placeholder="Brief description..." 
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="outline" size="sm"
+                  className="h-7 w-7 p-0"
+                  title="Improve with AI"
+                  onClick={() => { 
+                    if (!isPremium) { onShowPaywall(); return; }
+                    setPendingProject(i); 
+                    improveDescription.mutate({ data: { bullet: (item.description as string) ?? "", context: `Project named ${item.name ?? ""}` } }); 
+                  }}
+                  disabled={improveDescription.isPending && pendingProject === i}
+                >
+                  {improveDescription.isPending && pendingProject === i
+                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                    : <Sparkles className="h-3 w-3 text-primary" />}
+                </Button>
+              </div>
+            </div>
           </Field>
         </div>
       ))}
@@ -835,7 +876,7 @@ export function SectionEditor({ section, onChange, onVisibilityToggle, resumeId,
           {section.type === "experience" && <ExperienceEditor content={section.content} onChange={onChange} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
           {section.type === "education" && <EducationEditor content={section.content} onChange={onChange} />}
           {section.type === "skills" && <SkillsEditor content={section.content} onChange={onChange} allSections={allSections} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
-          {section.type === "projects" && <ProjectsEditor content={section.content} onChange={onChange} />}
+          {section.type === "projects" && <ProjectsEditor content={section.content} onChange={onChange} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
           {section.type === "certifications" && <CertificationsEditor content={section.content} onChange={onChange} />}
         </>
       )}

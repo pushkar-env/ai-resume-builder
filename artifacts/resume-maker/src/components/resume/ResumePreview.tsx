@@ -135,16 +135,18 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   const { text, label, link } = bulletParts(b);
   if (!text && !label && !link) return null;
   return (
-    <>
-      <div dangerouslySetInnerHTML={{ __html: text }} className="inline [&>p]:inline [&>p]:m-0" />
+    <div className="flex flex-col gap-1 w-full min-w-0">
+      <div dangerouslySetInnerHTML={{ __html: text }} className="[&>p]:mb-1 last:[&>p]:mb-0" style={{ wordBreak: 'normal', overflowWrap: 'anywhere' }} />
       {link ? (
-        <>{" "}<a href={ensureProto(link)} target="_blank" rel="noreferrer noopener"
-              className="underline underline-offset-2 font-semibold"
-              style={{ color }}>{label || "view sample"}</a></>
+        <div>
+          <a href={ensureProto(link)} target="_blank" rel="noreferrer noopener"
+                className="underline underline-offset-2 font-semibold"
+              style={{ color }}>{label || "view sample"}</a>
+        </div>
       ) : label ? (
-        <span className="ml-1 font-semibold" style={{ color }}> — {label}</span>
+        <div><span className="font-semibold" style={{ color }}>— {label}</span></div>
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -359,7 +361,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -381,7 +383,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                     <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
                     {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
                   </div>
-                  {str(pr.description) && <p className="text-[8.5px] text-gray-600 mt-0.5">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[8.5px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -450,7 +452,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                       <div key={j} className="flex gap-1.5 mt-1">
                         <span className="text-[8px] text-gray-400 shrink-0">▸</span>
-                        <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                        <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
@@ -472,7 +474,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                       <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
                       {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
                     </div>
-                    {str(pr.description) && <p className="text-[8.5px] text-gray-600">{str(pr.description)}</p>}
+                    {str(pr.description) && <div className="text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -583,7 +585,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
                   <p className="text-[10.5px] font-semibold text-gray-800">{str(e.title)}</p>
                   <p className="text-[9px] text-gray-400 mt-0.5">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <div key={j} className="text-[8.5px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></div>
+                    <div key={j} className="flex-1 min-w-0 text-[8.5px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></div>
                   ))}
                 </div>
               </div>
@@ -620,7 +622,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
                 <p className="text-[9.5px] font-semibold text-gray-700 w-[130px] shrink-0">{str(pr.name)}</p>
-                <p className="text-[8.5px] text-gray-400 flex-1">{str(pr.description)}</p>
+                <div className="text-[8.5px] text-gray-400 flex-1" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />
               </div>
             ))}
           </div>
@@ -709,7 +711,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-2 mt-1">
                     <span className="text-[8px] shrink-0 mt-0.5" style={{ color }}>—</span>
-                    <div className="text-[8.5px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></div>
+                    <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -875,7 +877,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -894,7 +896,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-xl p-2.5" style={{ background: alpha(color, 0.06) }}>
                   <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[8px] text-gray-500 mt-0.5">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -966,7 +968,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-1.5 mt-1.5">
                     <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: gold }} />
-                    <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                    <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -1023,7 +1025,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
                   <p className="text-[9px] font-semibold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[8px] text-gray-600">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[8px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1196,7 +1198,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
           {projects.map((pr, i) => (
             <div key={i} className="mb-2">
               <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-              {str(pr.description) && <p className="text-[8.5px] italic text-gray-600">{str(pr.description)}</p>}
+              {str(pr.description) && <div className="text-[8.5px] italic text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
             </div>
           ))}
         </>
@@ -1283,7 +1285,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="text-[7.5px] shrink-0 mt-0.5 font-bold" style={{ color: navy }}>›</span>
-                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1328,7 +1330,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                 {projects.map((pr, i) => (
                   <div key={i} className="mb-1">
                     <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                    {str(pr.description) && <p className="text-[8px] text-gray-500">{str(pr.description)}</p>}
+                    {str(pr.description) && <div className="text-[8px] text-gray-500" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -1431,7 +1433,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-0.5">
                   <p className="text-[8.5px] font-semibold text-gray-800">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[7.5px] text-gray-500">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[7.5px] text-gray-500" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1546,7 +1548,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                       <div key={j} className="flex gap-1.5 mt-1">
                         <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                        <div className="text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                        <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
@@ -1561,7 +1563,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
                   <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[8.5px] text-gray-600">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                 </div>
               ))}
             </>
@@ -1676,7 +1678,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
                       <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1696,7 +1698,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <p className="text-[8px] text-gray-500 mt-0.5">{str(pr.description)}</p>}
+                  {str(pr.description) && <div className="text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
                   {str(pr.url) && <p className="text-[7.5px] mt-0.5" style={{ color }}>{str(pr.url)}</p>}
                 </div>
               ))}
@@ -1725,8 +1727,7 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
         <style dangerouslySetInnerHTML={{
           __html: `
             .a4-page {
-              word-break: break-word;
-              overflow-wrap: break-word;
+              overflow-wrap: anywhere; word-wrap: break-word;
             }
 
             .a4-page .text-gray-950, .a4-page .text-gray-900,
