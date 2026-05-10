@@ -72,9 +72,16 @@ const ACCENT_COLORS = [
 const PREVIEW_ZOOM_STEP = 0.05;
 const PREVIEW_ZOOM_MIN = 0.25;
 const PREVIEW_ZOOM_MAX = 3;
+/** Default zoom when opening a resume on small screens (< lg). */
+const MOBILE_DEFAULT_PREVIEW_ZOOM = 0.4;
 
 function clampPreviewZoom(n: number) {
   return Math.min(PREVIEW_ZOOM_MAX, Math.max(PREVIEW_ZOOM_MIN, n));
+}
+
+function initialPreviewZoomForViewport(): number {
+  if (typeof window === "undefined") return 1;
+  return window.innerWidth < 1024 ? clampPreviewZoom(MOBILE_DEFAULT_PREVIEW_ZOOM) : 1;
 }
 
 const FONT_OPTIONS = [
@@ -373,18 +380,18 @@ export default function BuilderPage() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  /** Page preview zoom (not font size). Opens at 100% on desktop and mobile. */
-  const [previewScale, setPreviewScale] = useState(1);
-  const previewScaleRef = useRef(1);
+  /** Page preview zoom (not font size). Desktop opens at 100%; mobile opens ~40%. */
+  const [previewScale, setPreviewScale] = useState(() => initialPreviewZoomForViewport());
+  const previewScaleRef = useRef(previewScale);
   const [contentHeight, setContentHeight] = useState(1123);
 
   useEffect(() => {
     previewScaleRef.current = previewScale;
   }, [previewScale]);
 
-  /** New resume or route change: always start at 100%. */
+  /** New resume or route change: desktop 100%; mobile preferred default (~40%). */
   useEffect(() => {
-    setPreviewScale(1);
+    setPreviewScale(initialPreviewZoomForViewport());
   }, [resumeId]);
 
   useEffect(() => {
@@ -957,9 +964,10 @@ export default function BuilderPage() {
         {/* Right — live preview */}
         <div 
           ref={containerRef}
-          className={`flex-1 overflow-auto bg-muted/40 flex-col py-6 touch-pan-y ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
+          className={`flex-1 overflow-x-auto overflow-y-auto bg-muted/40 flex-col py-6 touch-pan-x touch-pan-y overscroll-contain [-webkit-overflow-scrolling:touch] ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
         >
-          <div className="min-w-max w-full flex flex-col items-center pb-20 relative px-4 mx-auto">
+          {/* min-w-max + w-max lets content exceed viewport width so horizontal scroll works on touch (touch-pan-y alone blocked sideways panning). */}
+          <div className="min-w-max w-max max-w-none flex flex-col items-center pb-20 relative px-4 mx-auto">
             <div className="mb-4 flex flex-col items-center justify-center gap-3">
               <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">Live Preview — A4</span>
               
