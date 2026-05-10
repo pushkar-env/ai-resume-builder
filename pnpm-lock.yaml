@@ -168,6 +168,9 @@ importers:
       react-helmet-async:
         specifier: ^3.0.0
         version: 3.0.0(react@19.1.0)
+      react-quill-new:
+        specifier: ^3.8.3
+        version: 3.8.3(quill-delta@5.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     devDependencies:
       '@hookform/resolvers':
         specifier: ^3.10.0
@@ -2691,6 +2694,9 @@ packages:
   eventemitter3@4.0.7:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
 
+  eventemitter3@5.0.4:
+    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
+
   execa@9.6.1:
     resolution: {integrity: sha512-9Be3ZoN4LmYR90tUoVu2te2BsbzHfhJyfEiAVfz7N5/zv+jduIfLrV2xdQXOHbaD6KgpGdO9PRPM1Y4Q9QkPkA==}
     engines: {node: ^18.19.0 || >=20.5.0}
@@ -2704,6 +2710,9 @@ packages:
 
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
+
+  fast-diff@1.3.0:
+    resolution: {integrity: sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==}
 
   fast-equals@5.4.0:
     resolution: {integrity: sha512-jt2DW/aNFNwke7AUd+Z+e6pz39KO5rzdbbFCg2sGafS4mk13MI7Z8O5z9cADNn5lhGODIgLwug6TZO2ctf7kcw==}
@@ -3066,6 +3075,16 @@ packages:
     resolution: {integrity: sha512-XT9ewWAC43tiAV7xDAPflMkG0qOPn2QjHqlgX8FOqmWa/rxnyYDulF9T0F7tRy1u+TVTmK/M//6VIOye+2zDXg==}
     engines: {node: '>=20'}
 
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
+
+  lodash.clonedeep@4.5.0:
+    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
+
+  lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+
   lodash@4.17.23:
     resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
@@ -3228,6 +3247,9 @@ packages:
     resolution: {integrity: sha512-J5ApzjyRkkf601HpEeykoiCvzHQjWxPAHhyjFcEUP2SWq0+35NKh8TLhpLw+Dkq5TZBFvUM6UigdE9hIVYTl5w==}
     engines: {node: '>=20'}
 
+  parchment@3.0.0:
+    resolution: {integrity: sha512-HUrJFQ/StvgmXRcQ1ftY6VEZUq3jA2t9ncFN4F84J/vN0/FPpQF+8FKXb3l6fLces6q0uOHj6NJn+2xvZnxO6A==}
+
   parse-ms@4.0.0:
     resolution: {integrity: sha512-TXfryirbmq34y8QBwgqCVLi+8oA3oWx2eAnSn62ITyEhEYaWRlVZ2DvMM9eZbMs/RfxPu/PK/aBLyGj4IrqMHw==}
     engines: {node: '>=18'}
@@ -3379,6 +3401,14 @@ packages:
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
 
+  quill-delta@5.1.0:
+    resolution: {integrity: sha512-X74oCeRI4/p0ucjb5Ma8adTXd9Scumz367kkMK5V/IatcX6A0vlgLgKbzXWy5nZmCGeNJm2oQX0d2Eqj+ZIlCA==}
+    engines: {node: '>= 12.0.0'}
+
+  quill@2.0.3:
+    resolution: {integrity: sha512-xEYQBqfYx/sfb33VJiKnSJp8ehloavImQ2A6564GAbqG55PGw1dAWUn1MUbQB62t0azawUS2CZZhWCjO8gRvTw==}
+    engines: {npm: '>=8.2.3'}
+
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
@@ -3425,6 +3455,13 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-quill-new@3.8.3:
+    resolution: {integrity: sha512-c96PYqFTo0pI4R3e79B3rH9LUIce1kIQbmTBu/imJQZk8305ogyLyBqKKjG2UoInDlquXqePSzmBo2aVia3ttw==}
+    peerDependencies:
+      quill-delta: ^5.1.0
+      react: ^16 || ^17 || ^18 || ^19
+      react-dom: ^16 || ^17 || ^18 || ^19
 
   react-refresh@0.18.0:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
@@ -6018,6 +6055,8 @@ snapshots:
 
   eventemitter3@4.0.7: {}
 
+  eventemitter3@5.0.4: {}
+
   execa@9.6.1:
     dependencies:
       '@sindresorhus/merge-streams': 4.0.0
@@ -6069,6 +6108,8 @@ snapshots:
   fast-copy@4.0.2: {}
 
   fast-deep-equal@3.1.3: {}
+
+  fast-diff@1.3.0: {}
 
   fast-equals@5.4.0: {}
 
@@ -6370,6 +6411,12 @@ snapshots:
     dependencies:
       p-locate: 6.0.0
 
+  lodash-es@4.18.1: {}
+
+  lodash.clonedeep@4.5.0: {}
+
+  lodash.isequal@4.5.0: {}
+
   lodash@4.17.23: {}
 
   loose-envify@1.4.0:
@@ -6530,6 +6577,8 @@ snapshots:
     dependencies:
       is-network-error: 1.3.1
 
+  parchment@3.0.0: {}
+
   parse-ms@4.0.0: {}
 
   parseurl@1.3.3: {}
@@ -6687,6 +6736,19 @@ snapshots:
 
   quick-format-unescaped@4.0.4: {}
 
+  quill-delta@5.1.0:
+    dependencies:
+      fast-diff: 1.3.0
+      lodash.clonedeep: 4.5.0
+      lodash.isequal: 4.5.0
+
+  quill@2.0.3:
+    dependencies:
+      eventemitter3: 5.0.4
+      lodash-es: 4.18.1
+      parchment: 3.0.0
+      quill-delta: 5.1.0
+
   range-parser@1.2.1: {}
 
   raw-body@3.0.2:
@@ -6735,6 +6797,14 @@ snapshots:
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
+
+  react-quill-new@3.8.3(quill-delta@5.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      lodash-es: 4.18.1
+      quill: 2.0.3
+      quill-delta: 5.1.0
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   react-refresh@0.18.0: {}
 

@@ -3,6 +3,7 @@ import { Sparkles, Loader2, Plus, Trash2, Eye, EyeOff, Upload, X } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -281,11 +282,10 @@ function SummaryEditor({
   return (
     <div className="space-y-3">
       <Field label="Professional Summary">
-        <Textarea
+        <RichTextEditor
           value={(content.text as string) ?? ""}
-          onChange={(e) => onChange({ ...content, text: e.target.value })}
+          onChange={(val) => onChange({ ...content, text: val })}
           placeholder="Write a draft, or just leave blank and click 'Generate with AI' below…"
-          className="min-h-[110px] resize-none"
         />
       </Field>
       <div className="flex flex-col gap-1">
@@ -393,12 +393,13 @@ function ExperienceEditor({
               return (
                 <div key={bi} className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2">
                   <div className="flex gap-1.5">
-                    <Textarea
-                      value={b.text}
-                      onChange={(e) => updateBulletAt(bi, { text: e.target.value })}
-                      placeholder="• Led ..."
-                      className="text-sm min-h-[44px] resize-none flex-1 bg-background"
-                    />
+                    <div className="flex-1">
+                      <RichTextEditor
+                        value={b.text}
+                        onChange={(val) => updateBulletAt(bi, { text: val })}
+                        placeholder="• Led ..."
+                      />
+                    </div>
                     <div className="flex flex-col gap-1">
                       <Button
                         variant="outline" size="sm"
@@ -748,7 +749,11 @@ function ProjectsEditor({ content, onChange }: { content: SectionContent; onChan
             </Field>
           </div>
           <Field label="Description">
-            <Textarea value={(item.description as string) ?? ""} onChange={(e) => updateItem(i, "description", e.target.value)} placeholder="Brief description..." className="text-sm min-h-[60px] resize-none" />
+            <RichTextEditor 
+              value={(item.description as string) ?? ""} 
+              onChange={(val) => updateItem(i, "description", val)} 
+              placeholder="Brief description..." 
+            />
           </Field>
         </div>
       ))}

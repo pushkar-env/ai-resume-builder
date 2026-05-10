@@ -136,7 +136,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   if (!text && !label && !link) return null;
   return (
     <>
-      {text}
+      <span dangerouslySetInnerHTML={{ __html: text }} />
       {link ? (
         <>{" "}<a href={ensureProto(link)} target="_blank" rel="noreferrer noopener"
               className="underline underline-offset-2 font-semibold"
@@ -335,7 +335,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
               <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <p className="text-[9.5px] text-gray-600 leading-[1.65]">{str(summary.text)}</p>
+            <div className="text-[9.5px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
           </div>
         )}
 
@@ -429,7 +429,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
                 <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Summary</p>
               </div>
-              <p className="text-[9px] text-gray-600 leading-[1.7]">{str(summary.text)}</p>
+              <div className="text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
             </div>
           )}
 
@@ -565,7 +565,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
       {str(summary.text) && (
         <div className="mb-7">
           <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2 text-center" style={{ color }}>Profile</p>
-          <p className="text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto">{str(summary.text)}</p>
+          <div className="text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
         </div>
       )}
 
@@ -684,7 +684,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <div className="mb-4 text-center">
-          <p className="text-[9px] text-gray-600 leading-[1.8] italic max-w-[440px] mx-auto">{str(summary.text)}</p>
+          <div className="text-[9px] text-gray-600 leading-[1.8] italic max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
         </div>
       )}
 
@@ -850,7 +850,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
         {str(summary.text) && (
           <div className="mb-5 p-3.5 rounded-xl" style={{ background: alpha(color, 0.06) }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color }}>About Me</p>
-            <p className="text-[9px] text-gray-600 leading-[1.7]">{str(summary.text)}</p>
+            <div className="text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
           </div>
         )}
 
@@ -943,7 +943,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
       {str(summary.text) && (
         <div className="mb-5">
           <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: gold }}>Profile</p>
-          <p className="text-[9px] text-gray-600 leading-[1.75]">{str(summary.text)}</p>
+          <div className="text-[9px] text-gray-600 leading-[1.75]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
         </div>
       )}
 
@@ -1065,7 +1065,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
         </p>
 
       </div>
-      {str(summary.text) && (<><SH label="Professional Summary" /><p className="text-[9px] text-gray-700 leading-relaxed">{str(summary.text)}</p></>)}
+      {str(summary.text) && (<><SH label="Professional Summary" /><div className="text-[9px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: str(summary.text) }} /></>)}
       {exp.length > 0 && (
         <><SH label="Work Experience" />
           {exp.map((e, i) => (
@@ -1153,7 +1153,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <><SH label="Research Interests / Summary" />
-          <p className="text-[9px] text-gray-700 leading-[1.7] italic">{str(summary.text)}</p>
+          <div className="text-[9px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
         </>
       )}
 
@@ -1263,7 +1263,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         {str(summary.text) && (
           <div className="mb-4 pb-4" style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: navy }}>Professional Summary</p>
-            <p className="text-[9px] text-gray-600 leading-[1.7]">{str(summary.text)}</p>
+            <div className="text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
           </div>
         )}
 
@@ -1368,7 +1368,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
       </div>
 
       {str(summary.text) && (
-        <p className="text-[8.5px] text-gray-600 leading-[1.6] mb-2">{str(summary.text)}</p>
+        <div className="text-[8.5px] text-gray-600 leading-[1.6] mb-2" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
       )}
 
       {skills.length > 0 && (() => {
@@ -1528,7 +1528,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
           {str(summary.text) && (
             <>
               <SH label="Profile" />
-              <p className="text-[9px] text-gray-600 leading-[1.7]">{str(summary.text)}</p>
+              <div className="text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
             </>
           )}
 
@@ -1651,7 +1651,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Profile</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
-            <p className="text-[9.5px] text-gray-600 leading-[1.7]">{str(summary.text)}</p>
+            <div className="text-[9.5px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
           </div>
         )}
 
