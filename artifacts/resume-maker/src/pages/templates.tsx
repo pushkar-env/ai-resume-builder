@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
-import { useListTemplates, useCreateResume, getListResumesQueryKey, type ResumeDetail } from "@workspace/api-client-react";
+import { useListTemplates, useCreateResume, getListResumesQueryKey, useListResumes, type ResumeDetail } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
@@ -78,10 +78,14 @@ export default function TemplatesPage() {
   const [creating, setCreating] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallTitle, setPaywallTitle] = useState("Premium Feature");
+  const [paywallDescription, setPaywallDescription] = useState("This feature is reserved for Pro users.");
   
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
 
   const { data: templates, isLoading } = useListTemplates();
+  const { data: resumes } = useListResumes();
+  const resumeList = Array.isArray(resumes) ? resumes : [];
 
   const createResume = useCreateResume({
     mutation: {
@@ -94,8 +98,17 @@ export default function TemplatesPage() {
   });
 
   const handleUseTemplate = (templateId: string) => {
+    if (!isPremiumUser && resumeList.length >= 1) {
+      setPaywallTitle("Resume Limit Reached");
+      setPaywallDescription("Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates.");
+      setShowPaywall(true);
+      return;
+    }
+
     const template = templateList.find(t => t.id === templateId);
     if (template?.isPremium && !isPremiumUser) {
+      setPaywallTitle("Premium Template");
+      setPaywallDescription("This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.");
       setShowPaywall(true);
       return;
     }
@@ -299,8 +312,8 @@ export default function TemplatesPage() {
       <PaywallDialog 
         open={showPaywall} 
         onOpenChange={setShowPaywall}
-        title="Premium Template"
-        description="This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization."
+        title={paywallTitle}
+        description={paywallDescription}
       />
     </div>
   );
