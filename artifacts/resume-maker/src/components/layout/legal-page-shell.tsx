@@ -1,7 +1,15 @@
 import type { ReactNode } from "react";
+import { useLayoutEffect } from "react";
 import { useUser } from "@clerk/react";
+import { useLocation } from "wouter";
 import { Navbar, LandingNavbar } from "./Navbar";
 import { SEO } from "@/components/shared/SEO";
+
+function scrollDocumentToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
 
 type LegalPageShellProps = {
   title: string;
@@ -23,7 +31,22 @@ export function LegalPageShell({
   children,
 }: LegalPageShellProps) {
   const { user, isLoaded } = useUser();
+  const [location] = useLocation();
   const TopNav = !isLoaded || !user ? LandingNavbar : Navbar;
+
+  useLayoutEffect(() => {
+    scrollDocumentToTop();
+    const id = window.requestAnimationFrame(() => {
+      scrollDocumentToTop();
+    });
+    const t = window.setTimeout(scrollDocumentToTop, 0);
+    const t2 = window.setTimeout(scrollDocumentToTop, 150);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.clearTimeout(t);
+      window.clearTimeout(t2);
+    };
+  }, [location]);
 
   return (
     <div className="min-h-screen min-w-0 w-full max-w-[100vw] bg-background flex flex-col overflow-x-clip">
