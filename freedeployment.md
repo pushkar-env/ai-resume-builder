@@ -67,51 +67,85 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
 5. Click **Deploy**. Vercel will build and assign you a fast, global CDN link (e.g., `https://ai-resume-builder.vercel.app`).
 
 > [!TIP]
-> If you experience CORS issues, ensure your Backend (`api-server`) is configured to accept requests from your Vercel domain. To avoid iOS Safari authentication issues (ITP), configure your Clerk proxy domain and set `VITE_CLERK_PROXY_URL` in Vercel. Point it to `https://ai-resume-api.onrender.com/api/webhooks/clerk`.
+> If you experience CORS issues, ensure your Backend (`api-server`) is configured to accept requests from your Vercel domain. To reduce iOS Safari issues with third-party cookies (ITP), configure a **Clerk Frontend API proxy** in the Clerk Dashboard and set `VITE_CLERK_PROXY_URL` on Vercel to your backend proxy base URL, for example `https://ai-resume-api.onrender.com/api/__clerk` (this project serves the proxy at path `/api/__clerk` on the API host).
 
 ## 4. Final Setup (Webhooks & CORS)
-1. **Clerk Webhooks:** Go to Clerk Dashboard -> Webhooks. Point it to `https://ai-resume-api.onrender.com/api/webhooks/clerk`.
-2. **Razorpay Webhooks:** Go to Razorpay Dashboard -> Webhooks. Point it to `https://ai-resume-api.onrender.com/api/payments/webhook`.
+1. **Clerk:** In the Clerk Dashboard, add your **production** frontend URL (and your API origin if required) under **Domains** / **Allowed origins** so sign-in works on Vercel. **Clerk webhooks** are optional unless you add a handler route on your API; this repo uses Clerk for auth/session and Razorpay webhooks for billing. If you add a Clerk webhook endpoint later, register its full URL under **Webhooks** and store the signing secret (for example as `CLERK_WEBHOOK_SECRET`) in your backend.
+2. **Razorpay Webhooks:** In the Razorpay Dashboard (same mode as your keys), go to **Account & Settings** → **Webhooks**. Point the URL to `https://your-api-url.onrender.com/api/payments/webhook` (replace with your real API base + `/api/payments/webhook`).
 3. **Backend CORS:** In your Render dashboard, ensure your `FRONTEND_URL` exactly matches your Vercel URL so the backend accepts requests.
 
-## 5. Going Live (Razorpay)
+---
 
-Switching to Live Mode in Razorpay requires creating new plans and updating your environment variables.
+## 5. Moving from test to live (Clerk & Razorpay)
 
-### Step 1: Switch to Live Mode & Get API Keys
-1. Go to your [Razorpay Dashboard](https://dashboard.razorpay.com/).
-2. Switch the toggle in the dashboard from **Test Mode** to **Live Mode**. *(Note: KYC activation is required to accept real payments).*
-3. Navigate to **Account & Settings** -> **API Keys**.
-4. Generate a new Live API Key. You will get a new `Key ID` (starts with `rzp_live_`) and a `Key Secret`. Keep these secure.
+**Important distinction:** Razorpay uses a **Test / Live** toggle in one account. Clerk instead uses separate **Development** and **Production** instances (different API keys). “Going live” for Clerk means deploying with **production** keys and domains, not flipping a “test mode” switch on the same key pair.
 
-### Step 2: Re-create Your Subscription Plans
-Test plans **do not** transfer over to Live Mode.
-1. In the Live Mode dashboard, go to **Subscriptions** -> **Plans**.
-2. Create your **Monthly Plan** and **Yearly Plan** with your desired live pricing.
-3. Copy the newly generated `plan_...` IDs for both.
+### 5.1 Do you have to pay money?
 
-### Step 3: Setup the Live Webhook
-1. Go to **Account & Settings** -> **Webhooks**.
-2. Add a new Webhook pointing to your deployed backend: `https://your-api-url.onrender.com/api/payments/webhook`.
-3. Enter a secure secret.
-4. Select the Active Events: `subscription.activated` and `subscription.cancelled`.
-5. Click **Create Webhook**.
+| Service | Enabling “live” / production | Ongoing costs |
+|--------|------------------------------|----------------|
+| **Clerk** | No fee to create a Production instance or to use production API keys (`pk_live_…` / `sk_live_…`). | **Free tier:** Clerk’s free plan includes a monthly active user (MAU) allowance; you only pay if you **choose a paid Clerk plan** or exceed free limits. Check [Clerk pricing](https://clerk.com/pricing) for current numbers. |
+| **Razorpay** | No separate “activation fee” for standard accounts; you complete **KYC** (identity/business verification) to accept real money. KYC itself does not charge you. | **Per successful payment:** Razorpay charges a **transaction fee** (percentage + GST in India, method-dependent). You are not charged by Razorpay just to keep live mode on with zero sales. Pricing changes over time—see [Razorpay pricing](https://razorpay.com/pricing/). |
 
-### Step 4: Update Your Environment Variables
+**Summary:** You do **not** need to pay Clerk or Razorpay up front simply to switch off test/dev. You **do** pay Razorpay fees when customers successfully pay you; you **may** pay Clerk if you outgrow the free tier or upgrade.
 
-**On Vercel (Frontend):**
-1. Go to your project -> **Settings** -> **Environment Variables**.
-2. Update `VITE_RAZORPAY_KEY_ID` with your new **Live Key ID** (`rzp_live_...`).
-3. Save and **Redeploy** your frontend.
+---
 
-**On Render (Backend):**
-1. Go to your Web Service -> **Environment**.
-2. Update the following variables:
-   * `RAZORPAY_KEY_ID`: Your new **Live Key ID**.
-   * `RAZORPAY_KEY_SECRET`: Your new **Live Key Secret**.
-   * `RAZORPAY_MONTHLY_PLAN_ID`: Your new live monthly plan ID.
-   * `RAZORPAY_YEARLY_PLAN_ID`: Your new live yearly plan ID.
-   * `RAZORPAY_WEBHOOK_SECRET`: (Update if you changed the secret).
-3. Save changes. Render will automatically restart your backend.
+### 5.2 Clerk — exact steps (development → production)
 
-*Tip: Perform a test transaction of a tiny amount (like ₹1 or $1) to ensure the webhook successfully upgrades your account to Pro before launching publicly.*
+1. Open the [Clerk Dashboard](https://dashboard.clerk.com/) and select your application.
+2. Use the environment switcher (typically **Development** vs **Production**) at the top. If you have not created production yet, use **Create production instance** (or equivalent) and follow the prompts.
+3. **Production URLs:** In the **Production** instance, under **Domains** / **Paths** (wording varies by Clerk version), add:
+   * Your real Vercel URL (e.g. `https://your-app.vercel.app`).
+   * Any custom domain you use.
+   * Do **not** rely on `localhost` for production keys; production keys expect HTTPS on configured hosts.
+4. **API keys (Production):** In **API Keys** for the **Production** instance, copy:
+   * **Publishable key** (`pk_live_…`) → set as `VITE_CLERK_PUBLISHABLE_KEY` on Vercel and use the same value conceptually for any “publishable” slot in docs (frontend only).
+   * **Secret key** (`sk_live_…`) → set as `CLERK_SECRET_KEY` on Render/Railway (backend only; never commit or expose in the browser).
+5. **Same variable names on the server:** Set `CLERK_PUBLISHABLE_KEY` on the backend to the **same** production publishable key if your server expects it (this project uses `CLERK_PUBLISHABLE_KEY` in `app.ts` together with `CLERK_SECRET_KEY`).
+6. **Clerk proxy (optional but recommended for production):** In Clerk, configure the proxy URL to match how you deploy (see Clerk docs for “Frontend API proxy”). Set `VITE_CLERK_PROXY_URL` on the frontend to your API’s Clerk proxy base, e.g. `https://your-api.onrender.com/api/__clerk`.
+7. **Webhooks:** If you use Clerk webhooks, create the endpoint in the **Production** instance and paste the **production** signing secret into your backend env. Development and Production webhook secrets differ.
+8. **Redeploy** Vercel and restart the API after changing env vars. Test sign-in/sign-up on the production URL.
+
+Keep using **Development** keys (`pk_test_…` / `sk_test_…`) only for local development.
+
+---
+
+### 5.3 Razorpay — exact steps (test mode → live mode)
+
+Switching to Live Mode uses **new** live keys and **new** plan IDs; test artifacts do not carry over.
+
+#### Step A: Complete activation (KYC) and switch to Live
+1. Go to the [Razorpay Dashboard](https://dashboard.razorpay.com/).
+2. Complete **account activation / KYC** as prompted (business or individual, bank details, etc.). Until this is approved, live payouts and sometimes live charges may be restricted.
+3. Toggle the dashboard from **Test Mode** to **Live Mode**.
+
+#### Step B: Live API keys
+1. In **Live Mode**, open **Account & Settings** → **API Keys**.
+2. Generate **Live** keys. You will get `rzp_live_…` and a **Key Secret**. Store them only in server-side env (e.g. Render).
+
+#### Step C: Re-create subscription plans in Live mode
+Test plans **do not** exist in Live mode.
+1. With the dashboard in **Live Mode**, go to **Subscriptions** → **Plans**.
+2. Create **Monthly** and **Yearly** plans at your real prices.
+3. Copy the new **`plan_…`** IDs.
+
+#### Step D: Live webhook
+1. Still in **Live Mode**, go to **Account & Settings** → **Webhooks**.
+2. Add a webhook URL: `https://your-api-url.onrender.com/api/payments/webhook`.
+3. Set a strong webhook secret; subscribe to events your code handles (e.g. `subscription.activated`, `subscription.cancelled`—match what `api-server` expects).
+4. Put that secret in `RAZORPAY_WEBHOOK_SECRET` on the backend.
+
+#### Step E: Update environment variables
+
+**Vercel (frontend)**  
+1. **Settings** → **Environment Variables**.  
+2. Set `VITE_RAZORPAY_KEY_ID` to the **live** Key ID (`rzp_live_…`).  
+3. Redeploy.
+
+**Render / Railway (backend)**  
+1. Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_MONTHLY_PLAN_ID`, `RAZORPAY_YEARLY_PLAN_ID`, and `RAZORPAY_WEBHOOK_SECRET` to the **live** values.  
+2. Save and restart the service.
+
+#### Step F: Verify before launch
+Run a **small real payment** (e.g. minimum allowed amount) and confirm the webhook fires and premium state updates as expected. Razorpay’s dashboard logs help debug signature or URL mismatches.
