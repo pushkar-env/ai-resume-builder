@@ -124,20 +124,9 @@ export function Navbar() {
                 <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
-                    <span className="relative flex shrink-0">
-                      <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                        {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
-                      </div>
-                      {user.publicMetadata?.isPremium ? (
-                        <span
-                          className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background sm:hidden"
-                          title="Pro"
-                          aria-hidden
-                        >
-                          <Star className="h-2 w-2 fill-current" />
-                        </span>
-                      ) : null}
-                    </span>
+                    <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                      {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
+                    </div>
                     <span className="hidden sm:block text-sm max-w-[120px] truncate">
                       {user.firstName ?? user.emailAddresses[0]?.emailAddress}
                     </span>
