@@ -15,6 +15,8 @@ import TemplatesPage from "@/pages/templates";
 import SettingsPage from "@/pages/settings";
 import ContactPage from "@/pages/contact";
 import PricingPage from "@/pages/pricing";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -172,6 +174,8 @@ function AppRouter() {
       <Route path="/builder/:id" component={() => <ProtectedRoute component={BuilderPage} />} />
       <Route path="/templates" component={() => <ProtectedRoute component={TemplatesPage} />} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
       <Route path="/settings/*?" component={() => <ProtectedRoute component={SettingsPage} />} />
       <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} />} />
       <Route path="/sign-in/*?" component={SignInPage} />
@@ -228,6 +232,8 @@ function App() {
         <Switch>
           <Route path="/" component={LandingPage} />
           <Route path="/pricing" component={PricingPage} />
+          <Route path="/privacy" component={PrivacyPage} />
+          <Route path="/terms" component={TermsPage} />
           <Route path="/sign-in/*?" component={() => (
             <div className="flex min-h-[100dvh] items-center justify-center px-4">
               <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">

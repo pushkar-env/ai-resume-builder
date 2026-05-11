@@ -535,6 +535,8 @@ export default function LandingPage() {
                 <li><Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
                 <li><Link href="/sign-up" className="hover:text-foreground transition-colors">Get started</Link></li>
                 <li><Link href="/sign-in" className="hover:text-foreground transition-colors">Sign in</Link></li>
+                <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms &amp; Conditions</Link></li>
               </ul>
             </div>
 
@@ -558,10 +560,16 @@ export default function LandingPage() {
 
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <a className="hover:text-foreground transition-colors" href="#">Privacy</a>
-              <a className="hover:text-foreground transition-colors" href="#">Terms</a>
-              <a className="hover:text-foreground transition-colors" href="#">Status</a>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+              <a className="hover:text-foreground transition-colors" href="#">
+                Status
+              </a>
             </div>
           </div>
         </div>

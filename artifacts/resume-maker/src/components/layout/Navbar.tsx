@@ -1,6 +1,6 @@
 import { useUser, useClerk } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu } from "lucide-react";
+import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -95,6 +95,35 @@ export function Navbar() {
                       </Link>
                     ))}
                   </nav>
+                  <div className="mt-6 border-t border-border pt-4">
+                    <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Legal
+                    </p>
+                    <div className="flex flex-col gap-1">
+                      <Link
+                        href="/privacy"
+                        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                          location === "/privacy"
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <Shield className="h-4 w-4 shrink-0" />
+                        Privacy
+                      </Link>
+                      <Link
+                        href="/terms"
+                        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                          location === "/terms"
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <ScrollText className="h-4 w-4 shrink-0" />
+                        Terms
+                      </Link>
+                    </div>
+                  </div>
                 </SheetContent>
               </Sheet>
             </div>
