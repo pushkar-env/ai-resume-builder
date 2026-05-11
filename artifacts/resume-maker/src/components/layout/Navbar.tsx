@@ -64,10 +64,21 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                  <div className="flex items-center gap-2 font-semibold text-foreground mb-8 mt-2">
+                  <div className="flex items-center gap-2 font-semibold text-foreground mb-4 mt-2">
                     <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeAI" className="h-6 w-6" />
                     <span className="text-sm font-bold tracking-tight">ResumeAI</span>
                   </div>
+                  {user?.publicMetadata?.isPremium ? (
+                    <div className="mb-6 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-primary">
+                      <Star className="mt-0.5 h-4 w-4 shrink-0 fill-primary text-primary" aria-hidden />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-wide">Pro plan</p>
+                        <p className="text-[11px] leading-snug text-muted-foreground">
+                          You have full access to premium features.
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
                   <nav className="flex flex-col gap-2">
                     {navLinks.map(({ href, label, icon: Icon }) => (
                       <Link
@@ -90,9 +101,19 @@ export function Navbar() {
             {user && (
               <>
                 {user.publicMetadata?.isPremium ? (
-                  <span className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
-                    <Star className="h-3 w-3 fill-primary text-primary" /> Pro
-                  </span>
+                  <>
+                    <span className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
+                      <Star className="h-3 w-3 fill-primary text-primary" aria-hidden /> Pro
+                    </span>
+                    <span
+                      className="flex sm:hidden items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-primary"
+                      title="ResumeAI Pro"
+                      aria-label="You are on the Pro plan"
+                    >
+                      <Star className="h-3 w-3 shrink-0 fill-primary text-primary" aria-hidden />
+                      Pro
+                    </span>
+                  </>
                 ) : (
                   <Button size="sm" className="hidden sm:flex h-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-sm gap-1.5 px-3" asChild>
                     <Link href="/pricing">
@@ -103,9 +124,20 @@ export function Navbar() {
                 <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
-                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                      {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
-                    </div>
+                    <span className="relative flex shrink-0">
+                      <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                        {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      {user.publicMetadata?.isPremium ? (
+                        <span
+                          className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-background sm:hidden"
+                          title="Pro"
+                          aria-hidden
+                        >
+                          <Star className="h-2 w-2 fill-current" />
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="hidden sm:block text-sm max-w-[120px] truncate">
                       {user.firstName ?? user.emailAddresses[0]?.emailAddress}
                     </span>
@@ -114,7 +146,17 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="text-sm font-medium">
+                        {user.firstName} {user.lastName}
+                      </p>
+                      {user.publicMetadata?.isPremium ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
+                          <Star className="h-2.5 w-2.5 fill-primary text-primary" aria-hidden />
+                          Pro
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">{user.emailAddresses[0]?.emailAddress}</p>
                   </div>
                   <DropdownMenuSeparator />
