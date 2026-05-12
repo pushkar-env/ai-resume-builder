@@ -50,6 +50,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import {
+  previewCardHoverTransition,
+  previewCardWhileHover,
+  previewCardWhileTap,
+} from "@/lib/preview-card-hover";
 
 const templateColors: Record<string, string> = {
   modern: "bg-violet-100 text-violet-700",
@@ -143,9 +148,6 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   );
 }
 
-/** Softer than template cards so both surfaces feel consistent together. */
-const resumeCardMotionTransition = { type: "spring" as const, stiffness: 360, damping: 34 };
-
 function DashboardResumeCard({
   resume,
   fadeUp,
@@ -173,12 +175,14 @@ function DashboardResumeCard({
     <motion.div
       variants={fadeUp}
       className="h-full"
-      transition={resumeCardMotionTransition}
-      whileHover={coarsePointer ? undefined : { y: -4, scale: 1.01 }}
-      whileTap={{ scale: 0.993 }}
+      transition={previewCardHoverTransition}
+      whileHover={
+        coarsePointer ? undefined : { ...previewCardWhileHover, transition: previewCardHoverTransition }
+      }
+      whileTap={previewCardWhileTap}
     >
       <Card
-        className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/40"
+        className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45"
         onClick={() => navigate(`/builder/${resume.id}`)}
       >
         <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate">
