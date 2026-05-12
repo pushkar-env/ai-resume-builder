@@ -202,9 +202,16 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground leading-[1.6] tracking-[0.015em];
+    overflow-x: clip;
   }
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+  #root {
+    min-height: 100%;
+    overflow-x: clip;
+    width: 100%;
   }
   ::selection {
     background-color: hsl(var(--primary) / 0.2);

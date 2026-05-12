@@ -95,7 +95,7 @@ const stagger = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background">
       <SEO 
         title="ResumeSensei | Resumes that get interviews"
         description="Build a professional, ATS-ready resume in minutes with AI guidance, modern templates, and a real-time preview that matches your export."
@@ -104,21 +104,21 @@ export default function LandingPage() {
       <LandingNavbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-20 pb-24">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
+      <section className="relative overflow-x-clip overflow-hidden pt-20 pb-24">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(800px,180vw)] max-w-none h-[500px] rounded-full bg-primary/5 blur-3xl" />
         </div>
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center min-w-0">
           <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeUp} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-6">
               <Sparkles className="h-3 w-3" />
               AI-powered resume builder
             </motion.div>
-            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
+            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight text-balance break-words px-1 sm:px-0">
               Resumes that get you<br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-500">the interview</span>
             </motion.h1>
-            <motion.p variants={fadeUp} className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <motion.p variants={fadeUp} className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed text-pretty break-words px-1 sm:px-0">
               Meet <span className="font-semibold text-foreground">ResumeSensei</span> — your AI resume coach. Build a professional, ATS-ready resume in minutes with modern templates and a real-time preview. Used by professionals at top companies.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -143,16 +143,16 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
-          className="mx-auto mt-16 max-w-5xl px-4"
+          className="mx-auto mt-16 w-full max-w-5xl min-w-0 px-4 sm:px-6"
         >
-          <div className="rounded-2xl border border-white/20 bg-white/40 p-4 shadow-2xl backdrop-blur-xl ring-1 ring-border/50">
+          <div className="rounded-2xl border border-white/20 bg-white/40 p-3 sm:p-4 shadow-2xl backdrop-blur-xl ring-1 ring-border/50 max-w-full min-w-0">
             <div className="flex items-center gap-1.5 mb-3 pl-1">
               <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
               <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
             </div>
-            <div className="flex flex-col md:grid md:grid-cols-5 md:gap-3 rounded-lg overflow-hidden border border-border bg-background min-h-[360px]">
-              <div className="md:col-span-2 p-4 border-b md:border-b-0 md:border-r border-border bg-slate-50/50 flex flex-col">
+            <div className="flex flex-col md:grid md:grid-cols-5 md:gap-3 rounded-lg overflow-hidden border border-border bg-background min-h-[360px] min-w-0 max-w-full">
+              <div className="md:col-span-2 min-w-0 p-3 sm:p-4 border-b md:border-b-0 md:border-r border-border bg-slate-50/50 flex flex-col">
                 {/* Logo / Header area */}
                 <div className="flex items-center gap-2 mb-6 px-1">
                   <div className="h-6 w-6 rounded bg-primary/20 flex items-center justify-center">
@@ -213,11 +213,13 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="md:col-span-3 p-6 bg-white relative">
+              <div className="md:col-span-3 min-w-0 p-4 sm:p-6 bg-white relative overflow-hidden">
                 {/* Resume Header */}
-                <div className="mb-4">
-                  <h3 className="text-lg font-serif text-slate-900 font-bold">Sarah Jenkins</h3>
-                  <p className="text-[10px] text-slate-500 mt-1">Product Manager • New York, NY • sarah.j@example.com</p>
+                <div className="mb-4 min-w-0">
+                  <h3 className="text-lg font-serif text-slate-900 font-bold break-words">Sarah Jenkins</h3>
+                  <p className="text-[10px] text-slate-500 mt-1 break-words [overflow-wrap:anywhere]">
+                    Product Manager • New York, NY • sarah.j@example.com
+                  </p>
                 </div>
                 
                 <div className="h-px w-full bg-slate-200 mb-4" />
@@ -239,9 +241,11 @@ export default function LandingPage() {
                 <div>
                   <h4 className="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-2">Experience</h4>
                   <div className="mb-3">
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h5 className="text-[10px] font-semibold text-slate-900">Senior Product Manager, TechFlow</h5>
-                      <span className="text-[9px] text-slate-500">2021 - Present</span>
+                    <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-baseline mb-1 min-w-0">
+                      <h5 className="text-[10px] font-semibold text-slate-900 min-w-0 break-words pr-0 sm:pr-2">
+                        Senior Product Manager, TechFlow
+                      </h5>
+                      <span className="text-[9px] text-slate-500 shrink-0">2021 - Present</span>
                     </div>
                     <ul className="list-disc pl-4 space-y-1.5 text-[10px] text-slate-700">
                       <li>Spearheaded the development of the AI analytics dashboard, achieving a 40% adoption rate in Q1.</li>
@@ -260,8 +264,8 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-20 bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="py-20 bg-muted/30 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -297,8 +301,8 @@ export default function LandingPage() {
       </section>
 
       {/* Works everywhere */}
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="py-20 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
@@ -364,8 +368,8 @@ export default function LandingPage() {
       </section>
 
       {/* Templates */}
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="py-20 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-10">
             <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">12 professional templates</motion.h2>
             <motion.p variants={fadeUp} className="mt-3 text-muted-foreground">Every template is ATS-tested and recruiter-approved.</motion.p>
@@ -381,8 +385,8 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="py-20 bg-muted/30 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-12">
             <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">Trusted by professionals</motion.h2>
             <motion.p variants={fadeUp} className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -397,7 +401,7 @@ export default function LandingPage() {
                     <Star key={i} className="h-4 w-4 fill-primary text-primary" />
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{t.quote}"</p>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4 break-words">"{t.quote}"</p>
                 <div>
                   <p className="text-sm font-semibold">{t.name}</p>
                   <p className="text-xs text-muted-foreground">{t.role}</p>
@@ -409,8 +413,8 @@ export default function LandingPage() {
       </section>
 
       {/* FAQs */}
-      <section className="py-20">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <section className="py-20 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
               <HelpCircle className="h-3.5 w-3.5" />
@@ -424,17 +428,17 @@ export default function LandingPage() {
 
           <div className="grid gap-3">
             {faqs.map((f) => (
-              <details key={f.q} className="group rounded-2xl border border-border bg-background px-5 py-4">
-                <summary className="list-none cursor-pointer flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
+              <details key={f.q} className="group rounded-2xl border border-border bg-background px-4 py-4 sm:px-5 min-w-0">
+                <summary className="list-none cursor-pointer flex items-start justify-between gap-3 sm:gap-4 min-w-0">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="mt-0.5 h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                       <HelpCircle className="h-4 w-4 text-primary" />
                     </div>
-                    <p className="font-semibold text-sm">{f.q}</p>
+                    <p className="font-semibold text-sm text-left break-words">{f.q}</p>
                   </div>
-                  <span className="text-muted-foreground text-sm group-open:rotate-180 transition-transform">⌄</span>
+                  <span className="text-muted-foreground text-sm shrink-0 group-open:rotate-180 transition-transform">⌄</span>
                 </summary>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed pl-10">{f.a}</p>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed pl-0 sm:pl-10 break-words">{f.a}</p>
               </details>
             ))}
           </div>
@@ -442,8 +446,8 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+      <section className="py-20 overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-4xl px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-12">
             <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">Simple, transparent pricing</motion.h2>
             <motion.p variants={fadeUp} className="mt-3 text-muted-foreground">Start free, upgrade when you're ready.</motion.p>
@@ -482,8 +486,8 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-primary">
-        <div className="mx-auto max-w-2xl px-4 text-center">
+      <section className="py-20 bg-primary overflow-x-clip">
+        <div className="mx-auto w-full min-w-0 max-w-2xl px-4 text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
             <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight text-white">
               Ready to land your next role?
@@ -506,8 +510,12 @@ export default function LandingPage() {
                   <Mail className="h-4 w-4" />
                 </Link>
               </Button>
-              <p className="mt-3 text-xs text-white/70">
-                Prefer email? Reach us at <a className="underline underline-offset-4 hover:text-white" href="mailto:support@resumesensei.com">support@resumesensei.com</a>.
+              <p className="mt-3 text-xs text-white/70 break-words px-1">
+                Prefer email? Reach us at{" "}
+                <a className="underline underline-offset-4 hover:text-white break-all sm:break-normal" href="mailto:support@resumesensei.com">
+                  support@resumesensei.com
+                </a>
+                .
               </p>
             </motion.div>
           </motion.div>
