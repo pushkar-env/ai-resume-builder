@@ -33,7 +33,7 @@ export function Navbar() {
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-foreground">
-              <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeSensei" className="h-7 w-7" />
+              <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-10 w-10 object-contain shrink-0" />
               <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
@@ -65,7 +65,7 @@ export function Navbar() {
                 <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <div className="flex items-center gap-2 font-semibold text-foreground mb-4 mt-2">
-                    <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeSensei" className="h-6 w-6" />
+                    <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-9 w-9 object-contain shrink-0" />
                     <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
                   </div>
                   {user?.publicMetadata?.isPremium ? (
@@ -221,7 +221,7 @@ export function LandingNavbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
-            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeSensei" className="h-7 w-7" />
+            <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-10 w-10 object-contain shrink-0" />
             <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -274,7 +274,7 @@ export function BuilderNavbar({ title, atsScore, onExport, onRename }: { title: 
     <header className="flex h-12 items-center justify-between border-b border-border/60 bg-background px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-0">
         <Link href="/dashboard" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0">
-          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeSensei" className="h-5 w-5" />
+          <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-8 w-8 object-contain shrink-0" />
           <FileText className="h-3.5 w-3.5" />
         </Link>
         <span className="text-muted-foreground shrink-0">/</span>

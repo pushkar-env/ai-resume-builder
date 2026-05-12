@@ -9,7 +9,7 @@ interface SEOProps {
 
 export function SEO({ title, description, canonicalUrl, ogImage }: SEOProps) {
   const siteName = "ResumeSensei";
-  const defaultOgImage = "/logo.svg";
+  const defaultOgImage = "https://resumesensei.com/bluemascot.svg";
 
   return (
     <Helmet>

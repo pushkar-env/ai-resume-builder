@@ -70,7 +70,7 @@ export default function PricingPage() {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock", 
         name: "ResumeSensei",
         description: `Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} Subscription`,
-        image: `${import.meta.env.BASE_URL}logo.svg`,
+        image: `${import.meta.env.BASE_URL}bluemascot.svg`,
         subscription_id: subscriptionData.id,
         handler: async function (response: any) {
           toast({ 
