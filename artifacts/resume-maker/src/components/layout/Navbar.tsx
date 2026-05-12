@@ -217,19 +217,22 @@ export function Navbar() {
 
 export function LandingNavbar() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-foreground">
-            <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-10 w-10 object-contain shrink-0" />
-            <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
+    <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/40 bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
+        <div className="flex min-h-14 items-center justify-between gap-2 py-2 sm:py-0">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold text-foreground">
+            <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-9 w-9 object-contain shrink-0 sm:h-10 sm:w-10" />
+            <span className="truncate text-sm font-bold tracking-tight">ResumeSensei</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-3">
+            <Button variant="ghost" size="sm" asChild className="h-9 px-2.5 text-xs sm:h-10 sm:px-4 sm:text-sm">
               <Link href="/sign-in">Sign in</Link>
             </Button>
-            <Button size="sm" asChild>
-              <Link href="/sign-up">Get started free</Link>
+            <Button size="sm" asChild className="h-9 px-2.5 text-xs sm:h-10 sm:px-4 sm:text-sm">
+              <Link href="/sign-up">
+                <span className="sm:hidden">Get started</span>
+                <span className="hidden sm:inline">Get started free</span>
+              </Link>
             </Button>
           </div>
         </div>
