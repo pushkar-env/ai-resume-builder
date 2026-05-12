@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, type Variants } from "framer-motion";
 import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil } from "lucide-react";
@@ -84,7 +84,6 @@ function timeAgo(date: string) {
 function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
-  const [fontColor, setFontColor] = useState<string>("#111827");
   const [fontScale, setFontScale] = useState<number>(1);
 
   useEffect(() => {
@@ -110,10 +109,9 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     query: { enabled: inView },
   });
 
+  // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const c = window.localStorage.getItem(`resumeFontColor:${resumeId}`);
-    if (c) setFontColor(c);
     const v = window.localStorage.getItem(`resumeFontScale:${resumeId}`);
     const n = v ? Number(v) : NaN;
     if (Number.isFinite(n) && n > 0) setFontScale(n);
@@ -139,7 +137,8 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
               resume={resume}
               accentColor={resume.accentColor ?? "#7c3aed"}
               fontScale={fontScale}
-              fontColor={fontColor}
+              fontColor={resume.fontColor ?? "#111827"}
+              backgroundColor={resume.backgroundColor ?? "#ffffff"}
             />
           </div>
         </div>
@@ -332,7 +331,12 @@ export default function DashboardPage() {
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
 
   const { data: resumes, isLoading: resumesLoading } = useListResumes();
-  const resumeList = Array.isArray(resumes) ? resumes : [];
+  const resumeList = useMemo(() => {
+    const list = Array.isArray(resumes) ? resumes : [];
+    return [...list].sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+  }, [resumes]);
 
   const handleCreateRequest = () => {
     if (!isPremiumUser && resumeList.length >= 1) {

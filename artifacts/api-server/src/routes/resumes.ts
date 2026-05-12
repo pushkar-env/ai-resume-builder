@@ -232,10 +232,24 @@ router.patch("/resumes/:id", requireAuth, async (req: Request, res: Response): P
   if (resumeFields.backgroundColor != null) updateData.backgroundColor = resumeFields.backgroundColor;
   if (resumeFields.isPublic != null) updateData.isPublic = resumeFields.isPublic;
 
+  const hasResumeFieldUpdates = Object.keys(updateData).length > 0;
+  const hasSectionPayload = !!(sections && sections.length > 0);
+
   let updatedResume = existing;
-  if (Object.keys(updateData).length > 0) {
-    const [r] = await db.update(resumesTable).set(updateData)
-      .where(eq(resumesTable.id, params.data.id)).returning();
+  if (hasResumeFieldUpdates) {
+    const [r] = await db
+      .update(resumesTable)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(resumesTable.id, params.data.id))
+      .returning();
+    updatedResume = r;
+  } else if (hasSectionPayload) {
+    // Section-only PATCH: still bump parent row so list ordering / "last updated" stay correct.
+    const [r] = await db
+      .update(resumesTable)
+      .set({ updatedAt: new Date() })
+      .where(eq(resumesTable.id, params.data.id))
+      .returning();
     updatedResume = r;
   }
 

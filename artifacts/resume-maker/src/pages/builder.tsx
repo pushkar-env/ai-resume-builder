@@ -54,6 +54,7 @@ import {
   useGetAtsScore,
   useListTemplates,
   getGetResumeQueryKey,
+  getListResumesQueryKey,
   type ResumeDetail,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
@@ -501,8 +502,8 @@ export default function BuilderPage() {
   const updateResume = useUpdateResume({
     mutation: {
       onSuccess: (data) => {
-        // Update cache directly — no re-fetch that would overwrite local edits
         queryClient.setQueryData(getGetResumeQueryKey(resumeId), data);
+        void queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
       },
       // Handle errors per-save attempt to avoid stale failures showing toasts.
     },
