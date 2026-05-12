@@ -205,8 +205,13 @@
     overflow-x: clip;
   }
   html {
-    scroll-behavior: smooth;
     overflow-x: clip;
+  }
+  /* Smooth scrolling fights touch momentum on many mobile browsers; keep it for fine pointers only. */
+  @media (hover: hover) and (pointer: fine) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
   #root {
     min-height: 100%;

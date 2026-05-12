@@ -48,6 +48,7 @@ import {
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 
 const templateColors: Record<string, string> = {
@@ -116,6 +117,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
 export default function DashboardPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const coarsePointer = useCoarsePointer();
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [renameId, setRenameId] = useState<number | null>(null);
@@ -187,14 +189,12 @@ export default function DashboardPage() {
     },
   });
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.06 } },
-  };
-  const fadeUp = {
-    hidden: { opacity: 0, y: 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-  };
+  const stagger = coarsePointer
+    ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
+    : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
+  const fadeUp = coarsePointer
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+    : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -244,8 +244,12 @@ export default function DashboardPage() {
 
             {/* Existing Resumes */}
             {resumeList.map((resume) => (
-              <motion.div key={resume.id} variants={fadeUp} className="h-full">
-                <Card className="h-full flex flex-col group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border-border hover:border-primary/40 relative overflow-hidden"
+              <motion.div
+                key={resume.id}
+                variants={fadeUp}
+                className="h-full [content-visibility:auto] [contain-intrinsic-size:auto_380px]"
+              >
+                <Card className="h-full flex flex-col group hover:shadow-xl transition-shadow duration-300 cursor-pointer border-border hover:border-primary/40 relative overflow-hidden"
                   onClick={() => navigate(`/builder/${resume.id}`)}>
                   
                   {/* Preview Banner */}

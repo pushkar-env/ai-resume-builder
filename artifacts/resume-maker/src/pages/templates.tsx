@@ -12,6 +12,7 @@ import { SAMPLE_RESUME } from "@/lib/sample-resume";
 import { useListTemplates, useCreateResume, getListResumesQueryKey, useListResumes, type ResumeDetail } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { useUser } from "@clerk/react";
 import { SEO } from "@/components/shared/SEO";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
@@ -74,6 +75,7 @@ export default function TemplatesPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
+  const coarsePointer = useCoarsePointer();
   const [selected, setSelected] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -122,8 +124,12 @@ export default function TemplatesPage() {
   const categories = ["All", ...Array.from(new Set(templateList.map(t => t.category).filter(Boolean)))];
   const filtered = activeCategory === "All" ? templateList : templateList.filter(t => t.category === activeCategory);
 
-  const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } };
-  const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
+  const stagger = coarsePointer
+    ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
+    : { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } };
+  const fadeUp = coarsePointer
+    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+    : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -193,10 +199,10 @@ export default function TemplatesPage() {
                 <motion.div
                   key={template.id}
                   variants={fadeUp}
-                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 ${
+                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-shadow duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
                     isSelected
-                      ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10 -translate-y-1"
-                      : "border-border hover:border-primary/40 hover:shadow-xl hover:-translate-y-1"
+                      ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10"
+                      : "border-border hover:border-primary/40 hover:shadow-xl"
                   }`}
                   onClick={() => setSelected(isSelected ? null : template.id)}
                   onMouseEnter={() => setHoveredId(template.id)}

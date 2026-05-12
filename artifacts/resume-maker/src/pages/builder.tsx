@@ -7,6 +7,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -692,7 +693,9 @@ export default function BuilderPage() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    /* Long-press to drag on touch — avoids fighting vertical scroll in the sections list. */
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -916,13 +919,15 @@ export default function BuilderPage() {
         </aside>
 
         {/* Center — section editor */}
-        <div className={`w-full lg:w-80 border-r border-border bg-background flex-col shrink-0 ${mobileTab === "edit" ? "flex" : "hidden lg:flex"}`}>
-          <div className="px-4 py-3 border-b border-border">
+        <div
+          className={`w-full lg:w-80 border-r border-border bg-background flex-col shrink-0 min-h-0 overflow-hidden ${mobileTab === "edit" ? "flex" : "hidden lg:flex"}`}
+        >
+          <div className="px-4 py-3 border-b border-border shrink-0">
             <h2 className="text-xs font-semibold text-foreground">
               {activeSection?.title ?? "Select a section"}
             </h2>
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-4">
               <AnimatePresence mode="wait">
                 {activeSection ? (
