@@ -4,13 +4,10 @@ import {
   Instagram,
   Youtube,
   Linkedin,
-  Mail,
   Shield,
   Zap,
   Smartphone,
 } from "lucide-react";
-
-const SUPPORT_EMAIL = "support@resumesensei.com";
 
 export function SiteFooter() {
   return (
@@ -121,14 +118,6 @@ export function SiteFooter() {
           <div className="text-center sm:text-left">
             <p className="text-sm font-semibold">Contact</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <a
-                  href={`mailto:${SUPPORT_EMAIL}`}
-                  className="inline-flex items-center justify-center sm:justify-start gap-2 hover:text-foreground transition-colors break-all"
-                >
-                  <Mail className="h-4 w-4 shrink-0" /> {SUPPORT_EMAIL}
-                </a>
-              </li>
               <li>
                 <Link href="/contact" className="hover:text-foreground transition-colors inline-block">
                   Contact us

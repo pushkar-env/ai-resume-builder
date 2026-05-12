@@ -1,7 +1,5 @@
 import { Link } from "wouter";
 
-const SUPPORT_EMAIL = "support@resumesensei.com";
-
 /**
  * Minimal footer for app surfaces (dashboard, templates, contact).
  * Full marketing footer remains on the landing page (`SiteFooter`).
@@ -46,12 +44,6 @@ export function AppFooter() {
             >
               Terms &amp; Conditions
             </Link>
-            <a
-              href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground [overflow-wrap:anywhere] sm:text-left"
-            >
-              {SUPPORT_EMAIL}
-            </a>
           </nav>
         </div>
 
