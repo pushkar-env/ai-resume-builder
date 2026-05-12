@@ -131,6 +131,8 @@ export default function TemplatesPage() {
     ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
     : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
+  const templateCardMotionTransition = { type: "spring" as const, stiffness: 440, damping: 22 };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
@@ -199,10 +201,17 @@ export default function TemplatesPage() {
                 <motion.div
                   key={template.id}
                   variants={fadeUp}
-                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-shadow duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
+                  transition={templateCardMotionTransition}
+                  whileHover={
+                    coarsePointer
+                      ? undefined
+                      : { y: -11, scale: 1.034, transition: { type: "spring", stiffness: 440, damping: 22 } }
+                  }
+                  whileTap={{ scale: 0.985 }}
+                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-[box-shadow,border-color,ring] duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
                     isSelected
                       ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10"
-                      : "border-border hover:border-primary/40 hover:shadow-xl"
+                      : "border-border hover:border-primary/50 hover:shadow-2xl hover:ring-2 hover:ring-primary/15"
                   }`}
                   onClick={() => setSelected(isSelected ? null : template.id)}
                   onMouseEnter={() => setHoveredId(template.id)}
@@ -229,9 +238,11 @@ export default function TemplatesPage() {
                   )}
 
                   {/* Real resume preview as thumbnail */}
-                  <div
-                    className="relative"
-                    style={{ aspectRatio: "3/4", background: cfg.bg }}
+                  <motion.div
+                    className="relative overflow-hidden"
+                    style={{ aspectRatio: "3/4", background: cfg.bg, transformOrigin: "50% 12%" }}
+                    animate={{ scale: !coarsePointer && isHovered ? 1.055 : 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   >
                     <TemplateThumbnail templateId={template.id} accent={cfg.accent} />
 
@@ -240,20 +251,26 @@ export default function TemplatesPage() {
 
                     {/* Hover overlay with CTA */}
                     <motion.div
-                      className="absolute inset-0 flex items-center justify-center z-10"
+                      className={`absolute inset-0 flex items-center justify-center z-10 ${!isHovered ? "pointer-events-none" : ""}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: isHovered ? 1 : 0 }}
-                      transition={{ duration: 0.15 }}
-                      style={{ background: "rgba(0,0,0,0.5)" }}
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ background: "rgba(0,0,0,0.58)" }}
                     >
-                      <button
+                      <motion.button
+                        type="button"
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-white/40 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm"
-                        onClick={(e) => { e.stopPropagation(); void handleUseTemplate(template.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleUseTemplate(template.id);
+                        }}
+                        animate={{ y: !coarsePointer && isHovered ? 0 : 10 }}
+                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                       >
                         Use template <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+                      </motion.button>
                     </motion.div>
-                  </div>
+                  </motion.div>
 
                   {/* Info */}
                   <div className="p-3.5 bg-background">

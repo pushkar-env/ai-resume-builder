@@ -143,7 +143,8 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   );
 }
 
-const resumeCardMotionTransition = { type: "spring" as const, stiffness: 420, damping: 28 };
+/** Softer than template cards so both surfaces feel consistent together. */
+const resumeCardMotionTransition = { type: "spring" as const, stiffness: 360, damping: 34 };
 
 function DashboardResumeCard({
   resume,
@@ -164,13 +165,17 @@ function DashboardResumeCard({
   setDeleteId: (id: number | null) => void;
   handleDuplicateRequest: (id: number) => void;
 }) {
+  const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
+  const menuSlipRef = useRef(false);
+  const menuStartRef = useRef({ x: 0, y: 0 });
+
   return (
     <motion.div
       variants={fadeUp}
       className="h-full"
       transition={resumeCardMotionTransition}
-      whileHover={coarsePointer ? undefined : { y: -6, scale: 1.02 }}
-      whileTap={{ scale: 0.985 }}
+      whileHover={coarsePointer ? undefined : { y: -4, scale: 1.01 }}
+      whileTap={{ scale: 0.993 }}
     >
       <Card
         className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/40"
@@ -182,7 +187,7 @@ function DashboardResumeCard({
 
         <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
           <div className="flex items-start justify-between mb-auto">
-            <div className="flex-1 min-w-0 pr-6">
+            <div className="flex-1 min-w-0 pr-14 md:pr-6">
               <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
               <span
                 className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
@@ -190,14 +195,66 @@ function DashboardResumeCard({
                 {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
               </span>
             </div>
-            <DropdownMenu modal={false}>
+            <DropdownMenu
+              modal={false}
+              {...(coarsePointer
+                ? {
+                    open: resumeMenuOpen,
+                    onOpenChange: (next: boolean) => {
+                      if (next && menuSlipRef.current) {
+                        menuSlipRef.current = false;
+                        return;
+                      }
+                      setResumeMenuOpen(next);
+                    },
+                  }
+                : {})}
+            >
               <DropdownMenuTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 w-7 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                  className="h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation"
                   onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    if (!coarsePointer) return;
+                    if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+                    menuSlipRef.current = false;
+                    menuStartRef.current = { x: e.clientX, y: e.clientY };
+                    try {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                    } catch {
+                      /* noop */
+                    }
+                  }}
+                  onPointerMove={(e) => {
+                    if (!coarsePointer) return;
+                    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                    const s = menuStartRef.current;
+                    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
+                  }}
+                  onPointerUp={(e) => {
+                    if (!coarsePointer) return;
+                    try {
+                      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      }
+                    } catch {
+                      /* noop */
+                    }
+                  }}
+                  onPointerCancel={(e) => {
+                    if (!coarsePointer) return;
+                    try {
+                      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      }
+                    } catch {
+                      /* noop */
+                    }
+                  }}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
