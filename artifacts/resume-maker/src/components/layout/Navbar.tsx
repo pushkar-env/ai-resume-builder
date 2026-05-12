@@ -226,9 +226,6 @@ export function LandingNavbar() {
           </Link>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/contact">Contact</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
               <Link href="/sign-in">Sign in</Link>
             </Button>
             <Button size="sm" asChild>

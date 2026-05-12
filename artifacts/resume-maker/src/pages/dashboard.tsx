@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/layout/Navbar";
+import { AppFooter } from "@/components/layout/AppFooter";
 import {
   useListResumes,
   useGetDashboardStats,
@@ -302,6 +303,8 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </main>
+
+      <AppFooter />
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

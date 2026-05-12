@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "@/components/layout/Navbar";
+import { AppFooter } from "@/components/layout/AppFooter";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
 import { useListTemplates, useCreateResume, getListResumesQueryKey, useListResumes, type ResumeDetail } from "@workspace/api-client-react";
@@ -274,6 +275,8 @@ export default function TemplatesPage() {
           </div>
         )}
       </main>
+
+      <AppFooter />
 
       {/* Floating action bar */}
       <AnimatePresence>

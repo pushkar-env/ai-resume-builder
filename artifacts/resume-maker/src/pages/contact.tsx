@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
+import { AppFooter } from "@/components/layout/AppFooter";
 import { SEO } from "@/components/shared/SEO";
 import { Mail, MapPin, MessageSquare, Clock, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -180,6 +181,8 @@ export default function ContactPage() {
 
         </div>
       </main>
+
+      <AppFooter />
     </div>
   );
 }

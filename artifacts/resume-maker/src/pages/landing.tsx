@@ -1,8 +1,9 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, FileText, Zap, Shield, Star, Check, User, AlignLeft, Briefcase, GraduationCap, Wrench, LayoutTemplate, PlusCircle, Smartphone, Tablet, Monitor, HelpCircle, Facebook, Instagram, Youtube, Linkedin, Mail } from "lucide-react";
+import { ArrowRight, Sparkles, FileText, Zap, Shield, Star, Check, User, AlignLeft, Briefcase, GraduationCap, Wrench, LayoutTemplate, PlusCircle, Smartphone, Tablet, Monitor, HelpCircle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SEO } from "@/components/shared/SEO";
 
 const features = [
@@ -513,78 +514,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 font-semibold text-foreground">
-                <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-10 w-10 object-contain shrink-0" />
-                <span className="text-base font-bold tracking-tight">ResumeSensei</span>
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm">
-                An AI resume coach with ATS insights, modern templates, and exports that match your live preview.
-              </p>
-              <div className="mt-4 flex items-center gap-2">
-                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="Facebook">
-                  <Facebook className="h-4 w-4" />
-                </a>
-                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="Instagram">
-                  <Instagram className="h-4 w-4" />
-                </a>
-                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="YouTube">
-                  <Youtube className="h-4 w-4" />
-                </a>
-                <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="LinkedIn">
-                  <Linkedin className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold">Product</p>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-                <li><Link href="/sign-up" className="hover:text-foreground transition-colors">Get started</Link></li>
-                <li><Link href="/sign-in" className="hover:text-foreground transition-colors">Sign in</Link></li>
-                <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms &amp; Conditions</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold">Resources</p>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li><span className="inline-flex items-center gap-2"><Shield className="h-4 w-4" /> ATS-friendly templates</span></li>
-                <li><span className="inline-flex items-center gap-2"><Zap className="h-4 w-4" /> Live preview export</span></li>
-                <li><span className="inline-flex items-center gap-2"><Smartphone className="h-4 w-4" /> Mobile-first editor</span></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold">Contact</p>
-              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> support@resumesensei.com</li>
-                <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact us</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} ResumeSensei. All rights reserved.</p>
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              <Link href="/privacy" className="hover:text-foreground transition-colors">
-                Privacy
-              </Link>
-              <Link href="/terms" className="hover:text-foreground transition-colors">
-                Terms
-              </Link>
-              <a className="hover:text-foreground transition-colors" href="#">
-                Status
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
