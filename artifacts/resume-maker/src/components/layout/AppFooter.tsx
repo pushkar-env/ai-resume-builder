@@ -10,7 +10,7 @@ export function AppFooter() {
   return (
     <footer className="mt-auto w-full border-t border-border bg-background">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-9">
-        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
           <Link
             href="/"
             className="flex shrink-0 items-center gap-2.5 text-foreground transition-opacity hover:opacity-90"
@@ -26,29 +26,29 @@ export function AppFooter() {
 
           <nav
             aria-label="Footer"
-            className="flex max-w-full flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:justify-end sm:gap-x-6"
+            className="flex max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-2.5 sm:justify-end sm:gap-x-6 sm:gap-y-2"
           >
             <Link
               href="/contact"
-              className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
+              className="text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground sm:text-left"
             >
               Contact us
             </Link>
             <Link
               href="/privacy"
-              className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
+              className="text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground sm:text-left"
             >
-              Privacy
+              Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground"
+              className="text-center text-sm leading-snug text-muted-foreground underline-offset-4 transition-colors hover:text-foreground sm:text-left"
             >
-              Terms
+              Terms &amp; Conditions
             </Link>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground break-all sm:break-normal"
+              className="text-center text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground [overflow-wrap:anywhere] sm:text-left"
             >
               {SUPPORT_EMAIL}
             </a>

@@ -138,18 +138,17 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground text-center sm:text-left">
-          <p>© {new Date().getFullYear()} ResumeSensei. All rights reserved.</p>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-4 gap-y-2">
+        <div className="mt-10 flex flex-col items-center gap-4 border-t border-border pt-6 text-center text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <p className="max-w-prose px-1 leading-relaxed">
+            © {new Date().getFullYear()} ResumeSensei. All rights reserved.
+          </p>
+          <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:w-auto sm:max-w-none sm:justify-end">
             <Link href="/privacy" className="hover:text-foreground transition-colors">
-              Privacy
+              Privacy Policy
             </Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">
-              Terms
+              Terms &amp; Conditions
             </Link>
-            <a className="hover:text-foreground transition-colors" href="#">
-              Status
-            </a>
           </div>
         </div>
       </div>

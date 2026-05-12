@@ -113,14 +113,14 @@ export function Navbar() {
                       </Link>
                       <Link
                         href="/terms"
-                        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                        className={`flex items-start gap-3 rounded-md px-3 py-2.5 text-sm font-medium leading-snug transition-colors ${
                           location === "/terms"
                             ? "bg-primary/10 text-primary"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
                       >
-                        <ScrollText className="h-4 w-4 shrink-0" />
-                        Terms
+                        <ScrollText className="mt-0.5 h-4 w-4 shrink-0" />
+                        Terms &amp; Conditions
                       </Link>
                     </div>
                   </div>
