@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
-import { motion } from "framer-motion";
-import { Plus, FileText, Eye, Download, Copy, Trash2, MoreHorizontal, TrendingUp, Clock, BarChart3, Pencil } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useLocation } from "wouter";
+import { motion, type Variants } from "framer-motion";
+import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
@@ -37,13 +37,13 @@ import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import {
   useListResumes,
-  useGetDashboardStats,
   useCreateResume,
   useDeleteResume,
   useDuplicateResume,
   useUpdateResume,
   useGetResume,
   getListResumesQueryKey,
+  type Resume,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -72,45 +72,187 @@ function timeAgo(date: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+/**
+ * Lazy-load the heavy preview DOM until the card is near the viewport.
+ * Keeps mobile scroll/main thread responsive when many resumes exist.
+ */
 function ResumeThumbnail({ resumeId }: { resumeId: number }) {
-  const { data: resume } = useGetResume(resumeId);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
   const [fontColor, setFontColor] = useState<string>("#111827");
   const [fontScale, setFontScale] = useState<number>(1);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const c = window.localStorage.getItem(`resumeFontColor:${resumeId}`);
-      if (c) setFontColor(c);
-      const v = window.localStorage.getItem(`resumeFontScale:${resumeId}`);
-      const n = v ? Number(v) : NaN;
-      if (Number.isFinite(n) && n > 0) setFontScale(n);
-    }
+    const el = hostRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setInView(true);
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { root: null, rootMargin: "140px 0px", threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const { data: resume } = useGetResume(resumeId, {
+    query: { enabled: inView },
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const c = window.localStorage.getItem(`resumeFontColor:${resumeId}`);
+    if (c) setFontColor(c);
+    const v = window.localStorage.getItem(`resumeFontScale:${resumeId}`);
+    const n = v ? Number(v) : NaN;
+    if (Number.isFinite(n) && n > 0) setFontScale(n);
   }, [resumeId]);
 
-  if (!resume) {
-    return <Skeleton className="h-full w-full rounded-none" />;
-  }
-
   return (
-    <div className="w-full h-full relative overflow-hidden bg-muted/10 pointer-events-none">
-      <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2" 
-        style={{ 
-          width: 794, 
-          transform: "scale(0.32) translateZ(0)", 
-          transformOrigin: "top center",
-          backfaceVisibility: "hidden",
-          WebkitFontSmoothing: "antialiased",
-        }}
-      >
-        <ResumePreview 
-          resume={resume} 
-          accentColor={resume.accentColor ?? "#7c3aed"} 
-          fontScale={fontScale} 
-          fontColor={fontColor} 
-        />
-      </div>
+    <div ref={hostRef} className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none">
+      {!inView || !resume ? (
+        <Skeleton className="h-full w-full rounded-none" />
+      ) : (
+        <div className="w-full h-full relative overflow-hidden">
+          <div
+            className="absolute top-0 left-1/2 -translate-x-1/2"
+            style={{
+              width: 794,
+              transform: "scale(0.32) translateZ(0)",
+              transformOrigin: "top center",
+              backfaceVisibility: "hidden",
+              WebkitFontSmoothing: "antialiased",
+            }}
+          >
+            <ResumePreview
+              resume={resume}
+              accentColor={resume.accentColor ?? "#7c3aed"}
+              fontScale={fontScale}
+              fontColor={fontColor}
+            />
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+const resumeCardMotionTransition = { type: "spring" as const, stiffness: 420, damping: 28 };
+
+function DashboardResumeCard({
+  resume,
+  fadeUp,
+  coarsePointer,
+  navigate,
+  setRenameTitle,
+  setRenameId,
+  setDeleteId,
+  handleDuplicateRequest,
+}: {
+  resume: Resume;
+  fadeUp: Variants;
+  coarsePointer: boolean;
+  navigate: (path: string) => void;
+  setRenameTitle: (t: string) => void;
+  setRenameId: (id: number | null) => void;
+  setDeleteId: (id: number | null) => void;
+  handleDuplicateRequest: (id: number) => void;
+}) {
+  return (
+    <motion.div
+      variants={fadeUp}
+      className="h-full"
+      transition={resumeCardMotionTransition}
+      whileHover={coarsePointer ? undefined : { y: -6, scale: 1.02 }}
+      whileTap={{ scale: 0.985 }}
+    >
+      <Card
+        className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/40"
+        onClick={() => navigate(`/builder/${resume.id}`)}
+      >
+        <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate">
+          <ResumeThumbnail resumeId={resume.id} />
+        </div>
+
+        <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
+          <div className="flex items-start justify-between mb-auto">
+            <div className="flex-1 min-w-0 pr-6">
+              <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
+              <span
+                className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
+              >
+                {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
+              </span>
+            </div>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/builder/${resume.id}`);
+                  }}
+                >
+                  <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Open Editor
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDuplicateRequest(resume.id);
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenameTitle(resume.title ?? "");
+                    setRenameId(resume.id);
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteId(resume.id);
+                  }}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
+            <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
+            Updated {timeAgo(resume.updatedAt)}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -203,7 +345,7 @@ export default function DashboardPage() {
         description="Manage your AI-powered resumes and access premium templates."
       />
       <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
 
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -244,65 +386,17 @@ export default function DashboardPage() {
 
             {/* Existing Resumes */}
             {resumeList.map((resume) => (
-              <motion.div
+              <DashboardResumeCard
                 key={resume.id}
-                variants={fadeUp}
-                className="h-full [content-visibility:auto] [contain-intrinsic-size:auto_380px]"
-              >
-                <Card className="h-full flex flex-col group hover:shadow-xl transition-shadow duration-300 cursor-pointer border-border hover:border-primary/40 relative overflow-hidden"
-                  onClick={() => navigate(`/builder/${resume.id}`)}>
-                  
-                  {/* Preview Banner */}
-                  <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0">
-                    <ResumeThumbnail resumeId={resume.id} />
-                  </div>
-
-                  <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
-                    <div className="flex items-start justify-between mb-auto">
-                      <div className="flex-1 min-w-0 pr-6">
-                        <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
-                        <span className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}>
-                          {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
-                        </span>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent]">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/builder/${resume.id}`); }}>
-                            <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                            Open Editor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicateRequest(resume.id); }}>
-                            <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
-                            Duplicate
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setRenameTitle(resume.title ?? ""); setRenameId(resume.id); }}>
-                            <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={(e) => { e.stopPropagation(); setDeleteId(resume.id); }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
-                      <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
-                      Updated {timeAgo(resume.updatedAt)}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                resume={resume}
+                fadeUp={fadeUp}
+                coarsePointer={coarsePointer}
+                navigate={navigate}
+                setRenameTitle={setRenameTitle}
+                setRenameId={setRenameId}
+                setDeleteId={setDeleteId}
+                handleDuplicateRequest={handleDuplicateRequest}
+              />
             ))}
           </motion.div>
         )}
