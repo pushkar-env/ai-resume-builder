@@ -166,6 +166,19 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+/** Reset window scroll when the SPA path changes (wouter does not do this by default). */
+function ScrollToTop() {
+  const [pathname] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
+
+  return null;
+}
+
 function AppRouter() {
   return (
     <Switch>
@@ -215,6 +228,7 @@ function ClerkProviderWithRoutes() {
       <QueryClientProvider client={queryClient}>
         <ClerkAuthTokenInitializer />
         <ClerkQueryClientCacheInvalidator />
+        <ScrollToTop />
         <TooltipProvider>
           <AppRouter />
           <Toaster />
@@ -229,6 +243,7 @@ function App() {
     // E2E mode: allow responsive tests to run without Clerk secrets.
     return (
       <WouterRouter base={basePath}>
+        <ScrollToTop />
         <Switch>
           <Route path="/" component={LandingPage} />
           <Route path="/pricing" component={PricingPage} />
