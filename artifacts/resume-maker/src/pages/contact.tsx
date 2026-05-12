@@ -39,9 +39,9 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen min-w-0 w-full max-w-[100vw] bg-background flex flex-col overflow-x-clip">
       <SEO 
-        title="Contact Us | ResumeAI"
-        description="Have questions? Contact the ResumeAI team for support, billing inquiries, or general feedback."
-        canonicalUrl="https://resumeai.example.com/contact"
+        title="Contact Us | ResumeSensei"
+        description="Have questions? Contact ResumeSensei for support, billing inquiries, or general feedback."
+        canonicalUrl="https://resumesensei.com/contact"
       />
       <Navbar />
 
@@ -54,7 +54,7 @@ export default function ContactPage() {
             Get in touch
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg text-pretty px-1 break-words">
-            Have questions about ResumeAI or need support? We're here to help you land your dream job.
+            Have questions about ResumeSensei or need support? We're here to help you land your dream job.
           </p>
         </div>
       </div>
@@ -133,10 +133,10 @@ export default function ContactPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm text-foreground">Email Support</p>
                     <a
-                      href="mailto:support@resumeai.example.com"
+                      href="mailto:support@resumesensei.com"
                       className="text-muted-foreground text-sm hover:text-primary transition-colors mt-1 block break-words [overflow-wrap:anywhere]"
                     >
-                      support@resumeai.example.com
+                      support@resumesensei.com
                     </a>
                   </div>
                 </div>

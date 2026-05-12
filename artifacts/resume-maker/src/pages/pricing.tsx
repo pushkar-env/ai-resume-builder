@@ -68,7 +68,7 @@ export default function PricingPage() {
       // 3. Open Razorpay Checkout for Subscription
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock", 
-        name: "ResumeAI",
+        name: "ResumeSensei",
         description: `Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} Subscription`,
         image: `${import.meta.env.BASE_URL}logo.svg`,
         subscription_id: subscriptionData.id,
@@ -107,7 +107,7 @@ export default function PricingPage() {
           email: user.primaryEmailAddress?.emailAddress || "",
         },
         theme: {
-          color: "#7c3aed" // primary violet
+          color: "#4f46e5" // primary
         }
       };
 
@@ -152,9 +152,9 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
-        title="Pricing | ResumeAI Pro"
-        description="Simple, transparent pricing. Upgrade to ResumeAI Pro for unlimited AI writing, premium templates, and ATS scoring."
-        canonicalUrl="https://resumeai.example.com/pricing"
+        title="Pricing | ResumeSensei Pro"
+        description="Simple, transparent pricing. Upgrade to ResumeSensei Pro for unlimited AI writing, premium templates, and ATS scoring."
+        canonicalUrl="https://resumesensei.com/pricing"
       />
       <Navbar />
 
@@ -165,7 +165,7 @@ export default function PricingPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Upgrade to Premium</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Unlock the full potential of ResumeAI. Access premium templates, unlimited AI features, and land your dream job faster.
+            Unlock the full potential of ResumeSensei. Access premium templates, unlimited AI features, and land your dream job faster.
           </p>
         </div>
       </div>

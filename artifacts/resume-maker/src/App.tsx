@@ -50,7 +50,7 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "#7c3aed",
+    colorPrimary: "#4f46e5",
     colorForeground: "#0a0e1a",
     colorMutedForeground: "#6b7280",
     colorDanger: "#dc2626",
@@ -92,7 +92,7 @@ const clerkAppearance = {
 
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
@@ -100,7 +100,7 @@ function SignInPage() {
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );
@@ -177,7 +177,7 @@ function AppRouter() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/settings/*?" component={() => <ProtectedRoute component={SettingsPage} />} />
-      <Route path="/contact" component={() => <ProtectedRoute component={ContactPage} />} />
+      <Route path="/contact" component={ContactPage} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
       <Route component={NotFound} />
@@ -198,13 +198,13 @@ function ClerkProviderWithRoutes() {
       localization={{
         signIn: {
           start: {
-            title: "Welcome back to ResumeAI",
+            title: "Welcome back to ResumeSensei",
             subtitle: "Sign in to continue building your resume",
           },
         },
         signUp: {
           start: {
-            title: "Create your ResumeAI account",
+            title: "Create your ResumeSensei account",
             subtitle: "Join thousands of professionals landing great jobs",
           },
         },
@@ -234,6 +234,7 @@ function App() {
           <Route path="/pricing" component={PricingPage} />
           <Route path="/privacy" component={PrivacyPage} />
           <Route path="/terms" component={TermsPage} />
+          <Route path="/contact" component={ContactPage} />
           <Route path="/sign-in/*?" component={() => (
             <div className="flex min-h-[100dvh] items-center justify-center px-4">
               <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
@@ -255,7 +256,6 @@ function App() {
           <Route path="/builder/:id" component={() => <Redirect to="/" />} />
           <Route path="/templates" component={() => <Redirect to="/" />} />
           <Route path="/settings/*?" component={() => <Redirect to="/" />} />
-          <Route path="/contact" component={() => <Redirect to="/" />} />
           <Route component={NotFound} />
         </Switch>
         <Toaster />

@@ -723,7 +723,7 @@ export default function BuilderPage() {
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden">
       <SEO 
-        title={`${resume?.title || 'Untitled Resume'} - Editor | ResumeAI`}
+        title={`${resume?.title || 'Untitled Resume'} - Editor | ResumeSensei`}
         description="Edit your professional resume with real-time AI suggestions."
       />
       <BuilderNavbar

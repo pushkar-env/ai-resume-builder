@@ -31,9 +31,9 @@ const features = [
 const templates = ["Modern", "Minimal", "Corporate", "Creative", "ATS Friendly", "Developer", "Executive", "Startup"];
 
 const testimonials = [
-  { name: "Sarah K.", role: "Software Engineer at Meta", quote: "Landed my dream job after using ResumeAI. The ATS score feature was a game changer." },
+  { name: "Sarah K.", role: "Software Engineer at Meta", quote: "Landed my dream job after using ResumeSensei. The ATS score feature was a game changer." },
   { name: "James T.", role: "Product Manager at Stripe", quote: "The AI bullet point improvements saved me hours. My resume went from good to exceptional." },
-  { name: "Priya M.", role: "Data Scientist at Google", quote: "I had 3 interviews within a week of updating my resume with ResumeAI. Highly recommend." },
+  { name: "Priya M.", role: "Data Scientist at Google", quote: "I had 3 interviews within a week of updating my resume with ResumeSensei. Highly recommend." },
   { name: "Aman R.", role: "Frontend Engineer", quote: "The live preview is insanely accurate — what I saw on mobile matched the PDF export perfectly." },
   { name: "Lucia G.", role: "MBA Candidate", quote: "Templates are clean and professional. I could tailor versions for consulting and tech in minutes." },
   { name: "Noah P.", role: "DevOps Engineer", quote: "Loved the multi-device workflow — edit on my phone, fine-tune on desktop, export anywhere." },
@@ -41,7 +41,7 @@ const testimonials = [
 
 const faqs = [
   {
-    q: "Is ResumeAI responsive on mobile and tablets?",
+    q: "Is ResumeSensei responsive on mobile and tablets?",
     a: "Yes. The editor and preview are designed to work smoothly on phones, tablets, and desktops — including pinch-to-zoom in the preview on mobile.",
   },
   {
@@ -96,9 +96,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="AI Resume Builder | Land Your Dream Job"
-        description="Build a professional, ATS-optimized resume in minutes with AI assistance, stunning templates, and real-time preview."
-        canonicalUrl="https://resumeai.example.com/"
+        title="ResumeSensei | Resumes that get interviews"
+        description="Build a professional, ATS-ready resume in minutes with AI guidance, modern templates, and a real-time preview that matches your export."
+        canonicalUrl="https://resumesensei.com/"
       />
       <LandingNavbar />
 
@@ -118,7 +118,7 @@ export default function LandingPage() {
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-500">the interview</span>
             </motion.h1>
             <motion.p variants={fadeUp} className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Build a professional, ATS-optimized resume in minutes with AI assistance, 12 stunning templates, and real-time preview. Used by professionals at top companies.
+              Meet <span className="font-semibold text-foreground">ResumeSensei</span> — your AI resume coach. Build a professional, ATS-ready resume in minutes with modern templates and a real-time preview. Used by professionals at top companies.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Button size="lg" asChild className="gap-2 h-11 px-6">
@@ -306,7 +306,7 @@ export default function LandingPage() {
               </div>
               <h2 className="mt-4 text-3xl font-bold tracking-tight">Edit on any device. Export anywhere.</h2>
               <p className="mt-3 text-muted-foreground leading-relaxed max-w-xl">
-                ResumeAI is responsive by default — optimized layouts for mobile, tablets, and desktops.
+                ResumeSensei is responsive by default — optimized layouts for mobile, tablets, and desktops.
                 Your content stays readable, your preview stays accurate, and exports stay consistent.
               </p>
 
@@ -488,7 +488,7 @@ export default function LandingPage() {
               Ready to land your next role?
             </motion.h2>
             <motion.p variants={fadeUp} className="mt-3 text-primary-foreground/80">
-              Join thousands of professionals already using ResumeAI to get hired faster.
+              Join thousands of professionals already using ResumeSensei to get hired faster.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-8">
               <Button size="lg" variant="secondary" asChild className="gap-2">
@@ -497,6 +497,17 @@ export default function LandingPage() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
+            </motion.div>
+            <motion.div variants={fadeUp} className="mt-6">
+              <Button size="lg" variant="secondary" asChild className="gap-2 bg-white/10 text-white border border-white/20 hover:bg-white/15">
+                <Link href="/contact">
+                  Contact us
+                  <Mail className="h-4 w-4" />
+                </Link>
+              </Button>
+              <p className="mt-3 text-xs text-white/70">
+                Prefer email? Reach us at <a className="underline underline-offset-4 hover:text-white" href="mailto:support@resumesensei.com">support@resumesensei.com</a>.
+              </p>
             </motion.div>
           </motion.div>
         </div>
@@ -507,11 +518,11 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 font-semibold text-foreground">
-                <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeAI" className="h-7 w-7" />
-                <span className="text-base font-bold tracking-tight">ResumeAI</span>
+                <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="ResumeSensei" className="h-7 w-7" />
+                <span className="text-base font-bold tracking-tight">ResumeSensei</span>
               </div>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm">
-                A production-grade, responsive resume builder with AI writing help, ATS insights, and exports that match your preview.
+                An AI resume coach with ATS insights, modern templates, and exports that match your live preview.
               </p>
               <div className="mt-4 flex items-center gap-2">
                 <a className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center" href="#" aria-label="Facebook">
@@ -552,14 +563,14 @@ export default function LandingPage() {
             <div>
               <p className="text-sm font-semibold">Contact</p>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                <li className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> support@resumeai.example</li>
+                <li className="inline-flex items-center gap-2"><Mail className="h-4 w-4" /> support@resumesensei.com</li>
                 <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact us</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} ResumeAI. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} ResumeSensei. All rights reserved.</p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
               <Link href="/privacy" className="hover:text-foreground transition-colors">
                 Privacy

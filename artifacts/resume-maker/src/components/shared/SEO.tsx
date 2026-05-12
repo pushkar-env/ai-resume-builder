@@ -8,7 +8,7 @@ interface SEOProps {
 }
 
 export function SEO({ title, description, canonicalUrl, ogImage }: SEOProps) {
-  const siteName = "ResumeAI";
+  const siteName = "ResumeSensei";
   const defaultOgImage = "/logo.svg";
 
   return (
@@ -27,7 +27,7 @@ export function SEO({ title, description, canonicalUrl, ogImage }: SEOProps) {
       <meta property="og:image" content={ogImage || defaultOgImage} />
 
       {/* Twitter tags */}
-      <meta name="twitter:creator" content="@ResumeAI" />
+      <meta name="twitter:creator" content="@ResumeSensei" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />

@@ -198,7 +198,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
-        title="Dashboard | ResumeAI"
+        title="Dashboard | ResumeSensei"
         description="Manage your AI-powered resumes and access premium templates."
       />
       <Navbar />
