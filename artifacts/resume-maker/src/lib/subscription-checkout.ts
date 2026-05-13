@@ -1,5 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getListResumesQueryKey } from "@workspace/api-client-react";
+
+/** Must stay aligned with `getListResumesQueryKey()` from `@workspace/api-client-react`. */
+const LIST_RESUMES_QUERY_KEY = ["/api/resumes"] as const;
 
 /** Minimal Clerk user surface used after Razorpay checkout. */
 export type CheckoutUser = {
@@ -116,7 +118,7 @@ function attachVisibilityPremiumRecovery(params: {
 async function invalidatePostPremiumQueries(queryClient: QueryClient) {
   await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
   await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
-  await queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+  await queryClient.invalidateQueries({ queryKey: LIST_RESUMES_QUERY_KEY });
 }
 
 export type OpenSubscriptionCheckoutParams = {

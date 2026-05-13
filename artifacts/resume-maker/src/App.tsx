@@ -150,15 +150,39 @@ function ClerkAuthTokenInitializer() {
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const qc = useQueryClient();
-  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  const prevUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = addListener(({ user }) => {
-      const userId = user?.id ?? null;
-      if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
-        qc.clear();
-        if (!userId) setAuthTokenGetter(null);
+    const unsubscribe = addListener((resources) => {
+      const userId = resources.user?.id ?? null;
+      const hasSession = !!resources.session;
+      const prev = prevUserIdRef.current;
+
+      // Full sign-out — drop cached queries and API auth.
+      if (!hasSession) {
+        if (prev != null) {
+          qc.clear();
+          setAuthTokenGetter(null);
+        }
+        prevUserIdRef.current = null;
+        return;
       }
+
+      // During `user.reload()` the user object can be briefly null while the session stays active.
+      // Do not treat that as a sign-out or wipe the React Query cache (would blank dashboard/billing).
+      if (!userId) {
+        return;
+      }
+
+      if (prev === userId) {
+        return;
+      }
+
+      // Rare: switched Clerk accounts without a full session teardown.
+      if (prev != null && prev !== userId) {
+        qc.clear();
+      }
+
       prevUserIdRef.current = userId;
     });
     return unsubscribe;
