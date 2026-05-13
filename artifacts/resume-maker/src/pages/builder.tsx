@@ -792,19 +792,8 @@ export default function BuilderPage() {
       <div className="flex flex-1 overflow-hidden relative pb-14 lg:pb-0">
         {/* Left sidebar — sections */}
         <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden min-h-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
-          <div className="px-3 pt-3 pb-2 shrink-0 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground shrink-0 pt-0.5">Sections</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 w-full shrink-0 gap-1.5 text-[11px] px-2 sm:w-auto sm:min-w-0"
-              onClick={() => setClearAllOpen(true)}
-              disabled={localSections.length === 0}
-            >
-              <Eraser className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">Clear all content</span>
-            </Button>
+          <div className="px-3 pt-3 pb-2 shrink-0 min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Sections</p>
           </div>
           <ScrollArea className="flex-1 min-h-0">
             <div className="px-3 pb-3">
@@ -968,11 +957,27 @@ export default function BuilderPage() {
             </div>
           </ScrollArea>
 
-          {/* Pinned footer */}
-          <div className="border-t border-border p-3 shrink-0 bg-background">
-            <Button variant="ghost" size="sm" className="w-full gap-1.5 h-8 text-xs text-muted-foreground justify-start" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to dashboard
+          {/* Pinned footer — clear action + nav (full-width for narrow sidebar / mobile) */}
+          <div className="border-t border-border p-3 shrink-0 bg-background min-w-0 flex flex-col gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 w-full min-w-0 gap-1.5 text-[11px] px-2 justify-start"
+              onClick={() => setClearAllOpen(true)}
+              disabled={localSections.length === 0}
+            >
+              <Eraser className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate min-w-0 text-left">Clear all content</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full min-w-0 gap-1.5 h-8 text-xs text-muted-foreground justify-start"
+              onClick={() => navigate("/dashboard")}
+            >
+              <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate min-w-0">Back to dashboard</span>
             </Button>
           </div>
         </aside>
