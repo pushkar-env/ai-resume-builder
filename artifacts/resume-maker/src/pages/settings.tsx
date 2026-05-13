@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function BillingSection() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isCancelling, setIsCancelling] = useState(false);
   const [isDowngrading, setIsDowngrading] = useState(false);
 
@@ -18,7 +19,14 @@ function BillingSection() {
   const subscriptionId = user?.publicMetadata?.subscriptionId as string | undefined;
   const subscriptionStatus = user?.publicMetadata?.subscriptionStatus as string | undefined;
 
-  const { data: subscriptionDetails, isLoading: detailsLoading } = useQuery({
+  type SubscriptionPayload = {
+    notes?: { planType?: string };
+    current_start?: number;
+    current_end?: number;
+    clerkSubscriptionStatus?: string | null;
+  };
+
+  const { data: subscriptionDetails, isLoading: detailsLoading, isError: detailsError, refetch: refetchSubscription } = useQuery({
     queryKey: ["subscription-details", subscriptionId],
     queryFn: async () => {
       if (!subscriptionId) return null;
@@ -28,10 +36,15 @@ function BillingSection() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Failed to fetch subscription");
-      return res.json();
+      return res.json() as SubscriptionPayload;
     },
     enabled: !!subscriptionId && isPremium,
+    staleTime: 0,
   });
+
+  const isCancelledRenewal =
+    subscriptionStatus === "cancelled" ||
+    subscriptionDetails?.clerkSubscriptionStatus === "cancelled";
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString("en-US", {
@@ -81,6 +94,8 @@ function BillingSection() {
       }
 
       await user?.reload();
+      await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
+      await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
       toast({ title: "Subscription Cancelled", description: "Your subscription has been cancelled and will not renew." });
     } catch (e: any) {
       console.error(e);
@@ -136,14 +151,14 @@ function BillingSection() {
               <div>
                 <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
                   Pro Plan
-                  {subscriptionStatus === "cancelled" ? (
+                  {isCancelledRenewal ? (
                     <span className="text-[10px] uppercase tracking-wider font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Cancels Soon</span>
                   ) : (
                     <span className="text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Active</span>
                   )}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  {subscriptionStatus === "cancelled" 
+                  {isCancelledRenewal
                     ? "Your subscription is cancelled and will not renew."
                     : "You have full access to all premium features."}
                 </p>
@@ -151,7 +166,7 @@ function BillingSection() {
             </div>
             
             <div className="flex flex-col items-start sm:items-end gap-3">
-              {subscriptionId && subscriptionStatus !== "cancelled" && (
+              {subscriptionId && !isCancelledRenewal && (
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     variant="outline"
@@ -190,6 +205,13 @@ function BillingSection() {
             <div className="flex items-center justify-center p-8 text-muted-foreground bg-card rounded-xl border border-border shadow-sm">
               <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading subscription details...
             </div>
+          ) : detailsError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm">
+              <p className="font-medium text-destructive">Could not load subscription details</p>
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetchSubscription()}>
+                Retry
+              </Button>
+            </div>
           ) : subscriptionDetails ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-primary/20 transition-colors">
@@ -203,13 +225,13 @@ function BillingSection() {
               
               <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-primary/20 transition-colors">
                 <p className="text-[11px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                  {subscriptionStatus === "cancelled" ? (
+                  {isCancelledRenewal ? (
                     <><AlertCircle className="h-3.5 w-3.5" /> Ends On</>
                   ) : (
                     <><RefreshCcw className="h-3.5 w-3.5" /> Renews On</>
                   )}
                 </p>
-                <p className={`font-bold text-xl mt-2 ${subscriptionStatus === "cancelled" ? "text-orange-600" : "text-foreground"}`}>
+                <p className={`font-bold text-xl mt-2 ${isCancelledRenewal ? "text-orange-600" : "text-foreground"}`}>
                   {subscriptionDetails.current_end ? formatDate(subscriptionDetails.current_end) : "Unknown"}
                 </p>
               </div>

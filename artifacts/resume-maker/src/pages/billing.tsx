@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth, useUser } from "@clerk/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   Calendar,
@@ -9,10 +9,10 @@ import {
   CheckCircle2,
   CreditCard,
   Loader2,
+  AlertCircle,
   RefreshCcw,
   Shield,
   Star,
-  Zap,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
@@ -40,10 +40,19 @@ function formatDate(timestamp?: number) {
   });
 }
 
+type SubscriptionPayload = {
+  notes?: { planType?: string };
+  current_start?: number;
+  current_end?: number;
+  /** Clerk publicMetadata.subscriptionStatus — set on user-initiated cancel (Razorpay may still report active until period end). */
+  clerkSubscriptionStatus?: string | null;
+};
+
 export default function BillingPage() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
@@ -53,7 +62,7 @@ export default function BillingPage() {
   const subscriptionId = user?.publicMetadata?.subscriptionId as string | undefined;
   const subscriptionStatus = user?.publicMetadata?.subscriptionStatus as string | undefined;
 
-  const { data: subscriptionDetails, isLoading: detailsLoading } = useQuery({
+  const { data: subscriptionDetails, isLoading: detailsLoading, isError: detailsError, refetch: refetchSubscription } = useQuery({
     queryKey: ["billing-page-subscription", subscriptionId],
     queryFn: async () => {
       if (!subscriptionId) return null;
@@ -63,10 +72,15 @@ export default function BillingPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch subscription details");
-      return res.json();
+      return res.json() as SubscriptionPayload;
     },
     enabled: !!subscriptionId && isPremium,
+    staleTime: 0,
   });
+
+  const isCancelledRenewal =
+    subscriptionStatus === "cancelled" ||
+    subscriptionDetails?.clerkSubscriptionStatus === "cancelled";
 
   const handleUpgrade = async () => {
     if (!user) {
@@ -171,6 +185,8 @@ export default function BillingPage() {
       });
       if (!res.ok) throw new Error("Failed to cancel subscription");
       await user?.reload();
+      await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
+      await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
       toast({
         title: "Subscription Cancelled",
         description: "Your plan will not renew after the current billing cycle.",
@@ -203,9 +219,20 @@ export default function BillingPage() {
                 Manage your subscription and choose the right plan.
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold">
-              <Star className="h-3.5 w-3.5 text-primary" />
-              {isPremium ? "Current plan: Pro" : "Current plan: Free"}
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold">
+              <Star className="h-3.5 w-3.5 text-primary shrink-0" />
+              {isPremium ? (
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span>Current plan: Pro</span>
+                  {isCancelledRenewal && (
+                    <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800 dark:bg-orange-950/60 dark:text-orange-200">
+                      Cancels soon
+                    </span>
+                  )}
+                </span>
+              ) : (
+                "Current plan: Free"
+              )}
             </div>
           </div>
         </div>
@@ -225,19 +252,30 @@ export default function BillingPage() {
             <div className="space-y-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold">Pro plan is active</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {subscriptionStatus === "cancelled"
-                        ? "Auto-renew is off. Your access remains active until cycle end."
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold flex flex-wrap items-center gap-2">
+                      Pro plan
+                      {isCancelledRenewal ? (
+                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800 dark:bg-orange-950/60 dark:text-orange-200">
+                          Cancels soon
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-800 dark:bg-green-950/60 dark:text-green-200">
+                          Active
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      {isCancelledRenewal
+                        ? "Your subscription is cancelled and will not renew. You keep Pro access until the end of the current billing period."
                         : "Your account has full premium access."}
                     </p>
                   </div>
                 </div>
-                {subscriptionStatus !== "cancelled" && (
+                {!isCancelledRenewal && (
                   <Button
                     variant="destructive"
                     size="sm"
@@ -255,6 +293,14 @@ export default function BillingPage() {
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   Loading subscription details...
                 </div>
+              ) : detailsError ? (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+                  <p className="font-medium text-destructive">Could not load subscription details</p>
+                  <p className="text-muted-foreground mt-1">Try again in a moment.</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => void refetchSubscription()}>
+                    Retry
+                  </Button>
+                </div>
               ) : subscriptionDetails ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="rounded-xl border p-4">
@@ -265,16 +311,28 @@ export default function BillingPage() {
                   </div>
                   <div className="rounded-xl border p-4">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                      <RefreshCcw className="h-3.5 w-3.5" /> Cycle End
+                      {isCancelledRenewal ? (
+                        <>
+                          <AlertCircle className="h-3.5 w-3.5" /> Ends on
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCcw className="h-3.5 w-3.5" /> Renews on
+                        </>
+                      )}
                     </p>
-                    <p className="mt-2 text-lg font-semibold">{formatDate(subscriptionDetails.current_end)}</p>
+                    <p
+                      className={`mt-2 text-lg font-semibold ${isCancelledRenewal ? "text-orange-600 dark:text-orange-400" : ""}`}
+                    >
+                      {formatDate(subscriptionDetails.current_end)}
+                    </p>
                   </div>
                   <div className="rounded-xl border p-4">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5" /> Current Cycle
+                      <Calendar className="h-3.5 w-3.5" /> Current cycle
                     </p>
                     <p className="mt-2 text-sm font-medium">
-                      {formatDate(subscriptionDetails.current_start)} - {formatDate(subscriptionDetails.current_end)}
+                      {formatDate(subscriptionDetails.current_start)} – {formatDate(subscriptionDetails.current_end)}
                     </p>
                   </div>
                 </div>

@@ -790,10 +790,28 @@ export default function BuilderPage() {
         }}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
-          updateResume.mutate({
-            id: resumeId,
-            data: { title: newTitle },
-          });
+          updateResume.mutate(
+            { id: resumeId, data: { title: newTitle } },
+            {
+              onMutate: async () => {
+                await queryClient.cancelQueries({ queryKey: getGetResumeQueryKey(resumeId) });
+                const previous = queryClient.getQueryData<ResumeDetail>(getGetResumeQueryKey(resumeId));
+                if (previous) {
+                  queryClient.setQueryData<ResumeDetail>(getGetResumeQueryKey(resumeId), {
+                    ...previous,
+                    title: newTitle,
+                  });
+                }
+                return { previous };
+              },
+              onError: (_err, _vars, context) => {
+                const prev = context as { previous?: ResumeDetail } | undefined;
+                if (prev?.previous) {
+                  queryClient.setQueryData(getGetResumeQueryKey(resumeId), prev.previous);
+                }
+              },
+            },
+          );
         }}
       />
 

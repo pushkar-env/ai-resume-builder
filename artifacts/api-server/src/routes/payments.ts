@@ -217,6 +217,9 @@ router.get("/payments/subscription", requireAuth, async (req: Request, res: Resp
       return res.status(404).json({ error: "No active subscription found" });
     }
 
+    const clerkSubscriptionStatus =
+      (user.publicMetadata?.subscriptionStatus as string | undefined) ?? null;
+
     if (subscriptionId === "sub_dev_mock") {
       return res.json({
         id: "sub_dev_mock",
@@ -226,12 +229,16 @@ router.get("/payments/subscription", requireAuth, async (req: Request, res: Resp
         current_end: Math.floor(Date.now() / 1000) + 30 * 86400,
         next_billing_at: Math.floor(Date.now() / 1000) + 30 * 86400,
         notes: { planType: user.publicMetadata.planType || "monthly" },
-        short_url: "https://razorpay.com/docs/api/subscriptions/"
+        short_url: "https://razorpay.com/docs/api/subscriptions/",
+        clerkSubscriptionStatus,
       });
     }
 
     const subscription = await razorpay.subscriptions.fetch(subscriptionId);
-    return res.json(subscription);
+    return res.json({
+      ...(subscription as Record<string, unknown>),
+      clerkSubscriptionStatus,
+    });
   } catch (error) {
     console.error("Error fetching subscription:", error);
     return res.status(500).json({ error: "Failed to fetch subscription details" });
