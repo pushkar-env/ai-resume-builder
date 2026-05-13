@@ -19,17 +19,8 @@ import { AppFooter } from "@/components/layout/AppFooter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
-import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
-
-const loadRazorpayScript = () => {
-  return new Promise<boolean>((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
+import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
 
 function formatDate(timestamp?: number) {
   if (!timestamp) return "Unknown";
@@ -57,6 +48,7 @@ export default function BillingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
   const [isCancelling, setIsCancelling] = useState(false);
+  const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
   const subscriptionId = user?.publicMetadata?.subscriptionId as string | undefined;
@@ -90,78 +82,30 @@ export default function BillingPage() {
 
     setIsProcessing(true);
     try {
-      const ready = await loadRazorpayScript();
-      if (!ready) {
-        toast({ title: "Failed to load payment gateway", variant: "destructive" });
-        return;
-      }
-
-      const token = await getToken();
       const apiUrl = import.meta.env.VITE_API_URL || "/api";
-      const subRes = await fetch(`${apiUrl}/payments/create-subscription`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ planType: billingCycle }),
-      });
-
-      if (!subRes.ok) {
-        throw new Error("Failed to create subscription");
-      }
-
-      const subscriptionData = await subRes.json();
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock",
-        name: "ResumeSensei",
-        description: `Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} Subscription`,
-        image: `${import.meta.env.BASE_URL}bluemascot.svg`,
-        subscription_id: subscriptionData.id,
-        handler: async () => {
+      await openSubscriptionCheckout({
+        billingCycle,
+        getToken,
+        user,
+        apiUrl,
+        razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock",
+        checkoutImageUrl: `${import.meta.env.BASE_URL}bluemascot.svg`,
+        customerName: user.fullName || "",
+        customerEmail: user.primaryEmailAddress?.emailAddress || "",
+        queryClient,
+        onPremiumConfirmed: () => setSubscriptionSuccessOpen(true),
+        onStillPending: () =>
           toast({
-            title: "Payment Successful",
-            description: "Refreshing your plan status...",
-            duration: 7000,
-          });
-          for (let i = 0; i < 5; i++) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            const updatedUser = await user.reload();
-            if (updatedUser?.publicMetadata?.isPremium) {
-              toast({
-                title: "Welcome to Pro",
-                description: "Your billing status is now active.",
-              });
-              return;
-            }
-          }
-          toast({
-            title: "Upgrade Processing",
-            description: "Payment completed. Status may take up to a minute to reflect.",
-          });
-        },
-        prefill: {
-          name: user.fullName || "",
-          email: user.primaryEmailAddress?.emailAddress || "",
-        },
-        theme: { color: "#4f46e5" },
-      };
-
-      const paymentObject = new (window as any).Razorpay(options);
-      paymentObject.on("payment.failed", (response: any) => {
-        toast({
-          title: "Payment Failed",
-          description: response?.error?.description || "Your payment could not be completed.",
-          variant: "destructive",
-        });
+            title: "Payment received",
+            description:
+              "Your bank may take a moment to confirm. Return to this tab or pull to refresh — Pro usually appears within a minute.",
+          }),
+        toastError: (title, description) =>
+          toast({ title, description, variant: "destructive" }),
       });
-      paymentObject.open();
-    } catch (error: any) {
-      toast({
-        title: "Checkout Error",
-        description: error?.message || "Something went wrong during checkout.",
-        variant: "destructive",
-      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Something went wrong during checkout.";
+      toast({ title: "Checkout Error", description: msg, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -432,6 +376,8 @@ export default function BillingPage() {
       </main>
 
       <AppFooter />
+
+      <SubscriptionSuccessDialog open={subscriptionSuccessOpen} onOpenChange={setSubscriptionSuccessOpen} />
     </div>
   );
 }

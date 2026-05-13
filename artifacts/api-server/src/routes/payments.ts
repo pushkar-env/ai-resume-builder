@@ -67,6 +67,81 @@ router.post("/payments/create-subscription", requireAuth, async (req: Request, r
 });
 
 /**
+ * Client-side confirmation after Razorpay subscription checkout (UPI / cards).
+ * Verifies payment signature, ensures the subscription belongs to the signed-in user,
+ * then upgrades Clerk immediately so the app updates without waiting on webhooks alone.
+ */
+router.post("/payments/confirm-subscription-checkout", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).userId as string;
+    const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = req.body ?? {};
+
+    if (
+      typeof razorpay_payment_id !== "string" ||
+      typeof razorpay_subscription_id !== "string" ||
+      typeof razorpay_signature !== "string" ||
+      !razorpay_payment_id ||
+      !razorpay_subscription_id ||
+      !razorpay_signature
+    ) {
+      res.status(400).json({ error: "Missing payment confirmation fields" });
+      return;
+    }
+
+    const isMockKeys = RAZORPAY_KEY_ID === "rzp_test_mock" || RAZORPAY_KEY_SECRET === "mock_secret";
+    if (!isMockKeys) {
+      const body = `${razorpay_payment_id}|${razorpay_subscription_id}`;
+      const expected = crypto.createHmac("sha256", RAZORPAY_KEY_SECRET).update(body).digest("hex");
+      if (expected.length !== razorpay_signature.length) {
+        res.status(400).json({ error: "Invalid payment signature" });
+        return;
+      }
+      const ok = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpay_signature));
+      if (!ok) {
+        res.status(400).json({ error: "Invalid payment signature" });
+        return;
+      }
+    } else {
+      console.warn("[payments] Skipping Razorpay signature check (mock keys)");
+    }
+
+    let subscription: { notes?: { userId?: string; planType?: string }; status?: string };
+    try {
+      subscription = (await razorpay.subscriptions.fetch(razorpay_subscription_id)) as typeof subscription;
+    } catch (e) {
+      console.error("[payments] confirm-subscription: fetch subscription failed", e);
+      res.status(502).json({ error: "Could not verify subscription with payment provider" });
+      return;
+    }
+
+    const noteUserId = subscription.notes?.userId;
+    if (!noteUserId || noteUserId !== userId) {
+      res.status(403).json({ error: "Subscription does not belong to this account" });
+      return;
+    }
+
+    const existing = await clerkClient.users.getUser(userId);
+    const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+
+    await clerkClient.users.updateUserMetadata(userId, {
+      publicMetadata: {
+        ...meta,
+        isPremium: true,
+        subscriptionId: razorpay_subscription_id,
+        subscriptionStatus: "active",
+        planType: subscription.notes?.planType ?? meta.planType ?? "monthly",
+        premiumSince: (meta.premiumSince as string | undefined) ?? new Date().toISOString(),
+      },
+    });
+
+    res.json({ ok: true, subscriptionStatus: subscription.status ?? "active" });
+  } catch (error) {
+    console.error("[payments] confirm-subscription-checkout error:", error);
+    res.status(500).json({ error: "Failed to confirm subscription" });
+  }
+});
+
+/**
  * Cancel Subscription endpoint
  * Called from the frontend settings page.
  */
@@ -87,12 +162,15 @@ router.post("/payments/cancel-subscription", requireAuth, async (req: Request, r
     }
 
     // Update clerk metadata to reflect cancelled status (will actually expire at cycle end)
+    const existing = await clerkClient.users.getUser(userId);
+    const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
     await clerkClient.users.updateUserMetadata(userId, {
       publicMetadata: {
-        isPremium: true, // Remains true until the cycle ends (handled by webhook eventually)
+        ...meta,
+        isPremium: true,
         subscriptionId: subscriptionId,
-        subscriptionStatus: "cancelled"
-      }
+        subscriptionStatus: "cancelled",
+      },
     });
 
     return res.json({ success: true, status: subscriptionStatus });
@@ -142,13 +220,16 @@ router.post("/payments/webhook", async (req: Request, res: Response) => {
       const userId = paymentEntity?.notes?.userId || subscriptionEntity?.notes?.userId;
 
       if (userId) {
+        const existing = await clerkClient.users.getUser(userId);
+        const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
         await clerkClient.users.updateUserMetadata(userId, {
           publicMetadata: {
+            ...meta,
             isPremium: true,
             subscriptionId: subscriptionId,
             subscriptionStatus: "active",
-            premiumSince: new Date().toISOString()
-          }
+            premiumSince: (meta.premiumSince as string | undefined) ?? new Date().toISOString(),
+          },
         });
         console.log(`Successfully upgraded/renewed user ${userId} to Premium via subscription!`);
       }
@@ -160,12 +241,15 @@ router.post("/payments/webhook", async (req: Request, res: Response) => {
       const userId = subscriptionEntity.notes?.userId;
 
       if (userId) {
+        const existing = await clerkClient.users.getUser(userId);
+        const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
         await clerkClient.users.updateUserMetadata(userId, {
           publicMetadata: {
+            ...meta,
             isPremium: false,
             subscriptionId: null,
-            subscriptionStatus: event.event === "subscription.cancelled" ? "cancelled" : "halted"
-          }
+            subscriptionStatus: event.event === "subscription.cancelled" ? "cancelled" : "halted",
+          },
         });
         console.log(`Successfully revoked premium for user ${userId} due to subscription status: ${event.event}`);
       }

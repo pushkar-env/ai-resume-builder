@@ -8,25 +8,20 @@ import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { SEO } from "@/components/shared/SEO";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
-
-// Helper function to load Razorpay script
-const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
+import { useQueryClient } from "@tanstack/react-query";
+import { getListResumesQueryKey } from "@workspace/api-client-react";
+import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
 
 export default function PricingPage() {
   const { user } = useUser();
   const { getToken } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
 
@@ -39,88 +34,31 @@ export default function PricingPage() {
     setIsProcessing(true);
 
     try {
-      // 1. Load Razorpay script
-      const res = await loadRazorpayScript();
-      if (!res) {
-        toast({ title: "Failed to load payment gateway", variant: "destructive" });
-        setIsProcessing(false);
-        return;
-      }
-
-      // 2. Fetch Subscription from our backend
-      const token = await getToken();
       const apiUrl = import.meta.env.VITE_API_URL || "/api";
-      
-      const subRes = await fetch(`${apiUrl}/payments/create-subscription`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ planType: billingCycle })
+      await openSubscriptionCheckout({
+        billingCycle,
+        getToken,
+        user,
+        apiUrl,
+        razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock",
+        checkoutImageUrl: `${import.meta.env.BASE_URL}bluemascot.svg`,
+        customerName: user.fullName || "",
+        customerEmail: user.primaryEmailAddress?.emailAddress || "",
+        queryClient,
+        onPremiumConfirmed: () => setSubscriptionSuccessOpen(true),
+        onStillPending: () =>
+          toast({
+            title: "Payment received",
+            description:
+              "Your bank may take a moment to confirm. Return to this tab or pull to refresh — Pro usually appears within a minute.",
+          }),
+        toastError: (title, description) =>
+          toast({ title, description, variant: "destructive" }),
       });
-
-      if (!subRes.ok) {
-        throw new Error("Failed to create subscription");
-      }
-
-      const subscriptionData = await subRes.json();
-
-      // 3. Open Razorpay Checkout for Subscription
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_mock", 
-        name: "ResumeSensei",
-        description: `Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} Subscription`,
-        image: `${import.meta.env.BASE_URL}bluemascot.svg`,
-        subscription_id: subscriptionData.id,
-        handler: async function (response: any) {
-          toast({ 
-            title: "Payment Successful!", 
-            description: "Upgrading your account... Please wait.",
-            duration: 10000,
-          });
-          
-          // Poll for updated user data since the webhook takes a moment to process
-          let isUpgraded = false;
-          for (let i = 0; i < 5; i++) {
-            await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds
-            const updatedUser = await user.reload();
-            if (updatedUser?.publicMetadata?.isPremium) {
-              isUpgraded = true;
-              break;
-            }
-          }
-
-          if (isUpgraded) {
-            toast({ 
-              title: "Welcome to Pro! 🎉", 
-              description: "All premium features are now unlocked." 
-            });
-          } else {
-            toast({ 
-              title: "Upgrade Processing", 
-              description: "Your payment was successful. The upgrade might take a minute to reflect. Please refresh the page shortly." 
-            });
-          }
-        },
-        prefill: {
-          name: user.fullName || "",
-          email: user.primaryEmailAddress?.emailAddress || "",
-        },
-        theme: {
-          color: "#4f46e5" // primary
-        }
-      };
-
-      const paymentObject = new (window as any).Razorpay(options);
-      paymentObject.on('payment.failed', function (response: any){
-        toast({ title: "Payment Failed", description: response.error.description, variant: "destructive" });
-      });
-      paymentObject.open();
-
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      toast({ title: "Checkout Error", description: "Something went wrong during checkout.", variant: "destructive" });
+      const msg = error instanceof Error ? error.message : "Something went wrong during checkout.";
+      toast({ title: "Checkout Error", description: msg, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -140,11 +78,17 @@ export default function PricingPage() {
         const errText = await res.text();
         throw new Error(errText || "Failed to upgrade");
       }
+      const gt = getToken as (opts?: { skipCache?: boolean }) => Promise<unknown>;
+      await gt({ skipCache: true }).catch(() => {});
       await user?.reload();
-      toast({ title: "Dev Upgrade Successful! 🎉" });
-    } catch (e: any) {
+      await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
+      await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
+      await queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+      setSubscriptionSuccessOpen(true);
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Upgrade Error", description: e.message || "Failed to upgrade", variant: "destructive" });
+      const msg = e instanceof Error ? e.message : "Failed to upgrade";
+      toast({ title: "Upgrade Error", description: msg, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -284,6 +228,8 @@ export default function PricingPage() {
 
         </div>
       </main>
+
+      <SubscriptionSuccessDialog open={subscriptionSuccessOpen} onOpenChange={setSubscriptionSuccessOpen} />
     </div>
   );
 }
