@@ -2,6 +2,7 @@ import { useUser, useClerk } from "@clerk/react";
 import { Link, useLocation } from "wouter";
 import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -293,8 +294,20 @@ export function BuilderNavbar({
   };
 
   return (
-    <header className="flex h-12 items-center justify-between border-b border-border/60 bg-background px-4 shrink-0">
-      <div className="flex items-center gap-3 min-w-0">
+    <header
+      className={cn(
+        "flex shrink-0 border-b border-border/60 bg-background px-4",
+        isEditing
+          ? "min-h-12 flex-col items-stretch gap-2 py-2 sm:h-12 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:py-0"
+          : "h-12 items-center justify-between"
+      )}
+    >
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-3",
+          isEditing ? "w-full sm:w-auto sm:min-w-[12rem] sm:flex-1" : "min-w-0 flex-1"
+        )}
+      >
         <Link href="/dashboard" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0">
           <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-8 w-8 object-contain shrink-0" />
           <FileText className="h-3.5 w-3.5" />
@@ -308,7 +321,7 @@ export function BuilderNavbar({
             onChange={(e) => setEditTitle(e.target.value)}
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
-            className="h-7 w-40 sm:w-48 max-w-[55vw] px-2 text-sm font-medium bg-muted border-border rounded-md outline-none focus:ring-1 focus:ring-primary"
+            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-muted px-2 text-sm font-medium outline-none focus:ring-1 focus:ring-primary sm:h-7 sm:w-48 sm:flex-none sm:max-w-[min(240px,40vw)]"
             autoFocus
           />
         ) : (
@@ -316,7 +329,7 @@ export function BuilderNavbar({
             onClick={() => {
               if (onRename) setIsEditing(true);
             }}
-            className="text-sm font-medium truncate max-w-[120px] sm:max-w-[200px] hover:bg-muted px-2 py-1 -ml-2 rounded-md transition-colors cursor-text text-left"
+            className="min-w-0 max-w-full truncate text-left text-sm font-medium hover:bg-muted px-2 py-1 -ml-2 rounded-md transition-colors cursor-text sm:max-w-[200px]"
             title="Click to rename"
           >
             {title || "Untitled Resume"}
@@ -324,7 +337,12 @@ export function BuilderNavbar({
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-2">
+      <div
+        className={cn(
+          "flex shrink-0 items-center gap-1.5 sm:gap-3",
+          isEditing ? "w-full justify-end sm:w-auto sm:justify-start sm:ml-2" : "ml-2"
+        )}
+      >
         <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground mr-1">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-primary/70">
             <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>

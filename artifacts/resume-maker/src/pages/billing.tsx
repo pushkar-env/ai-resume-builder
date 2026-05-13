@@ -19,6 +19,7 @@ import { AppFooter } from "@/components/layout/AppFooter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
+import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
 const loadRazorpayScript = () => {
   return new Promise<boolean>((resolve) => {
@@ -214,14 +215,11 @@ export default function BillingPage() {
         <section className="rounded-2xl border bg-card p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold mb-4">Plan Status</h2>
           {!isPremium ? (
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">You are on the Free plan.</p>
-                <p className="text-sm text-muted-foreground">Upgrade to unlock all templates and unlimited AI features.</p>
-              </div>
-              <Button asChild className="sm:w-auto w-full">
-                <Link href="#pricing">View Pricing</Link>
-              </Button>
+            <div>
+              <p className="text-sm font-medium">You are on the Free plan.</p>
+              <p className="text-sm text-muted-foreground">
+                Upgrade below to unlock all templates, unlimited AI, ATS score tracking, and more.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -322,16 +320,18 @@ export default function BillingPage() {
                 <span className="text-muted-foreground"> / forever</span>
               </div>
               <ul className="space-y-3 mt-5 mb-6 flex-1">
-                {["1 Active Resume", "3 Basic Templates", "Basic AI Suggestions", "Standard Export"].map((feature) => (
+                {FREE_PLAN_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-primary" />
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" asChild className="w-full">
-                <Link href="/dashboard">Continue with Free</Link>
-              </Button>
+              {!isPremium && (
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/dashboard">Continue with Free</Link>
+                </Button>
+              )}
             </div>
 
             <div className="rounded-2xl border-2 border-primary bg-primary/5 p-6 flex flex-col relative">
@@ -345,12 +345,7 @@ export default function BillingPage() {
                 <span className="text-muted-foreground">{billingCycle === "yearly" ? " / yearly" : " / monthly"}</span>
               </div>
               <ul className="space-y-3 mt-5 mb-6 flex-1">
-                {[
-                  "Unlimited resumes",
-                  "All premium templates",
-                  "Unlimited AI writing",
-                  "Advanced ATS export and scoring",
-                ].map((feature) => (
+                {PRO_PLAN_FEATURES.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-primary" />
                     {feature}

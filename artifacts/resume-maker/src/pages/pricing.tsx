@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { SEO } from "@/components/shared/SEO";
+import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
 // Helper function to load Razorpay script
 const loadRazorpayScript = () => {
@@ -209,14 +210,8 @@ export default function PricingPage() {
               <span className="text-muted-foreground"> / forever</span>
             </div>
             <ul className="space-y-4 mb-8 flex-1">
-              {[
-                "1 Active Resume",
-                "3 Basic Templates",
-                "PDF Export (Standard)",
-                "Basic AI Suggestions",
-                "Community Support"
-              ].map((feature, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm">
+              {FREE_PLAN_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-center gap-3 text-sm">
                   <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Check className="h-3 w-3 text-primary" />
                   </div>
@@ -224,9 +219,11 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <Button variant="outline" className="w-full" asChild>
-              <Link href="/dashboard">Continue with Free</Link>
-            </Button>
+            {!isPremium && (
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/dashboard">Continue with Free</Link>
+              </Button>
+            )}
           </div>
 
           {/* Pro Plan */}
@@ -245,15 +242,8 @@ export default function PricingPage() {
               </span>
             </div>
             <ul className="space-y-4 mb-8 flex-1">
-              {[
-                <span key={1}><b>Unlimited</b> Resumes</span>,
-                <span key={2}><b>All 12 Premium</b> Templates</span>,
-                "Advanced ATS Vector Export",
-                <span key={3}><b>Unlimited</b> AI Writing & Rewriting</span>,
-                "ATS Score Tracking",
-                "Priority Email Support"
-              ].map((feature, i) => (
-                <li key={i} className="flex items-center gap-3 text-sm">
+              {PRO_PLAN_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-center gap-3 text-sm">
                   <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
                     <Check className="h-3 w-3 text-white" />
                   </div>

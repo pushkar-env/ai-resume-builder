@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SEO } from "@/components/shared/SEO";
+import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
 const features = [
   {
@@ -68,7 +69,7 @@ const plans = [
     name: "Free",
     price: "$0",
     description: "Perfect for getting started",
-    features: ["1 resume", "3 templates", "PDF export", "Basic AI suggestions"],
+    features: [...FREE_PLAN_FEATURES],
     cta: "Get started free",
     highlighted: false,
   },
@@ -77,7 +78,7 @@ const plans = [
     price: "$9",
     period: "/month",
     description: "For serious job seekers",
-    features: ["Unlimited resumes", "All 12 templates", "PDF, DOCX & JSON export", "Unlimited AI assistance", "ATS score tracking", "Priority support"],
+    features: [...PRO_PLAN_FEATURES],
     cta: "Start Pro trial",
     highlighted: true,
   },
