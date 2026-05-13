@@ -17,7 +17,7 @@ import {
   ExportResumeResponse,
   GetAtsScoreResponse,
 } from "@workspace/api-zod";
-import { getAuth } from "@clerk/express";
+import { getAuth, clerkClient } from "@clerk/express";
 import { logger } from "../lib/logger";
 
 const toJSON = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
@@ -412,6 +412,12 @@ router.get("/resumes/:id/ats-score", requireAuth, async (req: Request, res: Resp
 
   if (!resume) {
     res.status(404).json({ error: "Resume not found" });
+    return;
+  }
+
+  const clerkUser = await clerkClient.users.getUser(userId);
+  if (clerkUser.publicMetadata?.isPremium !== true) {
+    res.status(403).json({ error: "ATS score is available for Pro subscribers only." });
     return;
   }
 

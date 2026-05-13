@@ -1,6 +1,6 @@
 import { useUser, useClerk } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard } from "lucide-react";
+import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -250,7 +250,22 @@ export function LandingNavbar() {
 
 import { useState, useEffect, useRef } from "react";
 
-export function BuilderNavbar({ title, atsScore, onExport, onRename }: { title: string; atsScore?: number; onExport: () => void; onRename?: (title: string) => void }) {
+export function BuilderNavbar({
+  title,
+  atsScore,
+  atsPremiumLocked,
+  onAtsPremiumClick,
+  onExport,
+  onRename,
+}: {
+  title: string;
+  atsScore?: number;
+  /** When true, show a locked ATS entry point instead of the numeric score (free users). */
+  atsPremiumLocked?: boolean;
+  onAtsPremiumClick?: () => void;
+  onExport: () => void;
+  onRename?: (title: string) => void;
+}) {
   const { user } = useUser();
   const { signOut } = useClerk();
   
@@ -318,13 +333,26 @@ export function BuilderNavbar({ title, atsScore, onExport, onRename }: { title: 
           </svg>
           <span className="text-[10px] font-medium tracking-wide">Saved to browser</span>
         </div>
-        {atsScore !== undefined && (
-          <div className="flex items-center gap-1.5">
-            <div className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              atsScore >= 80 ? "bg-green-100 text-green-700" :
-              atsScore >= 60 ? "bg-yellow-100 text-yellow-700" :
-              "bg-red-100 text-red-700"
-            }`}>
+        {atsPremiumLocked && onAtsPremiumClick && (
+          <button
+            type="button"
+            onClick={onAtsPremiumClick}
+            className="flex items-center gap-1 shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border border-dashed border-amber-500/50 bg-amber-500/10 text-amber-900 dark:text-amber-100 hover:bg-amber-500/15 transition-colors max-w-[min(100%,9rem)]"
+            title="ATS score — Pro feature"
+          >
+            <Lock className="h-3 w-3 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden />
+            <span className="truncate">ATS Pro</span>
+          </button>
+        )}
+        {!atsPremiumLocked && atsScore !== undefined && (
+          <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+            <div
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                atsScore >= 80 ? "bg-green-100 text-green-700" :
+                atsScore >= 60 ? "bg-yellow-100 text-yellow-700" :
+                "bg-red-100 text-red-700"
+              }`}
+            >
               ATS {atsScore}
             </div>
           </div>

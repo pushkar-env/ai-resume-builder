@@ -223,6 +223,7 @@ paths:
       operationId: getAtsScore
       tags: [resumes]
       summary: Get ATS score for a resume
+      description: Requires an active Pro subscription (same source as Clerk publicMetadata.isPremium).
       parameters:
         - name: id
           in: path
@@ -236,6 +237,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AtsScore"
+        "403":
+          description: Pro subscription required for ATS score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Not found
           content:

@@ -505,7 +505,7 @@ export default function BuilderPage() {
   const { data: atsScoreData } = useGetAtsScore(resumeId, {
     query: {
       queryKey: ["/api/resumes", resumeId, "ats"],
-      enabled: !!resumeId,
+      enabled: !!resumeId && isPremiumUser,
     },
   });
 
@@ -779,7 +779,15 @@ export default function BuilderPage() {
       />
       <BuilderNavbar
         title={resume?.title ?? ""}
-        atsScore={atsScoreData?.score}
+        atsScore={isPremiumUser ? atsScoreData?.score : undefined}
+        atsPremiumLocked={!isPremiumUser}
+        onAtsPremiumClick={() => {
+          setPaywallTitle("ATS score is a Pro feature");
+          setPaywallDescription(
+            "Upgrade to ResumeSensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit."
+          );
+          setShowPaywall(true);
+        }}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
           updateResume.mutate({
