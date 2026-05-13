@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
+import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
 function formatDate(timestamp?: number) {
   if (!timestamp) return "Unknown";
