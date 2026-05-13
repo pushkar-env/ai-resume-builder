@@ -45,6 +45,7 @@ export const CreateResumeBody = zod.object({
   fontFamily: zod.string().optional(),
   fontColor: zod.string().optional(),
   backgroundColor: zod.string().optional(),
+  startPrefilled: zod.boolean().optional(),
 });
 
 /**

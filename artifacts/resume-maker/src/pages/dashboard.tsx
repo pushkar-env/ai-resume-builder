@@ -29,10 +29,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import {
@@ -326,6 +328,7 @@ export default function DashboardPage() {
   const [newTitle, setNewTitle] = useState("My Resume");
   const [renameTitle, setRenameTitle] = useState("");
   const [showPaywall, setShowPaywall] = useState(false);
+  const [startWithSampleContent, setStartWithSampleContent] = useState(true);
 
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
@@ -470,10 +473,16 @@ export default function DashboardPage() {
       <AppFooter />
 
       {/* Create dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={createOpen} onOpenChange={(open) => {
+        setCreateOpen(open);
+        if (open) setStartWithSampleContent(true);
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create new resume</DialogTitle>
+            <DialogDescription>
+              Choose a title and whether to start from sample content or empty sections.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -484,15 +493,42 @@ export default function DashboardPage() {
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="e.g. Software Engineer Resume"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") createResume.mutate({ data: { title: newTitle, templateId: "faang" } });
+                  if (e.key === "Enter") {
+                    createResume.mutate({
+                      data: { title: newTitle, templateId: "faang", startPrefilled: startWithSampleContent },
+                    });
+                  }
                 }}
               />
             </div>
+            <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 space-y-1 pr-0 sm:pr-2">
+                <Label htmlFor="start-sample" className="text-sm font-medium">
+                  Sample starter content
+                </Label>
+                <p id="start-sample-hint" className="text-xs text-muted-foreground leading-snug">
+                  When on, your new resume includes example text so layouts look filled. Turn off to start with empty fields for each template section.
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
+                <span className="text-xs text-muted-foreground sm:hidden">Sample content</span>
+                <Switch
+                  id="start-sample"
+                  checked={startWithSampleContent}
+                  onCheckedChange={setStartWithSampleContent}
+                  aria-describedby="start-sample-hint"
+                />
+              </div>
+            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button
-              onClick={() => createResume.mutate({ data: { title: newTitle, templateId: "faang" } })}
+              onClick={() =>
+                createResume.mutate({
+                  data: { title: newTitle, templateId: "faang", startPrefilled: startWithSampleContent },
+                })
+              }
               disabled={createResume.isPending || !newTitle.trim()}
             >
               {createResume.isPending ? "Creating..." : "Create resume"}

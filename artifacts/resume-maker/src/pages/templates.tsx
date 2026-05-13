@@ -156,7 +156,7 @@ export default function TemplatesPage() {
     }
     
     setCreating(true);
-    createResume.mutate({ data: { title: "My Resume", templateId } });
+    createResume.mutate({ data: { title: "My Resume", templateId, startPrefilled: true } });
   };
 
   const templateList = Array.isArray(templates) ? templates : [];

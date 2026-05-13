@@ -535,6 +535,9 @@ components:
           type: string
         backgroundColor:
           type: string
+        startPrefilled:
+          type: boolean
+          description: When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template.
       required:
         - title
         - templateId

@@ -137,6 +137,31 @@ const SEEDED_SECTIONS = [
   },
 ];
 
+/** Same section titles/order/types as SEEDED_SECTIONS — empty content for blank-start resumes. */
+const EMPTY_SECTIONS = [
+  {
+    type: "personal",
+    title: "Personal Details",
+    displayOrder: 0,
+    content: {
+      name: "",
+      jobTitle: "",
+      title: "",
+      email: "",
+      phone: "",
+      location: "",
+      photo: "",
+      socials: [],
+    },
+  },
+  { type: "summary", title: "Professional Summary", displayOrder: 1, content: { text: "" } },
+  { type: "experience", title: "Work Experience", displayOrder: 2, content: { items: [] } },
+  { type: "education", title: "Education", displayOrder: 3, content: { items: [] } },
+  { type: "skills", title: "Skills", displayOrder: 4, content: { style: "bars", items: [] } },
+  { type: "projects", title: "Projects", displayOrder: 5, content: { items: [] } },
+  { type: "certifications", title: "Certifications", displayOrder: 6, content: { items: [] } },
+];
+
 router.get("/resumes", requireAuth, async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).userId;
   const resumes = await db
@@ -165,7 +190,10 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
     backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
   }).returning();
 
-  const sectionsToInsert = SEEDED_SECTIONS.map((s) => ({
+  const startPrefilled = parsed.data.startPrefilled !== false;
+  const sectionBlueprint = startPrefilled ? SEEDED_SECTIONS : EMPTY_SECTIONS;
+
+  const sectionsToInsert = sectionBlueprint.map((s) => ({
     ...s,
     resumeId: resume.id,
   }));

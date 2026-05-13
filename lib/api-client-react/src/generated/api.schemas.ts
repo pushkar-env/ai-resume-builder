@@ -69,6 +69,8 @@ export interface CreateResumeBody {
   fontFamily?: string;
   fontColor?: string;
   backgroundColor?: string;
+  /** When true (default), sections include sample starter content. When false, empty shells. */
+  startPrefilled?: boolean;
 }
 
 export type UpdateSectionItemContent = { [key: string]: unknown };
