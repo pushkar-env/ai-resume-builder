@@ -1,527 +1,456 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, FileText, Zap, Shield, Star, Check, User, AlignLeft, Briefcase, GraduationCap, Wrench, LayoutTemplate, PlusCircle, Smartphone, Tablet, Monitor, HelpCircle, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  FileText,
+  Zap,
+  Shield,
+  Check,
+  LayoutTemplate,
+  Monitor,
+  Download,
+  Gauge,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SEO } from "@/components/shared/SEO";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-const features = [
-  {
-    icon: Sparkles,
-    title: "AI-Powered Writing",
-    description: "Generate professional summaries, improve bullet points, and get ATS optimization suggestions instantly.",
-  },
-  {
-    icon: FileText,
-    title: "12 Premium Templates",
-    description: "From Modern to Executive — every template is crafted for impact and optimized for applicant tracking systems.",
-  },
-  {
-    icon: Zap,
-    title: "Live Preview",
-    description: "See every change in real-time on a pixel-perfect A4 preview. What you see is exactly what you export.",
-  },
-  {
-    icon: Shield,
-    title: "ATS Score Tracking",
-    description: "Know exactly how your resume performs against automated screening systems before you submit.",
-  },
-];
+const SITE_URL = "https://resumesensei.com";
 
-const templates = ["Modern", "Minimal", "Corporate", "Creative", "ATS Friendly", "Developer", "Executive", "Startup"];
-
-const testimonials = [
-  { name: "Sarah K.", role: "Software Engineer at Meta", quote: "Landed my dream job after using ResumeSensei. The ATS score feature was a game changer." },
-  { name: "James T.", role: "Product Manager at Stripe", quote: "The AI bullet point improvements saved me hours. My resume went from good to exceptional." },
-  { name: "Priya M.", role: "Data Scientist at Google", quote: "I had 3 interviews within a week of updating my resume with ResumeSensei. Highly recommend." },
-  { name: "Aman R.", role: "Frontend Engineer", quote: "The live preview is insanely accurate — what I saw on mobile matched the PDF export perfectly." },
-  { name: "Lucia G.", role: "MBA Candidate", quote: "Templates are clean and professional. I could tailor versions for consulting and tech in minutes." },
-  { name: "Noah P.", role: "DevOps Engineer", quote: "Loved the multi-device workflow — edit on my phone, fine-tune on desktop, export anywhere." },
-];
+const SEO_KEYWORDS =
+  "resume builder, AI resume, ATS resume checker, ATS friendly resume, CV maker, professional resume templates, PDF resume, DOCX resume, job application resume, India resume builder";
 
 const faqs = [
   {
-    q: "Is ResumeSensei responsive on mobile and tablets?",
-    a: "Yes. The editor and preview are designed to work smoothly on phones, tablets, and desktops — including pinch-to-zoom in the preview on mobile.",
+    q: "What does “ATS-friendly” mean here?",
+    a: "Applicant tracking systems parse your resume automatically. ResumeSensei uses clean typography and structure, and Pro includes an ATS score in your dashboard so you can iterate before you submit.",
   },
   {
-    q: "Will my resume look the same when exported?",
-    a: "The export uses the same rendered preview DOM and styles, so the PDF/print output matches what you see on screen.",
+    q: "Will my PDF match the on-screen preview?",
+    a: "Yes. Export is built from the same preview pipeline you see while editing, so spacing and typography stay consistent.",
   },
   {
-    q: "Is it ATS-friendly?",
-    a: "Templates are built to be clean, readable, and compatible with applicant tracking systems. You can also check your ATS score in the dashboard.",
+    q: "Do I need a card to try it?",
+    a: "No. Create a free account to build one resume with core AI suggestions and PDF export. Upgrade to Pro when you want unlimited resumes and full AI.",
   },
   {
-    q: "Do I need a credit card to try it?",
-    a: "No. You can start on the free plan with no credit card required.",
-  },
-  {
-    q: "Can I create multiple resumes?",
-    a: "Pro users can create unlimited resumes. The free plan includes 1 resume so you can try the full workflow end-to-end.",
+    q: "How does Pro pricing work?",
+    a: "Pro is billed in INR through our checkout: ₹99 per month or ₹999 per year. See the pricing page for the latest details.",
   },
 ] as const;
 
-const plans = [
+const LANDING_JSON_LD: Record<string, unknown>[] = [
   {
-    name: "Free",
-    price: "$0",
-    description: "Perfect for getting started",
-    features: [...FREE_PLAN_FEATURES],
-    cta: "Get started free",
-    highlighted: false,
+    "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
+    name: "ResumeSensei",
+    url: SITE_URL,
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/bluemascot.svg`,
+    },
+    description:
+      "ResumeSensei is an online resume builder with AI-assisted writing, ATS score insights, and exports that match the live preview.",
   },
   {
-    name: "Pro",
-    price: "$9",
-    period: "/month",
-    description: "For serious job seekers",
-    features: [...PRO_PLAN_FEATURES],
-    cta: "Start Pro trial",
-    highlighted: true,
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    name: "ResumeSensei",
+    url: SITE_URL,
+    description:
+      "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF or DOCX export.",
+    publisher: { "@id": `${SITE_URL}/#organization` },
+    inLanguage: "en-US",
+  },
+  {
+    "@type": "SoftwareApplication",
+    name: "ResumeSensei",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: SITE_URL,
+    description:
+      "Online resume builder with AI writing assistance, applicant tracking system (ATS) score tracking, twelve templates, and high-fidelity PDF and DOCX export.",
+    offers: {
+      "@type": "Offer",
+      price: "99",
+      priceCurrency: "INR",
+      description: "Pro — monthly billing (yearly plan also available)",
+      url: `${SITE_URL}/pricing`,
+    },
+    featureList: [
+      "AI-assisted summaries and bullet points",
+      "Twelve professional resume templates",
+      "Live A4 preview aligned with export",
+      "ATS score tracking on the dashboard",
+      "PDF and DOCX export (Pro includes JSON export)",
+      "Unlimited resumes on Pro",
+    ],
+  },
+  {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
   },
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+const capabilities = [
+  {
+    icon: Sparkles,
+    title: "AI-assisted writing",
+    description: "Refine summaries and experience bullets with context-aware suggestions.",
+  },
+  {
+    icon: LayoutTemplate,
+    title: "12 polished templates",
+    description: "Distinct layouts for tech, business, creative roles, and ATS-first designs.",
+  },
+  {
+    icon: Monitor,
+    title: "Live A4 preview",
+    description: "Edit alongside a faithful preview so layout matches what you export.",
+  },
+  {
+    icon: Gauge,
+    title: "ATS score tracking",
+    description: "See how your resume reads to automated screeners before you apply.",
+  },
+  {
+    icon: Download,
+    title: "PDF & DOCX export",
+    description: "Pro includes PDF, DOCX, and JSON export; Free includes PDF.",
+  },
+  {
+    icon: Zap,
+    title: "Fast, focused editor",
+    description: "Structured sections, rich text, and a workflow built for real job searches.",
+  },
+] as const;
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1 } },
+const pillars = [
+  {
+    icon: FileText,
+    title: "Structured content",
+    body: "Personal details, summary, roles, education, and skills — organized so recruiters scan quickly.",
+  },
+  {
+    icon: Shield,
+    title: "ATS-aware design",
+    body: "Templates avoid noisy layouts that confuse parsers; combine with the in-app ATS score for confidence.",
+  },
+  {
+    icon: Monitor,
+    title: "Responsive workspace",
+    body: "Use ResumeSensei on desktop or mobile — edit when you have time, export when you are ready.",
+  },
+] as const;
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
 };
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background">
-      <SEO 
-        title="ResumeSensei | Resumes that get interviews"
-        description="Build a professional, ATS-ready resume in minutes with AI guidance, modern templates, and a real-time preview that matches your export."
-        canonicalUrl="https://resumesensei.com/"
+    <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background text-foreground">
+      <SEO
+        title="ResumeSensei | AI Resume Builder & ATS Resume Checker"
+        description="Build an ATS-friendly resume with AI writing help, 12 templates, a live A4 preview, and PDF or DOCX export. Free plan available; Pro from ₹99/month or ₹999/year."
+        canonicalUrl={`${SITE_URL}/`}
+        keywords={SEO_KEYWORDS}
+        jsonLd={LANDING_JSON_LD}
       />
       <LandingNavbar />
 
-      {/* Hero */}
-      <section className="relative overflow-x-clip overflow-hidden pt-20 pb-24">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(800px,180vw)] max-w-none h-[500px] rounded-full bg-primary/5 blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center min-w-0">
-          <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-6">
-              <Sparkles className="h-3 w-3" />
-              AI-powered resume builder
-            </motion.div>
-            <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight text-balance break-words px-1 sm:px-0">
-              Resumes that get you<br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-500">the interview</span>
-            </motion.h1>
-            <motion.p variants={fadeUp} className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed text-pretty break-words px-1 sm:px-0">
-              Meet <span className="font-semibold text-foreground">ResumeSensei</span> — your AI resume coach. Build a professional, ATS-ready resume in minutes with modern templates and a real-time preview. Used by professionals at top companies.
+      <main id="main-content">
+        {/* Hero */}
+        <section className="relative pt-24 pb-16 sm:pt-28 sm:pb-20" aria-labelledby="hero-heading">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute left-1/2 top-0 h-[420px] w-[min(100%,720px)] -translate-x-1/2 rounded-[100%] bg-primary/[0.06] blur-3xl" />
+          </div>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
+              AI resume builder
             </motion.p>
-            <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button size="lg" asChild className="gap-2 h-11 px-6">
-                <Link href="/sign-up">
-                  Build your resume free
-                  <ArrowRight className="h-4 w-4" />
+            <motion.h1
+              id="hero-heading"
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={{ delay: 0.05 }}
+              className="text-4xl font-black tracking-tight text-balance sm:text-5xl sm:leading-[1.08]"
+            >
+              Resumes that read clear, rank well, and{" "}
+              <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+                ship fast
+              </span>
+            </motion.h1>
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={{ delay: 0.1 }}
+              className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+            >
+              ResumeSensei combines structured editing, AI suggestions, ATS score feedback, and exports that match your
+              live preview — without clutter.
+            </motion.p>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={{ delay: 0.15 }}
+              className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
+            >
+              <Button size="lg" className="h-12 rounded-xl px-8 text-base shadow-sm" asChild>
+                <Link href="/sign-up" className="gap-2">
+                  Start free
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="h-11 px-6">
+              <Button size="lg" variant="outline" className="h-12 rounded-xl px-8 text-base" asChild>
                 <Link href="/sign-in">Sign in</Link>
               </Button>
             </motion.div>
-            <motion.p variants={fadeUp} className="mt-4 text-xs text-muted-foreground">
-              No credit card required. Free forever.
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={{ delay: 0.2 }}
+              className="mt-4 text-xs text-muted-foreground"
+            >
+              No credit card to start · Free plan includes PDF export
             </motion.p>
-          </motion.div>
-        </div>
-
-        {/* Mock preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mx-auto mt-16 w-full max-w-5xl min-w-0 px-4 sm:px-6"
-        >
-          <div className="rounded-2xl border border-white/20 bg-white/40 p-3 sm:p-4 shadow-2xl backdrop-blur-xl ring-1 ring-border/50 max-w-full min-w-0">
-            <div className="flex items-center gap-1.5 mb-3 pl-1">
-              <div className="h-2.5 w-2.5 rounded-full bg-red-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-              <div className="h-2.5 w-2.5 rounded-full bg-green-400" />
-            </div>
-            <div className="flex flex-col md:grid md:grid-cols-5 md:gap-3 rounded-lg overflow-hidden border border-border bg-background min-h-[360px] min-w-0 max-w-full">
-              <div className="md:col-span-2 min-w-0 p-3 sm:p-4 border-b md:border-b-0 md:border-r border-border bg-slate-50/50 flex flex-col">
-                {/* Logo / Header area */}
-                <div className="flex items-center gap-2 mb-6 px-1">
-                  <div className="h-6 w-6 rounded bg-primary/20 flex items-center justify-center">
-                    <LayoutTemplate className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <span className="text-[13px] font-semibold text-slate-700">Resume Editor</span>
-                </div>
-                
-                {/* Navigation Items */}
-                <div className="flex-1 space-y-1">
-                  {[
-                    { name: "Personal Info", icon: User, active: false },
-                    { name: "Summary", icon: AlignLeft, active: true },
-                    { name: "Experience", icon: Briefcase, active: false },
-                    { name: "Education", icon: GraduationCap, active: false },
-                    { name: "Skills", icon: Wrench, active: false },
-                  ].map((item) => (
-                    <div 
-                      key={item.name} 
-                      className={`flex items-center gap-2.5 py-2 px-2.5 rounded-md text-xs cursor-pointer transition-colors ${
-                        item.active 
-                          ? "bg-white shadow-sm border border-slate-200 text-primary font-medium" 
-                          : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-700"
-                      }`}
-                    >
-                      <item.icon className={`h-3.5 w-3.5 ${item.active ? "text-primary" : "text-slate-400"}`} />
-                      {item.name}
-                    </div>
-                  ))}
-                  
-                  <div className="flex items-center gap-2.5 py-2 px-2.5 rounded-md text-xs text-slate-500 hover:bg-slate-100/80 hover:text-slate-700 cursor-pointer mt-2 border border-dashed border-slate-300">
-                    <PlusCircle className="h-3.5 w-3.5 text-slate-400" />
-                    Add Section
-                  </div>
-                </div>
-
-                {/* AI Suggestion Box */}
-                <div className="mt-auto pt-4">
-                  <div className="rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 p-3 shadow-sm relative overflow-hidden">
-                    <div className="absolute -top-2 -right-2 p-1 opacity-10">
-                      <Sparkles className="h-12 w-12 text-primary" />
-                    </div>
-                    <div className="flex items-center gap-1.5 mb-2 relative z-10">
-                      <Sparkles className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-[11px] font-semibold text-primary">AI Suggestion</span>
-                    </div>
-                    <p className="text-[10px] text-slate-600 leading-relaxed relative z-10 mb-2.5">
-                      Consider quantifying achievements in your <strong>TechFlow</strong> role to boost ATS scoring.
-                    </p>
-                    <div className="flex gap-2 relative z-10">
-                      <button className="flex-1 bg-primary text-primary-foreground text-[9px] font-medium py-1.5 rounded shadow-sm hover:bg-primary/90 transition-colors">
-                        Auto-Rewrite
-                      </button>
-                      <button className="px-2 bg-white text-slate-500 border border-slate-200 text-[9px] font-medium rounded hover:bg-slate-50 transition-colors">
-                        Dismiss
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="md:col-span-3 min-w-0 p-4 sm:p-6 bg-white relative overflow-hidden">
-                {/* Resume Header */}
-                <div className="mb-4 min-w-0">
-                  <h3 className="text-lg font-serif text-slate-900 font-bold break-words">Sarah Jenkins</h3>
-                  <p className="text-[10px] text-slate-500 mt-1 break-words [overflow-wrap:anywhere]">
-                    Product Manager • New York, NY • sarah.j@example.com
-                  </p>
-                </div>
-                
-                <div className="h-px w-full bg-slate-200 mb-4" />
-                
-                {/* Professional Summary */}
-                <div className="mb-4">
-                  <h4 className="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-2">Professional Summary</h4>
-                  <div className="relative p-2.5 rounded-md border border-primary/30 bg-primary/5">
-                    <div className="absolute -top-2 -right-2 h-4 w-4 bg-primary rounded-full flex items-center justify-center shadow-sm">
-                      <Sparkles className="h-2.5 w-2.5 text-white" />
-                    </div>
-                    <p className="text-[10px] text-slate-700 leading-relaxed">
-                      Strategic Product Manager with 6+ years of experience in B2B SaaS. <span className="bg-primary/20 text-primary font-medium px-1 rounded-sm">Led cross-functional teams to launch 3 major products, increasing ARR by $2.4M</span> and improving customer retention by 15%.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Experience */}
-                <div>
-                  <h4 className="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-2">Experience</h4>
-                  <div className="mb-3">
-                    <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-baseline mb-1 min-w-0">
-                      <h5 className="text-[10px] font-semibold text-slate-900 min-w-0 break-words pr-0 sm:pr-2">
-                        Senior Product Manager, TechFlow
-                      </h5>
-                      <span className="text-[9px] text-slate-500 shrink-0">2021 - Present</span>
-                    </div>
-                    <ul className="list-disc pl-4 space-y-1.5 text-[10px] text-slate-700">
-                      <li>Spearheaded the development of the AI analytics dashboard, achieving a 40% adoption rate in Q1.</li>
-                      <li>
-                        Conducted 50+ user interviews to identify core friction points, <span className="border-b border-primary/40 border-dashed text-primary font-medium">reducing onboarding time by 30%</span>.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-              </div>
-            </div>
           </div>
-        </motion.div>
-      </section>
+        </section>
 
-      {/* Features */}
-      <section className="py-20 bg-muted/30 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="text-center mb-12"
-          >
-            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">
-              Everything you need to land the job
-            </motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Powerful features that make building a standout resume fast, easy, and effective.
-            </motion.p>
-          </motion.div>
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {features.map((f) => (
-              <motion.div key={f.title} variants={fadeUp} className="group rounded-xl border border-border bg-background p-5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <f.icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold text-sm mb-1.5">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Works everywhere */}
-      <section className="py-20 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
-          <div className="grid lg:grid-cols-2 gap-10 items-start">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                <Monitor className="h-3.5 w-3.5" />
-                Built for every screen
-              </div>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight">Edit on any device. Export anywhere.</h2>
-              <p className="mt-3 text-muted-foreground leading-relaxed max-w-xl">
-                ResumeSensei is responsive by default — optimized layouts for mobile, tablets, and desktops.
-                Your content stays readable, your preview stays accurate, and exports stay consistent.
-              </p>
-
-              <div className="mt-6 grid sm:grid-cols-3 gap-3">
-                {[
-                  { icon: Smartphone, title: "Mobile", desc: "Bottom tabs, pinch-to-zoom preview" },
-                  { icon: Tablet, title: "Tablet", desc: "Comfortable split panes and scrolling" },
-                  { icon: Monitor, title: "Desktop", desc: "Full editor + live A4 preview" },
-                ].map((x) => (
-                  <div key={x.title} className="rounded-xl border border-border bg-background p-4">
-                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                      <x.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <p className="font-semibold text-sm">{x.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{x.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-gradient-to-b from-muted/30 to-background p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Zap className="h-4 w-4 text-primary" />
-                <p className="text-sm font-semibold">What you get</p>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {[
-                  "Real-time live preview",
-                  "Word-safe wrapping and clean typography",
-                  "Undo/redo rich text editing",
-                  "ATS score tracking",
-                  "PDF and DOC export",
-                  "12 modern templates",
-                ].map((t) => (
-                  <div key={t} className="flex items-start gap-2 rounded-xl border border-border bg-background p-4">
-                    <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <p className="text-sm">{t}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <Button asChild className="gap-2">
-                  <Link href="/sign-up">
-                    Start free <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/pricing">See pricing</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Templates */}
-      <section className="py-20 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-10">
-            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">12 professional templates</motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-muted-foreground">Every template is ATS-tested and recruiter-approved.</motion.p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="flex flex-wrap justify-center gap-2">
-            {templates.map((t) => (
-              <motion.span key={t} variants={fadeUp} className="px-4 py-2 rounded-full border border-border bg-background text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                {t}
-              </motion.span>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 bg-muted/30 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-6xl px-4 sm:px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-12">
-            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">Trusted by professionals</motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-muted-foreground max-w-xl mx-auto">
-              Fast to use, clean exports, and built to work on every screen.
-            </motion.p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <motion.div key={t.name} variants={fadeUp} className="rounded-xl border border-border bg-background p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4 break-words">"{t.quote}"</p>
-                <div>
-                  <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* FAQs */}
-      <section className="py-20 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-5xl px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-              <HelpCircle className="h-3.5 w-3.5" />
-              FAQs
-            </div>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight">Questions, answered</h2>
-            <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to know before you start.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {faqs.map((f) => (
-              <details key={f.q} className="group rounded-2xl border border-border bg-background px-4 py-4 sm:px-5 min-w-0">
-                <summary className="list-none cursor-pointer flex items-start justify-between gap-3 sm:gap-4 min-w-0">
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <div className="mt-0.5 h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <HelpCircle className="h-4 w-4 text-primary" />
-                    </div>
-                    <p className="font-semibold text-sm text-left break-words">{f.q}</p>
-                  </div>
-                  <span className="text-muted-foreground text-sm shrink-0 group-open:rotate-180 transition-transform">⌄</span>
-                </summary>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed pl-0 sm:pl-10 break-words">{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-20 overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-4xl px-4 sm:px-6">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-12">
-            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight">Simple, transparent pricing</motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-muted-foreground">Start free, upgrade when you're ready.</motion.p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="grid sm:grid-cols-2 gap-6">
-            {plans.map((plan) => (
-              <motion.div
-                key={plan.name}
-                variants={fadeUp}
-                className={`rounded-2xl border p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ${plan.highlighted ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background"}`}
+        {/* Product strip */}
+        <section className="border-y border-border/70 bg-muted/15 py-12 sm:py-14" aria-labelledby="product-strip-heading">
+          <h2 id="product-strip-heading" className="sr-only">
+            Product highlights
+          </h2>
+          <div className="mx-auto grid max-w-5xl gap-3 px-4 sm:grid-cols-3 sm:px-6">
+            {[
+              { label: "Editor", sub: "Sections, rich text, undo-friendly" },
+              { label: "Preview", sub: "A4 layout you can trust" },
+              { label: "Export", sub: "PDF & DOCX on Pro" },
+            ].map((cell) => (
+              <div
+                key={cell.label}
+                className="rounded-2xl border border-border/80 bg-background/80 px-5 py-6 text-center shadow-sm backdrop-blur-sm"
               >
-                {plan.highlighted && (
-                  <span className="inline-block text-xs font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full mb-3">Most popular</span>
-                )}
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{plan.price}</span>
-                  {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{cell.label}</p>
+                <p className="mt-2 text-sm font-medium text-foreground">{cell.sub}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Capabilities */}
+        <section className="py-16 sm:py-20" aria-labelledby="features-heading">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="max-w-2xl">
+              <h2 id="features-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Everything you need, nothing you don&apos;t
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                A single workspace for drafting, scoring, and exporting — tuned for serious job seekers.
+              </p>
+            </div>
+            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {capabilities.map((item) => (
+                <li
+                  key={item.title}
+                  className="flex flex-col rounded-2xl border border-border/80 bg-card p-5 shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-colors hover:border-border"
+                >
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" aria-hidden />
+                  </div>
+                  <h3 className="text-sm font-semibold tracking-tight">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* Pillars */}
+        <section className="border-t border-border/60 bg-muted/20 py-16 sm:py-20" aria-labelledby="pillars-heading">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <h2 id="pillars-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Built for real applications
+            </h2>
+            <div className="mt-10 grid gap-6 md:grid-cols-3">
+              {pillars.map((p) => (
+                <div key={p.title} className="rounded-2xl border border-border/60 bg-background p-6">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/40">
+                    <p.icon className="h-5 w-5 text-primary" aria-hidden />
+                  </div>
+                  <h3 className="text-sm font-semibold">{p.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
-                <ul className="mt-5 space-y-2.5">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary shrink-0" />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Templates */}
+        <section className="py-16 sm:py-20" aria-labelledby="templates-heading">
+          <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-8 px-4 sm:flex-row sm:items-center sm:px-6">
+            <div className="max-w-xl">
+              <h2 id="templates-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Twelve templates
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Browse previews, pick a layout, and duplicate into your dashboard. Pro unlocks every template; Free
+                includes three.
+              </p>
+            </div>
+            <Button variant="outline" size="lg" className="h-12 shrink-0 rounded-xl px-6" asChild>
+              <Link href="/templates" className="gap-2">
+                View templates
+                <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-t border-border/60 py-16 sm:py-20" aria-labelledby="faq-heading">
+          <div className="mx-auto max-w-2xl px-4 sm:px-6">
+            <h2 id="faq-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Common questions
+            </h2>
+            <Accordion type="single" collapsible className="mt-8 w-full rounded-2xl border border-border/80 px-1 sm:px-2">
+              {faqs.map((item) => (
+                <AccordionItem key={item.q} value={item.q} className="border-border px-3 sm:px-4">
+                  <AccordionTrigger className="text-left text-sm font-medium hover:no-underline py-5">
+                    {item.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section className="border-t border-border/60 bg-muted/15 py-16 sm:py-20" aria-labelledby="pricing-heading">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <div className="text-center">
+              <h2 id="pricing-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Simple pricing
+              </h2>
+              <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
+                Start free. Move to Pro when you want unlimited resumes, every template, and full AI.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2">
+              <div className="flex flex-col rounded-2xl border border-border bg-background p-6 sm:p-8">
+                <h3 className="text-lg font-semibold">Free</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Try the full workflow</p>
+                <p className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-black tracking-tight">₹0</span>
+                  <span className="text-sm text-muted-foreground">/ forever</span>
+                </p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  {FREE_PLAN_FEATURES.map((f) => (
+                    <li key={f} className="flex gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                       <span>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <Button className="mt-6 w-full" variant={plan.highlighted ? "default" : "outline"} asChild>
-                  <Link href="/sign-up">{plan.cta}</Link>
+                <Button className="mt-8 w-full rounded-xl" variant="outline" asChild>
+                  <Link href="/sign-up">Create free account</Link>
                 </Button>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              </div>
+              <div className="relative flex flex-col rounded-2xl border-2 border-primary bg-primary/[0.04] p-6 sm:p-8">
+                <span className="absolute left-6 top-0 inline-block -translate-y-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
+                  Pro
+                </span>
+                <h3 className="text-lg font-semibold pt-2">Everything unlocked</h3>
+                <p className="mt-1 text-sm text-muted-foreground">For active job searches</p>
+                <p className="mt-6 text-sm text-muted-foreground">From</p>
+                <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span className="text-4xl font-black tracking-tight">₹99</span>
+                  <span className="text-sm text-muted-foreground">/ month</span>
+                  <span className="w-full text-xs text-muted-foreground sm:inline sm:w-auto sm:pl-2">or ₹999 / year</span>
+                </p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  {PRO_PLAN_FEATURES.map((f) => (
+                    <li key={f} className="flex gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button className="mt-8 w-full rounded-xl" asChild>
+                  <Link href="/pricing">View pricing & upgrade</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-primary overflow-x-clip">
-        <div className="mx-auto w-full min-w-0 max-w-2xl px-4 text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight text-white">
-              Ready to land your next role?
-            </motion.h2>
-            <motion.p variants={fadeUp} className="mt-3 text-primary-foreground/80">
-              Join thousands of professionals already using ResumeSensei to get hired faster.
-            </motion.p>
-            <motion.div variants={fadeUp} className="mt-8">
-              <Button size="lg" variant="secondary" asChild className="gap-2">
-                <Link href="/sign-up">
-                  Create your free resume
-                  <ArrowRight className="h-4 w-4" />
+        {/* Closing */}
+        <section className="border-t border-border/60 bg-zinc-950 py-16 text-zinc-50 sm:py-20" aria-labelledby="cta-heading">
+          <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
+            <h2 id="cta-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+              Ready when you are
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
+              Create an account in seconds. Build your first resume on the free plan, then upgrade if you need more.
+            </p>
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:justify-center">
+              <Button size="lg" className="h-12 rounded-xl bg-white text-zinc-950 hover:bg-zinc-100" asChild>
+                <Link href="/sign-up" className="gap-2">
+                  Get started
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </Button>
-            </motion.div>
-            <motion.div variants={fadeUp} className="mt-6">
-              <Button size="lg" variant="secondary" asChild className="gap-2 bg-white/10 text-white border border-white/20 hover:bg-white/15">
-                <Link href="/contact">
-                  Contact us
-                  <Mail className="h-4 w-4" />
-                </Link>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 rounded-xl border-zinc-600 bg-transparent text-zinc-50 hover:bg-zinc-900 hover:text-zinc-50"
+                asChild
+              >
+                <Link href="/pricing">Compare plans</Link>
               </Button>
-              <p className="mt-3 text-xs text-white/70 break-words px-1">
-                Prefer email? Reach us at{" "}
-                <a className="underline underline-offset-4 hover:text-white break-all sm:break-normal" href="mailto:support@resumesensei.com">
-                  support@resumesensei.com
-                </a>
-                .
-              </p>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+            </div>
+            <p className="mt-8 text-xs text-zinc-500">
+              <Link href="/contact" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+                Contact
+              </Link>
+              <span className="mx-2 text-zinc-600">·</span>
+              <Link href="/privacy" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+                Privacy
+              </Link>
+              <span className="mx-2 text-zinc-600">·</span>
+              <Link href="/terms" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+                Terms
+              </Link>
+            </p>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
