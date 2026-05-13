@@ -64,46 +64,16 @@ export function overlayUserOntoSample(sample: unknown, user: unknown): unknown {
   return user;
 }
 
-/** Minimal empty section content for “blank preview” (does not change saved data). */
-export function blankContentForSectionType(type: string): Record<string, unknown> {
-  switch (type) {
-    case "personal":
-      return {
-        name: "",
-        jobTitle: "",
-        title: "",
-        email: "",
-        phone: "",
-        location: "",
-        photo: "",
-        socials: [],
-      };
-    case "summary":
-      return { text: "" };
-    case "experience":
-      return { items: [] };
-    case "education":
-      return { items: [] };
-    case "skills":
-      return { style: "bars", items: [] };
-    case "projects":
-      return { items: [] };
-    case "certifications":
-      return { items: [] };
-    default:
-      return {};
-  }
-}
-
 export function buildPreviewSections(
   localSections: SectionRow[],
   sampleResume: ResumeDetail,
   previewAutoFill: boolean,
 ): SectionRow[] {
+  // Off: preview is exactly what you have in the editor (no sample merge). Updates live with edits.
   if (!previewAutoFill) {
     return localSections.map((s) => ({
       ...s,
-      content: blankContentForSectionType(s.type),
+      content: deepClone(s.content as Record<string, unknown>),
     }));
   }
 

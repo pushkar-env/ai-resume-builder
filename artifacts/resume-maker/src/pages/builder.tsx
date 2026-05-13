@@ -754,13 +754,15 @@ export default function BuilderPage() {
     [resume, resumeId, localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId],
   );
 
-  const previewResume: ResumeDetail = useMemo(
-    () => ({
+  const previewResume: ResumeDetail = useMemo(() => {
+    if (!previewAutoFill) {
+      return exportResume;
+    }
+    return {
       ...exportResume,
-      sections: buildPreviewSections(localSections, SAMPLE_RESUME, previewAutoFill),
-    }),
-    [exportResume, localSections, previewAutoFill],
-  );
+      sections: buildPreviewSections(localSections, SAMPLE_RESUME, true),
+    };
+  }, [exportResume, localSections, previewAutoFill]);
 
   if (isLoading) {
     return (
@@ -1041,14 +1043,14 @@ export default function BuilderPage() {
                     htmlFor="preview-autofill"
                     className="min-w-0 flex-1 cursor-pointer text-center text-[11px] font-medium leading-snug sm:flex-initial sm:text-left sm:text-xs"
                   >
-                    <span className="sm:hidden">Sample fill in preview</span>
-                    <span className="hidden sm:inline">Sample content in preview</span>
+                    <span className="sm:hidden">Sample fill (empty fields)</span>
+                    <span className="hidden sm:inline">Sample fill for empty fields</span>
                   </Label>
                   <Switch
                     id="preview-autofill"
                     checked={previewAutoFill}
                     onCheckedChange={setPreviewAutoFill}
-                    aria-label="Show sample content in live preview when your fields are empty"
+                    aria-label="When on, empty fields in the preview use sample text. When off, the preview shows only your current content."
                   />
                 </div>
               </div>
