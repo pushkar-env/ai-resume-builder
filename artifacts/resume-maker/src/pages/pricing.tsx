@@ -98,7 +98,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
         title="Pricing | ResumeSensei Pro"
-        description="Simple, transparent pricing. Upgrade to ResumeSensei Pro for unlimited AI writing, premium templates, and ATS scoring."
+        description="Simple pricing in INR. Free includes PDF, DOCX & JSON export. Pro adds unlimited resumes, all templates, full AI, and ATS score tracking."
         canonicalUrl="https://resumesensei.com/pricing"
       />
       <Navbar />

@@ -35,7 +35,7 @@ const faqs = [
   },
   {
     q: "Do I need a card to try it?",
-    a: "No. Create a free account to build one resume with core AI suggestions and PDF export. Upgrade to Pro when you want unlimited resumes and full AI.",
+    a: "No. Create a free account to build one resume with core AI suggestions and PDF, DOCX, and JSON export. Upgrade to Pro when you want unlimited resumes and full AI.",
   },
   {
     q: "How does Pro pricing work?",
@@ -62,7 +62,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
     name: "ResumeSensei",
     url: SITE_URL,
     description:
-      "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF or DOCX export.",
+      "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF, DOCX, and JSON export.",
     publisher: { "@id": `${SITE_URL}/#organization` },
     inLanguage: "en-US",
   },
@@ -73,7 +73,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
     operatingSystem: "Web",
     url: SITE_URL,
     description:
-      "Online resume builder with AI writing assistance, applicant tracking system (ATS) score tracking, twelve templates, and high-fidelity PDF and DOCX export.",
+      "Online resume builder with AI writing assistance, applicant tracking system (ATS) score tracking on Pro, twelve templates, and PDF, DOCX, and JSON export on every plan.",
     offers: {
       "@type": "Offer",
       price: "99",
@@ -85,9 +85,9 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
       "AI-assisted summaries and bullet points",
       "Twelve professional resume templates",
       "Live A4 preview aligned with export",
-      "ATS score tracking on the dashboard",
-      "PDF and DOCX export (Pro includes JSON export)",
-      "Unlimited resumes on Pro",
+      "ATS score tracking on Pro (dashboard)",
+      "PDF, DOCX, and JSON export on Free and Pro",
+      "Unlimited resumes and full AI on Pro",
     ],
   },
   {
@@ -122,12 +122,12 @@ const capabilities = [
   {
     icon: Gauge,
     title: "ATS score tracking",
-    description: "See how your resume reads to automated screeners before you apply.",
+    description: "Pro shows how your resume reads to automated screeners so you can iterate before you apply.",
   },
   {
     icon: Download,
-    title: "PDF & DOCX export",
-    description: "Pro includes PDF, DOCX, and JSON export; Free includes PDF.",
+    title: "PDF, DOCX & JSON export",
+    description: "All three download formats are included on Free and Pro — your preview is the source of truth.",
   },
   {
     icon: Zap,
@@ -145,7 +145,7 @@ const pillars = [
   {
     icon: Shield,
     title: "ATS-aware design",
-    body: "Templates avoid noisy layouts that confuse parsers; combine with the in-app ATS score for confidence.",
+    body: "Templates avoid noisy layouts that confuse parsers; Pro adds an ATS score in your dashboard for extra confidence.",
   },
   {
     icon: Monitor,
@@ -164,7 +164,7 @@ export default function LandingPage() {
     <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background text-foreground">
       <SEO
         title="ResumeSensei | AI Resume Builder & ATS Resume Checker"
-        description="Build an ATS-friendly resume with AI writing help, 12 templates, a live A4 preview, and PDF or DOCX export. Free plan available; Pro from ₹99/month or ₹999/year."
+        description="Build an ATS-friendly resume with AI writing help, 12 templates, a live A4 preview, and PDF, DOCX, and JSON export on the free plan. Pro from ₹99/month or ₹999/year for unlimited resumes and full AI."
         canonicalUrl={`${SITE_URL}/`}
         keywords={SEO_KEYWORDS}
         jsonLd={LANDING_JSON_LD}
@@ -234,7 +234,7 @@ export default function LandingPage() {
               transition={{ delay: 0.2 }}
               className="mt-4 text-xs text-muted-foreground"
             >
-              No credit card to start · Free plan includes PDF export
+              No credit card to start · Free plan includes PDF, DOCX & JSON export
             </motion.p>
           </div>
         </section>
@@ -248,7 +248,7 @@ export default function LandingPage() {
             {[
               { label: "Editor", sub: "Sections, rich text, undo-friendly" },
               { label: "Preview", sub: "A4 layout you can trust" },
-              { label: "Export", sub: "PDF & DOCX on Pro" },
+              { label: "Export", sub: "PDF, DOCX & JSON — every plan" },
             ].map((cell) => (
               <div
                 key={cell.label}
