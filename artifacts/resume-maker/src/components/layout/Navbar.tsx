@@ -1,6 +1,6 @@
 import { useUser, useClerk } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText } from "lucide-react";
+import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ export function Navbar() {
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/templates", label: "Templates", icon: LayoutTemplate },
+    { href: "/billing", label: "Billing", icon: CreditCard },
     { href: "/contact", label: "Contact Us", icon: Mail },
   ];
 
@@ -194,6 +195,12 @@ export function Navbar() {
                     <Link href="/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/billing" className="cursor-pointer">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Billing
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

@@ -12,6 +12,7 @@ import LandingPage from "@/pages/landing";
 import DashboardPage from "@/pages/dashboard";
 import BuilderPage from "@/pages/builder";
 import TemplatesPage from "@/pages/templates";
+import BillingPage from "@/pages/billing";
 import SettingsPage from "@/pages/settings";
 import ContactPage from "@/pages/contact";
 import PricingPage from "@/pages/pricing";
@@ -186,6 +187,7 @@ function AppRouter() {
       <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardPage} />} />
       <Route path="/builder/:id" component={() => <ProtectedRoute component={BuilderPage} />} />
       <Route path="/templates" component={() => <ProtectedRoute component={TemplatesPage} />} />
+      <Route path="/billing" component={() => <ProtectedRoute component={BillingPage} />} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
@@ -270,6 +272,7 @@ function App() {
           <Route path="/dashboard" component={() => <Redirect to="/" />} />
           <Route path="/builder/:id" component={() => <Redirect to="/" />} />
           <Route path="/templates" component={() => <Redirect to="/" />} />
+          <Route path="/billing" component={() => <Redirect to="/" />} />
           <Route path="/settings/*?" component={() => <Redirect to="/" />} />
           <Route component={NotFound} />
         </Switch>
