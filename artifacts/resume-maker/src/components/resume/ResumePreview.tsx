@@ -1728,7 +1728,11 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
   const props = { sections: resume.sections, color, font };
 
   return (
-    <div className="a4-page overflow-hidden relative" style={{ fontFamily: font, backgroundColor: bColor }}>
+    <div
+      className="a4-page overflow-hidden relative"
+      style={{ fontFamily: font, backgroundColor: bColor }}
+      data-font-color={fColor}
+    >
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -1758,26 +1762,39 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
               hyphens: none;
             }
 
-            .a4-page .text-gray-950, .a4-page .text-gray-900,
-            .a4-page .text-gray-800, .a4-page .text-gray-700,
-            .a4-page .text-black, .a4-page .text-slate-800,
-            .a4-page .text-slate-900 { color: ${fColor}; }
+            .a4-page[data-font-color="${fColor}"] .text-gray-950,
+            .a4-page[data-font-color="${fColor}"] .text-gray-900,
+            .a4-page[data-font-color="${fColor}"] .text-gray-800,
+            .a4-page[data-font-color="${fColor}"] .text-gray-700,
+            .a4-page[data-font-color="${fColor}"] .text-black,
+            .a4-page[data-font-color="${fColor}"] .text-slate-800,
+            .a4-page[data-font-color="${fColor}"] .text-slate-900 { color: ${fColor}; }
 
-            .a4-page .text-gray-600, .a4-page .text-gray-500,
-            .a4-page .text-gray-400, .a4-page .text-slate-600,
-            .a4-page .text-slate-500, .a4-page .text-slate-400 { color: ${alpha(fColor, 0.75)}; }
+            .a4-page[data-font-color="${fColor}"] .text-gray-600,
+            .a4-page[data-font-color="${fColor}"] .text-gray-500,
+            .a4-page[data-font-color="${fColor}"] .text-gray-400,
+            .a4-page[data-font-color="${fColor}"] .text-slate-600,
+            .a4-page[data-font-color="${fColor}"] .text-slate-500,
+            .a4-page[data-font-color="${fColor}"] .text-slate-400 { color: ${alpha(fColor, 0.75)}; }
 
-            .a4-page .bg-gray-100, .a4-page .bg-gray-200, 
-            .a4-page .bg-gray-300, .a4-page .bg-gray-50, 
-            .a4-page .bg-slate-100, .a4-page .bg-slate-200,
-            .a4-page .bg-muted { background-color: ${alpha(fColor, 0.15)}; }
+            .a4-page[data-font-color="${fColor}"] .bg-gray-100,
+            .a4-page[data-font-color="${fColor}"] .bg-gray-200, 
+            .a4-page[data-font-color="${fColor}"] .bg-gray-300,
+            .a4-page[data-font-color="${fColor}"] .bg-gray-50, 
+            .a4-page[data-font-color="${fColor}"] .bg-slate-100,
+            .a4-page[data-font-color="${fColor}"] .bg-slate-200,
+            .a4-page[data-font-color="${fColor}"] .bg-muted { background-color: ${alpha(fColor, 0.15)}; }
 
-            .a4-page .border-gray-100, .a4-page .border-gray-200,
-            .a4-page .border-gray-300, .a4-page .border-slate-200,
-            .a4-page .border-slate-300, .a4-page .border-border { border-color: ${alpha(fColor, 0.25)}; }
+            .a4-page[data-font-color="${fColor}"] .border-gray-100,
+            .a4-page[data-font-color="${fColor}"] .border-gray-200,
+            .a4-page[data-font-color="${fColor}"] .border-gray-300,
+            .a4-page[data-font-color="${fColor}"] .border-slate-200,
+            .a4-page[data-font-color="${fColor}"] .border-slate-300,
+            .a4-page[data-font-color="${fColor}"] .border-border { border-color: ${alpha(fColor, 0.25)}; }
 
-            .a4-page svg circle[stroke="#e5e7eb"], .a4-page svg circle[stroke="rgba(255,255,255,0.18)"] { stroke: ${alpha(fColor, 0.15)}; }
-            .a4-page svg text { fill: ${fColor}; }
+            .a4-page[data-font-color="${fColor}"] svg circle[stroke="#e5e7eb"],
+            .a4-page[data-font-color="${fColor}"] svg circle[stroke="rgba(255,255,255,0.18)"] { stroke: ${alpha(fColor, 0.15)}; }
+            .a4-page[data-font-color="${fColor}"] svg text { fill: ${fColor}; }
           `
         }} />
       )}
