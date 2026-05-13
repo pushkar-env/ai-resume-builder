@@ -76,11 +76,58 @@ function ensureProto(u: string): string {
   if (!u) return u;
   return /^https?:\/\//i.test(u) ? u : `https://${u}`;
 }
+function normalizeEmailHref(v: unknown): string | null {
+  const email = str(v).trim();
+  if (!email) return null;
+  return `mailto:${email}`;
+}
+function normalizeTelHref(v: unknown): string | null {
+  const phone = str(v).trim();
+  if (!phone) return null;
+  // Keep leading +, strip all other non-digit characters for robust tel links.
+  const normalized = phone
+    .replace(/(?!^\+)[^\d]/g, "")
+    .replace(/^\+{2,}/, "+");
+  const hasDigits = /\d/.test(normalized);
+  if (!hasDigits) return null;
+  return `tel:${normalized}`;
+}
 function contactValues(p: SC, color?: string): React.ReactNode[] {
   const out: React.ReactNode[] = [];
-  for (const v of [p.email, p.phone, p.location]) {
-    if (v && String(v).trim().length > 0) out.push(str(v));
+  const emailText = str(p.email).trim();
+  if (emailText) {
+    const emailHref = normalizeEmailHref(emailText);
+    out.push(
+      emailHref ? (
+        <a
+          key="contact-email"
+          href={emailHref}
+          className="underline underline-offset-2"
+          style={color ? { color } : undefined}
+        >
+          {emailText}
+        </a>
+      ) : emailText,
+    );
   }
+  const phoneText = str(p.phone).trim();
+  if (phoneText) {
+    const phoneHref = normalizeTelHref(phoneText);
+    out.push(
+      phoneHref ? (
+        <a
+          key="contact-phone"
+          href={phoneHref}
+          className="underline underline-offset-2"
+          style={color ? { color } : undefined}
+        >
+          {phoneText}
+        </a>
+      ) : phoneText,
+    );
+  }
+  const locationText = str(p.location).trim();
+  if (locationText) out.push(locationText);
   socialsList(p).forEach((s, i) => {
     out.push(
       s.url ? (
