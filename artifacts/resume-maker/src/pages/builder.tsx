@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,10 +19,12 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize } from "lucide-react";
+import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -59,6 +61,8 @@ import {
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { SAMPLE_RESUME } from "@/lib/sample-resume";
+import { buildPreviewSections } from "@/lib/preview-fill";
 
 const ACCENT_COLORS = [
   { label: "Violet", value: "#7c3aed" },
@@ -349,6 +353,14 @@ function ExportDialog({
   );
 }
 
+/** Persisted per-resume: when true, preview merges sample content into empty fields; when false, preview shows blank shells (saved data unchanged). */
+function readStoredPreviewAutoFill(resumeKey: string | undefined): boolean {
+  if (typeof window === "undefined" || !resumeKey) return true;
+  const v = window.localStorage.getItem(`resumePreviewAutoFill:${resumeKey}`);
+  if (v === "false") return false;
+  return true;
+}
+
 /* ─── BuilderPage ─── */
 
 export default function BuilderPage() {
@@ -378,6 +390,7 @@ export default function BuilderPage() {
   const [paywallDescription, setPaywallDescription] = useState("This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization.");
   const [exportOpen, setExportOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">("sections");
+  const [previewAutoFill, setPreviewAutoFill] = useState(() => readStoredPreviewAutoFill(id));
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -395,6 +408,15 @@ export default function BuilderPage() {
   useEffect(() => {
     setPreviewScale(initialPreviewZoomForViewport());
   }, [resumeId]);
+
+  useEffect(() => {
+    setPreviewAutoFill(readStoredPreviewAutoFill(id));
+  }, [id]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !id) return;
+    window.localStorage.setItem(`resumePreviewAutoFill:${id}`, String(previewAutoFill));
+  }, [previewAutoFill, id]);
 
   useEffect(() => {
     if (!contentRef.current) return;
@@ -708,9 +730,37 @@ export default function BuilderPage() {
 
   const activeSection = localSections.find((s) => s.id === activeSectionId);
 
-  const previewResume: ResumeDetail = resume
-    ? { ...resume, sections: localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId }
-    : { id: resumeId, title: "", userId: "", templateId, accentColor, fontFamily, fontColor, backgroundColor, isPublic: false, shareToken: null, viewCount: 0, downloadCount: 0, createdAt: "", updatedAt: "", sections: localSections };
+  const exportResume: ResumeDetail = useMemo(
+    () =>
+      resume
+        ? { ...resume, sections: localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId }
+        : {
+            id: resumeId,
+            title: "",
+            userId: "",
+            templateId,
+            accentColor,
+            fontFamily,
+            fontColor,
+            backgroundColor,
+            isPublic: false,
+            shareToken: null,
+            viewCount: 0,
+            downloadCount: 0,
+            createdAt: "",
+            updatedAt: "",
+            sections: localSections,
+          },
+    [resume, resumeId, localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId],
+  );
+
+  const previewResume: ResumeDetail = useMemo(
+    () => ({
+      ...exportResume,
+      sections: buildPreviewSections(localSections, SAMPLE_RESUME, previewAutoFill),
+    }),
+    [exportResume, localSections, previewAutoFill],
+  );
 
   if (isLoading) {
     return (
@@ -980,11 +1030,31 @@ export default function BuilderPage() {
         >
           {/* min-w-max + w-max lets content exceed viewport width so horizontal scroll works on touch (touch-pan-y alone blocked sideways panning). */}
           <div className="min-w-max w-max max-w-none flex flex-col items-center pb-20 relative px-4 mx-auto">
-            <div className="mb-4 flex flex-col items-center justify-center gap-3">
-              <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">Live Preview — A4</span>
-              
+            <div className="mb-4 flex w-full max-w-full flex-col items-stretch justify-center gap-3 sm:items-center">
+              <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
+                <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                  Live Preview — A4
+                </span>
+                <div className="flex w-full min-w-0 max-w-md items-center justify-center gap-2 rounded-xl border border-border bg-background/90 px-3 py-2 shadow-sm sm:w-auto sm:max-w-none sm:rounded-full sm:py-1.5">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                  <Label
+                    htmlFor="preview-autofill"
+                    className="min-w-0 flex-1 cursor-pointer text-center text-[11px] font-medium leading-snug sm:flex-initial sm:text-left sm:text-xs"
+                  >
+                    <span className="sm:hidden">Sample fill in preview</span>
+                    <span className="hidden sm:inline">Sample content in preview</span>
+                  </Label>
+                  <Switch
+                    id="preview-autofill"
+                    checked={previewAutoFill}
+                    onCheckedChange={setPreviewAutoFill}
+                    aria-label="Show sample content in live preview when your fields are empty"
+                  />
+                </div>
+              </div>
+
               {/* Zoom Controls */}
-              <div className="sticky top-4 z-10 flex items-center gap-1 bg-background/80 backdrop-blur-md border border-border p-1 rounded-full shadow-sm">
+              <div className="sticky top-4 z-10 flex flex-wrap items-center justify-center gap-1 bg-background/80 backdrop-blur-md border border-border p-1 rounded-full shadow-sm">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1034,7 +1104,14 @@ export default function BuilderPage() {
                 }}
               >
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
-                  <ResumePreview key={templateId} resume={previewResume} accentColor={accentColor} fontScale={fontScale} fontColor={fontColor} backgroundColor={backgroundColor} />
+                  <ResumePreview
+                    key={`${templateId}-${previewAutoFill ? "fill" : "blank"}`}
+                    resume={previewResume}
+                    accentColor={accentColor}
+                    fontScale={fontScale}
+                    fontColor={fontColor}
+                    backgroundColor={backgroundColor}
+                  />
                 </div>
               </div>
             </div>
@@ -1067,7 +1144,7 @@ export default function BuilderPage() {
         </div>
       </div>
 
-      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} resume={previewResume} />
+      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} resume={exportResume} />
 
       <PaywallDialog 
         open={showPaywall} 
