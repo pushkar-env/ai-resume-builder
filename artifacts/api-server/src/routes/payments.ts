@@ -180,6 +180,135 @@ router.post("/payments/cancel-subscription", requireAuth, async (req: Request, r
   }
 });
 
+function razorpayErrDetail(error: unknown): string {
+  if (error && typeof error === "object" && "error" in error) {
+    const inner = (error as { error?: { description?: string; code?: string } }).error;
+    if (inner?.description) return inner.description;
+    if (inner?.code) return inner.code;
+  }
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+type RpSubscription = {
+  status?: string;
+  notes?: { userId?: string };
+  has_scheduled_changes?: boolean;
+};
+
+/**
+ * Resume auto-renewal after cancel-at-cycle-end: clears Razorpay scheduled cancellation, then sets Clerk `subscriptionStatus` to active.
+ */
+router.post("/payments/resume-subscription", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).userId as string;
+    const existing = await clerkClient.users.getUser(userId);
+    const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+    const subscriptionId = meta.subscriptionId as string | undefined;
+    const subscriptionStatus = meta.subscriptionStatus as string | undefined;
+
+    if (!subscriptionId) {
+      res.status(400).json({ error: "No subscription is linked to this account." });
+      return;
+    }
+
+    if (meta.isPremium !== true) {
+      res
+        .status(400)
+        .json({ error: "Resume is only available while you still have Pro access for the current billing period." });
+      return;
+    }
+
+    if (subscriptionStatus !== "cancelled") {
+      res.status(400).json({ error: "Your subscription is already set to renew." });
+      return;
+    }
+
+    if (subscriptionId === "sub_dev_mock") {
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: {
+          ...meta,
+          subscriptionStatus: "active",
+        },
+      });
+      res.json({ success: true, providerStatus: "active" });
+      return;
+    }
+
+    let sub: RpSubscription;
+    try {
+      sub = (await razorpay.subscriptions.fetch(subscriptionId)) as RpSubscription;
+    } catch (e) {
+      console.error("[payments] resume-subscription: fetch failed", e);
+      res.status(502).json({ error: "Could not verify your subscription with the payment provider." });
+      return;
+    }
+
+    const noteUserId = sub.notes?.userId;
+    if (noteUserId && noteUserId !== userId) {
+      res.status(403).json({ error: "Subscription does not belong to this account." });
+      return;
+    }
+
+    const subs = razorpay.subscriptions as typeof razorpay.subscriptions & {
+      cancelScheduledChanges?: (id: string) => Promise<RpSubscription>;
+      resume?: (id: string, params: { resume_at: string }) => Promise<RpSubscription>;
+    };
+
+    const syncClerkActive = async (providerStatus?: string) => {
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: {
+          ...meta,
+          subscriptionStatus: "active",
+        },
+      });
+      res.json({ success: true, providerStatus: providerStatus ?? "active" });
+    };
+
+    const refetchAndMaybeSync = async (): Promise<boolean> => {
+      try {
+        const again = (await razorpay.subscriptions.fetch(subscriptionId)) as RpSubscription;
+        if (again.status === "active" && again.has_scheduled_changes !== true) {
+          await syncClerkActive(again.status);
+          return true;
+        }
+      } catch {
+        /* ignore */
+      }
+      return false;
+    };
+
+    try {
+      if (sub.status === "paused" && subs.resume) {
+        const updated = await subs.resume(subscriptionId, { resume_at: "now" });
+        await syncClerkActive(updated.status);
+        return;
+      }
+
+      if (subs.cancelScheduledChanges) {
+        const updated = await subs.cancelScheduledChanges(subscriptionId);
+        await syncClerkActive(updated.status);
+        return;
+      }
+
+      res.status(500).json({ error: "Payment provider client is missing resume support." });
+      return;
+    } catch (e) {
+      console.error("[payments] resume-subscription: provider call failed", e);
+      if (await refetchAndMaybeSync()) {
+        return;
+      }
+      res.status(400).json({
+        error: "We could not re-enable auto-renewal automatically.",
+        detail: razorpayErrDetail(e),
+      });
+    }
+  } catch (error) {
+    console.error("Error resuming subscription:", error);
+    res.status(500).json({ error: "Failed to resume subscription" });
+  }
+});
+
 /**
  * 2. Webhook endpoint
  * Called by Razorpay directly when a payment succeeds.

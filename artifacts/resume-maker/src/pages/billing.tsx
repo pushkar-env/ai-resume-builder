@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { ResumeRenewalFlow } from "@/components/shared/ResumeRenewalFlow";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
@@ -220,18 +221,36 @@ export default function BillingPage() {
                     </p>
                   </div>
                 </div>
-                {!isCancelledRenewal && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleCancelSubscription}
-                    disabled={isCancelling}
-                    className="w-full sm:w-auto"
-                  >
-                    {isCancelling ? "Cancelling..." : "Cancel Subscription"}
-                  </Button>
-                )}
+                <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end sm:min-w-[min(100%,12rem)]">
+                  {isCancelledRenewal && subscriptionId ? (
+                    <ResumeRenewalFlow triggerSize="default" triggerClassName="sm:min-w-[12rem]" />
+                  ) : null}
+                  {!isCancelledRenewal && subscriptionId ? (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleCancelSubscription}
+                      disabled={isCancelling}
+                      className="w-full sm:w-auto"
+                    >
+                      {isCancelling ? "Cancelling..." : "Cancel Subscription"}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
+
+              {isCancelledRenewal && (
+                <div
+                  role="status"
+                  className="rounded-xl border border-amber-500/35 bg-amber-500/[0.06] dark:bg-amber-950/25 px-4 py-3 sm:px-5 sm:py-4 text-sm"
+                >
+                  <p className="font-semibold text-amber-950 dark:text-amber-100">Changed your mind?</p>
+                  <p className="text-muted-foreground mt-1 text-xs sm:text-sm leading-relaxed">
+                    You can turn auto-renewal back on any time before this period ends — your saved resumes and Pro
+                    features are not affected.
+                  </p>
+                </div>
+              )}
 
               {detailsLoading ? (
                 <div className="flex items-center text-sm text-muted-foreground">

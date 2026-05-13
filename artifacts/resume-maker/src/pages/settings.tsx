@@ -1,5 +1,6 @@
 import { UserProfile, useUser, useAuth } from "@clerk/react";
 import { Navbar } from "@/components/layout/Navbar";
+import { ResumeRenewalFlow } from "@/components/shared/ResumeRenewalFlow";
 import { Settings as SettingsIcon, CreditCard, CheckCircle2, AlertCircle, Calendar, RefreshCcw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +25,7 @@ function BillingSection() {
     current_start?: number;
     current_end?: number;
     clerkSubscriptionStatus?: string | null;
+    short_url?: string;
   };
 
   const { data: subscriptionDetails, isLoading: detailsLoading, isError: detailsError, refetch: refetchSubscription } = useQuery({
@@ -165,13 +167,19 @@ function BillingSection() {
               </div>
             </div>
             
-            <div className="flex flex-col items-start sm:items-end gap-3">
+            <div className="flex flex-col items-stretch sm:items-end gap-3 w-full sm:w-auto">
+              {subscriptionId && isCancelledRenewal && (
+                <div className="w-full sm:w-auto">
+                  <ResumeRenewalFlow triggerClassName="w-full sm:min-w-[11rem]" />
+                </div>
+              )}
               {subscriptionId && !isCancelledRenewal && (
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button 
                     variant="outline"
                     onClick={handleUpdatePayment}
                     size="sm"
+                    className="w-full sm:w-auto"
                   >
                     Update Payment
                   </Button>
@@ -180,6 +188,7 @@ function BillingSection() {
                     onClick={handleCancel}
                     disabled={isCancelling}
                     size="sm"
+                    className="w-full sm:w-auto"
                   >
                     {isCancelling ? "Cancelling..." : "Cancel Subscription"}
                   </Button>
