@@ -512,19 +512,25 @@ export default function BuilderPage() {
   const saveSeqRef = useRef(0);
   const latestSaveSeqRef = useRef(0);
 
-  // Only initialize local state the first time this resume loads (not on every save/re-fetch)
+  // Only initialize local state the first time this resume loads (not on every save/re-fetch).
+  // Preserve the user's currently selected section whenever it still exists.
   useEffect(() => {
     if (resume && resume.id !== initializedResumeIdRef.current) {
       initializedResumeIdRef.current = resume.id;
-      setLocalSections((resume.sections ?? []).map((s) => ({ ...s })));
+      const nextSections = (resume.sections ?? []).map((s) => ({ ...s }));
+      setLocalSections(nextSections);
       setAccentColor(resume.accentColor ?? "#7c3aed");
       setFontFamily(resume.fontFamily ?? "Inter, sans-serif");
       setFontColor(resume.fontColor ?? "#111827");
       setBackgroundColor(resume.backgroundColor ?? "#ffffff");
       setTemplateId(resume.templateId ?? "modern");
-      if ((resume.sections ?? []).length > 0) {
-        setActiveSectionId(resume.sections![0].id);
-      }
+      setActiveSectionId((prevActiveId) => {
+        if (nextSections.length === 0) return null;
+        if (prevActiveId != null && nextSections.some((s) => s.id === prevActiveId)) {
+          return prevActiveId;
+        }
+        return nextSections[0].id;
+      });
     }
   }, [resume]);
 
