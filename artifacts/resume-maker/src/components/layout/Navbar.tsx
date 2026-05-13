@@ -150,7 +150,7 @@ export function Navbar() {
                     </Link>
                   </Button>
                 )}
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
                     <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
@@ -326,7 +326,7 @@ export function BuilderNavbar({ title, atsScore, onExport, onRename }: { title: 
           Export
         </Button>
         {user && (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full">
                 <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
