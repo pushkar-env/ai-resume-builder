@@ -1,6 +1,6 @@
-import { useUser, useClerk } from "@clerk/react";
+import { useUser, useClerk, useAuth } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard, Lock } from "lucide-react";
+import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard, Lock, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -17,28 +17,39 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
+const appNavLinks = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/templates", label: "Templates", icon: LayoutTemplate },
+  { href: "/billing", label: "Billing", icon: CreditCard },
+  { href: "/contact", label: "Contact", icon: Mail },
+] as const;
+
+/** Routes that work without signing in — never show dashboard/templates/billing here when signed out. */
+const publicNavLinks = [
+  { href: "/pricing", label: "Pricing", icon: Tags },
+  { href: "/contact", label: "Contact", icon: Mail },
+] as const;
+
 export function Navbar() {
   const { user } = useUser();
+  const { isSignedIn, isLoaded } = useAuth();
   const { signOut } = useClerk();
   const [location] = useLocation();
 
-  const navLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/templates", label: "Templates", icon: LayoutTemplate },
-    { href: "/billing", label: "Billing", icon: CreditCard },
-    { href: "/contact", label: "Contact Us", icon: Mail },
-  ];
+  const showAppNav = isLoaded && isSignedIn;
+  const navLinks = showAppNav ? appNavLinks : publicNavLinks;
+  const brandHref = showAppNav ? "/dashboard" : "/";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-foreground">
+            <Link href={brandHref} className="flex items-center gap-2 font-semibold text-foreground">
               <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-10 w-10 object-contain shrink-0" />
               <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
               {navLinks.map(({ href, label }) => (
                 <Link
                   key={href}
@@ -66,10 +77,10 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                  <div className="flex items-center gap-2 font-semibold text-foreground mb-4 mt-2">
+                  <Link href={brandHref} className="flex items-center gap-2 font-semibold text-foreground mb-4 mt-2">
                     <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="ResumeSensei mascot" className="h-9 w-9 object-contain shrink-0" />
                     <span className="text-sm font-bold tracking-tight">ResumeSensei</span>
-                  </div>
+                  </Link>
                   {user?.publicMetadata?.isPremium ? (
                     <div className="mb-6 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-primary">
                       <Star className="mt-0.5 h-4 w-4 shrink-0 fill-primary text-primary" aria-hidden />
@@ -81,7 +92,7 @@ export function Navbar() {
                       </div>
                     </div>
                   ) : null}
-                  <nav className="flex flex-col gap-2">
+                  <nav className="flex flex-col gap-2" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
                     {navLinks.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
@@ -97,6 +108,16 @@ export function Navbar() {
                       </Link>
                     ))}
                   </nav>
+                  {!showAppNav && isLoaded ? (
+                    <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
+                      <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+                        <Link href="/sign-in">Sign in</Link>
+                      </Button>
+                      <Button size="sm" className="w-full justify-center" asChild>
+                        <Link href="/sign-up">Get started free</Link>
+                      </Button>
+                    </div>
+                  ) : null}
                   <div className="mt-6 border-t border-border pt-4">
                     <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Legal
@@ -129,6 +150,16 @@ export function Navbar() {
                 </SheetContent>
               </Sheet>
             </div>
+            {!showAppNav && isLoaded ? (
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="h-8" asChild>
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
+                <Button size="sm" className="h-8" asChild>
+                  <Link href="/sign-up">Get started</Link>
+                </Button>
+              </div>
+            ) : null}
             {user && (
               <>
                 {user.publicMetadata?.isPremium ? (
