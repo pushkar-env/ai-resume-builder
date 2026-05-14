@@ -181,9 +181,21 @@ function buildExportHtml(resumeTitle: string): string | null {
       min-height: 1123px !important;
       margin: 0 !important;
     }
+    .a4-page[data-watermarked] {
+      height: 1123px !important;
+      max-height: 1123px !important;
+      overflow: hidden !important;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .a4-page { width: 794px !important; }
+      .a4-page[data-watermarked] {
+        height: 1123px !important;
+        max-height: 1123px !important;
+        overflow: hidden !important;
+      }
     }
   </style>
 </head>

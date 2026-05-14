@@ -9,7 +9,7 @@ export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }
   return (
     <footer
       data-resume-watermark
-      className="shrink-0 w-full px-3 py-1.5 sm:px-6 sm:py-2 flex justify-center items-center"
+      className="shrink-0 w-full px-3 py-1 sm:px-6 sm:py-1.5 flex justify-center items-center"
       aria-label="Resume created at resumesensei.com"
     >
       <p

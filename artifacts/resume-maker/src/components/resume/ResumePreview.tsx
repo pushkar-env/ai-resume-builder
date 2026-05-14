@@ -1795,11 +1795,38 @@ export function ResumePreview({
   const templateId = resume.templateId ?? "silicon-valley";
   const props = { sections: resume.sections, color, font };
 
+  const templateInner = (
+    <>
+      {templateId === "silicon-valley" && <SiliconValleyTemplate {...props} />}
+      {templateId === "faang" && <FaangTemplate {...props} />}
+      {templateId === "nova" && <NovaTemplate {...props} />}
+      {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
+      {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
+      {templateId === "midnight" && <MidnightTemplate {...props} />}
+      {templateId === "ats-clean" && <AtsCleanTemplate sections={resume.sections} color={color} font={font} />}
+      {templateId === "academic" && <AcademicTemplate {...props} />}
+      {templateId === "corporate-navy" && <CorporateNavyTemplate {...props} />}
+      {templateId === "compact" && <CompactTemplate {...props} />}
+      {templateId === "european" && <EuropeanTemplate {...props} />}
+      {templateId === "two-column" && <TwoColumnTemplate {...props} />}
+      {!["silicon-valley","faang","nova","executive-pro","creative-pro","midnight","ats-clean","academic","corporate-navy","compact","european","two-column"].includes(templateId) && (
+        <SiliconValleyTemplate {...props} />
+      )}
+    </>
+  );
+
+  const templateStack = (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden [&>div]:min-h-0 [&>div]:w-full [&>div]:flex-1">
+      {templateInner}
+    </div>
+  );
+
   return (
     <div
-      className="a4-page overflow-hidden relative"
+      className={`a4-page overflow-hidden relative${showWatermark ? " flex h-[1123px] max-h-[1123px] flex-col" : ""}`}
       style={{ fontFamily: font, backgroundColor: bColor }}
       data-font-color={fColor}
+      data-watermarked={showWatermark ? "" : undefined}
     >
       <style
         dangerouslySetInnerHTML={{
@@ -1831,6 +1858,32 @@ export function ResumePreview({
             .a4-page .resume-text a {
               overflow-wrap: break-word !important;
               word-break: normal !important;
+            }
+            /* Free-plan watermark: lock to one physical A4 page so print/PDF does not paginate. */
+            .a4-page[data-watermarked] {
+              height: 1123px;
+              max-height: 1123px;
+              box-sizing: border-box;
+            }
+            .a4-page[data-watermarked] .resume-preview-watermark-shell {
+              flex: 1 1 0%;
+              min-height: 0;
+              min-width: 0;
+              display: flex;
+              flex-direction: column;
+            }
+            .a4-page[data-watermarked] .resume-preview-zoom-region {
+              flex: 1 1 0%;
+              min-height: 0;
+              min-width: 0;
+              overflow: hidden;
+              display: flex;
+              flex-direction: column;
+            }
+            .a4-page[data-watermarked] > .resume-preview-root {
+              flex: 1 1 0%;
+              min-height: 0;
+              min-width: 0;
             }
           `,
         }}
@@ -1882,28 +1935,25 @@ export function ResumePreview({
           `
         }} />
       )}
-      <div
-        className="flex min-h-0 w-full flex-col"
-        style={{ zoom: fontScale, width: "100%", minHeight: `${1123 / fontScale}px` }}
-      >
-        <div className="flex min-h-0 flex-1 flex-col [&>div]:min-h-0 [&>div]:w-full [&>div]:flex-1">
-          {templateId === "silicon-valley" && <SiliconValleyTemplate {...props} />}
-          {templateId === "faang" && <FaangTemplate {...props} />}
-          {templateId === "nova" && <NovaTemplate {...props} />}
-          {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
-          {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
-          {templateId === "midnight" && <MidnightTemplate {...props} />}
-          {templateId === "ats-clean" && <AtsCleanTemplate sections={resume.sections} color={color} font={font} />}
-          {templateId === "academic" && <AcademicTemplate {...props} />}
-          {templateId === "corporate-navy" && <CorporateNavyTemplate {...props} />}
-          {templateId === "compact" && <CompactTemplate {...props} />}
-          {templateId === "european" && <EuropeanTemplate {...props} />}
-          {templateId === "two-column" && <TwoColumnTemplate {...props} />}
-          {!["silicon-valley","faang","nova","executive-pro","creative-pro","midnight","ats-clean","academic","corporate-navy","compact","european","two-column"].includes(templateId) && (
-            <SiliconValleyTemplate {...props} />
-          )}
-        </div>
-        {showWatermark ? <ResumeWatermark backgroundColor={bColor} /> : null}
+      <div className={`resume-preview-root flex w-full min-w-0 flex-col${showWatermark ? " min-h-0 flex-1" : ""}`}>
+        {showWatermark ? (
+          <div className="resume-preview-watermark-shell flex min-h-0 w-full flex-1 flex-col">
+            <div
+              className="resume-preview-zoom-region flex min-h-0 flex-1 flex-col overflow-hidden"
+              style={{ zoom: fontScale, width: "100%" }}
+            >
+              {templateStack}
+            </div>
+            <ResumeWatermark backgroundColor={bColor} />
+          </div>
+        ) : (
+          <div
+            className="flex min-h-0 w-full flex-col"
+            style={{ zoom: fontScale, width: "100%", minHeight: `${1123 / fontScale}px` }}
+          >
+            {templateStack}
+          </div>
+        )}
       </div>
     </div>
   );
