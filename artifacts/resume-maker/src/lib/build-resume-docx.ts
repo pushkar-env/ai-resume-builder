@@ -464,17 +464,24 @@ export async function buildResumeDocxBlob(
   }
 
   if (includeWatermark) {
+    const site = "https://resumesensei.com/";
     body.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { before: 280 },
-        border: {
-          top: { color: "D1D5DB", style: BorderStyle.SINGLE, size: 6, space: 5 },
-        },
+        spacing: { before: 200, after: 80 },
         children: [
-          new TextRun({ text: "ResumeSensei", size: 18, color: "64748B", bold: true, font }),
-          new TextRun({ text: "  ·  ", size: 18, color: "CBD5E1", font }),
-          new TextRun({ text: "resumesensei.com · Free plan", size: 16, color: "94A3B8", font }),
+          new TextRun({ text: "Created at ", size: 16, color: "94A3B8", font }),
+          new ExternalHyperlink({
+            children: [
+              new TextRun({
+                text: "resumesensei.com",
+                style: "Hyperlink",
+                size: 16,
+                font,
+              }),
+            ],
+            link: site,
+          }),
         ],
       }),
     );
