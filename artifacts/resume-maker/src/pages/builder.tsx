@@ -537,10 +537,6 @@ export default function BuilderPage() {
   const { data: templates } = useListTemplates();
 
   const templateList = useMemo(() => (Array.isArray(templates) ? templates : []), [templates]);
-  const selectedTemplate = useMemo(
-    () => templateList.find((t) => t.id === templateId) ?? null,
-    [templateList, templateId],
-  );
 
   const updateResume = useUpdateResume({
     mutation: {
@@ -901,13 +897,8 @@ export default function BuilderPage() {
                     <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5">
                       <LayoutTemplate className="h-3 w-3 shrink-0" />
                       <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                        {/* SelectValue mirrors SelectItem content (name + premium star). */}
                         <SelectValue placeholder="Template" />
-                        {selectedTemplate?.isPremium ? (
-                          <Star
-                            className="h-2.5 w-2.5 shrink-0 text-amber-500 fill-amber-500"
-                            aria-label="Premium template"
-                          />
-                        ) : null}
                       </span>
                     </SelectTrigger>
                     <SelectContent>
