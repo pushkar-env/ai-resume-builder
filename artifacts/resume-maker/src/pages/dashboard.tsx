@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { motion, type Variants } from "framer-motion";
 import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil } from "lucide-react";
@@ -84,6 +85,8 @@ function timeAgo(date: string) {
  * Keeps mobile scroll/main thread responsive when many resumes exist.
  */
 function ResumeThumbnail({ resumeId }: { resumeId: number }) {
+  const { user } = useUser();
+  const showWatermark = user?.publicMetadata?.isPremium !== true;
   const hostRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
@@ -141,6 +144,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
               fontScale={fontScale}
               fontColor={resume.fontColor ?? "#111827"}
               backgroundColor={resume.backgroundColor ?? "#ffffff"}
+              showWatermark={showWatermark}
             />
           </div>
         </div>

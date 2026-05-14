@@ -52,7 +52,15 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 /* ─── Real-resume thumbnail (scaled-down ResumePreview) ─── */
-function TemplateThumbnail({ templateId, accent }: { templateId: string; accent: string }) {
+function TemplateThumbnail({
+  templateId,
+  accent,
+  showWatermark,
+}: {
+  templateId: string;
+  accent: string;
+  showWatermark: boolean;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   /** Scale to fill preview area (width + height “cover”), centered like dashboard thumbnails. */
@@ -103,7 +111,7 @@ function TemplateThumbnail({ templateId, accent }: { templateId: string; accent:
         }}
       >
         <div ref={measureRef} className="w-[794px]">
-          <ResumePreview key={templateId} resume={sample} accentColor={accent} />
+          <ResumePreview key={templateId} resume={sample} accentColor={accent} showWatermark={showWatermark} />
         </div>
       </div>
     </div>
@@ -276,7 +284,11 @@ export default function TemplatesPage() {
 
                   {/* Real resume preview as thumbnail */}
                   <div className="relative overflow-hidden" style={{ aspectRatio: "3/4", background: cfg.bg }}>
-                    <TemplateThumbnail templateId={template.id} accent={cfg.accent} />
+                    <TemplateThumbnail
+                      templateId={template.id}
+                      accent={cfg.accent}
+                      showWatermark={user?.publicMetadata?.isPremium !== true}
+                    />
 
                     {/* Gradient hint overlay (very subtle) */}
                     <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none bg-gradient-to-t from-black/10 to-transparent" />

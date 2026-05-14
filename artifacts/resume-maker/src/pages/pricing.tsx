@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
-import { Check, Star, Zap, Shield, ArrowRight } from "lucide-react";
+import { Check, Star, Shield, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@clerk/react";
 import { useToast } from "@/hooks/use-toast";
@@ -98,7 +98,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
         title="Pricing | ResumeSensei Pro"
-        description="Simple pricing in INR. Free includes PDF, DOCX & JSON export. Pro adds unlimited resumes, all templates, full AI, and ATS score tracking."
+        description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
         canonicalUrl="https://resumesensei.com/pricing"
       />
       <Navbar />
@@ -110,12 +110,23 @@ export default function PricingPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Upgrade to Premium</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Unlock the full potential of ResumeSensei. Access premium templates, unlimited AI features, and land your dream job faster.
+            Unlock the full potential of ResumeSensei. Pro removes export watermarks, unlocks every template, unlimited AI, and ATS score tracking.
           </p>
         </div>
       </div>
 
       <main className="flex-1 mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-3xl mx-auto mb-10 rounded-2xl border border-border/80 bg-muted/30 px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
+            <span className="font-semibold text-foreground">Free vs Pro exports.</span>{" "}
+            Free saves PDF and Word with a minimal ResumeSensei line at the bottom (you always see it in the builder preview).
+            Pro removes that footer so your file is 100% yours for recruiters and ATS.
+          </div>
+        </div>
+
         {/* Billing Toggle */}
         <div className="flex justify-center mb-12">
           <div className="bg-muted p-1 rounded-full inline-flex relative">

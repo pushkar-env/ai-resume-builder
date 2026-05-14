@@ -31,11 +31,11 @@ const faqs = [
   },
   {
     q: "Will my PDF match the on-screen preview?",
-    a: "Yes. Export is built from the same preview pipeline you see while editing, so spacing and typography stay consistent.",
+    a: "Yes. PDF and Word are generated from the same layout you see while editing. On Free, a small ResumeSensei footer appears at the bottom of the page; Pro removes it for a completely clean file.",
   },
   {
     q: "Do I need a card to try it?",
-    a: "No. Create a free account to build one resume with core AI suggestions and PDF, DOCX, and JSON export. Upgrade to Pro when you want unlimited resumes and full AI.",
+    a: "No. Create a free account to build one resume with core AI suggestions and PDF, DOCX, and JSON export. Upgrade to Pro when you want unlimited resumes, watermark-free exports, and full AI.",
   },
   {
     q: "How does Pro pricing work?",
@@ -86,7 +86,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
       "Twelve professional resume templates",
       "Live A4 preview aligned with export",
       "ATS score tracking on Pro (dashboard)",
-      "PDF, DOCX, and JSON export on Free and Pro",
+      "PDF, DOCX, and JSON export on Free (PDF/Word include a subtle brand footer); Pro is watermark-free",
       "Unlimited resumes and full AI on Pro",
     ],
   },
@@ -127,7 +127,7 @@ const capabilities = [
   {
     icon: Download,
     title: "PDF, DOCX & JSON export",
-    description: "All three download formats are included on Free and Pro — your preview is the source of truth.",
+    description: "Free and Pro both export from your live preview. Free adds a minimal footer on PDF and Word; Pro removes it.",
   },
   {
     icon: Zap,
@@ -164,7 +164,7 @@ export default function LandingPage() {
     <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background text-foreground">
       <SEO
         title="ResumeSensei | AI Resume Builder & ATS Resume Checker"
-        description="Build an ATS-friendly resume with AI writing help, 12 templates, a live A4 preview, and PDF, DOCX, and JSON export on the free plan. Pro from ₹99/month or ₹999/year for unlimited resumes and full AI."
+        description="Build an ATS-friendly resume with AI writing help, 12 templates, and a live A4 preview. Free includes PDF, DOCX, and JSON export with a subtle footer on documents; Pro removes the watermark and unlocks unlimited resumes and full AI."
         canonicalUrl={`${SITE_URL}/`}
         keywords={SEO_KEYWORDS}
         jsonLd={LANDING_JSON_LD}
@@ -234,7 +234,7 @@ export default function LandingPage() {
               transition={{ delay: 0.2 }}
               className="mt-4 text-xs text-muted-foreground"
             >
-              No credit card to start · Free plan includes PDF, DOCX & JSON export
+              No credit card to start · Free includes PDF, DOCX & JSON (footer on documents); Pro is clean
             </motion.p>
           </div>
         </section>
@@ -248,7 +248,7 @@ export default function LandingPage() {
             {[
               { label: "Editor", sub: "Sections, rich text, undo-friendly" },
               { label: "Preview", sub: "A4 layout you can trust" },
-              { label: "Export", sub: "PDF, DOCX & JSON — every plan" },
+              { label: "Export", sub: "Preview-accurate PDF & Word — Pro is watermark-free" },
             ].map((cell) => (
               <div
                 key={cell.label}

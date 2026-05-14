@@ -19,7 +19,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize, Eraser } from "lucide-react";
+import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize, Eraser, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -238,19 +238,29 @@ function SortableSectionItem({
   );
 }
 
-/* ─── ExportDialog — fully client-side ─── */
+/* ─── ExportDialog — client-side export with Free-plan watermark gate ─── */
 
 function ExportDialog({
   open,
   onClose,
   resume,
+  isPremiumUser,
+  onRemoveWatermarkClick,
 }: {
   open: boolean;
   onClose: () => void;
   resume: ResumeDetail;
+  isPremiumUser: boolean;
+  onRemoveWatermarkClick: () => void;
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+  const [freeStep, setFreeStep] = useState<"gate" | "formats">("gate");
+
+  useEffect(() => {
+    if (!open) return;
+    setFreeStep(isPremiumUser ? "formats" : "gate");
+  }, [open, isPremiumUser]);
 
   const handle = async (format: "pdf" | "docx" | "json") => {
     setLoading(format);
@@ -265,7 +275,6 @@ function ExportDialog({
           toast({ title: "Could not capture resume preview", variant: "destructive" });
           return;
         }
-        // Use a hidden iframe for printing instead of window.open popups to prevent Safari from freezing
         const iframe = document.createElement("iframe");
         iframe.style.position = "fixed";
         iframe.style.right = "0";
@@ -313,7 +322,6 @@ function ExportDialog({
           doc.close();
           toast({ title: 'Print dialog opened — save as PDF', description: "On mobile, use the share button to Save to Files." });
 
-          // Clean up iframe safely after a delay to ensure print dialog doesn't close immediately
           setTimeout(() => {
             if (document.body.contains(iframe)) {
               document.body.removeChild(iframe);
@@ -325,7 +333,9 @@ function ExportDialog({
       } else {
         try {
           const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
-          const docxBlob = await buildResumeDocxBlob(resume);
+          const docxBlob = await buildResumeDocxBlob(resume, {
+            includeWatermark: !isPremiumUser,
+          });
           downloadFileBlob(docxBlob, `${base}.docx`);
           toast({
             title: "Word document downloaded",
@@ -348,38 +358,97 @@ function ExportDialog({
   };
 
   const formats = [
-    { id: "pdf" as const, label: "PDF Document", description: 'Opens auto-configured print dialog for perfect ATS vector export' },
-    { id: "docx" as const, label: "Word (.docx)", description: "Native Office Open XML — editable with stable layout in Word" },
-    { id: "json" as const, label: "JSON Data", description: "Raw resume data for programmatic use" },
+    { id: "pdf" as const, label: "PDF Document", description: "Print dialog — save as PDF for ATS-friendly vector output" },
+    { id: "docx" as const, label: "Word (.docx)", description: "Editable Office Open XML with stable layout in Word" },
+    { id: "json" as const, label: "JSON Data", description: "Raw resume data (no visual watermark)" },
   ];
+
+  const showFormats = isPremiumUser || freeStep === "formats";
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[min(90vh,640px)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Export Resume</DialogTitle>
+          <DialogTitle>{showFormats ? "Choose export format" : "Export & watermark"}</DialogTitle>
+          {showFormats ? (
+            <DialogDescription>
+              {isPremiumUser
+                ? "Pick a format. Pro exports have no ResumeSensei footer."
+                : "PDF and Word match your on-screen preview, including the subtle footer mark. JSON is data-only."}
+            </DialogDescription>
+          ) : (
+            <DialogDescription className="text-left text-sm leading-relaxed">
+              On the Free plan, exports include a minimal ResumeSensei line at the bottom of the page (same as in preview).
+              Upgrade to Pro for clean, watermark-free PDF and Word files.
+            </DialogDescription>
+          )}
         </DialogHeader>
-        <div className="space-y-3 py-2">
-          {formats.map((f) => (
+
+        {!showFormats ? (
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 py-1">
             <button
-              key={f.id}
-              className="w-full rounded-lg border border-border p-4 text-left hover:border-primary hover:bg-primary/5 transition-colors group disabled:opacity-50"
-              onClick={() => { void handle(f.id); }}
+              type="button"
+              className="flex flex-col items-start gap-1.5 rounded-xl border border-border bg-card p-4 text-left shadow-sm transition-colors hover:border-primary/40 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              onClick={() => setFreeStep("formats")}
               disabled={loading !== null}
             >
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileDown className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">{f.label}</p>
-                  <p className="text-xs text-muted-foreground">{f.description}</p>
-                </div>
-                {loading === f.id && <Loader2 className="h-4 w-4 animate-spin ml-auto text-muted-foreground" />}
-              </div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Free</span>
+              <span className="text-sm font-semibold text-foreground">Keep watermark</span>
+              <span className="text-xs text-muted-foreground leading-snug">
+                Continue to PDF, Word, or JSON — footer appears on PDF and Word like your preview.
+              </span>
             </button>
-          ))}
-        </div>
+            <button
+              type="button"
+              className="flex flex-col items-start gap-1.5 rounded-xl border-2 border-primary/30 bg-primary/[0.06] p-4 text-left shadow-sm transition-colors hover:border-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              onClick={onRemoveWatermarkClick}
+              disabled={loading !== null}
+            >
+              <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                <Sparkles className="h-3 w-3" aria-hidden />
+                Pro
+              </span>
+              <span className="text-sm font-semibold text-foreground">Remove watermark</span>
+              <span className="text-xs text-muted-foreground leading-snug">
+                Clean exports plus all templates, unlimited AI, and ATS score tracking.
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 py-1">
+            {!isPremiumUser ? (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                onClick={() => setFreeStep("gate")}
+              >
+                ← Change watermark choice
+              </button>
+            ) : null}
+            {formats.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className="w-full rounded-lg border border-border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5 group disabled:opacity-50"
+                onClick={() => {
+                  void handle(f.id);
+                }}
+                disabled={loading !== null}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileDown className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm">{f.label}</p>
+                    <p className="text-xs text-muted-foreground">{f.description}</p>
+                  </div>
+                  {loading === f.id ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" /> : null}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -1241,7 +1310,15 @@ export default function BuilderPage() {
                 }}
               >
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
-                  <ResumePreview key={templateId} resume={previewResume} accentColor={accentColor} fontScale={fontScale} fontColor={fontColor} backgroundColor={backgroundColor} />
+                  <ResumePreview
+                    key={templateId}
+                    resume={previewResume}
+                    accentColor={accentColor}
+                    fontScale={fontScale}
+                    fontColor={fontColor}
+                    backgroundColor={backgroundColor}
+                    showWatermark={!isPremiumUser}
+                  />
                 </div>
               </div>
             </div>
@@ -1274,7 +1351,20 @@ export default function BuilderPage() {
         </div>
       </div>
 
-      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} resume={previewResume} />
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        resume={previewResume}
+        isPremiumUser={isPremiumUser}
+        onRemoveWatermarkClick={() => {
+          setExportOpen(false);
+          setPaywallTitle("Watermark-free exports");
+          setPaywallDescription(
+            "Pro removes the ResumeSensei footer from PDF and Word exports. You also unlock every template, unlimited AI writing help, and ATS score tracking.",
+          );
+          setShowPaywall(true);
+        }}
+      />
 
       <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
         <AlertDialogContent>

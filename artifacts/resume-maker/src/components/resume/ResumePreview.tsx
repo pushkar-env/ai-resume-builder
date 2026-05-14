@@ -1,6 +1,7 @@
 import type * as React from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
+import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -1771,7 +1772,22 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 /* ═══════════════════════════════════════════════════════════
    Main ResumePreview — route to correct template
 ═══════════════════════════════════════════════════════════ */
-export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, backgroundColor }: { resume: ResumeDetail; accentColor?: string; fontScale?: number; fontColor?: string; backgroundColor?: string }) {
+export function ResumePreview({
+  resume,
+  accentColor,
+  fontScale = 1,
+  fontColor,
+  backgroundColor,
+  showWatermark = false,
+}: {
+  resume: ResumeDetail;
+  accentColor?: string;
+  fontScale?: number;
+  fontColor?: string;
+  backgroundColor?: string;
+  /** When true (Free plan), a subtle brand footer appears on every template and in PDF print export. */
+  showWatermark?: boolean;
+}) {
   const color = accentColor ?? resume.accentColor ?? "#7c3aed";
   const font = resume.fontFamily ?? "Inter, sans-serif";
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
@@ -1866,25 +1882,28 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
           `
         }} />
       )}
-      <div 
-        className="flex flex-col [&>div]:flex-1 [&>div]:w-full"
+      <div
+        className="flex min-h-0 w-full flex-col"
         style={{ zoom: fontScale, width: "100%", minHeight: `${1123 / fontScale}px` }}
       >
-        {templateId === "silicon-valley" && <SiliconValleyTemplate {...props} />}
-        {templateId === "faang" && <FaangTemplate {...props} />}
-        {templateId === "nova" && <NovaTemplate {...props} />}
-        {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
-        {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
-        {templateId === "midnight" && <MidnightTemplate {...props} />}
-        {templateId === "ats-clean" && <AtsCleanTemplate sections={resume.sections} color={color} font={font} />}
-        {templateId === "academic" && <AcademicTemplate {...props} />}
-        {templateId === "corporate-navy" && <CorporateNavyTemplate {...props} />}
-        {templateId === "compact" && <CompactTemplate {...props} />}
-        {templateId === "european" && <EuropeanTemplate {...props} />}
-        {templateId === "two-column" && <TwoColumnTemplate {...props} />}
-        {!["silicon-valley","faang","nova","executive-pro","creative-pro","midnight","ats-clean","academic","corporate-navy","compact","european","two-column"].includes(templateId) && (
-          <SiliconValleyTemplate {...props} />
-        )}
+        <div className="flex min-h-0 flex-1 flex-col [&>div]:min-h-0 [&>div]:w-full [&>div]:flex-1">
+          {templateId === "silicon-valley" && <SiliconValleyTemplate {...props} />}
+          {templateId === "faang" && <FaangTemplate {...props} />}
+          {templateId === "nova" && <NovaTemplate {...props} />}
+          {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
+          {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
+          {templateId === "midnight" && <MidnightTemplate {...props} />}
+          {templateId === "ats-clean" && <AtsCleanTemplate sections={resume.sections} color={color} font={font} />}
+          {templateId === "academic" && <AcademicTemplate {...props} />}
+          {templateId === "corporate-navy" && <CorporateNavyTemplate {...props} />}
+          {templateId === "compact" && <CompactTemplate {...props} />}
+          {templateId === "european" && <EuropeanTemplate {...props} />}
+          {templateId === "two-column" && <TwoColumnTemplate {...props} />}
+          {!["silicon-valley","faang","nova","executive-pro","creative-pro","midnight","ats-clean","academic","corporate-navy","compact","european","two-column"].includes(templateId) && (
+            <SiliconValleyTemplate {...props} />
+          )}
+        </div>
+        {showWatermark ? <ResumeWatermark backgroundColor={bColor} /> : null}
       </div>
     </div>
   );

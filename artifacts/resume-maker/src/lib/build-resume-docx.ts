@@ -232,7 +232,11 @@ function sectionHeading(text: string, accent: string, font: string): Paragraph {
  * Builds a real .docx (OOXML) from resume JSON. Word cannot reliably render Tailwind/HTML exports;
  * this path uses structured paragraphs so layouts stay stable across Word versions and desktop/mobile browsers.
  */
-export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
+export async function buildResumeDocxBlob(
+  resume: ResumeDetail,
+  options?: { includeWatermark?: boolean },
+): Promise<Blob> {
+  const includeWatermark = options?.includeWatermark === true;
   const accent = resume.accentColor ?? "#4472C4";
   const accentHex = hexToWordColor(accent);
   const font = wordPrimaryFont(resume.fontFamily ?? "Calibri");
@@ -457,6 +461,23 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
         );
       }
     }
+  }
+
+  if (includeWatermark) {
+    body.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 280 },
+        border: {
+          top: { color: "D1D5DB", style: BorderStyle.SINGLE, size: 6, space: 5 },
+        },
+        children: [
+          new TextRun({ text: "ResumeSensei", size: 18, color: "64748B", bold: true, font }),
+          new TextRun({ text: "  ·  ", size: 18, color: "CBD5E1", font }),
+          new TextRun({ text: "resumesensei.com · Free plan", size: 16, color: "94A3B8", font }),
+        ],
+      }),
+    );
   }
 
   const doc = new Document({
