@@ -42,6 +42,57 @@ function alpha(hex: string, a: number) {
   return hex.startsWith("#") ? hex + v : hex;
 }
 
+/** Parse #RGB / #RRGGBB / #RRGGBBAA (alpha stripped for luminance). */
+function parseHexRgb(hex: string): { r: number; g: number; b: number } | null {
+  let h = hex.trim();
+  if (h.startsWith("#")) h = h.slice(1);
+  if (h.length === 8) h = h.slice(0, 6);
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function srgbChannelToLinear(c: number): number {
+  const s = c / 255;
+  return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+}
+
+function relativeLuminanceHex(hex: string): number | null {
+  const rgb = parseHexRgb(hex);
+  if (!rgb) return null;
+  const R = srgbChannelToLinear(rgb.r);
+  const G = srgbChannelToLinear(rgb.g);
+  const B = srgbChannelToLinear(rgb.b);
+  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+}
+
+/** WCAG 2.1 contrast ratio for two sRGB hex colors. */
+function contrastRatio(fgHex: string, bgHex: string): number | null {
+  const L1 = relativeLuminanceHex(fgHex);
+  const L2 = relativeLuminanceHex(bgHex);
+  if (L1 == null || L2 == null) return null;
+  const hi = Math.max(L1, L2);
+  const lo = Math.min(L1, L2);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Use accent for links when it reads clearly on `backgroundHex`; otherwise fall back to
+ * light or dark neutrals aligned with the resume palette (slate / off-white).
+ */
+function readableAccentOnBackground(backgroundHex: string, accentHex: string, minRatio = 4.5): string {
+  const onBg = contrastRatio(accentHex, backgroundHex);
+  if (onBg != null && onBg >= minRatio) return accentHex;
+  const light = "#f1f5f9"; // slate-100 — readable on deep navy / saturated accents
+  const ink = "#0f172a"; // slate-900 — for very light header fills
+  const rLight = contrastRatio(light, backgroundHex);
+  const rInk = contrastRatio(ink, backgroundHex);
+  if (rLight != null && rLight >= minRatio && (rInk == null || rLight >= rInk)) return light;
+  if (rInk != null && rInk >= minRatio) return ink;
+  return light;
+}
+
 /* ─── Skill progress bar ─── */
 function SkillBar({ name, level, color }: { name: string; level?: unknown; color: string }) {
   const pct = skillPct(level);
@@ -1303,6 +1354,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
   const navy = color === "#7c3aed" ? "#1e3a5f" : color;
+  const headerContactLinkColor = readableAccentOnBackground(navy, color);
 
   return (
     <div style={{ fontFamily: font, minHeight: "100%" }}>
@@ -1311,8 +1363,10 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         <h1 className="text-[20px] font-black text-white tracking-tight">{str(p.name) || "Your Name"}</h1>
         {roleOf(p) && <p className="text-[9.5px] font-semibold text-white/70 mt-0.5 tracking-wide">{roleOf(p)}</p>}
         <div className="flex gap-5 mt-3 flex-wrap">
-          {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8px] text-white/60">{v}</span>
+          {contactValues(p, headerContactLinkColor).map((v, i) => (
+            <span key={i} className="text-[8px] text-white/60">
+              {v}
+            </span>
           ))}
         </div>
       </div>
