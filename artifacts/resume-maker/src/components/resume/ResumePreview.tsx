@@ -1,5 +1,6 @@
 import type * as React from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
+import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -20,6 +21,10 @@ function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
   return ((sc?.[key] ?? []) as T[]);
 }
 function str(v: unknown): string { return (v as string) ?? ""; }
+/** Rich-text fields: sanitize on render so older saved HTML still lays out correctly */
+function richHtml(v: unknown): string {
+  return sanitizeResumeRichHtml(str(v));
+}
 /** Coerce a skill level to a 0–100 number. Handles legacy string values like "intermediate". */
 function skillPct(v: unknown): number {
   if (typeof v === "number" && Number.isFinite(v)) return Math.min(100, Math.max(0, v));
@@ -184,7 +189,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   return (
     <div className="flex flex-col gap-1 w-full min-w-0">
       <div
-        dangerouslySetInnerHTML={{ __html: text }}
+        dangerouslySetInnerHTML={{ __html: richHtml(text) }}
         className="resume-text [&>p]:mb-1 last:[&>p]:mb-0"
       />
       {link ? (
@@ -387,7 +392,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
               <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
@@ -433,7 +438,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                     <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
                     {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -481,7 +486,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
                 <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Summary</p>
               </div>
-              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
             </div>
           )}
 
@@ -524,7 +529,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                       <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
                       {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
                     </div>
-                    {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                    {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -617,7 +622,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
       {str(summary.text) && (
         <div className="mb-7">
           <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2 text-center" style={{ color }}>Profile</p>
-          <div className="resume-text text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+          <div className="resume-text text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
@@ -672,7 +677,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
                 <p className="text-[9.5px] font-semibold text-gray-700 w-[130px] shrink-0">{str(pr.name)}</p>
-                <div className="resume-text text-[8.5px] text-gray-400 flex-1" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />
+                <div className="resume-text text-[8.5px] text-gray-400 flex-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
               </div>
             ))}
           </div>
@@ -736,7 +741,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <div className="mb-4 text-center">
-          <div className="resume-text text-[9px] text-gray-600 leading-[1.8] italic max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+          <div className="resume-text text-[9px] text-gray-600 leading-[1.8] italic max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
@@ -902,7 +907,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
         {str(summary.text) && (
           <div className="mb-5 p-3.5 rounded-xl" style={{ background: alpha(color, 0.06) }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color }}>About Me</p>
-            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
@@ -946,7 +951,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-xl p-2.5" style={{ background: alpha(color, 0.06) }}>
                   <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -995,7 +1000,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
       {str(summary.text) && (
         <div className="mb-5">
           <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: gold }}>Profile</p>
-          <div className="resume-text text-[9px] text-gray-600 leading-[1.75]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+          <div className="resume-text text-[9px] text-gray-600 leading-[1.75]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
@@ -1075,7 +1080,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
                   <p className="text-[9px] font-semibold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1117,7 +1122,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
         </p>
 
       </div>
-      {str(summary.text) && (<><SH label="Professional Summary" /><div className="resume-text text-[9px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: str(summary.text) }} /></>)}
+      {str(summary.text) && (<><SH label="Professional Summary" /><div className="resume-text text-[9px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} /></>)}
       {exp.length > 0 && (
         <><SH label="Work Experience" />
           {exp.map((e, i) => (
@@ -1205,7 +1210,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <><SH label="Research Interests / Summary" />
-          <div className="resume-text text-[9px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+          <div className="resume-text text-[9px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </>
       )}
 
@@ -1251,7 +1256,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
           {projects.map((pr, i) => (
             <div key={i} className="mb-2">
               <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-              {str(pr.description) && <div className="resume-text text-[8.5px] italic text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+              {str(pr.description) && <div className="resume-text text-[8.5px] italic text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
             </div>
           ))}
         </>
@@ -1318,7 +1323,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         {str(summary.text) && (
           <div className="mb-4 pb-4" style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: navy }}>Professional Summary</p>
-            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
@@ -1383,7 +1388,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                 {projects.map((pr, i) => (
                   <div key={i} className="mb-1">
                     <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                    {str(pr.description) && <div className="resume-text text-[8px] text-gray-500" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                    {str(pr.description) && <div className="resume-text text-[8px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -1423,7 +1428,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
       </div>
 
       {str(summary.text) && (
-        <div className="resume-text text-[8.5px] text-gray-600 leading-[1.6] mb-2" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+        <div className="resume-text text-[8.5px] text-gray-600 leading-[1.6] mb-2" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
       )}
 
       {skills.length > 0 && (() => {
@@ -1486,7 +1491,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-0.5">
                   <p className="text-[8.5px] font-semibold text-gray-800">{str(pr.name)}</p>
-                  {str(pr.description) && <div className="resume-text text-[7.5px] text-gray-500" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[7.5px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1583,7 +1588,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
           {str(summary.text) && (
             <>
               <SH label="Profile" />
-              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
             </>
           )}
 
@@ -1616,7 +1621,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
                   <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </>
@@ -1706,7 +1711,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Profile</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
-            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: str(summary.text) }} />
+            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
@@ -1751,7 +1756,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: str(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   {str(pr.url) && <p className="text-[7.5px] mt-0.5" style={{ color }}>{str(pr.url)}</p>}
                 </div>
               ))}
@@ -1802,10 +1807,14 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
                 text-wrap: pretty;
               }
             }
-            /* Long URLs / emails only — may break inside the token */
+            /*
+             * Links must NOT use overflow-wrap:anywhere — pasted prose is often wrapped in one <a>,
+             * which would allow breaks after every character ("S" / "killed").
+             * Same wrapping as body text; long bare URLs still wrap via overflow-wrap:break-word.
+             */
             .a4-page .resume-text a {
-              overflow-wrap: anywhere !important;
-              word-break: break-word !important;
+              overflow-wrap: break-word !important;
+              word-break: normal !important;
             }
           `,
         }}
