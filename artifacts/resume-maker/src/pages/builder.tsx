@@ -120,15 +120,23 @@ function downloadBlob(content: string, filename: string, type: string) {
   downloadFileBlob(blob, filename);
 }
 
+/** Safe for Windows/macOS/Linux and mobile download APIs. */
+function safeFileBaseName(title: string): string {
+  const base = title.trim().replace(/\s+/g, "_") || "resume";
+  return base.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").slice(0, 120);
+}
+
 function downloadFileBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Delay revoke so Safari / mobile WebKit can start the download before the blob URL disappears.
+  window.setTimeout(() => URL.revokeObjectURL(url), 2_000);
 }
 
 /**
@@ -247,9 +255,9 @@ function ExportDialog({
   const handle = async (format: "pdf" | "docx" | "json") => {
     setLoading(format);
     try {
-      const name = resume.title?.replace(/\s+/g, "_") || "resume";
+      const base = safeFileBaseName(resume.title ?? "");
       if (format === "json") {
-        downloadBlob(JSON.stringify(resume, null, 2), `${name}.json`, "application/json");
+        downloadBlob(JSON.stringify(resume, null, 2), `${base}.json`, "application/json");
         toast({ title: "JSON downloaded" });
       } else if (format === "pdf") {
         const html = buildExportHtml(resume.title || "Resume");
@@ -315,13 +323,23 @@ function ExportDialog({
           toast({ title: "Failed to open print frame", variant: "destructive" });
         }
       } else {
-        const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
-        const docxBlob = await buildResumeDocxBlob(resume);
-        downloadFileBlob(docxBlob, `${name}.docx`);
-        toast({
-          title: "Word document downloaded",
-          description: "Native .docx for reliable layout in Microsoft Word.",
-        });
+        try {
+          const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
+          const docxBlob = await buildResumeDocxBlob(resume);
+          downloadFileBlob(docxBlob, `${base}.docx`);
+          toast({
+            title: "Word document downloaded",
+            description: "Opens in Microsoft Word, Google Docs, Pages, and other compatible apps.",
+          });
+        } catch (err) {
+          console.error("DOCX export failed", err);
+          toast({
+            title: "Could not create Word document",
+            description: err instanceof Error ? err.message : "Please try again in a moment.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
       onClose();
     } finally {

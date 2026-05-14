@@ -15,13 +15,24 @@ type SC = Record<string, unknown>;
 type Item = Record<string, unknown>;
 
 const BULLET_REF = "resume-export-bullets";
+/** Word OOXML text must not contain certain control characters. */
+const XML_TEXT_CONTROL = /[\x00-\x08\x0B\x0C\x0E-\x1F]/g;
+const MAX_RUN_CHARS = 32_000;
 
 function str(v: unknown): string {
   return (v as string) ?? "";
 }
 
+/** Strips characters illegal in WordprocessingML runs and caps extreme length. */
+function sanitizeWordText(input: string): string {
+  let s = input.replace(XML_TEXT_CONTROL, "");
+  if (s.length > MAX_RUN_CHARS) s = `${s.slice(0, MAX_RUN_CHARS)}…`;
+  return s;
+}
+
 function hexToWordColor(hex: string): string {
-  const h = hex.replace("#", "").trim();
+  let h = hex.replace("#", "").trim();
+  if (h.length === 8) h = h.slice(0, 6);
   if (h.length === 6) return h.toUpperCase();
   if (h.length === 3) return [...h].map((c) => c + c).join("").toUpperCase();
   return "4472C4";
@@ -33,9 +44,14 @@ function sortedSections(sections: ResumeDetail["sections"]): ResumeSection[] {
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 }
 
-function contentByType(sections: ResumeDetail["sections"], type: string): SC | undefined {
-  const sec = sortedSections(sections).find((s) => s.type === type);
+function contentByType(ordered: ResumeSection[], type: string): SC | undefined {
+  const sec = ordered.find((s) => s.type === type);
   return sec?.content as SC | undefined;
+}
+
+function skillsStyleFromOrdered(ordered: ResumeSection[]): string | undefined {
+  const sec = ordered.find((s) => s.type === "skills");
+  return ((sec?.content as SC | undefined)?.style as string | undefined);
 }
 
 function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
@@ -57,11 +73,6 @@ function skillPct(v: unknown): number {
   return 75;
 }
 
-function skillsStyleOf(sections: ResumeDetail["sections"]): string | undefined {
-  const sec = sortedSections(sections).find((s) => s.type === "skills");
-  return ((sec?.content as SC | undefined)?.style as string | undefined);
-}
-
 function htmlToPlainParagraphs(html: string, runSize: number, font: string): Paragraph[] {
   const raw = html.trim();
   if (!raw) return [];
@@ -71,15 +82,20 @@ function htmlToPlainParagraphs(html: string, runSize: number, font: string): Par
     .replace(/<\/div>/gi, "\n")
     .replace(/<\/li>/gi, "\n");
   let text = "";
-  try {
-    const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
-    text = parsed.body.textContent ?? "";
-  } catch {
+  if (typeof DOMParser !== "undefined") {
+    try {
+      const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
+      const docErr = parsed.querySelector("parsererror");
+      text = docErr ? normalized.replace(/<[^>]+>/g, " ") : (parsed.body.textContent ?? "");
+    } catch {
+      text = normalized.replace(/<[^>]+>/g, " ");
+    }
+  } else {
     text = normalized.replace(/<[^>]+>/g, " ");
   }
   const lines = text
     .split(/\n+/)
-    .map((l) => l.replace(/\s+/g, " ").trim())
+    .map((l) => sanitizeWordText(l.replace(/\s+/g, " ").trim()))
     .filter(Boolean);
   return lines.map(
     (line) =>
@@ -93,12 +109,19 @@ function htmlToPlainParagraphs(html: string, runSize: number, font: string): Par
 function htmlToPlainText(html: string): string {
   if (!html.trim()) return "";
   const normalized = html.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
-  try {
-    const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
-    return (parsed.body.textContent ?? "").replace(/\s+/g, " ").trim();
-  } catch {
-    return normalized.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  let plain = "";
+  if (typeof DOMParser !== "undefined") {
+    try {
+      const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
+      const docErr = parsed.querySelector("parsererror");
+      plain = docErr ? normalized.replace(/<[^>]+>/g, " ") : (parsed.body.textContent ?? "");
+    } catch {
+      plain = normalized.replace(/<[^>]+>/g, " ");
+    }
+  } else {
+    plain = normalized.replace(/<[^>]+>/g, " ");
   }
+  return sanitizeWordText(plain.replace(/\s+/g, " ").trim());
 }
 
 function bulletParts(b: unknown): { text: string; label: string; link: string } {
@@ -114,9 +137,48 @@ function bulletParts(b: unknown): { text: string; label: string; link: string } 
   return { text: "", label: "", link: "" };
 }
 
-function ensureProto(u: string): string {
-  if (!u) return u;
-  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+/** Returns http(s) URL or null (blocks javascript:, data:, etc.). */
+function safeExternalHref(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const u = new URL(candidate);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
+function linkParagraph(opts: {
+  display: string;
+  rawUrl: string;
+  font: string;
+  spacingAfter: number;
+  indentInches?: number;
+}): Paragraph {
+  const { display, rawUrl, font, spacingAfter, indentInches } = opts;
+  const safe = safeExternalHref(rawUrl);
+  const indent = indentInches !== undefined ? { left: convertInchesToTwip(indentInches) } : undefined;
+  const label = sanitizeWordText(display || safe || rawUrl);
+  if (safe) {
+    return new Paragraph({
+      spacing: { after: spacingAfter },
+      indent,
+      children: [
+        new ExternalHyperlink({
+          children: [new TextRun({ text: label || safe, style: "Hyperlink", size: 20, font })],
+          link: safe,
+        }),
+      ],
+    });
+  }
+  return new Paragraph({
+    spacing: { after: spacingAfter },
+    indent,
+    children: [new TextRun({ text: label || sanitizeWordText(rawUrl), size: 20, font })],
+  });
 }
 
 type Social = { label: string; url: string };
@@ -160,27 +222,27 @@ function sectionHeading(text: string, accent: string, font: string): Paragraph {
     border: {
       bottom: { color: "CCCCCC", style: BorderStyle.SINGLE, size: 6, space: 1 },
     },
-    children: [new TextRun({ text, bold: true, size: 24, color, font, allCaps: true })],
+    children: [new TextRun({ text: sanitizeWordText(text), bold: true, size: 24, color, font, allCaps: true })],
   });
 }
 
 /**
  * Builds a real .docx (OOXML) from resume JSON. Word cannot reliably render Tailwind/HTML exports;
- * this path uses structured paragraphs so layouts stay stable across Word versions.
+ * this path uses structured paragraphs so layouts stay stable across Word versions and desktop/mobile browsers.
  */
 export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
   const accent = resume.accentColor ?? "#4472C4";
   const accentHex = hexToWordColor(accent);
   const font = wordPrimaryFont(resume.fontFamily ?? "Calibri");
-  const sections = resume.sections;
+  const ordered = sortedSections(resume.sections);
 
-  const personal = contentByType(sections, "personal") ?? {};
-  const summary = contentByType(sections, "summary") ?? {};
-  const experience = items<Item>(contentByType(sections, "experience"));
-  const education = items<Item>(contentByType(sections, "education"));
-  const skills = items<Item>(contentByType(sections, "skills"));
-  const projects = items<Item>(contentByType(sections, "projects"));
-  const certs = items<Item>(contentByType(sections, "certifications"));
+  const personal = contentByType(ordered, "personal") ?? {};
+  const summary = contentByType(ordered, "summary") ?? {};
+  const experience = items<Item>(contentByType(ordered, "experience"));
+  const education = items<Item>(contentByType(ordered, "education"));
+  const skills = items<Item>(contentByType(ordered, "skills"));
+  const projects = items<Item>(contentByType(ordered, "projects"));
+  const certs = items<Item>(contentByType(ordered, "certifications"));
 
   const body: Paragraph[] = [];
 
@@ -188,7 +250,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 120 },
-      children: [new TextRun({ text: str(personal.name) || "Resume", bold: true, size: 52, font })],
+      children: [new TextRun({ text: sanitizeWordText(str(personal.name) || "Resume"), bold: true, size: 52, font })],
     }),
   );
 
@@ -198,17 +260,18 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 160 },
-        children: [new TextRun({ text: role, size: 28, color: accentHex, font })],
+        children: [new TextRun({ text: sanitizeWordText(role), size: 28, color: accentHex, font })],
       }),
     );
   }
 
   const contactParts: string[] = [];
-  if (str(personal.email).trim()) contactParts.push(str(personal.email).trim());
-  if (str(personal.phone).trim()) contactParts.push(str(personal.phone).trim());
-  if (str(personal.location).trim()) contactParts.push(str(personal.location).trim());
+  if (str(personal.email).trim()) contactParts.push(sanitizeWordText(str(personal.email).trim()));
+  if (str(personal.phone).trim()) contactParts.push(sanitizeWordText(str(personal.phone).trim()));
+  if (str(personal.location).trim()) contactParts.push(sanitizeWordText(str(personal.location).trim()));
   for (const s of socialsList(personal)) {
-    contactParts.push(s.url ? `${s.label}: ${s.url}` : s.label);
+    const bit = s.url ? `${s.label}: ${s.url}` : s.label;
+    contactParts.push(sanitizeWordText(bit));
   }
   if (contactParts.length > 0) {
     body.push(
@@ -232,7 +295,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       body.push(
         new Paragraph({
           spacing: { before: 200, after: 40 },
-          children: [new TextRun({ text: str(e.title), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(e.title)), bold: true, size: 24, font })],
         }),
       );
       const companyLine = `${str(e.company)}${e.location ? ` · ${str(e.location)}` : ""}`;
@@ -240,7 +303,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       body.push(
         new Paragraph({
           spacing: { after: 100 },
-          children: [new TextRun({ text: companyAndDates, size: 22, font })],
+          children: [new TextRun({ text: sanitizeWordText(companyAndDates), size: 22, font })],
         }),
       );
 
@@ -258,24 +321,13 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
           );
         }
         if (link) {
-          const href = ensureProto(link);
           body.push(
-            new Paragraph({
-              indent: { left: convertInchesToTwip(0.35) },
-              spacing: { after: 60 },
-              children: [
-                new ExternalHyperlink({
-                  children: [
-                    new TextRun({
-                      text: label || href,
-                      style: "Hyperlink",
-                      size: 20,
-                      font,
-                    }),
-                  ],
-                  link: href,
-                }),
-              ],
+            linkParagraph({
+              display: label || link,
+              rawUrl: link,
+              font,
+              spacingAfter: 60,
+              indentInches: 0.35,
             }),
           );
         } else if (label && !link && text) {
@@ -284,7 +336,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
               indent: { left: convertInchesToTwip(0.35) },
               spacing: { after: 60 },
               children: [
-                new TextRun({ text: `— ${label}`, italics: true, size: 20, color: accentHex, font }),
+                new TextRun({ text: sanitizeWordText(`— ${label}`), italics: true, size: 20, color: accentHex, font }),
               ],
             }),
           );
@@ -299,7 +351,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       body.push(
         new Paragraph({
           spacing: { before: 80, after: 40 },
-          children: [new TextRun({ text: str(e.school), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(e.school)), bold: true, size: 24, font })],
         }),
       );
       const parts = [str(e.degree), str(e.field)].filter(Boolean);
@@ -307,7 +359,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
         body.push(
           new Paragraph({
             spacing: { after: 40 },
-            children: [new TextRun({ text: parts.join(", "), size: 22, font })],
+            children: [new TextRun({ text: sanitizeWordText(parts.join(", ")), size: 22, font })],
           }),
         );
       }
@@ -316,7 +368,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
         body.push(
           new Paragraph({
             spacing: { after: 100 },
-            children: [new TextRun({ text: dates, size: 20, color: "666666", font })],
+            children: [new TextRun({ text: sanitizeWordText(dates), size: 20, color: "666666", font })],
           }),
         );
       }
@@ -324,7 +376,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
         body.push(
           new Paragraph({
             spacing: { after: 80 },
-            children: [new TextRun({ text: `GPA: ${str(e.gpa)}`, size: 20, font })],
+            children: [new TextRun({ text: sanitizeWordText(`GPA: ${str(e.gpa)}`), size: 20, font })],
           }),
         );
       }
@@ -332,20 +384,25 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
   }
 
   if (skills.length > 0) {
-    body.push(sectionHeading("Skills", accent, font));
-    const style = skillsStyleOf(sections) ?? "chips";
-    if (style === "text" || (style !== "bars" && style !== "radial")) {
-      const line = skills.map((s) => str(s.name)).filter(Boolean).join(", ");
-      body.push(new Paragraph({ children: [new TextRun({ text: line, size: 22, font })] }));
-    } else {
-      for (const s of skills) {
-        const pct = skillPct(s.level);
-        body.push(
-          new Paragraph({
-            spacing: { after: 80 },
-            children: [new TextRun({ text: `${str(s.name)} — ${pct}%`, size: 22, font })],
-          }),
-        );
+    const style = skillsStyleFromOrdered(ordered) ?? "chips";
+    const hasNamedSkill = skills.some((s) => str(s.name).trim());
+    if (hasNamedSkill) {
+      body.push(sectionHeading("Skills", accent, font));
+      if (style === "text" || (style !== "bars" && style !== "radial")) {
+        const line = sanitizeWordText(skills.map((s) => str(s.name)).filter(Boolean).join(", "));
+        if (line) body.push(new Paragraph({ children: [new TextRun({ text: line, size: 22, font })] }));
+      } else {
+        for (const s of skills) {
+          const nm = str(s.name).trim();
+          if (!nm) continue;
+          const pct = skillPct(s.level);
+          body.push(
+            new Paragraph({
+              spacing: { after: 80 },
+              children: [new TextRun({ text: sanitizeWordText(`${nm} — ${pct}%`), size: 22, font })],
+            }),
+          );
+        }
       }
     }
   }
@@ -356,23 +413,17 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       body.push(
         new Paragraph({
           spacing: { before: 120, after: 60 },
-          children: [new TextRun({ text: str(pr.name), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(pr.name)), bold: true, size: 24, font })],
         }),
       );
       const url = str(pr.url).trim();
       if (url) {
-        const href = ensureProto(url);
         body.push(
-          new Paragraph({
-            spacing: { after: 60 },
-            children: [
-              new ExternalHyperlink({
-                children: [
-                  new TextRun({ text: href, style: "Hyperlink", size: 20, font }),
-                ],
-                link: href,
-              }),
-            ],
+          linkParagraph({
+            display: url,
+            rawUrl: url,
+            font,
+            spacingAfter: 60,
           }),
         );
       }
@@ -389,23 +440,17 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
       body.push(
         new Paragraph({
           spacing: { after: 60 },
-          children: [new TextRun({ text: line, size: 22, font })],
+          children: [new TextRun({ text: sanitizeWordText(line), size: 22, font })],
         }),
       );
       const credUrl = (str(c.credentialUrl) || str(c.url)).trim();
       if (credUrl) {
-        const href = ensureProto(credUrl);
         body.push(
-          new Paragraph({
-            spacing: { after: 80 },
-            children: [
-              new ExternalHyperlink({
-                children: [
-                  new TextRun({ text: "Credential link", style: "Hyperlink", size: 20, font }),
-                ],
-                link: href,
-              }),
-            ],
+          linkParagraph({
+            display: "Credential link",
+            rawUrl: credUrl,
+            font,
+            spacingAfter: 80,
           }),
         );
       }
@@ -414,8 +459,7 @@ export async function buildResumeDocxBlob(resume: ResumeDetail): Promise<Blob> {
 
   const doc = new Document({
     creator: "AI Resume Builder",
-    title: resume.title || "Resume",
-    description: "Exported resume",
+    title: sanitizeWordText(resume.title || "Resume").slice(0, 255),
     numbering: {
       config: [
         {
