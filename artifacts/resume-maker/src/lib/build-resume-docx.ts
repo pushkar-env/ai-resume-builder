@@ -25,7 +25,9 @@ function str(v: unknown): string {
 
 /** Strips characters illegal in WordprocessingML runs and caps extreme length. */
 function sanitizeWordText(input: string): string {
-  let s = input.replace(XML_TEXT_CONTROL, "");
+  let s = input
+    .replace(XML_TEXT_CONTROL, "")
+    .replace(/\u00ad/g, "");
   if (s.length > MAX_RUN_CHARS) s = `${s.slice(0, MAX_RUN_CHARS)}…`;
   return s;
 }

@@ -1783,17 +1783,29 @@ export function ResumePreview({ resume, accentColor, fontScale = 1, fontColor, b
       <style
         dangerouslySetInnerHTML={{
           __html: `
-            /* Rich-text blocks (summary/project/bullets): keep normal words intact. */
-            .a4-page .resume-text {
-              word-break: normal;
-              overflow-wrap: break-word; /* allows long tokens to wrap instead of overflowing */
-              white-space: normal;
-              hyphens: none; /* prevents auto-hyphenation splitting words */
+            /*
+             * Rich text (summary, bullets, project descriptions): override inline paste styles
+             * (Word/Docs often set word-break / white-space on spans) so words stay whole.
+             */
+            .a4-page .resume-text,
+            .a4-page .resume-text * {
+              word-break: normal !important;
+              overflow-wrap: break-word !important;
+              word-wrap: break-word !important;
+              white-space: normal !important;
+              hyphens: none !important;
+              -webkit-hyphens: none !important;
+              line-break: auto !important;
             }
-            /* Links are commonly long (URLs) – allow more aggressive wrapping for those only. */
+            @supports (text-wrap: pretty) {
+              .a4-page .resume-text {
+                text-wrap: pretty;
+              }
+            }
+            /* Long URLs / emails only — may break inside the token */
             .a4-page .resume-text a {
-              overflow-wrap: anywhere;
-              word-break: break-word;
+              overflow-wrap: anywhere !important;
+              word-break: break-word !important;
             }
           `,
         }}

@@ -1,5 +1,6 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 
 interface RichTextEditorProps {
   value: string;
@@ -40,7 +41,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
       <ReactQuill
         theme="snow"
         value={value}
-        onChange={onChange}
+        onChange={(html) => onChange(sanitizeResumeRichHtml(html))}
         placeholder={placeholder}
         modules={modules}
         formats={formats}
