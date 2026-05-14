@@ -117,6 +117,10 @@ type SectionContent = Record<string, unknown>;
 
 function downloadBlob(content: string, filename: string, type: string) {
   const blob = new Blob([content], { type });
+  downloadFileBlob(blob, filename);
+}
+
+function downloadFileBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -247,26 +251,25 @@ function ExportDialog({
       if (format === "json") {
         downloadBlob(JSON.stringify(resume, null, 2), `${name}.json`, "application/json");
         toast({ title: "JSON downloaded" });
-      } else {
+      } else if (format === "pdf") {
         const html = buildExportHtml(resume.title || "Resume");
         if (!html) {
           toast({ title: "Could not capture resume preview", variant: "destructive" });
           return;
         }
-        if (format === "pdf") {
-          // Use a hidden iframe for printing instead of window.open popups to prevent Safari from freezing
-          const iframe = document.createElement("iframe");
-          iframe.style.position = "fixed";
-          iframe.style.right = "0";
-          iframe.style.bottom = "0";
-          iframe.style.width = "0";
-          iframe.style.height = "0";
-          iframe.style.border = "0";
-          document.body.appendChild(iframe);
+        // Use a hidden iframe for printing instead of window.open popups to prevent Safari from freezing
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "fixed";
+        iframe.style.right = "0";
+        iframe.style.bottom = "0";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "0";
+        document.body.appendChild(iframe);
 
-          const htmlWithReady = html.replace(
-            "</body>",
-            `<script>
+        const htmlWithReady = html.replace(
+          "</body>",
+          `<script>
               (function(){
                 function whenReady(cb){
                   var links = Array.prototype.slice.call(document.querySelectorAll('link[rel="stylesheet"]'));
@@ -293,28 +296,32 @@ function ExportDialog({
                 else window.addEventListener('load', function(){ whenReady(go); });
               })();
             </script></body>`
-          );
+        );
 
-          const doc = iframe.contentWindow?.document;
-          if (doc) {
-            doc.open();
-            doc.write(htmlWithReady);
-            doc.close();
-            toast({ title: 'Print dialog opened — save as PDF', description: "On mobile, use the share button to Save to Files." });
-            
-            // Clean up iframe safely after a delay to ensure print dialog doesn't close immediately
-            setTimeout(() => {
-              if (document.body.contains(iframe)) {
-                document.body.removeChild(iframe);
-              }
-            }, 60000);
-          } else {
-            toast({ title: "Failed to open print frame", variant: "destructive" });
-          }
+        const doc = iframe.contentWindow?.document;
+        if (doc) {
+          doc.open();
+          doc.write(htmlWithReady);
+          doc.close();
+          toast({ title: 'Print dialog opened — save as PDF', description: "On mobile, use the share button to Save to Files." });
+
+          // Clean up iframe safely after a delay to ensure print dialog doesn't close immediately
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 60000);
         } else {
-          downloadBlob(html, `${name}.doc`, "application/msword");
-          toast({ title: "Word document downloaded" });
+          toast({ title: "Failed to open print frame", variant: "destructive" });
         }
+      } else {
+        const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
+        const docxBlob = await buildResumeDocxBlob(resume);
+        downloadFileBlob(docxBlob, `${name}.docx`);
+        toast({
+          title: "Word document downloaded",
+          description: "Native .docx for reliable layout in Microsoft Word.",
+        });
       }
       onClose();
     } finally {
@@ -324,7 +331,7 @@ function ExportDialog({
 
   const formats = [
     { id: "pdf" as const, label: "PDF Document", description: 'Opens auto-configured print dialog for perfect ATS vector export' },
-    { id: "docx" as const, label: "Word (.doc)", description: "Editable document, opens in Microsoft Word" },
+    { id: "docx" as const, label: "Word (.docx)", description: "Native Office Open XML — editable with stable layout in Word" },
     { id: "json" as const, label: "JSON Data", description: "Raw resume data for programmatic use" },
   ];
 
