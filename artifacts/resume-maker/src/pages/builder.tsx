@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -536,6 +536,12 @@ export default function BuilderPage() {
 
   const { data: templates } = useListTemplates();
 
+  const templateList = useMemo(() => (Array.isArray(templates) ? templates : []), [templates]);
+  const selectedTemplate = useMemo(
+    () => templateList.find((t) => t.id === templateId) ?? null,
+    [templateList, templateId],
+  );
+
   const updateResume = useUpdateResume({
     mutation: {
       onSuccess: (data) => {
@@ -703,7 +709,7 @@ export default function BuilderPage() {
   };
 
   const handleTemplateChange = (t: string) => {
-    const template = Array.isArray(templates) ? templates.find(temp => temp.id === t) : null;
+    const template = templateList.find((temp) => temp.id === t) ?? null;
     if (template?.isPremium && !isPremiumUser) {
       setPaywallTitle("Premium Template");
       setPaywallDescription("This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.");
@@ -714,11 +720,33 @@ export default function BuilderPage() {
     scheduleSave(localSections, accentColor, fontFamily, t, fontColor, backgroundColor);
   };
 
+  const showFontColorPaywall = useCallback(() => {
+    setPaywallTitle("Premium Text Color");
+    setPaywallDescription(
+      "Custom text colors are reserved for Pro users. Upgrade to unlock full color customization.",
+    );
+    setShowPaywall(true);
+  }, []);
+
+  const showBackgroundColorPaywall = useCallback(() => {
+    setPaywallTitle("Premium Background Color");
+    setPaywallDescription(
+      "Custom background colors are reserved for Pro users. Upgrade to unlock full color customization.",
+    );
+    setShowPaywall(true);
+  }, []);
+
+  const showAccentCustomPaywall = useCallback(() => {
+    setPaywallTitle("Premium Color Picker");
+    setPaywallDescription(
+      "Custom colors and premium palettes are reserved for Pro users. Upgrade to unlock all customization options.",
+    );
+    setShowPaywall(true);
+  }, []);
+
   const handleFontColorChange = (color: string) => {
     if (!isPremiumUser) {
-      setPaywallTitle("Premium Text Color");
-      setPaywallDescription("Custom text colors are reserved for Pro users. Upgrade to unlock full color customization.");
-      setShowPaywall(true);
+      showFontColorPaywall();
       return;
     }
     setFontColor(color);
@@ -727,9 +755,7 @@ export default function BuilderPage() {
 
   const handleBackgroundColorChange = (color: string) => {
     if (!isPremiumUser) {
-      setPaywallTitle("Premium Background Color");
-      setPaywallDescription("Custom background colors are reserved for Pro users. Upgrade to unlock full color customization.");
-      setShowPaywall(true);
+      showBackgroundColorPaywall();
       return;
     }
     setBackgroundColor(color);
@@ -872,14 +898,30 @@ export default function BuilderPage() {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
                   <Select value={templateId} onValueChange={handleTemplateChange}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <LayoutTemplate className="h-3 w-3 mr-1.5 shrink-0" />
-                      <SelectValue />
+                    <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5">
+                      <LayoutTemplate className="h-3 w-3 shrink-0" />
+                      <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                        <SelectValue placeholder="Template" />
+                        {selectedTemplate?.isPremium ? (
+                          <Star
+                            className="h-2.5 w-2.5 shrink-0 text-amber-500 fill-amber-500"
+                            aria-label="Premium template"
+                          />
+                        ) : null}
+                      </span>
                     </SelectTrigger>
                     <SelectContent>
-                      {(Array.isArray(templates) ? templates : []).map((t) => (
+                      {templateList.map((t) => (
                         <SelectItem key={t.id} value={t.id} className="text-xs">
-                          {t.name}
+                          <div className="flex w-full items-center justify-between gap-2 pr-6">
+                            <span className="truncate">{t.name}</span>
+                            {t.isPremium ? (
+                              <Star
+                                className="h-2.5 w-2.5 shrink-0 text-amber-500 fill-amber-500"
+                                aria-label="Premium template"
+                              />
+                            ) : null}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -926,43 +968,91 @@ export default function BuilderPage() {
                 {/* Font Color */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Text Color</p>
-                  <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
-                    <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
-                      {fontColor.toUpperCase()}
-                    </div>
-                    <input
-                      type="color"
-                      value={fontColor}
-                      onChange={(e) => handleFontColorChange(e.target.value)}
-                      className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                      title="Pick custom text color (Premium)"
-                    />
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: fontColor }} />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                    </div>
-                  </div>
+                  {isPremiumUser ? (
+                    <label
+                      className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
+                      htmlFor={`resume-font-color-${resumeId}`}
+                    >
+                      <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
+                        {fontColor.toUpperCase()}
+                      </span>
+                      <span
+                        className="pointer-events-none absolute left-2.5 top-1/2 z-0 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
+                        style={{ background: fontColor }}
+                      />
+                      <input
+                        id={`resume-font-color-${resumeId}`}
+                        type="color"
+                        value={fontColor}
+                        onChange={(e) => handleFontColorChange(e.target.value)}
+                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                        aria-label="Pick text color"
+                      />
+                    </label>
+                  ) : (
+                    <button
+                      type="button"
+                      className="relative flex h-8 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                      onClick={showFontColorPaywall}
+                      aria-label="Text color is a Pro feature. Tap to learn more."
+                    >
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
+                        {fontColor.toUpperCase()}
+                      </span>
+                      <span
+                        className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
+                        style={{ background: fontColor }}
+                      />
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" aria-hidden>
+                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Background Color */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Background Color</p>
-                  <div className="relative h-8 w-full rounded-md border border-input overflow-hidden bg-background hover:bg-muted/50 transition-colors">
-                    <div className="absolute inset-0 flex items-center justify-center text-[11px] font-medium pointer-events-none text-foreground/80">
-                      {backgroundColor.toUpperCase()}
-                    </div>
-                    <input
-                      type="color"
-                      value={backgroundColor}
-                      onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                      className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                      title="Pick custom background color (Premium)"
-                    />
-                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border border-border pointer-events-none" style={{ background: backgroundColor }} />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                    </div>
-                  </div>
+                  {isPremiumUser ? (
+                    <label
+                      className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
+                      htmlFor={`resume-bg-color-${resumeId}`}
+                    >
+                      <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
+                        {backgroundColor.toUpperCase()}
+                      </span>
+                      <span
+                        className="pointer-events-none absolute left-2.5 top-1/2 z-0 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
+                        style={{ background: backgroundColor }}
+                      />
+                      <input
+                        id={`resume-bg-color-${resumeId}`}
+                        type="color"
+                        value={backgroundColor}
+                        onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                        aria-label="Pick background color"
+                      />
+                    </label>
+                  ) : (
+                    <button
+                      type="button"
+                      className="relative flex h-8 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                      onClick={showBackgroundColorPaywall}
+                      aria-label="Background color is a Pro feature. Tap to learn more."
+                    >
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
+                        {backgroundColor.toUpperCase()}
+                      </span>
+                      <span
+                        className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
+                        style={{ background: backgroundColor }}
+                      />
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" aria-hidden>
+                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                      </span>
+                    </button>
+                  )}
                 </div>
 
                 {/* Accent color */}
@@ -991,16 +1081,34 @@ export default function BuilderPage() {
                         </div>
                       </PopoverContent>
                     </Popover>
-                    <div className="relative h-8 w-9 rounded-md border border-input overflow-hidden shrink-0 bg-background hover:bg-muted/50 transition-colors flex items-center justify-center">
-                      <Star className="absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500 pointer-events-none" />
-                      <Palette className="h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <input
-                        type="color"
-                        value={accentColor}
-                        onChange={(e) => handleAccentChange(e.target.value)}
-                        className="absolute -top-4 -left-4 h-24 w-24 cursor-pointer opacity-0"
-                        title="Pick custom color (Premium)"
-                      />
+                    <div className="relative h-8 w-9 shrink-0 overflow-hidden rounded-md border border-input bg-background hover:bg-muted/50 transition-colors">
+                      {isPremiumUser ? (
+                        <label
+                          className="relative flex h-full w-full cursor-pointer touch-manipulation items-center justify-center"
+                          htmlFor={`resume-accent-custom-${resumeId}`}
+                          aria-label="Pick custom accent color"
+                        >
+                          <Star className="pointer-events-none absolute top-0.5 right-0.5 z-0 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
+                          <Palette className="pointer-events-none relative z-0 h-4 w-4 text-muted-foreground" />
+                          <input
+                            id={`resume-accent-custom-${resumeId}`}
+                            type="color"
+                            value={accentColor}
+                            onChange={(e) => handleAccentChange(e.target.value)}
+                            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                          />
+                        </label>
+                      ) : (
+                        <button
+                          type="button"
+                          className="relative flex h-full w-full touch-manipulation items-center justify-center active:bg-muted/70"
+                          onClick={showAccentCustomPaywall}
+                          aria-label="Custom accent color is a Pro feature. Tap to learn more."
+                        >
+                          <Star className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
+                          <Palette className="pointer-events-none h-4 w-4 text-muted-foreground" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
