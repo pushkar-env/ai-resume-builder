@@ -50,7 +50,6 @@ import {
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@clerk/react";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import {
@@ -177,146 +176,148 @@ function DashboardResumeCard({
   const menuStartRef = useRef({ x: 0, y: 0 });
 
   return (
-    <motion.div
-      variants={fadeUp}
-      className="h-full"
-      transition={previewCardHoverTransition}
-      whileHover={
-        coarsePointer ? undefined : { ...previewCardWhileHover, transition: previewCardHoverTransition }
-      }
-      whileTap={previewCardWhileTap}
-    >
+    <motion.div variants={fadeUp} className="h-full">
       <Card
         className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45"
         onClick={() => navigate(`/builder/${resume.id}`)}
       >
-        <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate">
-          <ResumeThumbnail resumeId={resume.id} />
-        </div>
-
-        <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
-          <div className="flex items-start justify-between mb-auto">
-            <div className="flex-1 min-w-0 pr-14 md:pr-6">
-              <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
-              <span
-                className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
-              >
-                {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
-              </span>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+        <DropdownMenu
+          modal={false}
+          open={resumeMenuOpen}
+          onOpenChange={(next: boolean) => {
+            if (coarsePointer && next && menuSlipRef.current) {
+              menuSlipRef.current = false;
+              return;
+            }
+            setResumeMenuOpen(next);
+          }}
+        >
+          <motion.div
+            className="flex flex-col flex-1 min-h-0"
+            transition={previewCardHoverTransition}
+            whileHover={
+              coarsePointer || resumeMenuOpen
+                ? undefined
+                : { ...previewCardWhileHover, transition: previewCardHoverTransition }
+            }
+            whileTap={resumeMenuOpen ? undefined : previewCardWhileTap}
+          >
+            <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate">
+              <ResumeThumbnail resumeId={resume.id} />
             </div>
-            <DropdownMenu
-              modal={false}
-              {...(coarsePointer
-                ? {
-                    open: resumeMenuOpen,
-                    onOpenChange: (next: boolean) => {
-                      if (next && menuSlipRef.current) {
-                        menuSlipRef.current = false;
-                        return;
-                      }
-                      setResumeMenuOpen(next);
-                    },
-                  }
-                : {})}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation"
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    if (!coarsePointer) return;
-                    if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
-                    menuSlipRef.current = false;
-                    menuStartRef.current = { x: e.clientX, y: e.clientY };
-                    try {
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                    } catch {
-                      /* noop */
-                    }
-                  }}
-                  onPointerMove={(e) => {
-                    if (!coarsePointer) return;
-                    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-                    const s = menuStartRef.current;
-                    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
-                  }}
-                  onPointerUp={(e) => {
-                    if (!coarsePointer) return;
-                    try {
-                      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-                        e.currentTarget.releasePointerCapture(e.pointerId);
-                      }
-                    } catch {
-                      /* noop */
-                    }
-                  }}
-                  onPointerCancel={(e) => {
-                    if (!coarsePointer) return;
-                    try {
-                      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-                        e.currentTarget.releasePointerCapture(e.pointerId);
-                      }
-                    } catch {
-                      /* noop */
-                    }
-                  }}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/builder/${resume.id}`);
-                  }}
-                >
-                  <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Open Editor
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDuplicateRequest(resume.id);
-                  }}
-                >
-                  <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setRenameTitle(resume.title ?? "");
-                    setRenameId(resume.id);
-                  }}
-                >
-                  <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Rename
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteId(resume.id);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
 
-          <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
-            <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
-            Updated {timeAgo(resume.updatedAt)}
-          </div>
-        </CardContent>
+            <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
+              <div className="flex items-start justify-between mb-auto">
+                <div className="flex-1 min-w-0 pr-14 md:pr-6">
+                  <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
+                  <span
+                    className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
+                  >
+                    {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
+                <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
+                Updated {timeAgo(resume.updatedAt)}
+              </div>
+            </CardContent>
+          </motion.div>
+
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 z-20 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                if (!coarsePointer) return;
+                if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+                menuSlipRef.current = false;
+                menuStartRef.current = { x: e.clientX, y: e.clientY };
+                try {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                } catch {
+                  /* noop */
+                }
+              }}
+              onPointerMove={(e) => {
+                if (!coarsePointer) return;
+                if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                const s = menuStartRef.current;
+                if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
+              }}
+              onPointerUp={(e) => {
+                if (!coarsePointer) return;
+                try {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                  }
+                } catch {
+                  /* noop */
+                }
+              }}
+              onPointerCancel={(e) => {
+                if (!coarsePointer) return;
+                try {
+                  if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                  }
+                } catch {
+                  /* noop */
+                }
+              }}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/builder/${resume.id}`);
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+              Open Editor
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDuplicateRequest(resume.id);
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setRenameTitle(resume.title ?? "");
+                setRenameId(resume.id);
+              }}
+            >
+              <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(resume.id);
+              }}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        </div>
       </Card>
     </motion.div>
   );

@@ -5,10 +5,12 @@ import templatesRouter from "./templates";
 import dashboardRouter from "./dashboard";
 import aiRouter from "./ai";
 import paymentsRouter from "./payments";
+import contactRouter from "./contact";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(contactRouter);
 router.use(resumesRouter);
 router.use(templatesRouter);
 router.use(dashboardRouter);

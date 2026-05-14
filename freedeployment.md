@@ -8,6 +8,7 @@ This guide provides step-by-step instructions to deploy the AI Resume Builder pr
 * **Database:** Neon (Serverless Postgres with a generous free tier)
 * **Auth:** Clerk (Generous free tier for authentication)
 * **Payments:** Razorpay (Test mode is free)
+* **Contact form email:** [Resend](https://resend.com) (free tier for transactional email; API key + verified domain)
 
 ---
 
@@ -36,6 +37,7 @@ This guide provides step-by-step instructions to deploy the AI Resume Builder pr
    * Add `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_MONTHLY_PLAN_ID`, and `RAZORPAY_YEARLY_PLAN_ID`
    * Add `OPENAI_API_KEY`
    * Add `FRONTEND_URL` (e.g., `https://your-frontend-url.vercel.app` - you will set this after deploying the frontend).
+   * For the **Contact us** form (see [Contact form email (Resend)](#2b-contact-form-email-resend)): `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, and optionally `CONTACT_TO_EMAIL`.
 7. Click **Create Web Service**. 
 8. Render will provide a URL (e.g., `https://ai-resume-api.onrender.com`). Copy this.
 
@@ -49,8 +51,53 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
 4. Go to **Settings > General** for the service and ensure the **Root Directory** is left blank (or `/`). This is critical for monorepos!
 5. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/api-server run build`.
 6. Set the **Start Command** to `pnpm --filter @workspace/api-server run start`.
-7. Go to **Variables** and add all the necessary environment variables listed in the Render section above (including `DATABASE_URL`, `FRONTEND_URL`, Clerk keys, and Razorpay keys).
+7. Go to **Variables** and add all the necessary environment variables listed in the Render section above (including `DATABASE_URL`, `FRONTEND_URL`, Clerk keys, Razorpay keys, and Resend contact variables from [Contact form email (Resend)](#2b-contact-form-email-resend)).
 8. Railway will automatically build and deploy. Once complete, copy the provided URL (e.g., `https://ai-resume-api.up.railway.app`) and use it for your `VITE_API_URL` on Vercel.
+
+---
+
+## 2b. Contact form email (Resend)
+
+The **Contact us** page sends messages through your **API** (`POST /api/contact`). The API calls **Resend** to deliver email to your support inbox (default **support@resumesensei.com**). Nothing contact-related is configured on Vercel except making sure **`VITE_API_URL`** already points at your API (see below).
+
+### Get a Resend API key
+
+1. Create a free account at [resend.com](https://resend.com) and open the [Resend Dashboard](https://resend.com/dashboard).
+2. Go to **API Keys** → **Create API key**. Give it a name (e.g. `resume-builder-production`), choose permission **Sending access** (or full access if that is the only option), and create the key. **Copy it once** — you will not see the full secret again. This value is your **`RESEND_API_KEY`**.
+3. **Verified “from” address:** Resend only sends from addresses tied to a **verified domain** (recommended for production) or, for quick tests, their onboarding domain with tight limits. For **production**:
+   * In the dashboard go to **Domains** → **Add domain** and enter your site domain (e.g. `resumesensei.com`).
+   * Add the **DNS records** (usually TXT for SPF/DKIM) that Resend shows at your DNS host (Cloudflare, Vercel DNS, etc.).
+   * Wait until the domain shows as **Verified** in Resend.
+4. Choose a sender that uses that domain for **`CONTACT_FROM_EMAIL`**, for example: `ResumeSensei <hello@resumesensei.com>` (the part in angle brackets must be an address on the verified domain). This is the address users see as the sender; replies still go to the visitor’s email via **Reply-To** on each message.
+
+Resend’s free tier and limits change over time — see [Resend pricing](https://resend.com/pricing).
+
+### Backend environment variables (Railway or Render)
+
+Set these on the **same service** that runs `api-server` (e.g. your Railway project):
+
+| Variable | Required? | Purpose |
+|----------|------------|---------|
+| `RESEND_API_KEY` | **Yes** (for sending) | Secret from Resend **API Keys**. Without it, the contact endpoint returns **503** and the UI shows an error. |
+| `CONTACT_FROM_EMAIL` | **Yes** (for sending) | Verified sender string, e.g. `ResumeSensei <hello@resumesensei.com>`. Must match what Resend allows for your domain. |
+| `CONTACT_TO_EMAIL` | No | Inbox that receives submissions. Defaults to **`support@resumesensei.com`** if omitted. |
+
+After saving variables, **redeploy or restart** the API so the new values load.
+
+### Frontend (Vercel) — what you need
+
+You **do not** add the Resend secret to Vercel. The browser only talks to **your API**.
+
+* Ensure **`VITE_API_URL`** is set to your public API base **including the `/api` path**, for example:  
+  `https://your-service.up.railway.app/api`  
+  The contact form calls `POST {VITE_API_URL}/contact` → `…/api/contact` on the server.
+* Keep **`FRONTEND_URL`** on Railway set to your exact Vercel URL (e.g. `https://your-app.vercel.app`) so **CORS** continues to allow the contact `POST` from the browser.
+
+### Quick test
+
+1. Deploy the API with `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` set.
+2. Open your production **Contact** page, submit a test message, and confirm delivery in **`CONTACT_TO_EMAIL`** (or the default support inbox).
+3. If it fails, check Railway logs for `contact:` lines and confirm the domain and **from** address are verified in Resend.
 
 ## 3. Frontend Deployment (Vercel)
 1. Go to [Vercel.com](https://vercel.com) and sign in with GitHub.
@@ -61,7 +108,7 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
    * **Build Command:** `pnpm run build`
    * **Output Directory:** `dist`
 4. **Environment Variables:**
-   * `VITE_API_URL`: Your Render (or Railway) backend URL (e.g., `https://ai-resume-api.onrender.com/api`)
+   * `VITE_API_URL`: Your Render or **Railway** backend URL **with `/api` on the end** (e.g. `https://ai-resume-api.onrender.com/api` or `https://your-service.up.railway.app/api`). Required for authenticated API calls **and** for the public **Contact us** form (`POST …/contact`).
    * `VITE_CLERK_PUBLISHABLE_KEY`: Your Clerk frontend key.
    * `VITE_RAZORPAY_KEY_ID`: Your Razorpay public key.
 5. Click **Deploy**. Vercel will build and assign you a fast, global CDN link (e.g., `https://ai-resume-builder.vercel.app`).
@@ -72,7 +119,8 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
 ## 4. Final Setup (Webhooks & CORS)
 1. **Clerk:** In the Clerk Dashboard, add your **production** frontend URL (and your API origin if required) under **Domains** / **Allowed origins** so sign-in works on Vercel. **Clerk webhooks** are optional unless you add a handler route on your API; this repo uses Clerk for auth/session and Razorpay webhooks for billing. If you add a Clerk webhook endpoint later, register its full URL under **Webhooks** and store the signing secret (for example as `CLERK_WEBHOOK_SECRET`) in your backend.
 2. **Razorpay Webhooks:** In the Razorpay Dashboard (same mode as your keys), go to **Account & Settings** → **Webhooks**. Point the URL to `https://your-api-url.onrender.com/api/payments/webhook` (replace with your real API base + `/api/payments/webhook`).
-3. **Backend CORS:** In your Render dashboard, ensure your `FRONTEND_URL` exactly matches your Vercel URL so the backend accepts requests.
+3. **Backend CORS:** On **Render** or **Railway**, ensure **`FRONTEND_URL`** exactly matches your Vercel URL (scheme + host, no trailing slash unless your app expects it) so the backend accepts browser requests, including anonymous **`POST /api/contact`** from the marketing **Contact** page.
+4. **Contact form:** Confirm **`RESEND_API_KEY`** and **`CONTACT_FROM_EMAIL`** are set on the API (see [Contact form email (Resend)](#2b-contact-form-email-resend)). No extra Vercel secrets are required beyond a correct **`VITE_API_URL`**.
 
 ---
 

@@ -20,7 +20,7 @@ export default function PricingPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;

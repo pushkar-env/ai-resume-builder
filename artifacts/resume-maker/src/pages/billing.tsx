@@ -48,7 +48,7 @@ export default function BillingPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [isCancelling, setIsCancelling] = useState(false);
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
