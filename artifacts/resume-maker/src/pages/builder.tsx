@@ -985,7 +985,7 @@ export default function BuilderPage() {
                         <SelectItem key={t.id} value={t.id} className="text-xs">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="truncate">{t.name}</span>
-                            {t.isPremium ? (
+                            {t.isPremium && !isPremiumUser ? (
                               <Star
                                 className="h-2.5 w-2.5 shrink-0 text-amber-500 fill-amber-500"
                                 aria-label="Premium template"
@@ -1010,7 +1010,7 @@ export default function BuilderPage() {
                         <SelectItem key={f.value} value={f.value} className="text-xs">
                           <div className="flex items-center justify-between w-full">
                             <span>{f.label}</span>
-                            {f.isPremium && <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />}
+                            {f.isPremium && !isPremiumUser && <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />}
                           </div>
                         </SelectItem>
                       ))}
@@ -1158,7 +1158,6 @@ export default function BuilderPage() {
                           htmlFor={`resume-accent-custom-${resumeId}`}
                           aria-label="Pick custom accent color"
                         >
-                          <Star className="pointer-events-none absolute top-0.5 right-0.5 z-0 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
                           <Palette className="pointer-events-none relative z-0 h-4 w-4 text-muted-foreground" />
                           <input
                             id={`resume-accent-custom-${resumeId}`}
