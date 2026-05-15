@@ -29,28 +29,36 @@ export function SiteFooter() {
             <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <a
                 className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center"
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61589723583970"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
               >
                 <Facebook className="h-4 w-4" />
               </a>
               <a
                 className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center"
-                href="#"
+                href="https://www.instagram.com/itsresumesensei/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4" />
               </a>
               <a
                 className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center"
-                href="#"
+                href="https://www.youtube.com/@resumesensei"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="YouTube"
               >
                 <Youtube className="h-4 w-4" />
               </a>
               <a
                 className="h-9 w-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors inline-flex items-center justify-center"
-                href="#"
+                href="https://www.linkedin.com/company/117614012/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-4 w-4" />
