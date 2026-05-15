@@ -1,6 +1,6 @@
 {
-  "name": "ResumeSensei",
-  "short_name": "ResumeSensei",
+  "name": "Resumesensei",
+  "short_name": "Resumesensei",
   "description": "AI Resume Builder & ATS Resume Checker",
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },

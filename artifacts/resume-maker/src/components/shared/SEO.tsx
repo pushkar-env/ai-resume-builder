@@ -22,7 +22,7 @@ export function SEO({
   robots = "index, follow",
   jsonLd,
 }: SEOProps) {
-  const siteName = "ResumeSensei";
+  const siteName = "Resumesensei";
   const defaultOgImage = "https://resumesensei.com/bluemascot.svg";
 
   const graph =

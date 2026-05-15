@@ -47,19 +47,19 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
   {
     "@type": "Organization",
     "@id": `${SITE_URL}/#organization`,
-    name: "ResumeSensei",
+    name: "Resumesensei",
     url: SITE_URL,
     logo: {
       "@type": "ImageObject",
       url: `${SITE_URL}/bluemascot.svg`,
     },
     description:
-      "ResumeSensei is an online resume builder with AI-assisted writing, ATS score insights, and exports that match the live preview.",
+      "Resumesensei is an online resume builder with AI-assisted writing, ATS score insights, and exports that match the live preview.",
   },
   {
     "@type": "WebSite",
     "@id": `${SITE_URL}/#website`,
-    name: "ResumeSensei",
+    name: "Resumesensei",
     url: SITE_URL,
     description:
       "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF, DOCX, and JSON export.",
@@ -68,7 +68,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
   },
   {
     "@type": "SoftwareApplication",
-    name: "ResumeSensei",
+    name: "Resumesensei",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: SITE_URL,
