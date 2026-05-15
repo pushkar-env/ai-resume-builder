@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
-import { motion, type Variants } from "framer-motion";
+import { motion, useAnimationControls, type Variants } from "framer-motion";
 import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +46,7 @@ import {
   useUpdateResume,
   useGetResume,
   getListResumesQueryKey,
+  getGetResumeQueryKey,
   type Resume,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
@@ -56,6 +57,7 @@ import {
   previewCardHoverTransition,
   previewCardWhileHover,
 } from "@/lib/preview-card-hover";
+
 
 const templateColors: Record<string, string> = {
   modern: "bg-violet-100 text-violet-700",
@@ -109,7 +111,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   }, []);
 
   const { data: resume } = useGetResume(resumeId, {
-    query: { enabled: inView },
+    query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView },
   });
 
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
@@ -173,18 +175,32 @@ function DashboardResumeCard({
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
+  const hoverControls = useAnimationControls();
+  const isHoveringRef = useRef(false);
+
+  // When the menu closes, settle the card back to rest if the mouse already left
+  useEffect(() => {
+    if (!resumeMenuOpen && !isHoveringRef.current) {
+      hoverControls.start({ y: 0, scale: 1, transition: previewCardHoverTransition });
+    }
+  }, [resumeMenuOpen, hoverControls]);
 
   return (
-    <motion.div
-      variants={fadeUp}
-      className="h-full"
-      transition={previewCardHoverTransition}
-      whileHover={
-        coarsePointer
-          ? undefined
-          : { ...previewCardWhileHover, transition: previewCardHoverTransition }
-      }
-    >
+    <motion.div variants={fadeUp} className="h-full">
+      <motion.div
+        className="h-full"
+        animate={hoverControls}
+        onHoverStart={() => {
+          if (coarsePointer || resumeMenuOpen) return;
+          isHoveringRef.current = true;
+          hoverControls.start({ ...previewCardWhileHover, transition: previewCardHoverTransition });
+        }}
+        onHoverEnd={() => {
+          isHoveringRef.current = false;
+          if (resumeMenuOpen) return;
+          hoverControls.start({ y: 0, scale: 1, transition: previewCardHoverTransition });
+        }}
+      >
       <Card
         className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45"
         onClick={() => navigate(`/builder/${resume.id}`)}
@@ -315,6 +331,7 @@ function DashboardResumeCard({
           </div>
         </CardContent>
       </Card>
+      </motion.div>
     </motion.div>
   );
 }
@@ -360,7 +377,7 @@ export default function DashboardPage() {
 
   const createResume = useCreateResume({
     mutation: {
-      onSuccess: (data) => {
+      onSuccess: (data: Resume) => {
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         setCreateOpen(false);
         navigate(`/builder/${data.id}`);
