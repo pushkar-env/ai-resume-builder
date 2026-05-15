@@ -58,3 +58,7 @@ replit.nix
 # Deployment
 .vercel
 render-build.sh
+
+# Playwright test output
+playwright-report/
+test-results/
