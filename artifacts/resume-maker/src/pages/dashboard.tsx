@@ -171,31 +171,8 @@ function DashboardResumeCard({
   handleDuplicateRequest: (id: number) => void;
 }) {
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
-  /** Desktop: Framer hover runs on the whole card; suppress it while the ⋯ is pressed / menu is open so the card does not “pop”. */
-  const [suppressHoverMotion, setSuppressHoverMotion] = useState(false);
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
-  const menuOpenRef = useRef(false);
-  const clearSuppressTimerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
-
-  useEffect(() => {
-    menuOpenRef.current = resumeMenuOpen;
-  }, [resumeMenuOpen]);
-
-  useEffect(
-    () => () => {
-      if (clearSuppressTimerRef.current) window.clearTimeout(clearSuppressTimerRef.current);
-    },
-    [],
-  );
-
-  const scheduleClearHoverSuppress = () => {
-    if (clearSuppressTimerRef.current) window.clearTimeout(clearSuppressTimerRef.current);
-    clearSuppressTimerRef.current = window.setTimeout(() => {
-      clearSuppressTimerRef.current = null;
-      if (!menuOpenRef.current) setSuppressHoverMotion(false);
-    }, 450);
-  };
 
   return (
     <motion.div
@@ -203,7 +180,7 @@ function DashboardResumeCard({
       className="h-full"
       transition={previewCardHoverTransition}
       whileHover={
-        coarsePointer || resumeMenuOpen || suppressHoverMotion
+        coarsePointer
           ? undefined
           : { ...previewCardWhileHover, transition: previewCardHoverTransition }
       }
@@ -235,9 +212,6 @@ function DashboardResumeCard({
                   return;
                 }
                 setResumeMenuOpen(next);
-                if (clearSuppressTimerRef.current) window.clearTimeout(clearSuppressTimerRef.current);
-                clearSuppressTimerRef.current = null;
-                if (!next) setSuppressHoverMotion(false);
               }}
             >
               <DropdownMenuTrigger asChild>
@@ -249,7 +223,6 @@ function DashboardResumeCard({
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => {
                     e.stopPropagation();
-                    setSuppressHoverMotion(true);
                     if (!coarsePointer) return;
                     if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
                     menuSlipRef.current = false;
@@ -276,7 +249,6 @@ function DashboardResumeCard({
                         /* noop */
                       }
                     }
-                    scheduleClearHoverSuppress();
                   }}
                   onPointerCancel={(e) => {
                     if (coarsePointer) {
@@ -288,7 +260,6 @@ function DashboardResumeCard({
                         /* noop */
                       }
                     }
-                    scheduleClearHoverSuppress();
                   }}
                 >
                   <MoreHorizontal className="h-4 w-4" />

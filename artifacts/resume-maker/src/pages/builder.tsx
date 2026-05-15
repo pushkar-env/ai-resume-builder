@@ -949,8 +949,8 @@ export default function BuilderPage() {
           <div className="px-3 pt-3 pb-2 shrink-0 min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Sections</p>
           </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="px-3 pb-3">
+          <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!block">
+            <div className="px-3 pb-3 overflow-hidden min-w-0">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-0.5">
@@ -975,17 +975,16 @@ export default function BuilderPage() {
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
                   <Select value={templateId} onValueChange={handleTemplateChange}>
-                    <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5">
+                    <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5 overflow-hidden">
                       <LayoutTemplate className="h-3 w-3 shrink-0" />
-                      <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-                        {/* SelectValue mirrors SelectItem content (name + premium star). */}
+                      <span className="min-w-0 flex-1 truncate text-left">
                         <SelectValue placeholder="Template" />
                       </span>
                     </SelectTrigger>
                     <SelectContent>
                       {templateList.map((t) => (
                         <SelectItem key={t.id} value={t.id} className="text-xs">
-                          <div className="flex w-full items-center justify-between gap-2 pr-6">
+                          <span className="inline-flex items-center gap-1.5">
                             <span className="truncate">{t.name}</span>
                             {t.isPremium ? (
                               <Star
@@ -993,7 +992,7 @@ export default function BuilderPage() {
                                 aria-label="Premium template"
                               />
                             ) : null}
-                          </div>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
