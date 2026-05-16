@@ -1,6 +1,7 @@
 import type * as React from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
+import { snapFontScale } from "@/lib/resume-font-scale";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 
 /* ─── Types ─── */
@@ -1842,6 +1843,7 @@ export function ResumePreview({
   /** When true (Free plan), a subtle brand footer appears on every template and in PDF print export. */
   showWatermark?: boolean;
 }) {
+  const scale = snapFontScale(fontScale);
   const color = accentColor ?? resume.accentColor ?? "#7c3aed";
   const font = resume.fontFamily ?? "Inter, sans-serif";
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
@@ -1880,6 +1882,7 @@ export function ResumePreview({
       className={`a4-page overflow-hidden relative${showWatermark ? " flex h-[1123px] max-h-[1123px] flex-col" : ""}`}
       style={{ fontFamily: font, backgroundColor: bColor }}
       data-font-color={fColor}
+      data-font-scale={String(scale)}
       data-watermarked={showWatermark ? "" : undefined}
     >
       <style
@@ -1939,6 +1942,19 @@ export function ResumePreview({
               min-height: 0;
               min-width: 0;
             }
+            /* Large font sizes: slightly tighter leading so content fits one A4 page (Free). */
+            .a4-page[data-watermarked][data-font-scale="1.35"] .resume-text,
+            .a4-page[data-watermarked][data-font-scale="1.35"] .resume-text * {
+              line-height: 1.38 !important;
+            }
+            .a4-page[data-watermarked][data-font-scale="1.5"] .resume-text,
+            .a4-page[data-watermarked][data-font-scale="1.5"] .resume-text * {
+              line-height: 1.32 !important;
+            }
+            .a4-page[data-font-scale="1.35"] .resume-preview-zoom-region,
+            .a4-page[data-font-scale="1.5"] .resume-preview-zoom-region {
+              overflow: hidden;
+            }
           `,
         }}
       />
@@ -1994,7 +2010,7 @@ export function ResumePreview({
           <div className="resume-preview-watermark-shell flex min-h-0 w-full flex-1 flex-col">
             <div
               className="resume-preview-zoom-region flex min-h-0 flex-1 flex-col overflow-hidden"
-              style={{ zoom: fontScale, width: "100%" }}
+              style={{ zoom: scale, width: "100%" }}
             >
               {templateStack}
             </div>
@@ -2003,7 +2019,7 @@ export function ResumePreview({
         ) : (
           <div
             className="flex min-h-0 w-full flex-col"
-            style={{ zoom: fontScale, width: "100%", minHeight: `${1123 / fontScale}px` }}
+            style={{ zoom: scale, width: "100%", minHeight: `${1123 / scale}px` }}
           >
             {templateStack}
           </div>

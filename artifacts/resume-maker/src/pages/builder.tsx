@@ -58,6 +58,8 @@ import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SectionEditor } from "@/components/resume/SectionEditor";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { SEO } from "@/components/shared/SEO";
+import { FontSizeSlider } from "@/components/resume/FontSizeSlider";
+import { DEFAULT_FONT_SCALE, snapFontScale } from "@/lib/resume-font-scale";
 import {
   useGetResume,
   useUpdateResume,
@@ -347,6 +349,7 @@ function ExportDialog({
           const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
           const docxBlob = await buildResumeDocxBlob(resume, {
             includeWatermark: !isPremiumUser,
+            fontScale,
           });
           downloadFileBlob(docxBlob, `${base}.docx`);
           toast({
@@ -484,10 +487,10 @@ export default function BuilderPage() {
   const [fontColor, setFontColor] = useState("#111827");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [fontScale, setFontScale] = useState<number>(() => {
-    if (typeof window === "undefined" || !id) return 1.2;
+    if (typeof window === "undefined" || !id) return DEFAULT_FONT_SCALE;
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
     const n = v ? Number(v) : NaN;
-    return Number.isFinite(n) && n > 0 ? n : 1.2;
+    return Number.isFinite(n) && n > 0 ? snapFontScale(n) : DEFAULT_FONT_SCALE;
   });
   const [templateId, setTemplateId] = useState("modern");
   const [showPaywall, setShowPaywall] = useState(false);
@@ -523,7 +526,7 @@ export default function BuilderPage() {
     });
     obs.observe(contentRef.current);
     return () => obs.disconnect();
-  }, []);
+  }, [fontScale, templateId, isPremiumUser]);
 
   /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
   const handleFitPreview = useCallback(() => {
@@ -660,7 +663,7 @@ export default function BuilderPage() {
     if (typeof window === "undefined" || !id) return;
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
     const n = v ? Number(v) : NaN;
-    setFontScale(Number.isFinite(n) && n > 0 ? n : 1.2);
+    setFontScale(Number.isFinite(n) && n > 0 ? snapFontScale(n) : DEFAULT_FONT_SCALE);
     
     fontScaleHydratedFor.current = id;
   }, [id]);
@@ -1021,18 +1024,7 @@ export default function BuilderPage() {
                 {/* Font size */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font Size</p>
-                  <Select value={String(fontScale)} onValueChange={(v) => setFontScale(Number(v))}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0.85" className="text-xs">Extra Small (85%)</SelectItem>
-                      <SelectItem value="0.9" className="text-xs">Small (90%)</SelectItem>
-                      <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
-                      <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
-                      <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FontSizeSlider value={fontScale} onChange={setFontScale} />
                 </div>
 
                 {/* Font Color */}

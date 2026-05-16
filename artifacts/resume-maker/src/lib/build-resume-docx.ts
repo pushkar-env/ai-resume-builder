@@ -1,4 +1,5 @@
 import type { ResumeDetail, ResumeSection } from "@workspace/api-client-react";
+import { snapFontScale } from "@/lib/resume-font-scale";
 import {
   AlignmentType,
   BorderStyle,
@@ -159,8 +160,9 @@ function linkParagraph(opts: {
   font: string;
   spacingAfter: number;
   indentInches?: number;
+  textSize?: number;
 }): Paragraph {
-  const { display, rawUrl, font, spacingAfter, indentInches } = opts;
+  const { display, rawUrl, font, spacingAfter, indentInches, textSize = 20 } = opts;
   const safe = safeExternalHref(rawUrl);
   const indent = indentInches !== undefined ? { left: convertInchesToTwip(indentInches) } : undefined;
   const label = sanitizeWordText(display || safe || rawUrl);
@@ -170,7 +172,7 @@ function linkParagraph(opts: {
       indent,
       children: [
         new ExternalHyperlink({
-          children: [new TextRun({ text: label || safe, style: "Hyperlink", size: 20, font })],
+          children: [new TextRun({ text: label || safe, style: "Hyperlink", size: textSize, font })],
           link: safe,
         }),
       ],
@@ -179,7 +181,7 @@ function linkParagraph(opts: {
   return new Paragraph({
     spacing: { after: spacingAfter },
     indent,
-    children: [new TextRun({ text: label || sanitizeWordText(rawUrl), size: 20, font })],
+    children: [new TextRun({ text: label || sanitizeWordText(rawUrl), size: textSize, font })],
   });
 }
 
@@ -217,14 +219,14 @@ function wordPrimaryFont(fontStack: string): string {
   return "Calibri";
 }
 
-function sectionHeading(text: string, accent: string, font: string): Paragraph {
+function sectionHeading(text: string, accent: string, font: string, fs: (n: number) => number): Paragraph {
   const color = hexToWordColor(accent);
   return new Paragraph({
     spacing: { before: 280, after: 120 },
     border: {
       bottom: { color: "CCCCCC", style: BorderStyle.SINGLE, size: 6, space: 1 },
     },
-    children: [new TextRun({ text: sanitizeWordText(text), bold: true, size: 24, color, font, allCaps: true })],
+    children: [new TextRun({ text: sanitizeWordText(text), bold: true, size: fs(24), color, font, allCaps: true })],
   });
 }
 
@@ -234,9 +236,12 @@ function sectionHeading(text: string, accent: string, font: string): Paragraph {
  */
 export async function buildResumeDocxBlob(
   resume: ResumeDetail,
-  options?: { includeWatermark?: boolean },
+  options?: { includeWatermark?: boolean; fontScale?: number },
 ): Promise<Blob> {
   const includeWatermark = options?.includeWatermark === true;
+  const fontScale = snapFontScale(options?.fontScale ?? 1);
+  const fs = (halfPoints: number) =>
+    Math.min(96, Math.max(14, Math.round(halfPoints * fontScale)));
   const accent = resume.accentColor ?? "#4472C4";
   const accentHex = hexToWordColor(accent);
   const font = wordPrimaryFont(resume.fontFamily ?? "Calibri");
@@ -256,7 +261,7 @@ export async function buildResumeDocxBlob(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 120 },
-      children: [new TextRun({ text: sanitizeWordText(str(personal.name) || "Resume"), bold: true, size: 52, font })],
+      children: [new TextRun({ text: sanitizeWordText(str(personal.name) || "Resume"), bold: true, size: fs(52), font })],
     }),
   );
 
@@ -266,7 +271,7 @@ export async function buildResumeDocxBlob(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 160 },
-        children: [new TextRun({ text: sanitizeWordText(role), size: 28, color: accentHex, font })],
+        children: [new TextRun({ text: sanitizeWordText(role), size: fs(28), color: accentHex, font })],
       }),
     );
   }
@@ -284,24 +289,24 @@ export async function buildResumeDocxBlob(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 240 },
-        children: [new TextRun({ text: contactParts.join("  |  "), size: 20, font })],
+        children: [new TextRun({ text: contactParts.join("  |  "), size: fs(20), font })],
       }),
     );
   }
 
   if (str(summary.text).trim()) {
-    body.push(sectionHeading("Professional summary", accent, font));
-    body.push(...htmlToPlainParagraphs(str(summary.text), 22, font));
+    body.push(sectionHeading("Professional summary", accent, font, fs));
+    body.push(...htmlToPlainParagraphs(str(summary.text), fs(22), font));
   }
 
   if (experience.length > 0) {
-    body.push(sectionHeading("Experience", accent, font));
+    body.push(sectionHeading("Experience", accent, font, fs));
     for (const e of experience) {
       const dates = `${str(e.startDate)}${e.endDate ? ` – ${str(e.endDate)}` : str(e.startDate) ? " – Present" : ""}`;
       body.push(
         new Paragraph({
           spacing: { before: 200, after: 40 },
-          children: [new TextRun({ text: sanitizeWordText(str(e.title)), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(e.title)), bold: true, size: fs(24), font })],
         }),
       );
       const companyLine = `${str(e.company)}${e.location ? ` · ${str(e.location)}` : ""}`;
@@ -309,7 +314,7 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { after: 100 },
-          children: [new TextRun({ text: sanitizeWordText(companyAndDates), size: 22, font })],
+          children: [new TextRun({ text: sanitizeWordText(companyAndDates), size: fs(22), font })],
         }),
       );
 
@@ -322,7 +327,7 @@ export async function buildResumeDocxBlob(
             new Paragraph({
               numbering: { reference: BULLET_REF, level: 0 },
               spacing: { after: 40 },
-              children: [new TextRun({ text: main, size: 22, font })],
+              children: [new TextRun({ text: main, size: fs(22), font })],
             }),
           );
         }
@@ -334,6 +339,7 @@ export async function buildResumeDocxBlob(
               font,
               spacingAfter: 60,
               indentInches: 0.35,
+              textSize: fs(20),
             }),
           );
         } else if (label && !link && text) {
@@ -342,7 +348,7 @@ export async function buildResumeDocxBlob(
               indent: { left: convertInchesToTwip(0.35) },
               spacing: { after: 60 },
               children: [
-                new TextRun({ text: sanitizeWordText(`— ${label}`), italics: true, size: 20, color: accentHex, font }),
+                new TextRun({ text: sanitizeWordText(`— ${label}`), italics: true, size: fs(20), color: accentHex, font }),
               ],
             }),
           );
@@ -352,12 +358,12 @@ export async function buildResumeDocxBlob(
   }
 
   if (education.length > 0) {
-    body.push(sectionHeading("Education", accent, font));
+    body.push(sectionHeading("Education", accent, font, fs));
     for (const e of education) {
       body.push(
         new Paragraph({
           spacing: { before: 80, after: 40 },
-          children: [new TextRun({ text: sanitizeWordText(str(e.school)), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(e.school)), bold: true, size: fs(24), font })],
         }),
       );
       const parts = [str(e.degree), str(e.field)].filter(Boolean);
@@ -365,7 +371,7 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 40 },
-            children: [new TextRun({ text: sanitizeWordText(parts.join(", ")), size: 22, font })],
+            children: [new TextRun({ text: sanitizeWordText(parts.join(", ")), size: fs(22), font })],
           }),
         );
       }
@@ -374,7 +380,7 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 100 },
-            children: [new TextRun({ text: sanitizeWordText(dates), size: 20, color: "666666", font })],
+            children: [new TextRun({ text: sanitizeWordText(dates), size: fs(20), color: "666666", font })],
           }),
         );
       }
@@ -382,7 +388,7 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 80 },
-            children: [new TextRun({ text: sanitizeWordText(`GPA: ${str(e.gpa)}`), size: 20, font })],
+            children: [new TextRun({ text: sanitizeWordText(`GPA: ${str(e.gpa)}`), size: fs(20), font })],
           }),
         );
       }
@@ -393,10 +399,10 @@ export async function buildResumeDocxBlob(
     const style = skillsStyleFromOrdered(ordered) ?? "chips";
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {
-      body.push(sectionHeading("Skills", accent, font));
+      body.push(sectionHeading("Skills", accent, font, fs));
       if (style === "text" || (style !== "bars" && style !== "radial")) {
         const line = sanitizeWordText(skills.map((s) => str(s.name)).filter(Boolean).join(", "));
-        if (line) body.push(new Paragraph({ children: [new TextRun({ text: line, size: 22, font })] }));
+        if (line) body.push(new Paragraph({ children: [new TextRun({ text: line, size: fs(22), font })] }));
       } else {
         for (const s of skills) {
           const nm = str(s.name).trim();
@@ -405,7 +411,7 @@ export async function buildResumeDocxBlob(
           body.push(
             new Paragraph({
               spacing: { after: 80 },
-              children: [new TextRun({ text: sanitizeWordText(`${nm} — ${pct}%`), size: 22, font })],
+              children: [new TextRun({ text: sanitizeWordText(`${nm} — ${pct}%`), size: fs(22), font })],
             }),
           );
         }
@@ -414,12 +420,12 @@ export async function buildResumeDocxBlob(
   }
 
   if (projects.length > 0) {
-    body.push(sectionHeading("Projects", accent, font));
+    body.push(sectionHeading("Projects", accent, font, fs));
     for (const pr of projects) {
       body.push(
         new Paragraph({
           spacing: { before: 120, after: 60 },
-          children: [new TextRun({ text: sanitizeWordText(str(pr.name)), bold: true, size: 24, font })],
+          children: [new TextRun({ text: sanitizeWordText(str(pr.name)), bold: true, size: fs(24), font })],
         }),
       );
       const url = str(pr.url).trim();
@@ -430,15 +436,16 @@ export async function buildResumeDocxBlob(
             rawUrl: url,
             font,
             spacingAfter: 60,
+            textSize: fs(20),
           }),
         );
       }
-      body.push(...htmlToPlainParagraphs(str(pr.description), 22, font));
+      body.push(...htmlToPlainParagraphs(str(pr.description), fs(22), font));
     }
   }
 
   if (certs.length > 0) {
-    body.push(sectionHeading("Certifications", accent, font));
+    body.push(sectionHeading("Certifications", accent, font, fs));
     for (const c of certs) {
       let line = str(c.name);
       if (str(c.issuer)) line += ` — ${str(c.issuer)}`;
@@ -446,7 +453,7 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { after: 60 },
-          children: [new TextRun({ text: sanitizeWordText(line), size: 22, font })],
+          children: [new TextRun({ text: sanitizeWordText(line), size: fs(22), font })],
         }),
       );
       const credUrl = (str(c.credentialUrl) || str(c.url)).trim();
@@ -457,6 +464,7 @@ export async function buildResumeDocxBlob(
             rawUrl: credUrl,
             font,
             spacingAfter: 80,
+            textSize: fs(20),
           }),
         );
       }
@@ -470,13 +478,13 @@ export async function buildResumeDocxBlob(
         alignment: AlignmentType.CENTER,
         spacing: { before: 200, after: 80 },
         children: [
-          new TextRun({ text: "Created at ", size: 16, color: "94A3B8", font }),
+          new TextRun({ text: "Created at ", size: fs(16), color: "94A3B8", font }),
           new ExternalHyperlink({
             children: [
               new TextRun({
                 text: "resumesensei.com",
                 style: "Hyperlink",
-                size: 16,
+                size: fs(16),
                 font,
               }),
             ],

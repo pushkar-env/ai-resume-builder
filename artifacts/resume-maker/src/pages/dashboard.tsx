@@ -57,6 +57,7 @@ import {
   previewCardHoverTransition,
   previewCardWhileHover,
 } from "@/lib/preview-card-hover";
+import { snapFontScale } from "@/lib/resume-font-scale";
 
 
 const templateColors: Record<string, string> = {
@@ -119,7 +120,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     if (typeof window === "undefined") return;
     const v = window.localStorage.getItem(`resumeFontScale:${resumeId}`);
     const n = v ? Number(v) : NaN;
-    if (Number.isFinite(n) && n > 0) setFontScale(n);
+    if (Number.isFinite(n) && n > 0) setFontScale(snapFontScale(n));
   }, [resumeId]);
 
   return (
