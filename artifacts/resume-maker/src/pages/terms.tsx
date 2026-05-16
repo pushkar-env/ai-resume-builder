@@ -7,15 +7,15 @@ import { LegalPageShell } from "@/components/layout/legal-page-shell";
 export default function TermsPage() {
   return (
     <LegalPageShell
-      title="Terms & Conditions | ResumeSensei"
-      description="Terms and conditions for using ResumeSensei, including acceptable use, subscriptions, and limitations of liability."
+      title="Terms & Conditions | Resumesensei"
+      description="Terms and conditions for using Resumesensei, including acceptable use, subscriptions, and limitations of liability."
       canonicalUrl="https://resumesensei.com/terms"
       heading="Terms & Conditions"
       lastUpdated="May 11, 2026"
       icon={<Scale className="h-6 w-6" aria-hidden />}
     >
       <p>
-        These Terms &amp; Conditions (&quot;Terms&quot;) govern your access to and use of ResumeSensei
+        These Terms &amp; Conditions (&quot;Terms&quot;) govern your access to and use of Resumesensei
         (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) and our website, applications, and related
         services (the &quot;Services&quot;). By creating an account, clicking to accept, or using the
         Services, you agree to these Terms. If you do not agree, do not use the Services.

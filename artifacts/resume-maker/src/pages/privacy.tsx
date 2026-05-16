@@ -7,15 +7,15 @@ import { LegalPageShell } from "@/components/layout/legal-page-shell";
 export default function PrivacyPage() {
   return (
     <LegalPageShell
-      title="Privacy Policy | ResumeSensei"
-      description="How ResumeSensei collects, uses, and protects your information when you use our resume builder and related services."
+      title="Privacy Policy | Resumesensei"
+      description="How Resumesensei collects, uses, and protects your information when you use our resume builder and related services."
       canonicalUrl="https://resumesensei.com/privacy"
       heading="Privacy Policy"
       lastUpdated="May 11, 2026"
       icon={<Shield className="h-6 w-6" aria-hidden />}
     >
       <p>
-        This Privacy Policy describes how ResumeSensei (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) handles
+        This Privacy Policy describes how Resumesensei (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) handles
         information when you use our website, applications, and services (collectively, the
         &quot;Services&quot;). By using the Services, you agree to this policy. If you do not agree, please do
         not use the Services.

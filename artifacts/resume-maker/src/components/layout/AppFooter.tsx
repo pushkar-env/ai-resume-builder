@@ -19,7 +19,7 @@ export function AppFooter() {
               className="h-9 w-9 object-contain sm:h-10 sm:w-10"
               aria-hidden
             />
-            <span className="text-sm font-bold tracking-tight sm:text-base">ResumeSensei</span>
+            <span className="text-sm font-bold tracking-tight sm:text-base">Resumesensei</span>
           </Link>
 
           <nav
@@ -48,7 +48,7 @@ export function AppFooter() {
         </div>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-left">
-          © {new Date().getFullYear()} ResumeSensei. All rights reserved.
+          © {new Date().getFullYear()} Resumesensei. All rights reserved.
         </p>
       </div>
     </footer>

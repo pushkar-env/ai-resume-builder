@@ -151,8 +151,8 @@ export default function BillingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
-        title="Billing | ResumeSensei"
-        description="View plan status, manage subscription, and choose the best ResumeSensei pricing."
+        title="Billing | Resumesensei"
+        description="View plan status, manage subscription, and choose the best Resumesensei pricing."
       />
       <Navbar />
 
@@ -336,7 +336,7 @@ export default function BillingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="rounded-2xl border bg-card p-6 flex flex-col">
               <h3 className="text-lg font-bold">Free</h3>
-              <p className="text-sm text-muted-foreground mt-1">Best for trying out ResumeSensei</p>
+              <p className="text-sm text-muted-foreground mt-1">Best for trying out Resumesensei</p>
               <div className="mt-5">
                 <span className="text-4xl font-black">₹0</span>
                 <span className="text-muted-foreground"> / forever</span>

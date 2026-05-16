@@ -385,12 +385,12 @@ function ExportDialog({
           {showFormats ? (
             <DialogDescription>
               {isPremiumUser
-                ? "Pick a format. Pro exports have no ResumeSensei footer."
+                ? "Pick a format. Pro exports have no Resumesensei footer."
                 : "PDF and Word match your on-screen preview, including the subtle footer mark. JSON is data-only."}
             </DialogDescription>
           ) : (
             <DialogDescription className="text-left text-sm leading-relaxed">
-              On the Free plan, exports include a minimal ResumeSensei line at the bottom of the page (same as in preview).
+              On the Free plan, exports include a minimal Resumesensei line at the bottom of the page (same as in preview).
               Upgrade to Pro for clean, watermark-free PDF and Word files.
             </DialogDescription>
           )}
@@ -902,7 +902,7 @@ export default function BuilderPage() {
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden">
       <SEO 
-        title={`${resume?.title || 'Untitled Resume'} - Editor | ResumeSensei`}
+        title={`${resume?.title || 'Untitled Resume'} - Editor | Resumesensei`}
         description="Edit your professional resume with real-time AI suggestions."
       />
       <BuilderNavbar
@@ -912,7 +912,7 @@ export default function BuilderPage() {
         onAtsPremiumClick={() => {
           setPaywallTitle("ATS score is a Pro feature");
           setPaywallDescription(
-            "Upgrade to ResumeSensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit."
+            "Upgrade to Resumesensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit."
           );
           setShowPaywall(true);
         }}
@@ -1369,7 +1369,7 @@ export default function BuilderPage() {
           setExportOpen(false);
           setPaywallTitle("Watermark-free exports");
           setPaywallDescription(
-            "Pro removes the ResumeSensei footer from PDF and Word exports. You also unlock every template, unlimited AI writing help, and ATS score tracking.",
+            "Pro removes the Resumesensei footer from PDF and Word exports. You also unlock every template, unlimited AI writing help, and ATS score tracking.",
           );
           setShowPaywall(true);
         }}

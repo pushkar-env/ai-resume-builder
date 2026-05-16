@@ -131,7 +131,7 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
         from: CONTACT_FROM_EMAIL,
         to: [CONTACT_TO_EMAIL],
         reply_to: email,
-        subject: `[ResumeSensei Contact] ${subject}`,
+        subject: `[Resumesensei Contact] ${subject}`,
         html,
       }),
       signal: controller.signal,

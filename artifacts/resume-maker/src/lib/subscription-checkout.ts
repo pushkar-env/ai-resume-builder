@@ -352,7 +352,7 @@ export async function openSubscriptionCheckout(params: OpenSubscriptionCheckoutP
 
   const options: Record<string, unknown> = {
     key: razorpayKeyId,
-    name: "ResumeSensei",
+    name: "Resumesensei",
     description: `Pro ${billingCycle === "yearly" ? "Yearly" : "Monthly"} subscription`,
     image: checkoutImageUrl,
     subscription_id: subscriptionData.id,

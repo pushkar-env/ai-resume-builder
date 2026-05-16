@@ -15,11 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SEO } from "@/components/shared/SEO";
+import { brandJsonLdCore, SEO } from "@/components/shared/SEO";
+import { HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/brand";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-const SITE_URL = "https://resumesensei.com";
 
 const SEO_KEYWORDS =
   "resume builder, AI resume, ATS resume checker, ATS friendly resume, CV maker, professional resume templates, PDF resume, DOCX resume, job application resume, India resume builder";
@@ -27,11 +26,11 @@ const SEO_KEYWORDS =
 const faqs = [
   {
     q: "What does “ATS-friendly” mean here?",
-    a: "Applicant tracking systems parse your resume automatically. ResumeSensei uses clean typography and structure, and Pro includes an ATS score in your dashboard so you can iterate before you submit.",
+    a: "Applicant tracking systems parse your resume automatically. Resumesensei uses clean typography and structure, and Pro includes an ATS score in your dashboard so you can iterate before you submit.",
   },
   {
     q: "Will my PDF match the on-screen preview?",
-    a: "Yes. PDF and Word are generated from the same layout you see while editing. On Free, a small ResumeSensei footer appears at the bottom of the page; Pro removes it for a completely clean file.",
+    a: "Yes. PDF and Word are generated from the same layout you see while editing. On Free, a small Resumesensei footer appears at the bottom of the page; Pro removes it for a completely clean file.",
   },
   {
     q: "Do I need a card to try it?",
@@ -44,31 +43,10 @@ const faqs = [
 ] as const;
 
 const LANDING_JSON_LD: Record<string, unknown>[] = [
-  {
-    "@type": "Organization",
-    "@id": `${SITE_URL}/#organization`,
-    name: "Resumesensei",
-    url: SITE_URL,
-    logo: {
-      "@type": "ImageObject",
-      url: `${SITE_URL}/bluemascot.svg`,
-    },
-    description:
-      "Resumesensei is an online resume builder with AI-assisted writing, ATS score insights, and exports that match the live preview.",
-  },
-  {
-    "@type": "WebSite",
-    "@id": `${SITE_URL}/#website`,
-    name: "Resumesensei",
-    url: SITE_URL,
-    description:
-      "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF, DOCX, and JSON export.",
-    publisher: { "@id": `${SITE_URL}/#organization` },
-    inLanguage: "en-US",
-  },
+  ...brandJsonLdCore(),
   {
     "@type": "SoftwareApplication",
-    name: "Resumesensei",
+    name: SITE_NAME,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: SITE_URL,
@@ -150,7 +128,7 @@ const pillars = [
   {
     icon: Monitor,
     title: "Responsive workspace",
-    body: "Use ResumeSensei on desktop or mobile — edit when you have time, export when you are ready.",
+    body: "Use Resumesensei on desktop or mobile — edit when you have time, export when you are ready.",
   },
 ] as const;
 
@@ -163,7 +141,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background text-foreground">
       <SEO
-        title="ResumeSensei | AI Resume Builder & ATS Resume Checker"
+        title={HOME_TITLE}
         description="Build an ATS-friendly resume with AI writing help, 12 templates, and a live A4 preview. Free includes PDF, DOCX, and JSON export with a subtle footer on documents; Pro removes the watermark and unlocks unlimited resumes and full AI."
         canonicalUrl={`${SITE_URL}/`}
         keywords={SEO_KEYWORDS}
@@ -207,7 +185,7 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
-              ResumeSensei combines structured editing, AI suggestions, ATS score feedback, and exports that match your
+              Resumesensei combines structured editing, AI suggestions, ATS score feedback, and exports that match your
               live preview — without clutter.
             </motion.p>
             <motion.div

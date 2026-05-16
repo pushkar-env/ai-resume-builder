@@ -97,7 +97,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
-        title="Pricing | ResumeSensei Pro"
+        title="Pricing | Resumesensei Pro"
         description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
         canonicalUrl="https://resumesensei.com/pricing"
       />
@@ -110,7 +110,7 @@ export default function PricingPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Upgrade to Premium</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Unlock the full potential of ResumeSensei. Pro removes export watermarks, unlocks every template, unlimited AI, and ATS score tracking.
+            Unlock the full potential of Resumesensei. Pro removes export watermarks, unlocks every template, unlimited AI, and ATS score tracking.
           </p>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function PricingPage() {
           </div>
           <div className="min-w-0 flex-1 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
             <span className="font-semibold text-foreground">Free vs Pro exports.</span>{" "}
-            Free saves PDF and Word with a minimal ResumeSensei line at the bottom (you always see it in the builder preview).
+            Free saves PDF and Word with a minimal Resumesensei line at the bottom (you always see it in the builder preview).
             Pro removes that footer so your file is 100% yours for recruiters and ATS.
           </div>
         </div>

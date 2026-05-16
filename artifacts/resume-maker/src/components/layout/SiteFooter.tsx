@@ -18,10 +18,10 @@ export function SiteFooter() {
             <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-2 font-semibold text-foreground">
               <img
                 src={`${import.meta.env.BASE_URL}bluemascot.svg`}
-                alt="ResumeSensei mascot"
+                alt="Resumesensei mascot"
                 className="h-10 w-10 object-contain shrink-0"
               />
-              <span className="text-base font-bold tracking-tight">ResumeSensei</span>
+              <span className="text-base font-bold tracking-tight">Resumesensei</span>
             </div>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto sm:mx-0">
               An AI resume coach with ATS insights, modern templates, and exports that match your live preview.
@@ -137,7 +137,7 @@ export function SiteFooter() {
 
         <div className="mt-10 flex flex-col items-center gap-4 border-t border-border pt-6 text-center text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p className="max-w-prose px-1 leading-relaxed">
-            © {new Date().getFullYear()} ResumeSensei. All rights reserved.
+            © {new Date().getFullYear()} Resumesensei. All rights reserved.
           </p>
           <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:w-auto sm:max-w-none sm:justify-end">
             <Link href="/privacy" className="hover:text-foreground transition-colors">

@@ -181,7 +181,7 @@ export default function TemplatesPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO 
-        title="Resume Templates | ResumeSensei"
+        title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."
         canonicalUrl="https://resumesensei.com/templates"
       />

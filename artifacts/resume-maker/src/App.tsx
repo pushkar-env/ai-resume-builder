@@ -237,13 +237,13 @@ function ClerkProviderWithRoutes() {
       localization={{
         signIn: {
           start: {
-            title: "Welcome back to ResumeSensei",
+            title: "Welcome back to Resumesensei",
             subtitle: "Sign in to continue building your resume",
           },
         },
         signUp: {
           start: {
-            title: "Create your ResumeSensei account",
+            title: "Create your Resumesensei account",
             subtitle: "Join thousands of professionals landing great jobs",
           },
         },

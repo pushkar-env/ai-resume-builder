@@ -81,8 +81,8 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen min-w-0 w-full max-w-[100vw] bg-background flex flex-col overflow-x-clip">
       <SEO
-        title="Contact Us | ResumeSensei"
-        description="Have questions? Contact ResumeSensei for support, billing inquiries, or general feedback."
+        title="Contact Us | Resumesensei"
+        description="Have questions? Contact Resumesensei for support, billing inquiries, or general feedback."
         canonicalUrl="https://resumesensei.com/contact"
       />
       <Navbar />
@@ -96,7 +96,7 @@ export default function ContactPage() {
             Get in touch
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg text-pretty px-1 break-words">
-            Have questions about ResumeSensei or need support? We're here to help you land your dream job.
+            Have questions about Resumesensei or need support? We're here to help you land your dream job.
           </p>
         </div>
       </div>
