@@ -9,6 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+const SUPPORT_EMAIL = "support@resumesensei.com";
+const SALES_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Enterprise sales inquiry")}`;
+
 const initialForm = {
   name: "",
   email: "",
@@ -65,7 +68,7 @@ export default function ContactPage() {
     } catch {
       toast({
         title: "Network error",
-        description: "Check your connection and try again, or email support@resumesensei.com.",
+        description: `Check your connection and try again, or email ${SUPPORT_EMAIL}.`,
         variant: "destructive",
       });
     } finally {
@@ -229,10 +232,10 @@ export default function ContactPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-sm text-foreground">Email Support</p>
                     <a
-                      href="mailto:support@resumesensei.com"
+                      href={`mailto:${SUPPORT_EMAIL}`}
                       className="text-muted-foreground text-sm hover:text-primary transition-colors mt-1 block break-words [overflow-wrap:anywhere]"
                     >
-                      support@resumesensei.com
+                      {SUPPORT_EMAIL}
                     </a>
                   </div>
                 </div>
@@ -272,8 +275,8 @@ export default function ContactPage() {
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                 We offer custom ATS integrations and team billing for recruitment agencies and large organizations.
               </p>
-              <Button variant="outline" className="w-full">
-                Contact Sales
+              <Button variant="outline" className="w-full" asChild>
+                <a href={SALES_MAILTO}>Contact Sales</a>
               </Button>
             </div>
           </motion.div>
