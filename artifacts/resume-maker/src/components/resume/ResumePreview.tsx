@@ -879,7 +879,12 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
           {projects.map((pr, i) => (
             <div key={i} className="mb-1.5">
               <span className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</span>
-              {str(pr.description) && <span className="text-[8.5px] italic text-gray-600 ml-2">— {str(pr.description)}</span>}
+              {str(pr.description) && (
+                <span className="resume-text text-[8.5px] italic text-gray-600 ml-2">
+                  —{" "}
+                  <span dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -1213,7 +1218,18 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
       {projects.length > 0 && (
         <><SH label="Projects" />
           {projects.map((pr, i) => (
-            <p key={i} className="text-[8.5px] text-gray-700 mb-0.5"><strong>{str(pr.name)}</strong>{str(pr.description) ? ` — ${str(pr.description)}` : ""}</p>
+            <p key={i} className="text-[8.5px] text-gray-700 mb-0.5">
+              <strong>{str(pr.name)}</strong>
+              {str(pr.description) ? (
+                <>
+                  {" — "}
+                  <span
+                    className="resume-text [&_p]:inline [&_p]:m-0"
+                    dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
+                  />
+                </>
+              ) : null}
+            </p>
           ))}
         </>
       )}

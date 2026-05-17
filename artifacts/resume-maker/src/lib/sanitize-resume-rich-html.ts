@@ -92,8 +92,16 @@ function cleanInlineStyles(root: Element) {
   walk(root);
 }
 
+/** Quill empty placeholders — avoid blank blocks in preview/PDF. */
+function stripEmptyRichBlocks(html: string): string {
+  return html
+    .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    .replace(/<div>(?:\s|&nbsp;|<br\s*\/?>)*<\/div>/gi, "")
+    .trim();
+}
+
 export function sanitizeResumeRichHtml(html: string): string {
-  let s = stripWbrTags(stripSoftHyphensFromHtml(html)).replace(ZW_SPACE, "");
+  let s = stripEmptyRichBlocks(stripWbrTags(stripSoftHyphensFromHtml(html))).replace(ZW_SPACE, "");
   if (typeof DOMParser === "undefined") return s;
   try {
     const wrapped = `<div class="resume-sanitize-root">${s}</div>`;
