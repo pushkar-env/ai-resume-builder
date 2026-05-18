@@ -464,7 +464,7 @@ export async function buildResumeDocxBlob(
   }
 
   if (includeWatermark) {
-    const site = "https://resumesensei.com/";
+    const site = "https://www.resumesensei.com/";
     body.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -474,7 +474,7 @@ export async function buildResumeDocxBlob(
           new ExternalHyperlink({
             children: [
               new TextRun({
-                text: "resumesensei.com",
+                text: "www.resumesensei.com",
                 style: "Hyperlink",
                 size: 16,
                 font,

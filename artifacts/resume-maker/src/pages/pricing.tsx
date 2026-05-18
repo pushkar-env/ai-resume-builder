@@ -99,7 +99,7 @@ export default function PricingPage() {
       <SEO 
         title="Pricing | Resumesensei Pro"
         description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
-        canonicalUrl="https://resumesensei.com/pricing"
+        canonicalUrl="https://www.resumesensei.com/pricing"
       />
       <Navbar />
 

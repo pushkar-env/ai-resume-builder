@@ -183,7 +183,7 @@ export default function TemplatesPage() {
       <SEO 
         title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."
-        canonicalUrl="https://resumesensei.com/templates"
+        canonicalUrl="https://www.resumesensei.com/templates"
       />
       <Navbar />
 

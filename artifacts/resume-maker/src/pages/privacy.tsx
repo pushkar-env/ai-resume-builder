@@ -9,7 +9,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       title="Privacy Policy | Resumesensei"
       description="How Resumesensei collects, uses, and protects your information when you use our resume builder and related services."
-      canonicalUrl="https://resumesensei.com/privacy"
+      canonicalUrl="https://www.resumesensei.com/privacy"
       heading="Privacy Policy"
       lastUpdated="May 11, 2026"
       icon={<Shield className="h-6 w-6" aria-hidden />}

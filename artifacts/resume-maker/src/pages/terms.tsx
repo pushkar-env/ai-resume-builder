@@ -9,7 +9,7 @@ export default function TermsPage() {
     <LegalPageShell
       title="Terms & Conditions | Resumesensei"
       description="Terms and conditions for using Resumesensei, including acceptable use, subscriptions, and limitations of liability."
-      canonicalUrl="https://resumesensei.com/terms"
+      canonicalUrl="https://www.resumesensei.com/terms"
       heading="Terms & Conditions"
       lastUpdated="May 11, 2026"
       icon={<Scale className="h-6 w-6" aria-hidden />}

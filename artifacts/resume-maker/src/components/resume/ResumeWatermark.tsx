@@ -10,7 +10,7 @@ export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }
     <footer
       data-resume-watermark
       className="shrink-0 w-full px-3 py-1 sm:px-6 sm:py-1.5 flex justify-center items-center"
-      aria-label="Resume created at resumesensei.com"
+      aria-label="Resume created at www.resumesensei.com"
     >
       <p
         className={`m-0 text-center text-[7.5px] leading-snug sm:text-[8.5px] max-w-full break-words ${
@@ -19,7 +19,7 @@ export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }
       >
         <span className={dark ? "text-white/35" : "text-muted-foreground/70"}>Created at </span>
         <a
-          href="https://resumesensei.com"
+          href="https://www.resumesensei.com"
           target="_blank"
           rel="noreferrer noopener"
           className={
@@ -28,7 +28,7 @@ export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }
               : "font-medium text-primary/75 underline-offset-2 hover:text-primary hover:underline"
           }
         >
-          resumesensei.com
+          www.resumesensei.com
         </a>
       </p>
     </footer>

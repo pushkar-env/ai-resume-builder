@@ -86,7 +86,7 @@ export default function ContactPage() {
       <SEO
         title="Contact Us | Resumesensei"
         description="Have questions? Contact Resumesensei for support, billing inquiries, or general feedback."
-        canonicalUrl="https://resumesensei.com/contact"
+        canonicalUrl="https://www.resumesensei.com/contact"
       />
       <Navbar />
 
