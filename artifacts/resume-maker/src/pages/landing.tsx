@@ -19,6 +19,7 @@ import { brandJsonLdCore, SEO } from "@/components/shared/SEO";
 import { HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/brand";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { TemplatesCarousel } from "@/components/landing/TemplatesCarousel";
 
 const SEO_KEYWORDS =
   "resume builder, AI resume, ATS resume checker, ATS friendly resume, CV maker, professional resume templates, PDF resume, DOCX resume, job application resume, India resume builder";
@@ -185,7 +186,7 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
-              Resumesensei combines structured editing, AI suggestions, ATS score feedback, and exports that match your
+              <span className="font-bold text-foreground">Resumesensei</span> combines structured editing, AI suggestions, ATS score feedback, and exports that match your
               live preview — without clutter.
             </motion.p>
             <motion.div
@@ -288,23 +289,17 @@ export default function LandingPage() {
         </section>
 
         {/* Templates */}
-        <section className="py-16 sm:py-20" aria-labelledby="templates-heading">
-          <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-8 px-4 sm:flex-row sm:items-center sm:px-6">
-            <div className="max-w-xl">
-              <h2 id="templates-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Twelve templates
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Browse previews, pick a layout, and duplicate into your dashboard. Pro unlocks every template; Free
-                includes three.
-              </p>
-            </div>
-            <Button variant="outline" size="lg" className="h-12 shrink-0 rounded-xl px-6" asChild>
-              <Link href="/templates" className="gap-2">
-                View templates
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </Button>
+        <section className="py-16 sm:py-24 overflow-hidden" aria-labelledby="templates-heading">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-10 text-center">
+            <h2 id="templates-heading" className="text-3xl font-black tracking-tight sm:text-4xl mb-4">
+              Premium Templates
+            </h2>
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
+              Browse our collection of beautifully designed templates. Pro unlocks every template; Free includes three.
+            </p>
+          </div>
+          <div className="mx-auto max-w-7xl">
+            <TemplatesCarousel />
           </div>
         </section>
 
