@@ -24,7 +24,9 @@ function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
 function str(v: unknown): string { return (v as string) ?? ""; }
 /** Rich-text fields: sanitize on render so older saved HTML still lays out correctly */
 function richHtml(v: unknown): string {
-  return sanitizeResumeRichHtml(str(v));
+  let html = sanitizeResumeRichHtml(str(v));
+  // Replace non-breaking spaces during render to prevent words from being glued together and split abruptly
+  return html.replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ");
 }
 /** Coerce a skill level to a 0–100 number. Handles legacy string values like "intermediate". */
 function skillPct(v: unknown): number {
@@ -1908,8 +1910,8 @@ export function ResumePreview({
             .a4-page .resume-text,
             .a4-page .resume-text * {
               word-break: normal !important;
-              overflow-wrap: break-word !important;
-              word-wrap: break-word !important;
+              overflow-wrap: normal !important;
+              word-wrap: normal !important;
               white-space: normal !important;
               hyphens: none !important;
               -webkit-hyphens: none !important;
