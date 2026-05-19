@@ -1908,8 +1908,8 @@ export function ResumePreview({
             .a4-page .resume-text,
             .a4-page .resume-text * {
               word-break: normal !important;
-              overflow-wrap: break-word !important;
-              word-wrap: break-word !important;
+              overflow-wrap: normal !important;
+              word-wrap: normal !important;
               white-space: normal !important;
               hyphens: none !important;
               -webkit-hyphens: none !important;

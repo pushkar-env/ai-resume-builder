@@ -127,6 +127,9 @@ function stripEmptyRichBlocks(html: string): string {
 
 export function sanitizeResumeRichHtml(html: string): string {
   let s = stripEmptyRichBlocks(stripWbrTags(stripSoftHyphensFromHtml(html))).replace(ZW_SPACE, "");
+  // Convert non-breaking spaces to regular spaces so they wrap correctly without splitting words
+  s = s.replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ");
+  
   if (typeof DOMParser === "undefined") return s;
   try {
     const wrapped = `<div class="resume-sanitize-root">${s}</div>`;
