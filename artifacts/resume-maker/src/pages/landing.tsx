@@ -213,7 +213,7 @@ export default function LandingPage() {
               transition={{ delay: 0.2 }}
               className="mt-4 text-xs text-muted-foreground"
             >
-              No credit card to start · Free includes PDF, DOCX & JSON (footer on documents); Pro is clean
+              No credit card to start · Free includes PDF, DOCX & JSON
             </motion.p>
           </div>
         </section>
