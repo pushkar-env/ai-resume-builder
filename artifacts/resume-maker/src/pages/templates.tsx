@@ -285,7 +285,7 @@ export default function TemplatesPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-auto max-w-[720px]"
+            className="fixed bottom-4 sm:bottom-6 z-50 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:w-auto sm:max-w-[720px] sm:-translate-x-1/2"
           >
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 bg-background border border-border rounded-2xl shadow-2xl px-4 sm:px-6 py-3.5">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />

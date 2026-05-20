@@ -206,6 +206,8 @@
   }
   html {
     overflow-x: clip;
+    /* Reserve scrollbar space so Radix dialog open/close does not shift page width */
+    scrollbar-gutter: stable;
   }
   /* Smooth scrolling fights touch momentum on many mobile browsers; keep it for fine pointers only. */
   @media (hover: hover) and (pointer: fine) {
@@ -217,6 +219,16 @@
     min-height: 100%;
     overflow-x: clip;
     width: 100%;
+  }
+  /*
+   * Radix Dialog/Sheet (react-remove-scroll) adds margin/padding to compensate for
+   * a removed scrollbar. With scrollbar-gutter: stable that double-compensates and
+   * the page jerks horizontally when the overlay closes.
+   */
+  html body[data-scroll-locked] {
+    --removed-body-scroll-bar-size: 0px !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
   }
   ::selection {
     background-color: hsl(var(--primary) / 0.2);
