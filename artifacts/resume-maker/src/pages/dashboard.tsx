@@ -13,6 +13,7 @@ import {
   measureContinuousCanvasHeight,
   THUMBNAIL_PAGE_WIDTH_PX,
 } from "@/lib/thumbnail-fit-scale";
+import { useThumbnailMeasure } from "@/hooks/use-thumbnail-scale";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -121,12 +122,13 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView },
   });
 
-  useEffect(() => {
-    const host = hostRef.current;
-    const measure = measureRef.current;
-    if (!host || !measure || !resume) return;
-
-    const update = () => {
+  useThumbnailMeasure(
+    hostRef,
+    resume ? measureRef : null,
+    () => {
+      const host = hostRef.current;
+      const measure = measureRef.current;
+      if (!host || !measure || !resume) return;
       const ch = measureContinuousCanvasHeight(measure);
       const next = computeThumbnailCoverScale(
         host.clientWidth,
@@ -134,22 +136,9 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
         ch,
       );
       if (next != null) setFitScale(next);
-    };
-
-    const schedule = () => {
-      requestAnimationFrame(() => requestAnimationFrame(update));
-    };
-
-    schedule();
-    const roHost = new ResizeObserver(schedule);
-    const roMeasure = new ResizeObserver(schedule);
-    roHost.observe(host);
-    roMeasure.observe(measure);
-    return () => {
-      roHost.disconnect();
-      roMeasure.disconnect();
-    };
-  }, [resume, fontScale, showWatermark]);
+    },
+    [resume, fontScale, showWatermark],
+  );
 
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
   useEffect(() => {
@@ -177,7 +166,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
               WebkitFontSmoothing: "antialiased",
             }}
           >
-            <div ref={measureRef} className="w-[794px]">
+            <div ref={measureRef} style={{ width: THUMBNAIL_PAGE_WIDTH_PX }}>
               <ResumePreview
                 layout="continuous"
                 resume={resume}

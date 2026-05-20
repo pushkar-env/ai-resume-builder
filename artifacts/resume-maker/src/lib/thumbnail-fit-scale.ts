@@ -1,10 +1,15 @@
-/** A4 resume width (px). */
+/** A4 resume width (px) — matches `.a4-page` / `.resume-continuous-canvas`. */
 export const THUMBNAIL_PAGE_WIDTH_PX = 794;
 
-const MIN_SCALE = 0.32;
-const MAX_SCALE = 0.55;
+/** Default A4 height for gallery viewport before first measure. */
+export const THUMBNAIL_DEFAULT_VIEWPORT_H_PX = 1123;
 
-/** Flowing body height inside `layout="continuous"`. */
+export const THUMBNAIL_MIN_SCALE = 0.32;
+export const THUMBNAIL_MAX_SCALE = 0.55;
+
+const WIDTH_INSET = 0.996;
+
+/** Flowing body height inside `layout="continuous"` (excludes absolute watermark). */
 export function measureContinuousCanvasHeight(measureRoot: HTMLElement): number {
   const canvas = measureRoot.querySelector<HTMLElement>(".resume-continuous-canvas");
   if (!canvas) return measureRoot.scrollHeight;
@@ -18,19 +23,23 @@ export function measureContinuousCanvasHeight(measureRoot: HTMLElement): number 
   );
 }
 
-/**
- * Gallery thumbnail scale: lock to card width (never crop left/right).
- * Tiny inset factor avoids sub-pixel edge clipping on retina screens.
- */
+/** Template gallery: width-fit scale (no horizontal crop). */
 export function computeTemplateGalleryScale(hostWidth: number): number {
   if (hostWidth <= 0) return 0.36;
-  const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * 0.996;
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, scaleW));
+  const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * WIDTH_INSET;
+  return Math.min(THUMBNAIL_MAX_SCALE, Math.max(THUMBNAIL_MIN_SCALE, scaleW));
 }
 
-/**
- * Dashboard resume cards: cover fit (may crop edges) using full content height.
- */
+/** Unscaled document height that matches the visible card clip. */
+export function computeGalleryViewportHeight(
+  hostHeight: number,
+  scale: number,
+): number {
+  if (hostHeight <= 0 || scale <= 0) return THUMBNAIL_DEFAULT_VIEWPORT_H_PX;
+  return Math.ceil(hostHeight / scale);
+}
+
+/** Dashboard cards: cover fit using full content height. */
 export function computeThumbnailCoverScale(
   hostWidth: number,
   hostHeight: number,
@@ -38,8 +47,11 @@ export function computeThumbnailCoverScale(
 ): number | null {
   if (hostWidth <= 0 || hostHeight <= 0 || contentHeight <= 0) return null;
 
-  const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * 0.996;
-  const scaleH = (hostHeight / contentHeight) * 0.996;
+  const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * WIDTH_INSET;
+  const scaleH = (hostHeight / contentHeight) * WIDTH_INSET;
 
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.max(scaleW, scaleH)));
+  return Math.min(
+    THUMBNAIL_MAX_SCALE,
+    Math.max(THUMBNAIL_MIN_SCALE, Math.max(scaleW, scaleH)),
+  );
 }
