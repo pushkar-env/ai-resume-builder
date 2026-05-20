@@ -54,7 +54,12 @@ export function ResumePagedView({
     const el = measureZoomRef.current;
     if (!el) return;
 
+    let cancelled = false;
+    let debounceId = 0;
+    let rafId = 0;
+
     const run = () => {
+      if (cancelled) return;
       const rootRect = el.getBoundingClientRect();
       const totalHeight = Math.max(
         el.scrollHeight,
@@ -128,12 +133,24 @@ export function ResumePagedView({
       setPageStarts(starts);
     };
 
-    const id = requestAnimationFrame(() => requestAnimationFrame(run));
-    const ro = new ResizeObserver(() => requestAnimationFrame(run));
+    const schedule = () => {
+      window.clearTimeout(debounceId);
+      debounceId = window.setTimeout(() => {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          requestAnimationFrame(run);
+        });
+      }, 48);
+    };
+
+    schedule();
+    const ro = new ResizeObserver(schedule);
     ro.observe(el);
 
     return () => {
-      cancelAnimationFrame(id);
+      cancelled = true;
+      window.clearTimeout(debounceId);
+      cancelAnimationFrame(rafId);
       ro.disconnect();
     };
   }, [measureKey, viewHeight]);

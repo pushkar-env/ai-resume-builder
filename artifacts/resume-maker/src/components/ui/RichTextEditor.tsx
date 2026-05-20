@@ -1,3 +1,4 @@
+import { memo, useCallback, useRef } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
@@ -35,17 +36,29 @@ const modules = {
 
 const formats = ["bold", "italic"];
 
-export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
+export const RichTextEditor = memo(function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: RichTextEditorProps) {
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const handleChange = useCallback((html: string) => {
+    onChangeRef.current(sanitizeResumeRichHtml(html));
+  }, []);
+
   return (
     <div className={`rich-text-container ${className || ""}`}>
       <ReactQuill
         theme="snow"
         value={value}
-        onChange={(html) => onChange(sanitizeResumeRichHtml(html))}
+        onChange={handleChange}
         placeholder={placeholder}
         modules={modules}
         formats={formats}
       />
     </div>
   );
-}
+});

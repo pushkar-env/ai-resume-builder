@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -485,6 +485,11 @@ export default function BuilderPage() {
   const [previewScale, setPreviewScale] = useState(() => initialPreviewZoomForViewport());
   const previewScaleRef = useRef(previewScale);
   const [contentHeight, setContentHeight] = useState(1123);
+  /** Bumped on section/content changes — avoids JSON.stringify on every edit for preview pagination. */
+  const [previewRevision, setPreviewRevision] = useState(0);
+  const bumpPreviewRevision = useCallback(() => {
+    setPreviewRevision((r) => r + 1);
+  }, []);
 
   useEffect(() => {
     previewScaleRef.current = previewScale;
@@ -494,13 +499,6 @@ export default function BuilderPage() {
   useEffect(() => {
     setPreviewScale(initialPreviewZoomForViewport());
   }, [resumeId]);
-
-  const previewContentKey = useMemo(() => {
-    const sig = (localSections ?? [])
-      .map((s) => `${s.id}:${s.type}:${JSON.stringify(s.content)}`)
-      .join("|");
-    return `${templateId}|${fontScale}|${sig}|${!isPremiumUser ? 1 : 0}`;
-  }, [localSections, templateId, fontScale, isPremiumUser]);
 
   useEffect(() => {
     const el = contentRef.current;
@@ -540,7 +538,7 @@ export default function BuilderPage() {
       cancelAnimationFrame(raf2);
       cancelAnimationFrame(raf3);
     };
-  }, [resumeId, previewContentKey, mobileTab]);
+  }, [resumeId, previewRevision, templateId, fontScale, mobileTab, isPremiumUser]);
 
   /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
   const handleFitPreview = useCallback(() => {
@@ -742,8 +740,9 @@ export default function BuilderPage() {
         scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return updated;
       });
+      bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
   );
 
   const handleVisibilityToggle = useCallback(
@@ -755,8 +754,9 @@ export default function BuilderPage() {
         scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return updated;
       });
+      bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
   );
 
   const handleDragEnd = useCallback(
@@ -774,8 +774,9 @@ export default function BuilderPage() {
         scheduleSave(withOrder, accentColor, fontFamily, templateId, fontColor, backgroundColor);
         return withOrder;
       });
+      bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave]
+    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
   );
 
   const handleAccentChange = (color: string) => {
@@ -788,6 +789,7 @@ export default function BuilderPage() {
     }
     setAccentColor(color);
     scheduleSave(localSections, color, fontFamily, templateId, fontColor, backgroundColor);
+    bumpPreviewRevision();
   };
 
   const handleFontChange = (font: string) => {
@@ -800,6 +802,7 @@ export default function BuilderPage() {
     }
     setFontFamily(font);
     scheduleSave(localSections, accentColor, font, templateId, fontColor, backgroundColor);
+    bumpPreviewRevision();
   };
 
   const handleTemplateChange = (t: string) => {
@@ -812,6 +815,7 @@ export default function BuilderPage() {
     }
     setTemplateId(t);
     scheduleSave(localSections, accentColor, fontFamily, t, fontColor, backgroundColor);
+    bumpPreviewRevision();
   };
 
   const showFontColorPaywall = useCallback(() => {
@@ -845,6 +849,7 @@ export default function BuilderPage() {
     }
     setFontColor(color);
     scheduleSave(localSections, accentColor, fontFamily, templateId, color, backgroundColor);
+    bumpPreviewRevision();
   };
 
   const handleBackgroundColorChange = (color: string) => {
@@ -854,6 +859,7 @@ export default function BuilderPage() {
     }
     setBackgroundColor(color);
     scheduleSave(localSections, accentColor, fontFamily, templateId, fontColor, color);
+    bumpPreviewRevision();
   };
 
   const handleClearAllSections = useCallback(() => {
@@ -866,8 +872,9 @@ export default function BuilderPage() {
       return updated;
     });
     setClearAllOpen(false);
+    bumpPreviewRevision();
     toast({ title: "Resume content cleared", description: "All sections are now empty." });
-  }, [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, toast]);
+  }, [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision, toast]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -897,6 +904,11 @@ export default function BuilderPage() {
         updatedAt: "",
         sections: localSections,
       };
+
+  const deferredPreview = useDeferredValue({
+    resume: previewResume,
+    revision: previewRevision,
+  });
 
   if (isLoading) {
     return (
@@ -1038,7 +1050,13 @@ export default function BuilderPage() {
                 {/* Font size */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font Size</p>
-                  <Select value={String(fontScale)} onValueChange={(v) => setFontScale(Number(v))}>
+                  <Select
+                    value={String(fontScale)}
+                    onValueChange={(v) => {
+                      setFontScale(Number(v));
+                      bumpPreviewRevision();
+                    }}
+                  >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
@@ -1343,7 +1361,8 @@ export default function BuilderPage() {
                 <div ref={contentRef} data-resume-export-target className="shadow-2xl">
                   <ResumePreview
                     key={templateId}
-                    resume={previewResume}
+                    resume={deferredPreview.resume}
+                    contentRevision={deferredPreview.revision}
                     accentColor={accentColor}
                     fontScale={fontScale}
                     fontColor={fontColor}

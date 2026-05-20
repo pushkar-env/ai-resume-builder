@@ -1854,6 +1854,8 @@ export function ResumePreview({
   showWatermark = false,
   /** `paginated` = A4 pages (builder/export). `continuous` = natural height for thumbnails so short resumes do not show a half-empty sheet. */
   layout = "paginated",
+  /** Builder: revision counter instead of hashing full section JSON for pagination remeasure. */
+  contentRevision = 0,
 }: {
   resume: ResumeDetail;
   accentColor?: string;
@@ -1863,6 +1865,7 @@ export function ResumePreview({
   /** When true (Free plan), a subtle brand footer appears on every template and in PDF print export. */
   showWatermark?: boolean;
   layout?: "paginated" | "continuous";
+  contentRevision?: number;
 }) {
   const color = accentColor ?? resume.accentColor ?? "#7c3aed";
   const font = resume.fontFamily ?? "Inter, sans-serif";
@@ -1881,11 +1884,9 @@ export function ResumePreview({
           : null;
 
   const measureKey = useMemo(() => {
-    const sig = (resume.sections ?? [])
-      .map((s) => `${s.id}:${s.type}:${JSON.stringify(s.content)}`)
-      .join("|");
-    return `${layout}|${templateId}|${sig}|${fontScale}|${fColor}|${bColor}|${showWatermark ? 1 : 0}`;
-  }, [resume.sections, templateId, fontScale, fColor, bColor, showWatermark, layout]);
+    const sectionIds = (resume.sections ?? []).map((s) => s.id).join(",");
+    return `${layout}|${templateId}|${sectionIds}|${contentRevision}|${fontScale}|${fColor}|${bColor}|${showWatermark ? 1 : 0}`;
+  }, [resume.sections, templateId, contentRevision, fontScale, fColor, bColor, showWatermark, layout]);
 
   const templateInner = (
     <>

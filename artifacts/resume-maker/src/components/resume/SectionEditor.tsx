@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, startTransition } from "react";
 import { Sparkles, Loader2, Plus, Trash2, Eye, EyeOff, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,20 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import { AI_REQUEST_OPTIONS, isAiAbortError } from "@/lib/ai-request";
+import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+
+function aiErrorToast(toast: ReturnType<typeof useToast>["toast"], err: unknown, fallback: string) {
+  if (isAiAbortError(err)) {
+    toast({
+      title: "AI request timed out",
+      description: "The server took too long. Try again with a shorter draft.",
+      variant: "destructive",
+    });
+    return;
+  }
+  toast({ title: fallback, variant: "destructive" });
+}
 
 type SectionContent = Record<string, unknown>;
 
@@ -240,18 +254,25 @@ function SummaryEditor({
 }: { content: SectionContent; onChange: (c: SectionContent) => void; allSections?: SectionEditorProps["allSections"]; isPremium: boolean; onShowPaywall: () => void; }) {
   const { toast } = useToast();
   const generateSummary = useGenerateSummary({
+    request: AI_REQUEST_OPTIONS,
     mutation: {
       onSuccess: (data) => {
         if (data?.text && data.text.trim().length > 0) {
-          onChange({ ...content, text: data.text });
+          const html = plainTextToRichHtml(data.text);
+          startTransition(() => {
+            onChange({ ...contentRef.current, text: html });
+          });
           toast({ title: "Summary updated by AI" });
         } else {
           toast({ title: "AI returned no content — try again", variant: "destructive" });
         }
       },
-      onError: () => toast({ title: "Failed to generate summary", variant: "destructive" }),
+      onError: (err) => aiErrorToast(toast, err, "Failed to generate summary"),
     },
   });
+
+  const contentRef = useRef(content);
+  contentRef.current = content;
 
   const personal = findPersonal(allSections);
   const jobTitle = jobTitleFrom(personal);
@@ -274,7 +295,7 @@ function SummaryEditor({
     generateSummary.mutate({
       data: {
         jobTitle: jobTitle || "professional",
-        currentText: willRefine ? currentText : undefined,
+        currentText: willRefine ? richHtmlToPlainText(currentText) : undefined,
       },
     });
   };
@@ -330,22 +351,37 @@ function ExperienceEditor({
   };
 
   const [pendingBullet, setPendingBullet] = useState<{ itemIndex: number; bulletIndex: number } | null>(null);
+  const contentRef = useRef(content);
+  contentRef.current = content;
 
   const improveBullet = useImproveBullet({
+    request: AI_REQUEST_OPTIONS,
     mutation: {
       onSuccess: (data) => {
-        if (!pendingBullet) return;
+        if (!pendingBullet || !data?.text?.trim()) {
+          setPendingBullet(null);
+          if (!data?.text?.trim()) {
+            toast({ title: "AI returned no content — try again", variant: "destructive" });
+          }
+          return;
+        }
         const { itemIndex, bulletIndex } = pendingBullet;
-        const updatedItems = [...items];
-        const bullets = ((updatedItems[itemIndex].bullets as unknown[]) ?? []).map((x, idx) =>
-          idx === bulletIndex ? { ...toBulletObj(x), text: data.text } : x,
+        const latestItems = (contentRef.current.items as Array<Record<string, unknown>>) ?? [];
+        const updatedItems = [...latestItems];
+        const bullets = ((updatedItems[itemIndex]?.bullets as unknown[]) ?? []).map((x, idx) =>
+          idx === bulletIndex ? { ...toBulletObj(x), text: plainTextToRichHtml(data.text) } : x,
         );
         updatedItems[itemIndex] = { ...updatedItems[itemIndex], bullets };
-        onChange({ ...content, items: updatedItems });
+        startTransition(() => {
+          onChange({ ...contentRef.current, items: updatedItems });
+        });
         setPendingBullet(null);
         toast({ title: "Bullet improved" });
       },
-      onError: () => { setPendingBullet(null); toast({ title: "Failed to improve bullet", variant: "destructive" }); },
+      onError: (err) => {
+        setPendingBullet(null);
+        aiErrorToast(toast, err, "Failed to improve bullet");
+      },
     },
   });
 
@@ -408,7 +444,12 @@ function ExperienceEditor({
                         onClick={() => { 
                           if (!isPremium) { onShowPaywall(); return; }
                           setPendingBullet({ itemIndex: i, bulletIndex: bi }); 
-                          improveBullet.mutate({ data: { bullet: b.text, context: `${item.title ?? ""} at ${item.company ?? ""}` } }); 
+                          improveBullet.mutate({
+                            data: {
+                              bullet: richHtmlToPlainText(b.text),
+                              context: `${item.title ?? ""} at ${item.company ?? ""}`,
+                            },
+                          }); 
                         }}
                         disabled={isImproving}
                       >
@@ -521,6 +562,7 @@ function SkillsEditor({
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
   const suggestSkills = useSuggestSkills({
+    request: AI_REQUEST_OPTIONS,
     mutation: {
       onSuccess: (data) => {
         const existing = new Set(items.map((i) => ((i.name as string) ?? "").toLowerCase()));
@@ -532,7 +574,7 @@ function SkillsEditor({
         setSuggested(fresh);
         setPicked(new Set(fresh)); // pre-select all so users can just click "Add"
       },
-      onError: () => toast({ title: "Failed to suggest skills", variant: "destructive" }),
+      onError: (err) => aiErrorToast(toast, err, "Failed to suggest skills"),
     },
   });
 
@@ -586,7 +628,7 @@ function SkillsEditor({
       data: {
         jobTitle,
         existingSkills: items.map((i) => (i.name as string) ?? "").filter(Boolean),
-        summary: summaryText || undefined,
+        summary: summaryText ? richHtmlToPlainText(summaryText) : undefined,
       },
     });
   };
@@ -740,18 +782,36 @@ function ProjectsEditor({
 
   const [pendingProject, setPendingProject] = useState<number | null>(null);
 
+  const contentRef = useRef(content);
+  contentRef.current = content;
+
   const improveDescription = useImproveBullet({
+    request: AI_REQUEST_OPTIONS,
     mutation: {
       onSuccess: (data) => {
         if (pendingProject === null) return;
+        if (!data?.text?.trim()) {
+          setPendingProject(null);
+          toast({ title: "AI returned no content — try again", variant: "destructive" });
+          return;
+        }
         const idx = pendingProject;
-        const updatedItems = [...items];
-        updatedItems[idx] = { ...updatedItems[idx], description: data.text };
-        onChange({ ...content, items: updatedItems });
+        const latestItems = (contentRef.current.items as Array<Record<string, unknown>>) ?? [];
+        const updatedItems = [...latestItems];
+        updatedItems[idx] = {
+          ...updatedItems[idx],
+          description: plainTextToRichHtml(data.text),
+        };
+        startTransition(() => {
+          onChange({ ...contentRef.current, items: updatedItems });
+        });
         setPendingProject(null);
         toast({ title: "Description improved" });
       },
-      onError: () => { setPendingProject(null); toast({ title: "Failed to improve description", variant: "destructive" }); },
+      onError: (err) => {
+        setPendingProject(null);
+        aiErrorToast(toast, err, "Failed to improve description");
+      },
     },
   });
 
@@ -785,7 +845,12 @@ function ProjectsEditor({
                   onClick={() => { 
                     if (!isPremium) { onShowPaywall(); return; }
                     setPendingProject(i); 
-                    improveDescription.mutate({ data: { bullet: (item.description as string) ?? "", context: `Project named ${item.name ?? ""}` } }); 
+                    improveDescription.mutate({
+                      data: {
+                        bullet: richHtmlToPlainText((item.description as string) ?? ""),
+                        context: `Project named ${item.name ?? ""}`,
+                      },
+                    }); 
                   }}
                   disabled={improveDescription.isPending && pendingProject === i}
                 >
