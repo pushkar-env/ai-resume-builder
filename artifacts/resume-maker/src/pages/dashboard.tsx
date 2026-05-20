@@ -12,6 +12,7 @@ import {
   computeThumbnailWidthFit,
   measureContinuousCanvasHeight,
   THUMBNAIL_PAGE_WIDTH_PX,
+  THUMBNAIL_PREVIEW_INSET_PX,
   type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import {
@@ -93,14 +94,14 @@ function timeAgo(date: string) {
 function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
-  const hostRef = useRef<HTMLDivElement>(null);
+  const clipRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.32, offsetY: 0 });
+  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.32 });
 
   useEffect(() => {
-    const el = hostRef.current;
+    const el = clipRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
@@ -123,13 +124,13 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   });
 
   useEffect(() => {
-    const host = hostRef.current;
+    const clip = clipRef.current;
     const measure = measureRef.current;
-    if (!host || !measure || !resume) return;
+    if (!clip || !measure || !resume) return;
 
     const update = () => {
       const ch = measureContinuousCanvasHeight(measure);
-      const next = computeThumbnailWidthFit(host.clientWidth, host.clientHeight, ch);
+      const next = computeThumbnailWidthFit(clip.clientWidth, clip.clientHeight, ch);
       if (next != null) setFit(next);
     };
 
@@ -138,12 +139,12 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     };
 
     schedule();
-    const roHost = new ResizeObserver(schedule);
+    const roClip = new ResizeObserver(schedule);
     const roMeasure = new ResizeObserver(schedule);
-    roHost.observe(host);
+    roClip.observe(clip);
     roMeasure.observe(measure);
     return () => {
-      roHost.disconnect();
+      roClip.disconnect();
       roMeasure.disconnect();
     };
   }, [resume, fontScale, showWatermark]);
@@ -157,18 +158,20 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   }, [resumeId]);
 
   return (
-    <div ref={hostRef} className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]">
-      {!inView || !resume ? (
-        <Skeleton className="h-full w-full rounded-none" />
-      ) : (
-        <div className="w-full h-full relative overflow-hidden">
+    <div
+      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
+      style={{ padding: THUMBNAIL_PREVIEW_INSET_PX }}
+    >
+      <div ref={clipRef} className="relative h-full w-full overflow-hidden">
+        {!inView || !resume ? (
+          <Skeleton className="h-full w-full rounded-none" />
+        ) : (
           <div
-            className="absolute left-1/2 -translate-x-1/2"
+            className="absolute left-1/2 top-1/2"
             style={{
-              top: fit.offsetY,
               width: THUMBNAIL_PAGE_WIDTH_PX,
-              transform: `scale(${fit.scale}) translateZ(0)`,
-              transformOrigin: "top center",
+              transform: `translate(-50%, -50%) scale(${fit.scale}) translateZ(0)`,
+              transformOrigin: "center center",
               backfaceVisibility: "hidden",
               WebkitFontSmoothing: "antialiased",
             }}
@@ -185,8 +188,8 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
               />
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

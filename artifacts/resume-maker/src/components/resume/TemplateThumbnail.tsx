@@ -5,6 +5,7 @@ import {
   computeThumbnailWidthFit,
   measureContinuousCanvasHeight,
   THUMBNAIL_PAGE_WIDTH_PX,
+  THUMBNAIL_PREVIEW_INSET_PX,
   type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
@@ -18,36 +19,36 @@ export function TemplateThumbnail({
   accent: string;
   showWatermark: boolean;
 }) {
-  const hostRef = useRef<HTMLDivElement>(null);
+  const clipRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.36, offsetY: 0 });
+  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.36 });
 
   const remeasure = useCallback(() => {
-    const host = hostRef.current;
+    const clip = clipRef.current;
     const measure = measureRef.current;
-    if (!host || !measure) return;
+    if (!clip || !measure) return;
 
     const ch = measureContinuousCanvasHeight(measure);
-    const next = computeThumbnailWidthFit(host.clientWidth, host.clientHeight, ch);
+    const next = computeThumbnailWidthFit(clip.clientWidth, clip.clientHeight, ch);
     if (next != null) setFit(next);
   }, []);
 
   useEffect(() => {
-    const host = hostRef.current;
+    const clip = clipRef.current;
     const measure = measureRef.current;
-    if (!host || !measure) return;
+    if (!clip || !measure) return;
 
     const schedule = () => {
       requestAnimationFrame(() => requestAnimationFrame(remeasure));
     };
 
     schedule();
-    const roHost = new ResizeObserver(schedule);
+    const roClip = new ResizeObserver(schedule);
     const roMeasure = new ResizeObserver(schedule);
-    roHost.observe(host);
+    roClip.observe(clip);
     roMeasure.observe(measure);
     return () => {
-      roHost.disconnect();
+      roClip.disconnect();
       roMeasure.disconnect();
     };
   }, [templateId, accent, showWatermark, remeasure]);
@@ -57,31 +58,32 @@ export function TemplateThumbnail({
     templateId,
     accentColor: accent,
   };
+
   return (
     <div
-      ref={hostRef}
-      className="absolute inset-0 overflow-hidden bg-white [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
+      className="absolute inset-0 overflow-hidden [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
+      style={{ padding: THUMBNAIL_PREVIEW_INSET_PX }}
     >
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{
-          top: fit.offsetY,
-          width: THUMBNAIL_PAGE_WIDTH_PX,
-          transformOrigin: "top center",
-          transform: `scale(${fit.scale}) translateZ(0)`,
-          backfaceVisibility: "hidden",
-          WebkitFontSmoothing: "antialiased",
-          pointerEvents: "none",
-        }}
-      >
-        <div ref={measureRef} className="w-[794px]">
-          <ResumePreview
-            key={templateId}
-            layout="continuous"
-            resume={sample}
-            accentColor={accent}
-            showWatermark={showWatermark}
-          />
+      <div ref={clipRef} className="relative h-full w-full overflow-hidden">
+        <div
+          className="absolute left-1/2 top-1/2 pointer-events-none"
+          style={{
+            width: THUMBNAIL_PAGE_WIDTH_PX,
+            transform: `translate(-50%, -50%) scale(${fit.scale}) translateZ(0)`,
+            transformOrigin: "center center",
+            backfaceVisibility: "hidden",
+            WebkitFontSmoothing: "antialiased",
+          }}
+        >
+          <div ref={measureRef} className="w-[794px]">
+            <ResumePreview
+              key={templateId}
+              layout="continuous"
+              resume={sample}
+              accentColor={accent}
+              showWatermark={showWatermark}
+            />
+          </div>
         </div>
       </div>
     </div>
