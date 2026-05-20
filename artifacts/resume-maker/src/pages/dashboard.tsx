@@ -88,8 +88,10 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
   const hostRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
+  const [fitScale, setFitScale] = useState(0.32);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -114,6 +116,37 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView },
   });
 
+  useEffect(() => {
+    const host = hostRef.current;
+    const measure = measureRef.current;
+    if (!host || !measure || !resume) return;
+
+    const update = () => {
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      const cont = measure.querySelector<HTMLElement>(".resume-continuous-canvas");
+      const ch = Math.max(
+        cont?.scrollHeight ?? 0,
+        Math.ceil(cont?.getBoundingClientRect().height ?? 0),
+        measure.scrollHeight,
+      );
+      if (w <= 0 || h <= 0 || ch <= 0) return;
+      const scaleW = (w / 794) * 0.998;
+      const scaleH = (h / ch) * 0.998;
+      setFitScale(Math.min(0.55, Math.max(0.32, Math.max(scaleW, scaleH))));
+    };
+
+    update();
+    const roHost = new ResizeObserver(update);
+    const roMeasure = new ResizeObserver(update);
+    roHost.observe(host);
+    roMeasure.observe(measure);
+    return () => {
+      roHost.disconnect();
+      roMeasure.disconnect();
+    };
+  }, [resume, fontScale, showWatermark]);
+
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -123,7 +156,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   }, [resumeId]);
 
   return (
-    <div ref={hostRef} className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none">
+    <div ref={hostRef} className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]">
       {!inView || !resume ? (
         <Skeleton className="h-full w-full rounded-none" />
       ) : (
@@ -132,20 +165,23 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
             className="absolute top-0 left-1/2 -translate-x-1/2"
             style={{
               width: 794,
-              transform: "scale(0.32) translateZ(0)",
+              transform: `scale(${fitScale}) translateZ(0)`,
               transformOrigin: "top center",
               backfaceVisibility: "hidden",
               WebkitFontSmoothing: "antialiased",
             }}
           >
-            <ResumePreview
-              resume={resume}
-              accentColor={resume.accentColor ?? "#7c3aed"}
-              fontScale={fontScale}
-              fontColor={resume.fontColor ?? "#111827"}
-              backgroundColor={resume.backgroundColor ?? "#ffffff"}
-              showWatermark={showWatermark}
-            />
+            <div ref={measureRef} className="w-[794px]">
+              <ResumePreview
+                layout="continuous"
+                resume={resume}
+                accentColor={resume.accentColor ?? "#7c3aed"}
+                fontScale={fontScale}
+                fontColor={resume.fontColor ?? "#111827"}
+                backgroundColor={resume.backgroundColor ?? "#ffffff"}
+                showWatermark={showWatermark}
+              />
+            </div>
           </div>
         </div>
       )}

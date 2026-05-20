@@ -495,15 +495,46 @@ export default function BuilderPage() {
   }, [resumeId]);
 
   useEffect(() => {
-    if (!contentRef.current) return;
-    const obs = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContentHeight(Math.max(1123, entry.contentRect.height));
-      }
-    });
-    obs.observe(contentRef.current);
-    return () => obs.disconnect();
-  }, []);
+    const el = contentRef.current;
+    if (!el) return;
+
+    let raf1 = 0;
+    let raf2 = 0;
+    const measure = () => {
+      const pv = el.querySelector<HTMLElement>(".resume-paged-view");
+      const combined = Math.max(
+        pv?.scrollHeight ?? 0,
+        Math.ceil(pv?.getBoundingClientRect().height ?? 0),
+        Math.ceil(el.getBoundingClientRect().height),
+        el.scrollHeight,
+      );
+      setContentHeight((prev) => {
+        const next = Math.max(1123, Math.ceil(combined));
+        return prev === next ? prev : next;
+      });
+    };
+
+    /** Double RAF: resumes paginate synchronously via layout hooks; defer to next paints for stable scrollHeight */
+    const schedule = () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(measure);
+      });
+    };
+
+    schedule();
+    const ro = new ResizeObserver(schedule);
+    ro.observe(el);
+    window.addEventListener("resize", schedule);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", schedule);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [resumeId]);
 
   /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
   const handleFitPreview = useCallback(() => {

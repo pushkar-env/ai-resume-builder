@@ -4,6 +4,7 @@ import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
 import { ResumePagedView } from "@/components/resume/ResumePagedView";
+import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -243,7 +244,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   const { text, label, link } = bulletParts(b);
   if (!text && !label && !link) return null;
   return (
-    <div className="flex flex-col gap-1 w-full min-w-0">
+    <div className="flex flex-col gap-1 w-full min-w-0" data-resume-keep>
       <div
         dangerouslySetInnerHTML={{ __html: richHtml(text) }}
         className="resume-text text-[8.5px] leading-[1.55] [&>p]:mb-1 last:[&>p]:mb-0"
@@ -267,7 +268,7 @@ function CertLine({
 }: { c: Item; className?: string; color?: string; dark?: boolean }) {
   const url = (str(c.credentialUrl) || str(c.url)).trim();
   return (
-    <p className={className}>
+    <p className={className} data-resume-keep>
       {str(c.name)}{c.issuer ? ` — ${str(c.issuer)}` : ""}{c.date ? ` (${str(c.date)})` : ""}
       {url && (
         <>
@@ -387,9 +388,9 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
   const sidebar = alpha(color, 0.05);
 
   return (
-    <div className="flex h-full" style={{ fontFamily: font, minHeight: "100%" }}>
+    <div className="flex h-full" data-resume-two-col-root style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Sidebar */}
-      <div className="w-[240px] shrink-0 flex flex-col" style={{ background: sidebar, minHeight: "100%" }}>
+      <div className="w-[240px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebar, minHeight: "100%" }}>
         {/* Name block */}
         <div className="p-6 pb-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.08)` }}>
           <div className="mb-3">
@@ -912,8 +913,8 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
   const skillsStyle = skillsStyleOf(sections);
 
   return (
-    <div className="flex" style={{ fontFamily: font, minHeight: "100%" }}>
-      <div className="w-[195px] shrink-0 flex flex-col" style={{ background: alpha(color, 0.08), minHeight: "100%", borderRight: `1px solid ${alpha(color, 0.15)}` }}>
+    <div className="flex" data-resume-two-col-root style={{ fontFamily: font, minHeight: "100%" }}>
+      <div className="w-[195px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: alpha(color, 0.08), minHeight: "100%", borderRight: `1px solid ${alpha(color, 0.15)}` }}>
         {/* Avatar + name */}
         <div className="p-5 pb-4">
           <div className="mb-3">
@@ -1624,9 +1625,9 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
         </div>
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1" data-resume-two-col-root>
         {/* Left */}
-        <div className="w-[210px] shrink-0 px-5 py-4" style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
+        <div className="w-[210px] shrink-0 px-5 py-4" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
           {skills.length > 0 && (
             <>
               <SH label="Skills" />
@@ -1721,9 +1722,9 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
   const sidebarBg = alpha(color, 0.05);
 
   return (
-    <div className="flex" style={{ fontFamily: font, minHeight: "100%" }}>
+    <div className="flex" data-resume-two-col-root style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Left 35% sidebar */}
-      <div className="w-[270px] shrink-0 flex flex-col" style={{ background: sidebarBg, minHeight: "100%" }}>
+      <div className="w-[270px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebarBg, minHeight: "100%" }}>
         {/* Avatar + name */}
         <div className="px-6 pt-7 pb-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
           <div className="mb-3">
@@ -1850,6 +1851,8 @@ export function ResumePreview({
   fontColor,
   backgroundColor,
   showWatermark = false,
+  /** `paginated` = A4 pages (builder/export). `continuous` = natural height for thumbnails so short resumes do not show a half-empty sheet. */
+  layout = "paginated",
 }: {
   resume: ResumeDetail;
   accentColor?: string;
@@ -1858,20 +1861,30 @@ export function ResumePreview({
   backgroundColor?: string;
   /** When true (Free plan), a subtle brand footer appears on every template and in PDF print export. */
   showWatermark?: boolean;
+  layout?: "paginated" | "continuous";
 }) {
   const color = accentColor ?? resume.accentColor ?? "#7c3aed";
   const font = resume.fontFamily ?? "Inter, sans-serif";
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
   const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
+  const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
   const templateId = resume.templateId ?? "silicon-valley";
   const props = { sections: resume.sections, color, font };
+  const sidebarFill =
+    templateId === "silicon-valley"
+      ? { widthPx: 240, color: alpha(color, 0.05) }
+      : templateId === "creative-pro"
+        ? { widthPx: 195, color: alpha(color, 0.08) }
+        : templateId === "two-column"
+          ? { widthPx: 270, color: alpha(color, 0.05) }
+          : null;
 
   const measureKey = useMemo(() => {
     const sig = (resume.sections ?? [])
       .map((s) => `${s.id}:${s.type}:${JSON.stringify(s.content)}`)
       .join("|");
-    return `${templateId}|${sig}|${fontScale}|${fColor}|${bColor}|${showWatermark ? 1 : 0}`;
-  }, [resume.sections, templateId, fontScale, fColor, bColor, showWatermark]);
+    return `${layout}|${templateId}|${sig}|${fontScale}|${fColor}|${bColor}|${showWatermark ? 1 : 0}`;
+  }, [resume.sections, templateId, fontScale, fColor, bColor, showWatermark, layout]);
 
   const templateInner = (
     <>
@@ -1903,7 +1916,7 @@ export function ResumePreview({
     <div
       className="resume-preview-document relative"
       style={{ fontFamily: font }}
-      data-font-color={fColor}
+      data-layout={layout}
       data-watermarked={showWatermark ? "" : undefined}
     >
       <style
@@ -1914,7 +1927,9 @@ export function ResumePreview({
              * (Word/Docs often set word-break / white-space on spans) so words stay whole.
              */
             .a4-page .resume-text,
-            .a4-page .resume-text * {
+            .a4-page .resume-text *,
+            .resume-continuous-canvas .resume-text,
+            .resume-continuous-canvas .resume-text * {
               word-break: normal !important;
               overflow-wrap: normal !important;
               word-wrap: normal !important;
@@ -1924,7 +1939,8 @@ export function ResumePreview({
               line-break: auto !important;
             }
             @supports (text-wrap: pretty) {
-              .a4-page .resume-text {
+              .a4-page .resume-text,
+              .resume-continuous-canvas .resume-text {
                 text-wrap: pretty;
               }
             }
@@ -1933,7 +1949,8 @@ export function ResumePreview({
              * which would allow breaks after every character ("S" / "killed").
              * Same wrapping as body text; long bare URLs still wrap via overflow-wrap:break-word.
              */
-            .a4-page .resume-text a {
+            .a4-page .resume-text a,
+            .resume-continuous-canvas .resume-text a {
               overflow-wrap: break-word !important;
               word-break: normal !important;
             }
@@ -1942,10 +1959,26 @@ export function ResumePreview({
              * keep grouped blocks/two-column chunks from being split awkwardly.
              */
             .a4-page .resume-export-block,
-            .a4-page .resume-export-grid > div {
+            .a4-page .resume-export-grid > div,
+            .resume-continuous-canvas .resume-export-block,
+            .resume-continuous-canvas .resume-export-grid > div {
               break-inside: avoid;
               page-break-inside: avoid;
             }
+            /*
+             * Two-column sidebars should visually fill their column height per page window.
+             */
+            .a4-page [data-resume-two-col-root],
+            .resume-continuous-canvas [data-resume-two-col-root] {
+              min-height: 100%;
+              align-items: stretch;
+            }
+            .a4-page [data-resume-sidebar],
+            .resume-continuous-canvas [data-resume-sidebar] {
+              min-height: 100%;
+              align-self: stretch;
+            }
+            .resume-continuous-canvas { box-sizing: border-box; }
             ${RESUME_EXPORT_CSS}
           `,
         }}
@@ -1953,7 +1986,8 @@ export function ResumePreview({
       {fColor && (
         <style dangerouslySetInnerHTML={{
           __html: `
-            .a4-page {
+            .a4-page,
+            .resume-continuous-canvas {
               /* Production-grade wrapping: keep words intact, only break long tokens (URLs/emails) when needed. */
               overflow-wrap: break-word;
               word-break: normal;
@@ -1967,14 +2001,27 @@ export function ResumePreview({
             .a4-page[data-font-color="${fColor}"] .text-gray-700,
             .a4-page[data-font-color="${fColor}"] .text-black,
             .a4-page[data-font-color="${fColor}"] .text-slate-800,
-            .a4-page[data-font-color="${fColor}"] .text-slate-900 { color: ${fColor}; }
+            .a4-page[data-font-color="${fColor}"] .text-slate-900,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-950,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-900,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-800,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-700,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-black,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-slate-800,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-slate-900 { color: ${fColor}; }
 
             .a4-page[data-font-color="${fColor}"] .text-gray-600,
             .a4-page[data-font-color="${fColor}"] .text-gray-500,
             .a4-page[data-font-color="${fColor}"] .text-gray-400,
             .a4-page[data-font-color="${fColor}"] .text-slate-600,
             .a4-page[data-font-color="${fColor}"] .text-slate-500,
-            .a4-page[data-font-color="${fColor}"] .text-slate-400 { color: ${alpha(fColor, 0.75)}; }
+            .a4-page[data-font-color="${fColor}"] .text-slate-400,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-600,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-500,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-gray-400,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-slate-600,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-slate-500,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .text-slate-400 { color: ${alpha(fColor, 0.75)}; }
 
             .a4-page[data-font-color="${fColor}"] .bg-gray-100,
             .a4-page[data-font-color="${fColor}"] .bg-gray-200, 
@@ -1982,29 +2029,74 @@ export function ResumePreview({
             .a4-page[data-font-color="${fColor}"] .bg-gray-50, 
             .a4-page[data-font-color="${fColor}"] .bg-slate-100,
             .a4-page[data-font-color="${fColor}"] .bg-slate-200,
-            .a4-page[data-font-color="${fColor}"] .bg-muted { background-color: ${alpha(fColor, 0.15)}; }
+            .a4-page[data-font-color="${fColor}"] .bg-muted,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-gray-100,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-gray-200,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-gray-300,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-gray-50,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-slate-100,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-slate-200,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .bg-muted { background-color: ${alpha(fColor, 0.15)}; }
 
             .a4-page[data-font-color="${fColor}"] .border-gray-100,
             .a4-page[data-font-color="${fColor}"] .border-gray-200,
             .a4-page[data-font-color="${fColor}"] .border-gray-300,
             .a4-page[data-font-color="${fColor}"] .border-slate-200,
             .a4-page[data-font-color="${fColor}"] .border-slate-300,
-            .a4-page[data-font-color="${fColor}"] .border-border { border-color: ${alpha(fColor, 0.25)}; }
+            .a4-page[data-font-color="${fColor}"] .border-border,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-gray-100,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-gray-200,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-gray-300,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-slate-200,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-slate-300,
+            .resume-continuous-canvas[data-font-color="${fColor}"] .border-border { border-color: ${alpha(fColor, 0.25)}; }
 
             .a4-page[data-font-color="${fColor}"] svg circle[stroke="#e5e7eb"],
-            .a4-page[data-font-color="${fColor}"] svg circle[stroke="rgba(255,255,255,0.18)"] { stroke: ${alpha(fColor, 0.15)}; }
-            .a4-page[data-font-color="${fColor}"] svg text { fill: ${fColor}; }
+            .a4-page[data-font-color="${fColor}"] svg circle[stroke="rgba(255,255,255,0.18)"],
+            .resume-continuous-canvas[data-font-color="${fColor}"] svg circle[stroke="#e5e7eb"],
+            .resume-continuous-canvas[data-font-color="${fColor}"] svg circle[stroke="rgba(255,255,255,0.18)"] { stroke: ${alpha(fColor, 0.15)}; }
+            .a4-page[data-font-color="${fColor}"] svg text,
+            .resume-continuous-canvas[data-font-color="${fColor}"] svg text { fill: ${fColor}; }
           `
         }} />
       )}
-      <ResumePagedView
-        fontScale={fontScale}
-        showWatermark={showWatermark}
-        backgroundColor={bColor}
-        measureKey={measureKey}
-      >
-        {templateStack}
-      </ResumePagedView>
+      {layout === "continuous" ? (
+        <div
+          className="resume-continuous-canvas relative w-full overflow-hidden bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)]"
+          style={{ width: 794, backgroundColor: bColor }}
+          data-font-color={fColor || undefined}
+        >
+          {showWatermark ? (
+            <div
+              className="resume-page-watermark pointer-events-none absolute inset-x-0 bottom-0 z-0 flex justify-center"
+              aria-hidden
+            >
+              <ResumeWatermark backgroundColor={bColor} />
+            </div>
+          ) : null}
+          <div
+            className="relative z-[1] box-border w-full"
+            style={{
+              zoom: fs,
+              width: "100%",
+              paddingBottom: showWatermark ? 28 : 0,
+            }}
+          >
+            {templateStack}
+          </div>
+        </div>
+      ) : (
+        <ResumePagedView
+          fontScale={fontScale}
+          showWatermark={showWatermark}
+          backgroundColor={bColor}
+          dataFontColor={fColor}
+          sidebarFill={sidebarFill}
+          measureKey={measureKey}
+        >
+          {templateStack}
+        </ResumePagedView>
+      )}
     </div>
   );
 }

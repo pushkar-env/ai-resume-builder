@@ -25,7 +25,16 @@ export function TemplateThumbnail({
     const update = () => {
       const w = host.clientWidth;
       const h = host.clientHeight;
-      const ch = measure.scrollHeight;
+      /** Prefer typed paginator root height — excludes zero-footprint measurement & avoids stale scroll metrics with nested zoom + content-visibility. */
+      const cont = measure.querySelector<HTMLElement>(".resume-continuous-canvas");
+      const pagedRoot = measure.querySelector<HTMLElement>(".resume-paged-view");
+      const ch = Math.max(
+        cont?.scrollHeight ?? 0,
+        Math.ceil(cont?.getBoundingClientRect().height ?? 0),
+        pagedRoot?.scrollHeight ?? 0,
+        Math.ceil(pagedRoot?.getBoundingClientRect().height ?? 0),
+        measure.scrollHeight,
+      );
       if (w <= 0 || h <= 0 || ch <= 0) return;
       const scaleW = (w / 794) * 0.998;
       const scaleH = (h / ch) * 0.998;
@@ -41,7 +50,7 @@ export function TemplateThumbnail({
       roHost.disconnect();
       roMeasure.disconnect();
     };
-  }, [templateId]);
+  }, [templateId, accent, showWatermark]);
 
   const sample: ResumeDetail = {
     ...SAMPLE_RESUME,
@@ -49,7 +58,7 @@ export function TemplateThumbnail({
     accentColor: accent,
   };
   return (
-    <div ref={hostRef} className="absolute inset-0 overflow-hidden bg-white">
+    <div ref={hostRef} className="absolute inset-0 overflow-hidden bg-white [content-visibility:visible]">
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2"
         style={{
@@ -62,7 +71,13 @@ export function TemplateThumbnail({
         }}
       >
         <div ref={measureRef} className="w-[794px]">
-          <ResumePreview key={templateId} resume={sample} accentColor={accent} showWatermark={showWatermark} />
+          <ResumePreview
+            key={templateId}
+            layout="continuous"
+            resume={sample}
+            accentColor={accent}
+            showWatermark={showWatermark}
+          />
         </div>
       </div>
     </div>
