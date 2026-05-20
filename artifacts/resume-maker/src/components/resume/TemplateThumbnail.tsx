@@ -2,8 +2,10 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
 import {
-  computeThumbnailCoverScale,
+  computeThumbnailWidthFit,
   measureContinuousCanvasHeight,
+  THUMBNAIL_PAGE_WIDTH_PX,
+  type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
 
@@ -18,8 +20,7 @@ export function TemplateThumbnail({
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
-  /** Scale to fill preview area (width + height “cover”), centered like dashboard thumbnails. */
-  const [fitScale, setFitScale] = useState(0.36);
+  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.36, offsetY: 0 });
 
   const remeasure = useCallback(() => {
     const host = hostRef.current;
@@ -27,8 +28,8 @@ export function TemplateThumbnail({
     if (!host || !measure) return;
 
     const ch = measureContinuousCanvasHeight(measure);
-    const next = computeThumbnailCoverScale(host.clientWidth, host.clientHeight, ch);
-    if (next != null) setFitScale(next);
+    const next = computeThumbnailWidthFit(host.clientWidth, host.clientHeight, ch);
+    if (next != null) setFit(next);
   }, []);
 
   useEffect(() => {
@@ -57,13 +58,17 @@ export function TemplateThumbnail({
     accentColor: accent,
   };
   return (
-    <div ref={hostRef} className="absolute inset-0 overflow-hidden bg-white [content-visibility:visible]">
+    <div
+      ref={hostRef}
+      className="absolute inset-0 overflow-hidden bg-white [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
+    >
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2"
+        className="absolute left-1/2 -translate-x-1/2"
         style={{
-          width: 794,
+          top: fit.offsetY,
+          width: THUMBNAIL_PAGE_WIDTH_PX,
           transformOrigin: "top center",
-          transform: `scale(${fitScale}) translateZ(0)`,
+          transform: `scale(${fit.scale}) translateZ(0)`,
           backfaceVisibility: "hidden",
           WebkitFontSmoothing: "antialiased",
           pointerEvents: "none",

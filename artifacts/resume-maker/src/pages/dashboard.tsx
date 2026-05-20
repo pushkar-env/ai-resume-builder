@@ -9,8 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import {
-  computeThumbnailCoverScale,
+  computeThumbnailWidthFit,
   measureContinuousCanvasHeight,
+  THUMBNAIL_PAGE_WIDTH_PX,
+  type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import {
   DropdownMenu,
@@ -95,7 +97,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const measureRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [fitScale, setFitScale] = useState(0.32);
+  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.32, offsetY: 0 });
 
   useEffect(() => {
     const el = hostRef.current;
@@ -127,8 +129,8 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
 
     const update = () => {
       const ch = measureContinuousCanvasHeight(measure);
-      const next = computeThumbnailCoverScale(host.clientWidth, host.clientHeight, ch);
-      if (next != null) setFitScale(next);
+      const next = computeThumbnailWidthFit(host.clientWidth, host.clientHeight, ch);
+      if (next != null) setFit(next);
     };
 
     const schedule = () => {
@@ -161,10 +163,11 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
       ) : (
         <div className="w-full h-full relative overflow-hidden">
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2"
+            className="absolute left-1/2 -translate-x-1/2"
             style={{
-              width: 794,
-              transform: `scale(${fitScale}) translateZ(0)`,
+              top: fit.offsetY,
+              width: THUMBNAIL_PAGE_WIDTH_PX,
+              transform: `scale(${fit.scale}) translateZ(0)`,
               transformOrigin: "top center",
               backfaceVisibility: "hidden",
               WebkitFontSmoothing: "antialiased",

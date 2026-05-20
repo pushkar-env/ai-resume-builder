@@ -4,6 +4,12 @@ export const THUMBNAIL_PAGE_WIDTH_PX = 794;
 const MIN_SCALE = 0.28;
 const MAX_SCALE = 0.55;
 
+export type ThumbnailFit = {
+  scale: number;
+  /** Host-space px offset to vertically center when content is shorter than the card. */
+  offsetY: number;
+};
+
 /**
  * Natural content height for `layout="continuous"` previews.
  * Ignores paginated measurement mounts so pagination refactors cannot inflate `ch`.
@@ -18,19 +24,21 @@ export function measureContinuousCanvasHeight(measureRoot: HTMLElement): number 
 }
 
 /**
- * Cover-style scale: fills the thumbnail host (width + height), cropping overflow.
- * Clamped for legibility across breakpoints.
+ * Width-fit thumbnail layout: every preview spans the full card width (no side crop).
+ * Short resumes are centered vertically; tall resumes are top-aligned with bottom crop.
  */
-export function computeThumbnailCoverScale(
+export function computeThumbnailWidthFit(
   hostWidth: number,
   hostHeight: number,
   contentHeight: number,
-): number | null {
+): ThumbnailFit | null {
   if (hostWidth <= 0 || hostHeight <= 0 || contentHeight <= 0) return null;
 
   const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * 0.998;
-  const scaleH = (hostHeight / contentHeight) * 0.998;
-  const cover = Math.max(scaleW, scaleH);
+  const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scaleW));
+  const scaledHeight = contentHeight * scale;
+  const offsetY =
+    scaledHeight < hostHeight ? Math.max(0, (hostHeight - scaledHeight) / 2) : 0;
 
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, cover));
+  return { scale, offsetY };
 }
