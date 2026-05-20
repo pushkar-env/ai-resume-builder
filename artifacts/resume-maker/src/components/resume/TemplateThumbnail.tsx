@@ -83,10 +83,12 @@ export function TemplateThumbnail({
           <div
             ref={measureRef}
             data-template-gallery-thumb
-            className="w-[794px]"
+            className="flex w-[794px] flex-col"
             style={
               {
                 "--gallery-viewport-h": `${viewportH}px`,
+                minHeight: `${viewportH}px`,
+                height: `${viewportH}px`,
               } as CSSProperties
             }
           >
