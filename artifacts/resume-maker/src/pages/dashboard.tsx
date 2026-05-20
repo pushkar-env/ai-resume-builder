@@ -9,6 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import {
+  computeThumbnailCoverScale,
+  measureContinuousCanvasHeight,
+} from "@/lib/thumbnail-fit-scale";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -122,23 +126,18 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     if (!host || !measure || !resume) return;
 
     const update = () => {
-      const w = host.clientWidth;
-      const h = host.clientHeight;
-      const cont = measure.querySelector<HTMLElement>(".resume-continuous-canvas");
-      const ch = Math.max(
-        cont?.scrollHeight ?? 0,
-        Math.ceil(cont?.getBoundingClientRect().height ?? 0),
-        measure.scrollHeight,
-      );
-      if (w <= 0 || h <= 0 || ch <= 0) return;
-      const scaleW = (w / 794) * 0.998;
-      const scaleH = (h / ch) * 0.998;
-      setFitScale(Math.min(0.55, Math.max(0.28, scaleW)));
+      const ch = measureContinuousCanvasHeight(measure);
+      const next = computeThumbnailCoverScale(host.clientWidth, host.clientHeight, ch);
+      if (next != null) setFitScale(next);
     };
 
-    update();
-    const roHost = new ResizeObserver(update);
-    const roMeasure = new ResizeObserver(update);
+    const schedule = () => {
+      requestAnimationFrame(() => requestAnimationFrame(update));
+    };
+
+    schedule();
+    const roHost = new ResizeObserver(schedule);
+    const roMeasure = new ResizeObserver(schedule);
     roHost.observe(host);
     roMeasure.observe(measure);
     return () => {

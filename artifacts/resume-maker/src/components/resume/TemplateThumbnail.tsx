@@ -1,6 +1,10 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
+import {
+  computeThumbnailCoverScale,
+  measureContinuousCanvasHeight,
+} from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
 
 export function TemplateThumbnail({
@@ -17,40 +21,35 @@ export function TemplateThumbnail({
   /** Scale to fill preview area (width + height “cover”), centered like dashboard thumbnails. */
   const [fitScale, setFitScale] = useState(0.36);
 
+  const remeasure = useCallback(() => {
+    const host = hostRef.current;
+    const measure = measureRef.current;
+    if (!host || !measure) return;
+
+    const ch = measureContinuousCanvasHeight(measure);
+    const next = computeThumbnailCoverScale(host.clientWidth, host.clientHeight, ch);
+    if (next != null) setFitScale(next);
+  }, []);
+
   useEffect(() => {
     const host = hostRef.current;
     const measure = measureRef.current;
     if (!host || !measure) return;
 
-    const update = () => {
-      const w = host.clientWidth;
-      const h = host.clientHeight;
-      /** Prefer typed paginator root height — excludes zero-footprint measurement & avoids stale scroll metrics with nested zoom + content-visibility. */
-      const cont = measure.querySelector<HTMLElement>(".resume-continuous-canvas");
-      const pagedRoot = measure.querySelector<HTMLElement>(".resume-paged-view");
-      const ch = Math.max(
-        cont?.scrollHeight ?? 0,
-        Math.ceil(cont?.getBoundingClientRect().height ?? 0),
-        pagedRoot?.scrollHeight ?? 0,
-        Math.ceil(pagedRoot?.getBoundingClientRect().height ?? 0),
-        measure.scrollHeight,
-      );
-      if (w <= 0 || h <= 0 || ch <= 0) return;
-      const scaleW = (w / 794) * 0.998;
-      const scaleH = (h / ch) * 0.998;
-      setFitScale(Math.min(0.55, Math.max(0.28, scaleW)));
+    const schedule = () => {
+      requestAnimationFrame(() => requestAnimationFrame(remeasure));
     };
 
-    update();
-    const roHost = new ResizeObserver(update);
-    const roMeasure = new ResizeObserver(update);
+    schedule();
+    const roHost = new ResizeObserver(schedule);
+    const roMeasure = new ResizeObserver(schedule);
     roHost.observe(host);
     roMeasure.observe(measure);
     return () => {
       roHost.disconnect();
       roMeasure.disconnect();
     };
-  }, [templateId, accent, showWatermark]);
+  }, [templateId, accent, showWatermark, remeasure]);
 
   const sample: ResumeDetail = {
     ...SAMPLE_RESUME,
