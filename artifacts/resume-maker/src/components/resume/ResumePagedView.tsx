@@ -36,15 +36,16 @@ export function ResumePagedView({
   const [pageCount, setPageCount] = useState(1);
 
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
-  const innerViewportPx = (PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0)) / fs;
+  const viewHeight = PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
 
   useLayoutEffect(() => {
     const el = measureZoomRef.current;
     if (!el) return;
 
     const run = () => {
-      const h = el.scrollHeight;
-      const pages = Math.min(MAX_PAGES, Math.max(1, Math.ceil(h / innerViewportPx)));
+      // Use visual (post-zoom) height so measurement and translate offsets use one coordinate space.
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      const pages = Math.min(MAX_PAGES, Math.max(1, Math.ceil(h / viewHeight)));
       setPageCount(pages);
     };
 
@@ -56,9 +57,7 @@ export function ResumePagedView({
       cancelAnimationFrame(id);
       ro.disconnect();
     };
-  }, [measureKey, innerViewportPx]);
-
-  const viewHeight = PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
+  }, [measureKey, viewHeight]);
 
   const pageShell = (pageIndex: number) => (
     <div
@@ -83,7 +82,7 @@ export function ResumePagedView({
         className="resume-page-body relative z-[1] box-border w-full overflow-hidden"
         style={{ height: viewHeight }}
       >
-        <div style={{ transform: `translateY(-${pageIndex * innerViewportPx}px)` }}>
+        <div style={{ transform: `translateY(-${pageIndex * viewHeight}px)` }}>
           <div style={{ zoom: fs, width: "100%" }}>{children}</div>
         </div>
       </div>

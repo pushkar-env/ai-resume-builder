@@ -1937,6 +1937,15 @@ export function ResumePreview({
               overflow-wrap: break-word !important;
               word-break: normal !important;
             }
+            /*
+             * Multi-page readability guardrails:
+             * keep grouped blocks/two-column chunks from being split awkwardly.
+             */
+            .a4-page .resume-export-block,
+            .a4-page .resume-export-grid > div {
+              break-inside: avoid;
+              page-break-inside: avoid;
+            }
             ${RESUME_EXPORT_CSS}
           `,
         }}
