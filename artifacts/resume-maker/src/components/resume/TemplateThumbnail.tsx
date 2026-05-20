@@ -1,16 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
-import {
-  computeThumbnailCoverScale,
-  measureContinuousCanvasHeight,
-  THUMBNAIL_PAGE_WIDTH_PX,
-} from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
 
+const PAGE_WIDTH_PX = 794;
+
 /**
- * Template card preview: top-aligned, edge-to-edge cover fit (original gallery behavior).
- * Renders continuous sample content (no half-empty A4 page) but scales like a full page.
+ * Template gallery thumbnail — matches main branch: paginated A4 sample, cover scale,
+ * top-aligned, white backing so per-template card colors never bleed through as gaps.
  */
 export function TemplateThumbnail({
   templateId,
@@ -31,13 +28,13 @@ export function TemplateThumbnail({
     if (!host || !measure) return;
 
     const update = () => {
-      const ch = measureContinuousCanvasHeight(measure);
-      const next = computeThumbnailCoverScale(
-        host.clientWidth,
-        host.clientHeight,
-        ch,
-      );
-      if (next != null) setFitScale(next);
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      const ch = measure.scrollHeight;
+      if (w <= 0 || h <= 0 || ch <= 0) return;
+      const scaleW = (w / PAGE_WIDTH_PX) * 0.998;
+      const scaleH = (h / ch) * 0.998;
+      setFitScale(Math.min(0.55, Math.max(0.32, Math.max(scaleW, scaleH))));
     };
 
     const schedule = () => {
@@ -62,14 +59,11 @@ export function TemplateThumbnail({
   };
 
   return (
-    <div
-      ref={hostRef}
-      className="absolute inset-0 overflow-hidden [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
-    >
+    <div ref={hostRef} className="absolute inset-0 overflow-hidden bg-white">
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2"
         style={{
-          width: THUMBNAIL_PAGE_WIDTH_PX,
+          width: PAGE_WIDTH_PX,
           transformOrigin: "top center",
           transform: `scale(${fitScale}) translateZ(0)`,
           backfaceVisibility: "hidden",
@@ -80,7 +74,6 @@ export function TemplateThumbnail({
         <div ref={measureRef} className="w-[794px]">
           <ResumePreview
             key={templateId}
-            layout="continuous"
             resume={sample}
             accentColor={accent}
             showWatermark={showWatermark}
