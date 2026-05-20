@@ -1979,6 +1979,48 @@ export function ResumePreview({
               align-self: stretch;
             }
             /*
+             * Template gallery cards: stretch two-column sidebars to the full visible
+             * preview clip (not just flowing content height).
+             */
+            [data-template-gallery-thumb] .resume-continuous-canvas {
+              min-height: var(--gallery-viewport-h);
+              display: flex;
+              flex-direction: column;
+            }
+            [data-template-gallery-thumb] .resume-continuous-canvas > .relative {
+              min-height: 100%;
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+            }
+            [data-template-gallery-thumb] .resume-preview-document {
+              min-height: 100%;
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+            }
+            [data-template-gallery-thumb] .resume-preview-document > .flex {
+              min-height: 100%;
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+            }
+            [data-template-gallery-thumb] .resume-preview-document > .flex > * {
+              min-height: 100%;
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+            }
+            [data-template-gallery-thumb] [data-resume-two-col-root] {
+              flex: 1;
+              min-height: 0;
+              align-items: stretch;
+            }
+            [data-template-gallery-thumb] [data-resume-sidebar] {
+              align-self: stretch;
+              min-height: 100%;
+            }
+            /*
              * Paginated mode: the sidebarFill div in ResumePagedView paints the
              * sidebar color across inset-y-0 on each page (including topPad and
              * watermark areas). Remove the template's own sidebar background so

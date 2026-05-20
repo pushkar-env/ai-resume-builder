@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type CSSProperties } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
 import {
@@ -23,6 +23,8 @@ export function TemplateThumbnail({
   const hostRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [fitScale, setFitScale] = useState(0.36);
+  /** Unscaled doc height matching the visible card clip (for full-height two-col sidebars). */
+  const [viewportH, setViewportH] = useState(1123);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -30,8 +32,11 @@ export function TemplateThumbnail({
 
     const update = () => {
       const w = host.clientWidth;
-      if (w <= 0) return;
-      setFitScale(computeTemplateGalleryScale(w));
+      const h = host.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      const scale = computeTemplateGalleryScale(w);
+      setFitScale(scale);
+      setViewportH(Math.ceil(h / scale));
     };
 
     const schedule = () => {
@@ -75,7 +80,16 @@ export function TemplateThumbnail({
             pointerEvents: "none",
           }}
         >
-          <div ref={measureRef} className="w-[794px]">
+          <div
+            ref={measureRef}
+            data-template-gallery-thumb
+            className="w-[794px]"
+            style={
+              {
+                "--gallery-viewport-h": `${viewportH}px`,
+              } as CSSProperties
+            }
+          >
             <ResumePreview
               key={templateId}
               layout="continuous"
