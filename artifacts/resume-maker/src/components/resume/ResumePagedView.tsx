@@ -54,9 +54,14 @@ export function ResumePagedView({
     if (!el) return;
 
     const run = () => {
-      // Use visual (post-zoom) height so measurement and translate offsets use one coordinate space.
+      // Prefer scrollHeight: the off-screen measure mount uses height:0 + overflow:hidden,
+      // so getBoundingClientRect() alone collapses to a clipped sliver in thumbnails/transform contexts.
       const rootRect = el.getBoundingClientRect();
-      const totalHeight = Math.ceil(rootRect.height);
+      const totalHeight = Math.max(
+        el.scrollHeight,
+        el.offsetHeight,
+        Math.ceil(rootRect.height),
+      );
       if (!Number.isFinite(totalHeight) || totalHeight <= 0) {
         setMeasuredHeight(0);
         setPageStarts([0]);

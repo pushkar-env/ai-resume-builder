@@ -6,8 +6,8 @@ import type { ResumeDetail } from "@workspace/api-client-react";
 const PAGE_WIDTH_PX = 794;
 
 /**
- * Template gallery thumbnail — matches main branch: paginated A4 sample, cover scale,
- * top-aligned, white backing so per-template card colors never bleed through as gaps.
+ * Template gallery thumbnail: continuous sample content (full resume visible in measure tree),
+ * paginated-style cover scale, top-aligned, white backing.
  */
 export function TemplateThumbnail({
   templateId,
@@ -59,7 +59,10 @@ export function TemplateThumbnail({
   };
 
   return (
-    <div ref={hostRef} className="absolute inset-0 overflow-hidden bg-white">
+    <div
+      ref={hostRef}
+      className="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+    >
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2"
         style={{
@@ -74,6 +77,7 @@ export function TemplateThumbnail({
         <div ref={measureRef} className="w-[794px]">
           <ResumePreview
             key={templateId}
+            layout="continuous"
             resume={sample}
             accentColor={accent}
             showWatermark={showWatermark}
