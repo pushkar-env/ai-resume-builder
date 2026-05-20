@@ -400,6 +400,9 @@
 .a4-page {
   width: 794px;
   min-height: 1123px;
+  height: auto;
+  max-height: none;
+  overflow: visible;
   background: white;
   box-shadow: 0 4px 40px rgba(0,0,0,0.12);
 }

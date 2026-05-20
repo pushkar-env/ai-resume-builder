@@ -18,6 +18,9 @@ const STRIP_STYLE_PREFIXES = [
   "white-space",
   "line-break",
   "hyphens",
+  "font-size",
+  "font",
+  "line-height",
 ];
 
 function stripSoftHyphensFromHtml(html: string): string {

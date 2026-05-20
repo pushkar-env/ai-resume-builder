@@ -1,6 +1,7 @@
 import type * as React from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
+import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 
 /* ─── Types ─── */
@@ -439,7 +440,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
       </div>
 
       {/* Main */}
-      <div className="flex-1 px-7 py-6 overflow-hidden">
+      <div className="resume-template-columns-main flex-1 px-7 py-6">
         {str(summary.text) && (
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2">
@@ -962,7 +963,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
       </div>
 
       {/* Main */}
-      <div className="flex-1 px-6 py-6 overflow-hidden">
+      <div className="resume-template-columns-main flex-1 px-6 py-6">
         {str(summary.text) && (
           <div className="mb-5 p-3.5 rounded-xl" style={{ background: alpha(color, 0.06) }}>
             <p className="text-[7.5px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color }}>About Me</p>
@@ -1220,18 +1221,15 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
       {projects.length > 0 && (
         <><SH label="Projects" />
           {projects.map((pr, i) => (
-            <p key={i} className="text-[8.5px] text-gray-700 mb-0.5">
-              <strong>{str(pr.name)}</strong>
-              {str(pr.description) ? (
-                <>
-                  {" — "}
-                  <span
-                    className="resume-text [&_p]:inline [&_p]:m-0"
-                    dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-                  />
-                </>
-              ) : null}
-            </p>
+            <div key={i} className="resume-export-block text-[8.5px] text-gray-700 mb-0.5">
+              <p className="font-bold text-gray-900">{str(pr.name)}</p>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[8.5px] text-gray-700 [&_p]:m-0"
+                  dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
+                />
+              )}
+            </div>
           ))}
         </>
       )}
@@ -1332,7 +1330,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
         </>
       )}
 
-      <div className="grid grid-cols-2 gap-6 mt-2">
+      <div className="resume-export-grid grid grid-cols-2 gap-6 mt-2">
         {skills.length > 0 && (
           <div>
             <SH label="Skills & Methods" />
@@ -1401,7 +1399,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         )}
 
         {exp.length > 0 && (
-          <div className="mb-4">
+          <div className="resume-export-block mb-4">
             <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2.5" style={{ color: navy }}>Work Experience</p>
             <div className="space-y-3">
               {exp.map((e, i) => (
@@ -1425,10 +1423,10 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="resume-export-grid grid grid-cols-2 gap-6">
           <div>
             {edu.length > 0 && (
-              <div className="mb-3">
+              <div className="resume-export-block mb-3">
                 <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Education</p>
                 {edu.map((e, i) => (
                   <div key={i} className="mb-2 p-2 rounded" style={{ background: alpha(navy, 0.04) }}>
@@ -1776,7 +1774,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
       </div>
 
       {/* Right 65% main */}
-      <div className="flex-1 px-7 py-7 overflow-hidden">
+      <div className="resume-template-columns-main flex-1 px-7 py-7">
         {str(summary.text) && (
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2">
@@ -1888,14 +1886,14 @@ export function ResumePreview({
   );
 
   const templateStack = (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden [&>div]:min-h-0 [&>div]:w-full [&>div]:flex-1">
+    <div className="flex w-full flex-col [&>div]:w-full">
       {templateInner}
     </div>
   );
 
   return (
     <div
-      className={`a4-page overflow-hidden relative${showWatermark ? " flex h-[1123px] max-h-[1123px] flex-col" : ""}`}
+      className="a4-page relative"
       style={{ fontFamily: font, backgroundColor: bColor }}
       data-font-color={fColor}
       data-watermarked={showWatermark ? "" : undefined}
@@ -1931,32 +1929,7 @@ export function ResumePreview({
               overflow-wrap: break-word !important;
               word-break: normal !important;
             }
-            /* Free-plan watermark: lock to one physical A4 page so print/PDF does not paginate. */
-            .a4-page[data-watermarked] {
-              height: 1123px;
-              max-height: 1123px;
-              box-sizing: border-box;
-            }
-            .a4-page[data-watermarked] .resume-preview-watermark-shell {
-              flex: 1 1 0%;
-              min-height: 0;
-              min-width: 0;
-              display: flex;
-              flex-direction: column;
-            }
-            .a4-page[data-watermarked] .resume-preview-zoom-region {
-              flex: 1 1 0%;
-              min-height: 0;
-              min-width: 0;
-              overflow: hidden;
-              display: flex;
-              flex-direction: column;
-            }
-            .a4-page[data-watermarked] > .resume-preview-root {
-              flex: 1 1 0%;
-              min-height: 0;
-              min-width: 0;
-            }
+            ${RESUME_EXPORT_CSS}
           `,
         }}
       />
@@ -2007,25 +1980,20 @@ export function ResumePreview({
           `
         }} />
       )}
-      <div className={`resume-preview-root flex w-full min-w-0 flex-col${showWatermark ? " min-h-0 flex-1" : ""}`}>
-        {showWatermark ? (
-          <div className="resume-preview-watermark-shell flex min-h-0 w-full flex-1 flex-col">
-            <div
-              className="resume-preview-zoom-region flex min-h-0 flex-1 flex-col overflow-hidden"
-              style={{ zoom: fontScale, width: "100%" }}
-            >
-              {templateStack}
-            </div>
-            <ResumeWatermark backgroundColor={bColor} />
-          </div>
-        ) : (
+      <div className="resume-preview-root flex w-full min-w-0 flex-col">
+        <div className={`resume-preview-watermark-shell flex w-full flex-col${showWatermark ? "" : " resume-preview-watermark-shell--no-watermark"}`}>
           <div
-            className="flex min-h-0 w-full flex-col"
-            style={{ zoom: fontScale, width: "100%", minHeight: `${1123 / fontScale}px` }}
+            className="resume-preview-zoom-region w-full"
+            style={{
+              zoom: fontScale,
+              width: "100%",
+              minHeight: `${1123 / fontScale}px`,
+            }}
           >
             {templateStack}
           </div>
-        )}
+          {showWatermark ? <ResumeWatermark backgroundColor={bColor} /> : null}
+        </div>
       </div>
     </div>
   );

@@ -70,6 +70,7 @@ import {
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { emptySectionContentForType } from "@/lib/empty-section-content";
+import { RESUME_PDF_EXPORT_CSS } from "@/lib/resume-export-styles";
 
 const ACCENT_COLORS = [
   { label: "Violet", value: "#7c3aed" },
@@ -172,30 +173,9 @@ function buildExportHtml(resumeTitle: string): string | null {
   <title>${resumeTitle.replace(/[<>]/g, "")}</title>
   ${headHtml}
   <style>
-    @page { size: A4; margin: 0; }
-    html, body { margin: 0; padding: 0; background: white; }
-    body { display: flex; justify-content: center; }
-    .a4-page {
-      box-shadow: none !important;
-      width: 794px !important;
-      min-height: 1123px !important;
-      margin: 0 !important;
-    }
-    .a4-page[data-watermarked] {
-      height: 1123px !important;
-      max-height: 1123px !important;
-      overflow: hidden !important;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
+    ${RESUME_PDF_EXPORT_CSS}
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .a4-page { width: 794px !important; }
-      .a4-page[data-watermarked] {
-        height: 1123px !important;
-        max-height: 1123px !important;
-        overflow: hidden !important;
-      }
     }
   </style>
 </head>
