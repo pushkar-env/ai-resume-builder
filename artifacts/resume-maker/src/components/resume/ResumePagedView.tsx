@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 
 const PAGE_WIDTH_PX = 794;
@@ -54,12 +55,11 @@ export function ResumePagedView({
     if (!el) return;
 
     const run = () => {
-      // Prefer scrollHeight: the off-screen measure mount uses height:0 + overflow:hidden,
-      // so getBoundingClientRect() alone collapses to a clipped sliver in thumbnails/transform contexts.
       const rootRect = el.getBoundingClientRect();
       const totalHeight = Math.max(
         el.scrollHeight,
         el.offsetHeight,
+        el.getBoundingClientRect().height,
         Math.ceil(rootRect.height),
       );
       if (!Number.isFinite(totalHeight) || totalHeight <= 0) {
@@ -212,26 +212,33 @@ export function ResumePagedView({
     </div>
   );
 
+  const measureMount =
+    typeof document !== "undefined"
+      ? createPortal(
+          <div
+            aria-hidden
+            className="resume-measure-mount pointer-events-none"
+            style={{
+              position: "fixed",
+              left: "-100vw",
+              top: 0,
+              width: PAGE_WIDTH_PX,
+              visibility: "hidden",
+              zIndex: -1,
+              overflow: "visible",
+            }}
+          >
+            <div ref={measureZoomRef} style={{ zoom: fs, width: "100%" }}>
+              {children}
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className="resume-paged-view relative flex flex-col items-center">
-      {/* Isolated measurement: zero layout footprint so card/preview scrollHeight & observers stay accurate */}
-      <div
-        aria-hidden
-        className="resume-measure-mount pointer-events-none invisible"
-        style={{
-          position: "absolute",
-          left: -26000,
-          top: 0,
-          width: PAGE_WIDTH_PX,
-          height: 0,
-          overflow: "hidden",
-        }}
-      >
-        <div ref={measureZoomRef} style={{ zoom: fs, width: "100%" }}>
-          {children}
-        </div>
-      </div>
-
+      {measureMount}
       {pageWindows.map((w, i) => pageShell(i, w.start, w.span, w.topPad))}
     </div>
   );

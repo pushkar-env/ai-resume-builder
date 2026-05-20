@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BuilderNavbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
+import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { SEO } from "@/components/shared/SEO";
@@ -494,38 +495,42 @@ export default function BuilderPage() {
     setPreviewScale(initialPreviewZoomForViewport());
   }, [resumeId]);
 
+  const previewContentKey = useMemo(() => {
+    const sig = (localSections ?? [])
+      .map((s) => `${s.id}:${s.type}:${JSON.stringify(s.content)}`)
+      .join("|");
+    return `${templateId}|${fontScale}|${sig}|${!isPremiumUser ? 1 : 0}`;
+  }, [localSections, templateId, fontScale, isPremiumUser]);
+
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
 
     let raf1 = 0;
     let raf2 = 0;
+    let raf3 = 0;
     const measure = () => {
-      const pv = el.querySelector<HTMLElement>(".resume-paged-view");
-      const combined = Math.max(
-        pv?.scrollHeight ?? 0,
-        Math.ceil(pv?.getBoundingClientRect().height ?? 0),
-        Math.ceil(el.getBoundingClientRect().height),
-        el.scrollHeight,
-      );
-      setContentHeight((prev) => {
-        const next = Math.max(1123, Math.ceil(combined));
-        return prev === next ? prev : next;
-      });
+      const next = measureResumePagedViewHeight(el);
+      setContentHeight((prev) => (prev === next ? prev : next));
     };
 
-    /** Double RAF: resumes paginate synchronously via layout hooks; defer to next paints for stable scrollHeight */
+    /** Triple RAF: pagination layout + mobile tab visibility need extra paint before heights are stable */
     const schedule = () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
       raf1 = requestAnimationFrame(() => {
-        raf2 = requestAnimationFrame(measure);
+        raf2 = requestAnimationFrame(() => {
+          raf3 = requestAnimationFrame(measure);
+        });
       });
     };
 
     schedule();
     const ro = new ResizeObserver(schedule);
     ro.observe(el);
+    const paged = el.querySelector(".resume-paged-view");
+    if (paged) ro.observe(paged);
     window.addEventListener("resize", schedule);
 
     return () => {
@@ -533,8 +538,9 @@ export default function BuilderPage() {
       window.removeEventListener("resize", schedule);
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
     };
-  }, [resumeId]);
+  }, [resumeId, previewContentKey, mobileTab]);
 
   /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
   const handleFitPreview = useCallback(() => {
@@ -1270,9 +1276,14 @@ export default function BuilderPage() {
         </div>
 
         {/* Right — live preview */}
-        <div 
+        <div
           ref={containerRef}
-          className={`flex-1 overflow-x-auto overflow-y-auto bg-muted/40 flex-col py-6 touch-pan-x touch-pan-y overscroll-contain [-webkit-overflow-scrolling:touch] ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}
+          className={`flex-1 overflow-x-auto overflow-y-auto bg-muted/40 flex-col py-6 touch-pan-x touch-pan-y overscroll-contain [-webkit-overflow-scrolling:touch] lg:flex ${
+            mobileTab === "preview"
+              ? "flex"
+              : "max-lg:fixed max-lg:-left-[100vw] max-lg:top-0 max-lg:z-0 max-lg:opacity-0 max-lg:pointer-events-none max-lg:w-[794px] max-lg:overflow-visible"
+          }`}
+          aria-hidden={mobileTab !== "preview" ? true : undefined}
         >
           {/* min-w-max + w-max lets content exceed viewport width so horizontal scroll works on touch (touch-pan-y alone blocked sideways panning). */}
           <div className="min-w-max w-max max-w-none flex flex-col items-center pb-20 relative px-4 mx-auto">
@@ -1312,11 +1323,11 @@ export default function BuilderPage() {
             </div>
             
             {/* Dynamic Scaling Wrapper */}
-            <div 
-              className="relative mx-auto" 
-              style={{ 
-                width: `${794 * previewScale}px`, 
-                height: `${contentHeight * previewScale}px`,
+            <div
+              className="relative mx-auto"
+              style={{
+                width: `${794 * previewScale}px`,
+                minHeight: `${contentHeight * previewScale}px`,
               }}
             >
               <div 
