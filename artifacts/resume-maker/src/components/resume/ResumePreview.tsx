@@ -1,8 +1,9 @@
 import type * as React from "react";
+import { useMemo } from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
-import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
+import { ResumePagedView } from "@/components/resume/ResumePagedView";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -245,7 +246,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
     <div className="flex flex-col gap-1 w-full min-w-0">
       <div
         dangerouslySetInnerHTML={{ __html: richHtml(text) }}
-        className="resume-text [&>p]:mb-1 last:[&>p]:mb-0"
+        className="resume-text text-[8.5px] leading-[1.55] [&>p]:mb-1 last:[&>p]:mb-0"
       />
       {link ? (
         <div>
@@ -1865,6 +1866,13 @@ export function ResumePreview({
   const templateId = resume.templateId ?? "silicon-valley";
   const props = { sections: resume.sections, color, font };
 
+  const measureKey = useMemo(() => {
+    const sig = (resume.sections ?? [])
+      .map((s) => `${s.id}:${s.type}:${JSON.stringify(s.content)}`)
+      .join("|");
+    return `${templateId}|${sig}|${fontScale}|${fColor}|${bColor}|${showWatermark ? 1 : 0}`;
+  }, [resume.sections, templateId, fontScale, fColor, bColor, showWatermark]);
+
   const templateInner = (
     <>
       {templateId === "silicon-valley" && <SiliconValleyTemplate {...props} />}
@@ -1893,8 +1901,8 @@ export function ResumePreview({
 
   return (
     <div
-      className="a4-page relative"
-      style={{ fontFamily: font, backgroundColor: bColor }}
+      className="resume-preview-document relative"
+      style={{ fontFamily: font }}
       data-font-color={fColor}
       data-watermarked={showWatermark ? "" : undefined}
     >
@@ -1980,21 +1988,14 @@ export function ResumePreview({
           `
         }} />
       )}
-      <div className="resume-preview-root flex w-full min-w-0 flex-col">
-        <div className={`resume-preview-watermark-shell flex w-full flex-col${showWatermark ? "" : " resume-preview-watermark-shell--no-watermark"}`}>
-          <div
-            className="resume-preview-zoom-region w-full"
-            style={{
-              zoom: fontScale,
-              width: "100%",
-              minHeight: `${1123 / fontScale}px`,
-            }}
-          >
-            {templateStack}
-          </div>
-          {showWatermark ? <ResumeWatermark backgroundColor={bColor} /> : null}
-        </div>
-      </div>
+      <ResumePagedView
+        fontScale={fontScale}
+        showWatermark={showWatermark}
+        backgroundColor={bColor}
+        measureKey={measureKey}
+      >
+        {templateStack}
+      </ResumePagedView>
     </div>
   );
 }
