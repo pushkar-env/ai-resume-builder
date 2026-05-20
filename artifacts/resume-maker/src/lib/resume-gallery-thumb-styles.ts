@@ -18,6 +18,19 @@ export const RESUME_GALLERY_THUMB_CSS = `
   display: flex;
   flex-direction: column;
 }
+[data-template-gallery-thumb] .resume-continuous-canvas > .relative > .flex {
+  height: 100%;
+  min-height: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+[data-template-gallery-thumb] .resume-continuous-canvas > .relative > .flex > * {
+  flex: 1 1 auto;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
 [data-template-gallery-thumb] .resume-preview-document > .flex {
   height: 100%;
   min-height: 100%;

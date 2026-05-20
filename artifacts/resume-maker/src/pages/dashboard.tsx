@@ -8,12 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
-import {
-  computeThumbnailCoverScale,
-  measureContinuousCanvasHeight,
-  THUMBNAIL_PAGE_WIDTH_PX,
-} from "@/lib/thumbnail-fit-scale";
-import { useThumbnailMeasure } from "@/hooks/use-thumbnail-scale";
+import { ScaledResumeThumbnailShell } from "@/components/resume/ScaledResumeThumbnailShell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,10 +89,8 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
   const hostRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [fitScale, setFitScale] = useState(0.32);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -122,24 +115,6 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView },
   });
 
-  useThumbnailMeasure(
-    hostRef,
-    resume ? measureRef : null,
-    () => {
-      const host = hostRef.current;
-      const measure = measureRef.current;
-      if (!host || !measure || !resume) return;
-      const ch = measureContinuousCanvasHeight(measure);
-      const next = computeThumbnailCoverScale(
-        host.clientWidth,
-        host.clientHeight,
-        ch,
-      );
-      if (next != null) setFitScale(next);
-    },
-    [resume, fontScale, showWatermark],
-  );
-
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -151,34 +126,25 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   return (
     <div
       ref={hostRef}
-      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
+      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
     >
       {!inView || !resume ? (
         <Skeleton className="h-full w-full rounded-none" />
       ) : (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2">
-          <div
-            style={{
-              width: THUMBNAIL_PAGE_WIDTH_PX,
-              transform: `scale(${fitScale}) translateZ(0)`,
-              transformOrigin: "top center",
-              backfaceVisibility: "hidden",
-              WebkitFontSmoothing: "antialiased",
-            }}
-          >
-            <div ref={measureRef} style={{ width: THUMBNAIL_PAGE_WIDTH_PX }}>
-              <ResumePreview
-                layout="continuous"
-                resume={resume}
-                accentColor={resume.accentColor ?? "#7c3aed"}
-                fontScale={fontScale}
-                fontColor={resume.fontColor ?? "#111827"}
-                backgroundColor={resume.backgroundColor ?? "#ffffff"}
-                showWatermark={showWatermark}
-              />
-            </div>
-          </div>
-        </div>
+        <ScaledResumeThumbnailShell
+          hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+          measureDeps={[resume.id, resume.templateId, resume.updatedAt, fontScale, showWatermark]}
+        >
+          <ResumePreview
+            layout="continuous"
+            resume={resume}
+            accentColor={resume.accentColor ?? "#7c3aed"}
+            fontScale={fontScale}
+            fontColor={resume.fontColor ?? "#111827"}
+            backgroundColor={resume.backgroundColor ?? "#ffffff"}
+            showWatermark={showWatermark}
+          />
+        </ScaledResumeThumbnailShell>
       )}
     </div>
   );

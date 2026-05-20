@@ -9,21 +9,7 @@ export const THUMBNAIL_MAX_SCALE = 0.55;
 
 const WIDTH_INSET = 0.996;
 
-/** Flowing body height inside `layout="continuous"` (excludes absolute watermark). */
-export function measureContinuousCanvasHeight(measureRoot: HTMLElement): number {
-  const canvas = measureRoot.querySelector<HTMLElement>(".resume-continuous-canvas");
-  if (!canvas) return measureRoot.scrollHeight;
-
-  const contentCol = canvas.querySelector<HTMLElement>(":scope > .relative");
-  const target = contentCol ?? canvas;
-  return Math.max(
-    Math.ceil(target.getBoundingClientRect().height),
-    target.scrollHeight,
-    0,
-  );
-}
-
-/** Template gallery: width-fit scale (no horizontal crop). */
+/** Template gallery / dashboard cards: width-fit scale (no horizontal crop). */
 export function computeTemplateGalleryScale(hostWidth: number): number {
   if (hostWidth <= 0) return 0.36;
   const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * WIDTH_INSET;
@@ -39,19 +25,3 @@ export function computeGalleryViewportHeight(
   return Math.ceil(hostHeight / scale);
 }
 
-/** Dashboard cards: cover fit using full content height. */
-export function computeThumbnailCoverScale(
-  hostWidth: number,
-  hostHeight: number,
-  contentHeight: number,
-): number | null {
-  if (hostWidth <= 0 || hostHeight <= 0 || contentHeight <= 0) return null;
-
-  const scaleW = (hostWidth / THUMBNAIL_PAGE_WIDTH_PX) * WIDTH_INSET;
-  const scaleH = (hostHeight / contentHeight) * WIDTH_INSET;
-
-  return Math.min(
-    THUMBNAIL_MAX_SCALE,
-    Math.max(THUMBNAIL_MIN_SCALE, Math.max(scaleW, scaleH)),
-  );
-}
