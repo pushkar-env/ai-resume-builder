@@ -186,8 +186,13 @@ export function ResumePagedView({
         {topPad + span < viewHeight ? (
           <div
             aria-hidden
-            className="absolute inset-x-0 bottom-0 z-0"
-            style={{ height: viewHeight - (topPad + span), backgroundColor }}
+            className="absolute bottom-0 z-0"
+            style={{
+              height: viewHeight - (topPad + span),
+              backgroundColor,
+              left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * fs)) : 0,
+              right: 0,
+            }}
           >
           </div>
         ) : null}

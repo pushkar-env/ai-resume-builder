@@ -1978,6 +1978,16 @@ export function ResumePreview({
               min-height: 100%;
               align-self: stretch;
             }
+            /*
+             * Paginated mode: the sidebarFill div in ResumePagedView paints the
+             * sidebar color across inset-y-0 on each page (including topPad and
+             * watermark areas). Remove the template's own sidebar background so
+             * the two alpha layers don't compound into a darker shade — one
+             * consistent color from top to bottom, continuously across all pages.
+             */
+            .a4-page [data-resume-sidebar] {
+              background: transparent !important;
+            }
             .resume-continuous-canvas { box-sizing: border-box; }
             ${RESUME_EXPORT_CSS}
           `,

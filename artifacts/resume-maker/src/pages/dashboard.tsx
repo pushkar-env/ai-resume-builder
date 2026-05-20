@@ -133,7 +133,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
       if (w <= 0 || h <= 0 || ch <= 0) return;
       const scaleW = (w / 794) * 0.998;
       const scaleH = (h / ch) * 0.998;
-      setFitScale(Math.min(0.55, Math.max(0.32, Math.max(scaleW, scaleH))));
+      setFitScale(Math.min(0.55, Math.max(0.28, scaleW)));
     };
 
     update();
