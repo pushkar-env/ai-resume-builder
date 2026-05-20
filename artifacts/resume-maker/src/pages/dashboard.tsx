@@ -167,26 +167,27 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
       {!inView || !resume ? (
         <Skeleton className="h-full w-full rounded-none" />
       ) : (
-        <div
-          className="absolute top-0 left-1/2 -translate-x-1/2"
-          style={{
-            width: THUMBNAIL_PAGE_WIDTH_PX,
-            transform: `scale(${fitScale}) translateZ(0)`,
-            transformOrigin: "top center",
-            backfaceVisibility: "hidden",
-            WebkitFontSmoothing: "antialiased",
-          }}
-        >
-          <div ref={measureRef} className="w-[794px]">
-            <ResumePreview
-              layout="continuous"
-              resume={resume}
-              accentColor={resume.accentColor ?? "#7c3aed"}
-              fontScale={fontScale}
-              fontColor={resume.fontColor ?? "#111827"}
-              backgroundColor={resume.backgroundColor ?? "#ffffff"}
-              showWatermark={showWatermark}
-            />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2">
+          <div
+            style={{
+              width: THUMBNAIL_PAGE_WIDTH_PX,
+              transform: `scale(${fitScale}) translateZ(0)`,
+              transformOrigin: "top center",
+              backfaceVisibility: "hidden",
+              WebkitFontSmoothing: "antialiased",
+            }}
+          >
+            <div ref={measureRef} className="w-[794px]">
+              <ResumePreview
+                layout="continuous"
+                resume={resume}
+                accentColor={resume.accentColor ?? "#7c3aed"}
+                fontScale={fontScale}
+                fontColor={resume.fontColor ?? "#111827"}
+                backgroundColor={resume.backgroundColor ?? "#ffffff"}
+                showWatermark={showWatermark}
+              />
+            </div>
           </div>
         </div>
       )}

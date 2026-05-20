@@ -1,13 +1,15 @@
 import { useRef, useState, useEffect } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
+import {
+  computeTemplateGalleryScale,
+  THUMBNAIL_PAGE_WIDTH_PX,
+} from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
 
-const PAGE_WIDTH_PX = 794;
-
 /**
- * Template gallery thumbnail: continuous sample content (full resume visible in measure tree),
- * paginated-style cover scale, top-aligned, white backing.
+ * Template gallery preview: full continuous sample, width-locked scale, top-aligned.
+ * Uses a two-layer transform so horizontal centering is not overridden by scale().
  */
 export function TemplateThumbnail({
   templateId,
@@ -24,17 +26,12 @@ export function TemplateThumbnail({
 
   useEffect(() => {
     const host = hostRef.current;
-    const measure = measureRef.current;
-    if (!host || !measure) return;
+    if (!host) return;
 
     const update = () => {
       const w = host.clientWidth;
-      const h = host.clientHeight;
-      const ch = measure.scrollHeight;
-      if (w <= 0 || h <= 0 || ch <= 0) return;
-      const scaleW = (w / PAGE_WIDTH_PX) * 0.998;
-      const scaleH = (h / ch) * 0.998;
-      setFitScale(Math.min(0.55, Math.max(0.32, Math.max(scaleW, scaleH))));
+      if (w <= 0) return;
+      setFitScale(computeTemplateGalleryScale(w));
     };
 
     const schedule = () => {
@@ -43,12 +40,15 @@ export function TemplateThumbnail({
 
     schedule();
     const roHost = new ResizeObserver(schedule);
-    const roMeasure = new ResizeObserver(schedule);
     roHost.observe(host);
-    roMeasure.observe(measure);
+
+    const measure = measureRef.current;
+    const roMeasure = measure ? new ResizeObserver(schedule) : null;
+    if (measure && roMeasure) roMeasure.observe(measure);
+
     return () => {
       roHost.disconnect();
-      roMeasure.disconnect();
+      roMeasure?.disconnect();
     };
   }, [templateId, accent, showWatermark]);
 
@@ -63,25 +63,27 @@ export function TemplateThumbnail({
       ref={hostRef}
       className="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
     >
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2"
-        style={{
-          width: PAGE_WIDTH_PX,
-          transformOrigin: "top center",
-          transform: `scale(${fitScale}) translateZ(0)`,
-          backfaceVisibility: "hidden",
-          WebkitFontSmoothing: "antialiased",
-          pointerEvents: "none",
-        }}
-      >
-        <div ref={measureRef} className="w-[794px]">
-          <ResumePreview
-            key={templateId}
-            layout="continuous"
-            resume={sample}
-            accentColor={accent}
-            showWatermark={showWatermark}
-          />
+      {/* Center layer — never combine with scale on the same transform (breaks -translate-x-1/2). */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2">
+        <div
+          style={{
+            width: THUMBNAIL_PAGE_WIDTH_PX,
+            transformOrigin: "top center",
+            transform: `scale(${fitScale}) translateZ(0)`,
+            backfaceVisibility: "hidden",
+            WebkitFontSmoothing: "antialiased",
+            pointerEvents: "none",
+          }}
+        >
+          <div ref={measureRef} className="w-[794px]">
+            <ResumePreview
+              key={templateId}
+              layout="continuous"
+              resume={sample}
+              accentColor={accent}
+              showWatermark={showWatermark}
+            />
+          </div>
         </div>
       </div>
     </div>
