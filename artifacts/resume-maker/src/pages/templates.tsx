@@ -223,8 +223,8 @@ export default function TemplatesPage() {
                       showWatermark={user?.publicMetadata?.isPremium !== true}
                     />
 
-                    {/* Gradient hint overlay (very subtle) */}
-                    <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none bg-gradient-to-t from-black/10 to-transparent" />
+                    {/* Bottom fade — premium gallery cue (more content below) */}
+                    <div className="absolute inset-x-0 bottom-0 z-[1] h-20 pointer-events-none bg-gradient-to-t from-white/90 via-white/30 to-transparent" />
 
                     {/* Hover overlay with CTA */}
                     <motion.div

@@ -9,11 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import {
-  computeThumbnailWidthFit,
+  computeThumbnailCoverScale,
   measureContinuousCanvasHeight,
   THUMBNAIL_PAGE_WIDTH_PX,
-  THUMBNAIL_PREVIEW_INSET_PX,
-  type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import {
   DropdownMenu,
@@ -94,14 +92,14 @@ function timeAgo(date: string) {
 function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
-  const clipRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
-  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.32 });
+  const [fitScale, setFitScale] = useState(0.32);
 
   useEffect(() => {
-    const el = clipRef.current;
+    const el = hostRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
@@ -124,14 +122,18 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   });
 
   useEffect(() => {
-    const clip = clipRef.current;
+    const host = hostRef.current;
     const measure = measureRef.current;
-    if (!clip || !measure || !resume) return;
+    if (!host || !measure || !resume) return;
 
     const update = () => {
       const ch = measureContinuousCanvasHeight(measure);
-      const next = computeThumbnailWidthFit(clip.clientWidth, clip.clientHeight, ch);
-      if (next != null) setFit(next);
+      const next = computeThumbnailCoverScale(
+        host.clientWidth,
+        host.clientHeight,
+        ch,
+      );
+      if (next != null) setFitScale(next);
     };
 
     const schedule = () => {
@@ -139,12 +141,12 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     };
 
     schedule();
-    const roClip = new ResizeObserver(schedule);
+    const roHost = new ResizeObserver(schedule);
     const roMeasure = new ResizeObserver(schedule);
-    roClip.observe(clip);
+    roHost.observe(host);
     roMeasure.observe(measure);
     return () => {
-      roClip.disconnect();
+      roHost.disconnect();
       roMeasure.disconnect();
     };
   }, [resume, fontScale, showWatermark]);
@@ -159,37 +161,35 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
 
   return (
     <div
-      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
-      style={{ padding: THUMBNAIL_PREVIEW_INSET_PX }}
+      ref={hostRef}
+      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
     >
-      <div ref={clipRef} className="relative h-full w-full overflow-hidden">
-        {!inView || !resume ? (
-          <Skeleton className="h-full w-full rounded-none" />
-        ) : (
-          <div
-            className="absolute left-1/2 top-1/2"
-            style={{
-              width: THUMBNAIL_PAGE_WIDTH_PX,
-              transform: `translate(-50%, -50%) scale(${fit.scale}) translateZ(0)`,
-              transformOrigin: "center center",
-              backfaceVisibility: "hidden",
-              WebkitFontSmoothing: "antialiased",
-            }}
-          >
-            <div ref={measureRef} className="w-[794px]">
-              <ResumePreview
-                layout="continuous"
-                resume={resume}
-                accentColor={resume.accentColor ?? "#7c3aed"}
-                fontScale={fontScale}
-                fontColor={resume.fontColor ?? "#111827"}
-                backgroundColor={resume.backgroundColor ?? "#ffffff"}
-                showWatermark={showWatermark}
-              />
-            </div>
+      {!inView || !resume ? (
+        <Skeleton className="h-full w-full rounded-none" />
+      ) : (
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2"
+          style={{
+            width: THUMBNAIL_PAGE_WIDTH_PX,
+            transform: `scale(${fitScale}) translateZ(0)`,
+            transformOrigin: "top center",
+            backfaceVisibility: "hidden",
+            WebkitFontSmoothing: "antialiased",
+          }}
+        >
+          <div ref={measureRef} className="w-[794px]">
+            <ResumePreview
+              layout="continuous"
+              resume={resume}
+              accentColor={resume.accentColor ?? "#7c3aed"}
+              fontScale={fontScale}
+              fontColor={resume.fontColor ?? "#111827"}
+              backgroundColor={resume.backgroundColor ?? "#ffffff"}
+              showWatermark={showWatermark}
+            />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,15 +1,17 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect } from "react";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { SAMPLE_RESUME } from "@/lib/sample-resume";
 import {
-  computeThumbnailWidthFit,
+  computeThumbnailCoverScale,
   measureContinuousCanvasHeight,
   THUMBNAIL_PAGE_WIDTH_PX,
-  THUMBNAIL_PREVIEW_INSET_PX,
-  type ThumbnailFit,
 } from "@/lib/thumbnail-fit-scale";
 import type { ResumeDetail } from "@workspace/api-client-react";
 
+/**
+ * Template card preview: top-aligned, edge-to-edge cover fit (original gallery behavior).
+ * Renders continuous sample content (no half-empty A4 page) but scales like a full page.
+ */
 export function TemplateThumbnail({
   templateId,
   accent,
@@ -19,39 +21,39 @@ export function TemplateThumbnail({
   accent: string;
   showWatermark: boolean;
 }) {
-  const clipRef = useRef<HTMLDivElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
-  const [fit, setFit] = useState<ThumbnailFit>({ scale: 0.36 });
-
-  const remeasure = useCallback(() => {
-    const clip = clipRef.current;
-    const measure = measureRef.current;
-    if (!clip || !measure) return;
-
-    const ch = measureContinuousCanvasHeight(measure);
-    const next = computeThumbnailWidthFit(clip.clientWidth, clip.clientHeight, ch);
-    if (next != null) setFit(next);
-  }, []);
+  const [fitScale, setFitScale] = useState(0.36);
 
   useEffect(() => {
-    const clip = clipRef.current;
+    const host = hostRef.current;
     const measure = measureRef.current;
-    if (!clip || !measure) return;
+    if (!host || !measure) return;
+
+    const update = () => {
+      const ch = measureContinuousCanvasHeight(measure);
+      const next = computeThumbnailCoverScale(
+        host.clientWidth,
+        host.clientHeight,
+        ch,
+      );
+      if (next != null) setFitScale(next);
+    };
 
     const schedule = () => {
-      requestAnimationFrame(() => requestAnimationFrame(remeasure));
+      requestAnimationFrame(() => requestAnimationFrame(update));
     };
 
     schedule();
-    const roClip = new ResizeObserver(schedule);
+    const roHost = new ResizeObserver(schedule);
     const roMeasure = new ResizeObserver(schedule);
-    roClip.observe(clip);
+    roHost.observe(host);
     roMeasure.observe(measure);
     return () => {
-      roClip.disconnect();
+      roHost.disconnect();
       roMeasure.disconnect();
     };
-  }, [templateId, accent, showWatermark, remeasure]);
+  }, [templateId, accent, showWatermark]);
 
   const sample: ResumeDetail = {
     ...SAMPLE_RESUME,
@@ -61,29 +63,28 @@ export function TemplateThumbnail({
 
   return (
     <div
+      ref={hostRef}
       className="absolute inset-0 overflow-hidden [content-visibility:visible] [&_.resume-continuous-canvas]:!shadow-none"
-      style={{ padding: THUMBNAIL_PREVIEW_INSET_PX }}
     >
-      <div ref={clipRef} className="relative h-full w-full overflow-hidden">
-        <div
-          className="absolute left-1/2 top-1/2 pointer-events-none"
-          style={{
-            width: THUMBNAIL_PAGE_WIDTH_PX,
-            transform: `translate(-50%, -50%) scale(${fit.scale}) translateZ(0)`,
-            transformOrigin: "center center",
-            backfaceVisibility: "hidden",
-            WebkitFontSmoothing: "antialiased",
-          }}
-        >
-          <div ref={measureRef} className="w-[794px]">
-            <ResumePreview
-              key={templateId}
-              layout="continuous"
-              resume={sample}
-              accentColor={accent}
-              showWatermark={showWatermark}
-            />
-          </div>
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2"
+        style={{
+          width: THUMBNAIL_PAGE_WIDTH_PX,
+          transformOrigin: "top center",
+          transform: `scale(${fitScale}) translateZ(0)`,
+          backfaceVisibility: "hidden",
+          WebkitFontSmoothing: "antialiased",
+          pointerEvents: "none",
+        }}
+      >
+        <div ref={measureRef} className="w-[794px]">
+          <ResumePreview
+            key={templateId}
+            layout="continuous"
+            resume={sample}
+            accentColor={accent}
+            showWatermark={showWatermark}
+          />
         </div>
       </div>
     </div>
