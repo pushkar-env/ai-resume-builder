@@ -3,14 +3,14 @@ export const TEMPLATE_CONFIG: Record<string, { accent: string; bg: string }> = {
   "faang":          { accent: "#0ea5e9", bg: "#f0f9ff" },
   "nova":           { accent: "#64748b", bg: "#f8fafc" },
   "executive-pro":  { accent: "#92400e", bg: "#fffbeb" },
-  "creative-pro":   { accent: "#ec4899", bg: "#fdf2f8" },
+  "creative-pro":   { accent: "#0d9488", bg: "#f0fdfa" },
   "midnight":       { accent: "#d4a853", bg: "#0d1117" },
   "ats-clean":      { accent: "#1f2937", bg: "#f9fafb" },
   "academic":       { accent: "#1e40af", bg: "#eff6ff" },
   "corporate-navy": { accent: "#1e3a5f", bg: "#f0f4f8" },
   "compact":        { accent: "#059669", bg: "#f0fdf4" },
   "european":       { accent: "#7c3aed", bg: "#f5f3ff" },
-  "two-column":     { accent: "#e11d48", bg: "#0f1117" },
+  "two-column":     { accent: "#0d9488", bg: "#0f1117" },
 };
 
 export function getDefaultAccentColor(templateId: string | null | undefined): string {

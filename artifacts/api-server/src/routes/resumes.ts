@@ -185,14 +185,14 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
       "faang": "#0ea5e9",
       "nova": "#64748b",
       "executive-pro": "#92400e",
-      "creative-pro": "#ec4899",
+      "creative-pro": "#0d9488",
       "midnight": "#d4a853",
       "ats-clean": "#1f2937",
       "academic": "#1e40af",
       "corporate-navy": "#1e3a5f",
       "compact": "#059669",
       "european": "#7c3aed",
-      "two-column": "#e11d48",
+      "two-column": "#0d9488",
     };
     const defaultColor = defaultColors[parsed.data.templateId] ?? "#7c3aed";
 
