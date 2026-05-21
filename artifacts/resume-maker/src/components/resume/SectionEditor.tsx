@@ -21,19 +21,23 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
-import { AI_REQUEST_OPTIONS, isAiAbortError } from "@/lib/ai-request";
+import { AI_REQUEST_OPTIONS, isAiTimeoutError } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 
 function aiErrorToast(toast: ReturnType<typeof useToast>["toast"], err: unknown, fallback: string) {
-  if (isAiAbortError(err)) {
+  if (isAiTimeoutError(err)) {
     toast({
-      title: "AI request timed out",
-      description: "The server took too long. Try again with a shorter draft.",
+      title: "AI took too long",
+      description: "Please wait a moment and try again. If it keeps happening, check your connection.",
       variant: "destructive",
     });
     return;
   }
-  toast({ title: fallback, variant: "destructive" });
+  const msg =
+    err && typeof err === "object" && "message" in err && typeof (err as { message: unknown }).message === "string"
+      ? (err as { message: string }).message
+      : fallback;
+  toast({ title: fallback, description: msg !== fallback ? msg : undefined, variant: "destructive" });
 }
 
 type SectionContent = Record<string, unknown>;
