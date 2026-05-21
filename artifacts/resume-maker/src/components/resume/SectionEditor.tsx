@@ -893,22 +893,22 @@ function CertificationsEditor({ content, onChange }: { content: SectionContent; 
       {items.map((item, i) => (
         <div key={i} className="rounded-lg border border-border p-3 space-y-2 relative">
           <DeleteIconButton onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })} label={`certification #${i + 1}`} />
-          <div className="grid grid-cols-2 gap-2 pr-7">
+          <div className="pr-7">
             <Field label="Certification Name">
               <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="AWS Solutions Architect" className="h-8 text-sm" />
             </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
             <Field label="Issuer">
               <Input size={1} value={(item.issuer as string) ?? ""} onChange={(e) => updateItem(i, "issuer", e.target.value)} placeholder="Amazon" className="h-8 text-sm" />
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
             <Field label="Date">
               <Input size={1} value={(item.date as string) ?? ""} onChange={(e) => updateItem(i, "date", e.target.value)} placeholder="Mar 2024" className="h-8 text-sm" />
             </Field>
-            <Field label="Credential Link">
-              <Input size={1} value={((item.credentialUrl as string) ?? (item.url as string) ?? "")} onChange={(e) => updateItem(i, "credentialUrl", e.target.value)} placeholder="https://verify.example.com/abc" className="h-8 text-sm" />
-            </Field>
           </div>
+          <Field label="Credential Link">
+            <Input size={1} value={((item.credentialUrl as string) ?? (item.url as string) ?? "")} onChange={(e) => updateItem(i, "credentialUrl", e.target.value)} placeholder="https://verify.example.com/abc" className="h-8 text-sm" />
+          </Field>
         </div>
       ))}
       <Button
