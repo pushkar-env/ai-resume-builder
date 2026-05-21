@@ -177,7 +177,7 @@ function PersonalEditor({ content, onChange }: { content: SectionContent; onChan
         <Input value={(content.jobTitle as string) ?? (content.title as string) ?? ""} onChange={(e) => update("jobTitle", e.target.value)} placeholder="Senior Software Engineer" />
       </Field>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 items-end">
         <Field label="Email">
           <Input value={(content.email as string) ?? ""} onChange={(e) => update("email", e.target.value)} placeholder="jane@example.com" />
         </Field>
@@ -404,7 +404,7 @@ function ExperienceEditor({
         return (
         <div key={i} className="rounded-lg border border-border p-3 space-y-2.5 relative">
           <DeleteIconButton onClick={() => removeItem(i)} label={`experience #${i + 1}`} />
-          <div className="grid grid-cols-2 gap-2 pr-7">
+          <div className="grid grid-cols-2 gap-2 items-end pr-7">
             <Field label="Job Title">
               <Input size={1} value={(item.title as string) ?? ""} onChange={(e) => updateItem(i, "title", e.target.value)} placeholder="Software Engineer" className="h-8 text-sm" />
             </Field>
@@ -513,7 +513,7 @@ function EducationEditor({ content, onChange }: { content: SectionContent; onCha
               <Input size={1} value={(item.school as string) ?? ""} onChange={(e) => updateItem(i, "school", e.target.value)} placeholder="MIT" className="h-8 text-sm" />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 items-end">
             <Field label="Degree">
               <Input size={1} value={(item.degree as string) ?? ""} onChange={(e) => updateItem(i, "degree", e.target.value)} placeholder="B.S. Computer Science" className="h-8 text-sm" />
             </Field>
@@ -828,8 +828,8 @@ function ProjectsEditor({
             <Field label="Project Name">
               <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="My Project" className="h-8 text-sm" />
             </Field>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Link Label (Optional)">
+            <div className="grid grid-cols-2 gap-2 items-end">
+              <Field label="Link Label">
                 <Input size={1} value={(item.label as string) ?? ""} onChange={(e) => updateItem(i, "label", e.target.value)} placeholder="e.g. View Live" className="h-8 text-sm" />
               </Field>
               <Field label="URL">
@@ -903,7 +903,7 @@ function CertificationsEditor({ content, onChange }: { content: SectionContent; 
               <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="AWS Solutions Architect" className="h-8 text-sm" />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 items-end">
             <Field label="Issuer">
               <Input size={1} value={(item.issuer as string) ?? ""} onChange={(e) => updateItem(i, "issuer", e.target.value)} placeholder="Amazon" className="h-8 text-sm" />
             </Field>
