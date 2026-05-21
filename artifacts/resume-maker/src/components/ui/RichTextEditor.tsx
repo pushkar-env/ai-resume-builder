@@ -42,10 +42,22 @@ export const RichTextEditor = memo(function RichTextEditor({
   placeholder,
   className,
 }: RichTextEditorProps) {
+  const updatesRef = useRef(0);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
   const handleChange = useCallback((html: string) => {
+    updatesRef.current++;
+    if (updatesRef.current > 10) {
+      if (updatesRef.current === 11) {
+        console.error("Quill infinite loop detected! Halting updates to prevent browser hang.");
+      }
+      return;
+    }
+    setTimeout(() => {
+      updatesRef.current = Math.max(0, updatesRef.current - 1);
+    }, 2000);
+
     onChangeRef.current(sanitizeResumeRichHtml(html));
   }, []);
 

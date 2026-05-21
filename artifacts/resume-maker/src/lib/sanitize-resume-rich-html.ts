@@ -68,34 +68,13 @@ function stripBreakingCharsFromTextNodes(root: Element) {
   let cur: Node | null;
   while ((cur = walker.nextNode())) {
     const t = (cur as Text).nodeValue;
-    if (t) {
+      if (!t) continue;
       let next = t;
-      if (ZW_SPACE.test(next)) {
-        next = next.replace(ZW_SPACE, "");
-      }
-      
-      // Replace regular hyphens with non-breaking hyphens to prevent
-      // text from breaking immediately after a hyphen. We skip <a> tags
-      // so we don't break copy-pasting of URLs.
-      if (next.includes("-")) {
-        let parent = cur.parentElement;
-        let inAnchor = false;
-        while (parent && parent !== root) {
-          if (parent.tagName.toLowerCase() === 'a') {
-            inAnchor = true;
-            break;
-          }
-          parent = parent.parentElement;
-        }
-        if (!inAnchor) {
-          next = next.replace(/-/g, "\u2011");
-        }
-      }
+      next = next.replace(/[\u200b\u200c\u200d\ufeff]/g, "");
 
       if (next !== t) {
         (cur as Text).nodeValue = next;
       }
-    }
   }
 }
 
