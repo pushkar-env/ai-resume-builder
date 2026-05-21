@@ -6,6 +6,7 @@ import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
 import { RESUME_GALLERY_THUMB_CSS } from "@/lib/resume-gallery-thumb-styles";
 import { ResumePagedView } from "@/components/resume/ResumePagedView";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
+import { getDefaultAccentColor } from "@/lib/template-config";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -1923,12 +1924,12 @@ export function ResumePreview({
   layout?: "paginated" | "continuous";
   contentRevision?: number;
 }) {
-  const color = accentColor ?? resume.accentColor ?? "#7c3aed";
+  const templateId = resume.templateId ?? "silicon-valley";
+  const color = accentColor ?? resume.accentColor ?? getDefaultAccentColor(templateId);
   const font = resume.fontFamily ?? "Inter, sans-serif";
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
   const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
-  const templateId = resume.templateId ?? "silicon-valley";
   const props = { sections: resume.sections, color, font };
   const sidebarFill =
     templateId === "silicon-valley"

@@ -180,11 +180,27 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
     return;
   }
 
-  const [resume] = await db.insert(resumesTable).values({
+    const defaultColors: Record<string, string> = {
+      "silicon-valley": "#6366f1",
+      "faang": "#0ea5e9",
+      "nova": "#64748b",
+      "executive-pro": "#92400e",
+      "creative-pro": "#ec4899",
+      "midnight": "#d4a853",
+      "ats-clean": "#1f2937",
+      "academic": "#1e40af",
+      "corporate-navy": "#1e3a5f",
+      "compact": "#059669",
+      "european": "#7c3aed",
+      "two-column": "#e11d48",
+    };
+    const defaultColor = defaultColors[parsed.data.templateId] ?? "#7c3aed";
+
+    const [resume] = await db.insert(resumesTable).values({
     userId,
     title: parsed.data.title,
     templateId: parsed.data.templateId,
-    accentColor: parsed.data.accentColor ?? "#7c3aed",
+    accentColor: parsed.data.accentColor ?? defaultColor,
     fontFamily: parsed.data.fontFamily ?? "Inter, sans-serif",
     fontColor: parsed.data.fontColor ?? "#111827",
     backgroundColor: parsed.data.backgroundColor ?? "#ffffff",

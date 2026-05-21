@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { ScaledResumeThumbnailShell } from "@/components/resume/ScaledResumeThumbnailShell";
+import { getDefaultAccentColor, TEMPLATE_CONFIG } from "@/lib/template-config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -138,7 +139,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
           <ResumePreview
             layout="continuous"
             resume={resume}
-            accentColor={resume.accentColor ?? "#7c3aed"}
+            accentColor={resume.accentColor ?? getDefaultAccentColor(resume.templateId)}
             fontScale={fontScale}
             fontColor={resume.fontColor ?? "#111827"}
             backgroundColor={resume.backgroundColor ?? "#ffffff"}
@@ -509,8 +510,9 @@ export default function DashboardPage() {
                 placeholder="e.g. Software Engineer Resume"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
+                    const cfg = TEMPLATE_CONFIG["faang"] ?? { accent: "#7c3aed" };
                     createResume.mutate({
-                      data: { title: newTitle, templateId: "faang", startPrefilled: startWithSampleContent },
+                      data: { title: newTitle, templateId: "faang", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
                     });
                   }
                 }}
@@ -539,11 +541,12 @@ export default function DashboardPage() {
           <DialogFooter className="flex-col gap-2 sm:flex-row">
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button
-              onClick={() =>
+              onClick={() => {
+                const cfg = TEMPLATE_CONFIG["faang"] ?? { accent: "#7c3aed" };
                 createResume.mutate({
-                  data: { title: newTitle, templateId: "faang", startPrefilled: startWithSampleContent },
-                })
-              }
+                  data: { title: newTitle, templateId: "faang", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
+                });
+              }}
               disabled={createResume.isPending || !newTitle.trim()}
             >
               {createResume.isPending ? "Creating..." : "Create resume"}

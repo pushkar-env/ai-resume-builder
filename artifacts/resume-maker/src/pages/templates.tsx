@@ -21,21 +21,7 @@ import {
   previewCardWhileTap,
 } from "@/lib/preview-card-hover";
 
-/* ─── Per-template style config ─── */
-const CONFIG: Record<string, { accent: string; bg: string }> = {
-  "silicon-valley": { accent: "#6366f1", bg: "#0f1117" },
-  "faang":          { accent: "#0ea5e9", bg: "#f0f9ff" },
-  "nova":           { accent: "#64748b", bg: "#f8fafc" },
-  "executive-pro":  { accent: "#92400e", bg: "#fffbeb" },
-  "creative-pro":   { accent: "#ec4899", bg: "#fdf2f8" },
-  "midnight":       { accent: "#d4a853", bg: "#0d1117" },
-  "ats-clean":      { accent: "#1f2937", bg: "#f9fafb" },
-  "academic":       { accent: "#1e40af", bg: "#eff6ff" },
-  "corporate-navy": { accent: "#1e3a5f", bg: "#f0f4f8" },
-  "compact":        { accent: "#059669", bg: "#f0fdf4" },
-  "european":       { accent: "#7c3aed", bg: "#f5f3ff" },
-  "two-column":     { accent: "#e11d48", bg: "#0f1117" },
-};
+import { TEMPLATE_CONFIG } from "@/lib/template-config";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Technical: "bg-blue-100 text-blue-700",
@@ -97,7 +83,8 @@ export default function TemplatesPage() {
     }
     
     setCreating(true);
-    createResume.mutate({ data: { title: "My Resume", templateId, startPrefilled: true } });
+    const cfg = TEMPLATE_CONFIG[templateId] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
+    createResume.mutate({ data: { title: "My Resume", templateId, accentColor: cfg.accent, startPrefilled: true } });
   };
 
   const templateList = Array.isArray(templates) ? templates : [];
@@ -170,7 +157,7 @@ export default function TemplatesPage() {
         ) : (
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filtered.map((template) => {
-              const cfg = CONFIG[template.id] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
+              const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
               const isSelected = selected === template.id;
               const isHovered = hoveredId === template.id;
               const catClass = CATEGORY_COLORS[template.category ?? ""] ?? "bg-gray-100 text-gray-600";

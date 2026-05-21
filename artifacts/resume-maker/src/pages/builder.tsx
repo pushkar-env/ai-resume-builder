@@ -57,6 +57,7 @@ import { BuilderNavbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
+import { getDefaultAccentColor } from "@/lib/template-config";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { SEO } from "@/components/shared/SEO";
 import {
@@ -654,7 +655,7 @@ export default function BuilderPage() {
       initializedResumeIdRef.current = resume.id;
       const nextSections = (resume.sections ?? []).map((s) => ({ ...s }));
       setLocalSections(nextSections);
-      setAccentColor(resume.accentColor ?? "#7c3aed");
+      setAccentColor(resume.accentColor ?? getDefaultAccentColor(resume.templateId));
       setFontFamily(resume.fontFamily ?? "Inter, sans-serif");
       setFontColor(resume.fontColor ?? "#111827");
       setBackgroundColor(resume.backgroundColor ?? "#ffffff");
