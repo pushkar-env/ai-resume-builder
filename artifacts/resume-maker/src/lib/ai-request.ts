@@ -13,7 +13,11 @@ export function createAiRequestOptions(timeoutMs = AI_REQUEST_TIMEOUT_MS): Reque
   return { signal };
 }
 
-export const AI_REQUEST_OPTIONS = createAiRequestOptions();
+export const AI_REQUEST_OPTIONS: RequestInit = {
+  get signal() {
+    return createAiRequestOptions().signal;
+  },
+};
 
 export function isAiAbortError(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
