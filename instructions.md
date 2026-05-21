@@ -44,7 +44,6 @@ PORT=8080
 DATABASE_URL=postgresql://postgres:secret@localhost:5433/resumeai
 CLERK_SECRET_KEY=...
 CLERK_PUBLISHABLE_KEY=...
-SESSION_SECRET=...
 AI_INTEGRATIONS_OPENAI_API_KEY=...
 AI_INTEGRATIONS_OPENAI_BASE_URL=https://api.openai.com/v1
 ```
@@ -53,14 +52,14 @@ AI_INTEGRATIONS_OPENAI_BASE_URL=https://api.openai.com/v1
 From workspace root:
 
 ```bash
-DATABASE_URL=postgresql://postgres:secret@localhost:5433/resumeai pnpm --dir lib/db run push
+DATABASE_URL=postgresql://postgres:secret@localhost:5433/resumeai pnpm run db:push
 ```
 
 PowerShell equivalent:
 
 ```powershell
 $env:DATABASE_URL="postgresql://postgres:secret@localhost:5433/resumeai"
-pnpm --dir lib/db run push
+pnpm run db:push
 ```
 
 ## 5) Start the Application
@@ -101,6 +100,6 @@ Because the database runs locally in Docker without a persistent volume binding,
 3. **Re-apply the database schema:**
    ```powershell
    $env:DATABASE_URL="postgresql://postgres:secret@localhost:5433/resumeai"
-   pnpm --dir lib/db run push
+   pnpm run db:push
    ```
 4. **Restart your dev server** (`pnpm run dev`). You can now test with a completely clean database!

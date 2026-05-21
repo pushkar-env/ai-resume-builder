@@ -35,8 +35,7 @@ This guide provides step-by-step instructions to deploy the AI Resume Builder pr
    * Add `CLERK_SECRET_KEY` and `CLERK_PUBLISHABLE_KEY`
    * Add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
    * Add `RAZORPAY_WEBHOOK_SECRET`, `RAZORPAY_MONTHLY_PLAN_ID`, and `RAZORPAY_YEARLY_PLAN_ID`
-   * Add `OPENAI_API_KEY`
-   * Add `FRONTEND_URL` (e.g., `https://your-frontend-url.vercel.app` - you will set this after deploying the frontend).
+   * Add `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL`
    * For the **Contact us** form (see [Contact form email (Resend)](#2b-contact-form-email-resend)): `RESEND_API_KEY`, `CONTACT_FROM_EMAIL`, and optionally `CONTACT_TO_EMAIL`.
 7. Click **Create Web Service**. 
 8. Render will provide a URL (e.g., `https://ai-resume-api.onrender.com`). Copy this.
@@ -51,7 +50,7 @@ If you prefer Railway (which offers a generous free/hobby tier without the spin-
 4. Go to **Settings > General** for the service and ensure the **Root Directory** is left blank (or `/`). This is critical for monorepos!
 5. Set the **Build Command** to `pnpm install && pnpm --filter @workspace/api-server run build`.
 6. Set the **Start Command** to `pnpm --filter @workspace/api-server run start`.
-7. Go to **Variables** and add all the necessary environment variables listed in the Render section above (including `DATABASE_URL`, `FRONTEND_URL`, Clerk keys, Razorpay keys, and Resend contact variables from [Contact form email (Resend)](#2b-contact-form-email-resend)).
+7. Go to **Variables** and add all the necessary environment variables listed in the Render section above (including `DATABASE_URL`, Clerk keys, Razorpay keys, and Resend contact variables from [Contact form email (Resend)](#2b-contact-form-email-resend)).
 8. Railway will automatically build and deploy. Once complete, copy the provided URL (e.g., `https://ai-resume-api.up.railway.app`) and use it for your `VITE_API_URL` on Vercel.
 
 ---
@@ -91,7 +90,6 @@ You **do not** add the Resend secret to Vercel. The browser only talks to **your
 * Ensure **`VITE_API_URL`** is set to your public API base **including the `/api` path**, for example:  
   `https://your-service.up.railway.app/api`  
   The contact form calls `POST {VITE_API_URL}/contact` → `…/api/contact` on the server.
-* Keep **`FRONTEND_URL`** on Railway set to your exact Vercel URL (e.g. `https://your-app.vercel.app`) so **CORS** continues to allow the contact `POST` from the browser.
 
 ### Quick test
 
@@ -119,7 +117,7 @@ You **do not** add the Resend secret to Vercel. The browser only talks to **your
 ## 4. Final Setup (Webhooks & CORS)
 1. **Clerk:** In the Clerk Dashboard, add your **production** frontend URL (and your API origin if required) under **Domains** / **Allowed origins** so sign-in works on Vercel. **Clerk webhooks** are optional unless you add a handler route on your API; this repo uses Clerk for auth/session and Razorpay webhooks for billing. If you add a Clerk webhook endpoint later, register its full URL under **Webhooks** and store the signing secret (for example as `CLERK_WEBHOOK_SECRET`) in your backend.
 2. **Razorpay Webhooks:** In the Razorpay Dashboard (same mode as your keys), go to **Account & Settings** → **Webhooks**. Point the URL to `https://your-api-url.onrender.com/api/payments/webhook` (replace with your real API base + `/api/payments/webhook`).
-3. **Backend CORS:** On **Render** or **Railway**, ensure **`FRONTEND_URL`** exactly matches your Vercel URL (scheme + host, no trailing slash unless your app expects it) so the backend accepts browser requests, including anonymous **`POST /api/contact`** from the marketing **Contact** page.
+3. **Backend CORS:** The backend uses dynamic CORS (`origin: true`, `credentials: true`), so it will automatically accept requests from your Vercel URL. You do not need to configure a specific FRONTEND_URL environment variable.
 4. **Contact form:** Confirm **`RESEND_API_KEY`** and **`CONTACT_FROM_EMAIL`** are set on the API (see [Contact form email (Resend)](#2b-contact-form-email-resend)). No extra Vercel secrets are required beyond a correct **`VITE_API_URL`**.
 
 ---
