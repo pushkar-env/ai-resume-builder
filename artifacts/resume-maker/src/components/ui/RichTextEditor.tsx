@@ -42,24 +42,30 @@ export const RichTextEditor = memo(function RichTextEditor({
   placeholder,
   className,
 }: RichTextEditorProps) {
-  const updatesRef = useRef(0);
+  const apiUpdatesRef = useRef(0);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  const handleChange = useCallback((html: string) => {
-    updatesRef.current++;
-    if (updatesRef.current > 10) {
-      if (updatesRef.current === 11) {
-        console.error("Quill infinite loop detected! Halting updates to prevent browser hang.");
+  const handleChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (html: string, delta: any, source: string) => {
+      if (source === "api") {
+        apiUpdatesRef.current++;
+        if (apiUpdatesRef.current > 5) {
+          console.warn("React-Quill API loop prevented.");
+          return;
+        }
+        setTimeout(() => {
+          apiUpdatesRef.current = Math.max(0, apiUpdatesRef.current - 1);
+        }, 1000);
+      } else {
+        // If the user typed, always allow it and reset the API block counter
+        apiUpdatesRef.current = 0;
       }
-      return;
-    }
-    setTimeout(() => {
-      updatesRef.current = Math.max(0, updatesRef.current - 1);
-    }, 2000);
-
-    onChangeRef.current(sanitizeResumeRichHtml(html));
-  }, []);
+      onChangeRef.current(sanitizeResumeRichHtml(html));
+    },
+    []
+  );
 
   return (
     <div className={`rich-text-container ${className || ""}`}>
