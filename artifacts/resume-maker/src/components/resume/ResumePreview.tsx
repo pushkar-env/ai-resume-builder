@@ -392,7 +392,7 @@ function skillsStyleOf(sections: ResumeDetail["sections"]): string | undefined {
 /* ─── Timeline dot — sits centered on the parent's left border (Silicon Valley uses pl-4) ─── */
 function TimelineDot({ color }: { color: string }) {
   return (
-    <div className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-white" style={{ borderColor: color }} />
+    <div className="absolute top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-white" style={{ left: '-17px', transform: 'translateX(-50%)', borderColor: color }} />
   );
 }
 
@@ -483,7 +483,8 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
               <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Experience</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <div className="pl-4 border-l-2 border-gray-100 space-y-4">
+            <div className="relative pl-4 border-l-2 border-transparent space-y-4">
+              <div className="absolute top-1.5 bottom-0 w-[2px] bg-gray-100" style={{ left: '-1px', transform: 'translateX(-50%)' }} />
               {exp.map((e, i) => (
                 <div key={i} className="relative">
                   <TimelineDot color={color} />
@@ -1850,8 +1851,9 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
             </div>
             <div className="space-y-4">
               {exp.map((e, i) => (
-                <div key={i} className="relative pl-4" style={{ borderLeft: `2px solid ${alpha(color, 0.2)}` }}>
-                  <div className="absolute -left-[5px] top-[5px] h-2 w-2 rounded-full" style={{ background: color }} />
+                <div key={i} className="relative pl-4">
+                  <div className="absolute top-[5px] bottom-0 w-[2px]" style={{ left: '-1px', transform: 'translateX(-50%)', background: alpha(color, 0.2) }} />
+                  <div className="absolute top-[5px] h-2 w-2 rounded-full" style={{ left: '-1px', transform: 'translateX(-50%)', background: color }} />
                   <div className="flex justify-between items-start mb-0.5">
                     <div>
                       <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
