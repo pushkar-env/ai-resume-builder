@@ -423,11 +423,12 @@ export async function buildResumeDocxBlob(
         }),
       );
       const url = str(pr.url).trim();
-      if (url) {
+      const label = str(pr.label).trim();
+      if (url || label) {
         body.push(
           linkParagraph({
-            display: url,
-            rawUrl: url,
+            display: label || url.replace(/^https?:\/\//i, ""),
+            rawUrl: url || label,
             font,
             spacingAfter: 60,
           }),

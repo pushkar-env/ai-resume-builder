@@ -824,13 +824,18 @@ function ProjectsEditor({
       {items.map((item, i) => (
         <div key={i} className="rounded-lg border border-border p-3 space-y-2 relative">
           <DeleteIconButton onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })} label={`project #${i + 1}`} />
-          <div className="grid grid-cols-2 gap-2 pr-7">
+          <div className="space-y-2 pr-7">
             <Field label="Project Name">
               <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="My Project" className="h-8 text-sm" />
             </Field>
-            <Field label="URL">
-              <Input size={1} value={(item.url as string) ?? ""} onChange={(e) => updateItem(i, "url", e.target.value)} placeholder="github.com/..." className="h-8 text-sm" />
-            </Field>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Link Label (Optional)">
+                <Input size={1} value={(item.label as string) ?? ""} onChange={(e) => updateItem(i, "label", e.target.value)} placeholder="e.g. View Live" className="h-8 text-sm" />
+              </Field>
+              <Field label="URL">
+                <Input size={1} value={(item.url as string) ?? ""} onChange={(e) => updateItem(i, "url", e.target.value)} placeholder="github.com/..." className="h-8 text-sm" />
+              </Field>
+            </div>
           </div>
           <Field label="Description">
             <div className="flex gap-1.5">

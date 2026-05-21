@@ -287,6 +287,29 @@ function CertLine({
   );
 }
 
+/* ─── Project Link ─── */
+function ProjectLink({ url, label, color, className = "text-[7.5px]", dark = false }: { url: unknown; label: unknown; color?: string; className?: string; dark?: boolean }) {
+  const u = str(url).trim();
+  const l = str(label).trim();
+  if (!u && !l) return null;
+  const href = ensureProto(u);
+  const displayText = l || u.replace(/^https?:\/\//i, "");
+  if (!href) {
+    return <span className={className} style={{ color: color ?? (dark ? "#fff" : undefined) }}>{displayText}</span>;
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      className={`${className} underline underline-offset-2 hover:opacity-80 transition-opacity`}
+      style={{ color: color ?? (dark ? "#fff" : undefined) }}
+    >
+      {displayText}
+    </a>
+  );
+}
+
 /* ─── Unified skill block — bars / chips / radial / text ─── */
 function renderSkills(
   skills: Item[],
@@ -492,9 +515,9 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
             <div className="space-y-2.5">
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                    {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
                   </div>
                   {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
@@ -583,9 +606,9 @@ export function FaangTemplate({ sections, color, font }: TP) {
               <div className="space-y-2">
                 {projects.map((pr, i) => (
                   <div key={i}>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                      {str(pr.url) && <span className="text-[7.5px]" style={{ color }}>{str(pr.url)}</span>}
+                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
                     </div>
                     {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
@@ -734,7 +757,10 @@ export function NovaTemplate({ sections, color, font }: TP) {
           <div className="space-y-2">
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
-                <p className="text-[9.5px] font-semibold text-gray-700 w-[130px] shrink-0">{str(pr.name)}</p>
+                <div className="w-[130px] shrink-0">
+                  <p className="text-[9.5px] font-semibold text-gray-700">{str(pr.name)}</p>
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7px]" />
+                </div>
                 <div className="resume-text text-[8.5px] text-gray-400 flex-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
               </div>
             ))}
@@ -885,6 +911,11 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
           {projects.map((pr, i) => (
             <div key={i} className="mb-1.5">
               <span className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</span>
+              {(str(pr.url) || str(pr.label)) && (
+                <span className="ml-2">
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[8px] italic" />
+                </span>
+              )}
               {str(pr.description) && (
                 <span className="resume-text text-[8.5px] italic text-gray-600 ml-2">
                   —{" "}
@@ -1013,7 +1044,10 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
             <div className="grid grid-cols-2 gap-2">
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-xl p-2.5" style={{ background: alpha(color, 0.06) }}>
-                  <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                  </div>
                   {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
@@ -1143,6 +1177,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
                   <p className="text-[9px] font-semibold text-gray-900">{str(pr.name)}</p>
+                  <ProjectLink url={pr.url} label={pr.label} color={gold} className="text-[7px]" />
                   {str(pr.description) && <div className="resume-text text-[8px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
@@ -1225,7 +1260,10 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
         <><SH label="Projects" />
           {projects.map((pr, i) => (
             <div key={i} className="resume-export-block text-[8.5px] text-gray-700 mb-0.5">
-              <p className="font-bold text-gray-900">{str(pr.name)}</p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="font-bold text-gray-900">{str(pr.name)}</p>
+                <ProjectLink url={pr.url} label={pr.label} color="#000" className="text-[7.5px]" />
+              </div>
               {str(pr.description) && (
                 <div
                   className="resume-text text-[8.5px] text-gray-700 [&_p]:m-0"
@@ -1326,7 +1364,12 @@ export function AcademicTemplate({ sections, color, font }: TP) {
         <><SH label="Publications & Research Projects" />
           {projects.map((pr, i) => (
             <div key={i} className="mb-2">
-              <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+              <p className="text-[9px] font-bold text-gray-900">
+                {str(pr.name)}
+                <span className="ml-2 font-normal not-italic">
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                </span>
+              </p>
               {str(pr.description) && <div className="resume-text text-[8.5px] italic text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
             </div>
           ))}
@@ -1461,7 +1504,10 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                 <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Key Projects</p>
                 {projects.map((pr, i) => (
                   <div key={i} className="mb-1">
-                    <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    </div>
                     {str(pr.description) && <div className="resume-text text-[8px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
                 ))}
@@ -1564,7 +1610,10 @@ export function CompactTemplate({ sections, color, font }: TP) {
               <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color }}>Projects</p>
               {projects.map((pr, i) => (
                 <div key={i} className="mb-0.5">
-                  <p className="text-[8.5px] font-semibold text-gray-800">{str(pr.name)}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[8.5px] font-semibold text-gray-800">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                  </div>
                   {str(pr.description) && <div className="resume-text text-[7.5px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
@@ -1694,7 +1743,10 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
               <SH label="Projects" />
               {projects.map((pr, i) => (
                 <div key={i} className="mb-1.5">
-                  <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                  </div>
                   {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
@@ -1829,9 +1881,11 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
             <div className="grid grid-cols-2 gap-2.5">
               {projects.map((pr, i) => (
                 <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
-                  <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                  </div>
                   {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
-                  {str(pr.url) && <p className="text-[7.5px] mt-0.5" style={{ color }}>{str(pr.url)}</p>}
                 </div>
               ))}
             </div>
