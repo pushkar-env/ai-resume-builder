@@ -29,6 +29,7 @@ import type {
   ExportResumeBody,
   GenerateSummaryBody,
   HealthStatus,
+  ImportResumeBody,
   ImproveBulletBody,
   Resume,
   ResumeDetail,
@@ -278,6 +279,94 @@ export const useCreateResume = <
   TContext
 > => {
   return useMutation(getCreateResumeMutationOptions(options));
+};
+
+/**
+ * @summary Import an existing resume from PDF or DOCX
+ */
+export const getImportResumeUrl = () => {
+  return `/api/resumes/import`;
+};
+
+export const importResume = async (
+  importResumeBody: ImportResumeBody,
+  options?: RequestInit,
+): Promise<Resume> => {
+  const formData = new FormData();
+  formData.append(`file`, importResumeBody.file);
+
+  return customFetch<Resume>(getImportResumeUrl(), {
+    ...options,
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getImportResumeMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof importResume>>,
+    TError,
+    { data: BodyType<ImportResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof importResume>>,
+  TError,
+  { data: BodyType<ImportResumeBody> },
+  TContext
+> => {
+  const mutationKey = ["importResume"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof importResume>>,
+    { data: BodyType<ImportResumeBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return importResume(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ImportResumeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof importResume>>
+>;
+export type ImportResumeMutationBody = BodyType<ImportResumeBody>;
+export type ImportResumeMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Import an existing resume from PDF or DOCX
+ */
+export const useImportResume = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof importResume>>,
+    TError,
+    { data: BodyType<ImportResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof importResume>>,
+  TError,
+  { data: BodyType<ImportResumeBody> },
+  TContext
+> => {
+  return useMutation(getImportResumeMutationOptions(options));
 };
 
 /**
@@ -708,6 +797,7 @@ export const useExportResume = <
 };
 
 /**
+ * Requires an active Pro subscription (same source as Clerk publicMetadata.isPremium).
  * @summary Get ATS score for a resume
  */
 export const getGetAtsScoreUrl = (id: number) => {

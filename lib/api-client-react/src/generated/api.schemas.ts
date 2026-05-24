@@ -69,8 +69,13 @@ export interface CreateResumeBody {
   fontFamily?: string;
   fontColor?: string;
   backgroundColor?: string;
-  /** When true (default), sections include sample starter content. When false, empty shells. */
+  /** When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template. */
   startPrefilled?: boolean;
+}
+
+export interface ImportResumeBody {
+  /** The PDF or DOCX file to import */
+  file: Blob;
 }
 
 export type UpdateSectionItemContent = { [key: string]: unknown };

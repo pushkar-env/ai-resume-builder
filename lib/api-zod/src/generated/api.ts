@@ -45,7 +45,19 @@ export const CreateResumeBody = zod.object({
   fontFamily: zod.string().optional(),
   fontColor: zod.string().optional(),
   backgroundColor: zod.string().optional(),
-  startPrefilled: zod.boolean().optional(),
+  startPrefilled: zod
+    .boolean()
+    .optional()
+    .describe(
+      "When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template.",
+    ),
+});
+
+/**
+ * @summary Import an existing resume from PDF or DOCX
+ */
+export const ImportResumeBody = zod.object({
+  file: zod.instanceof(File).describe("The PDF or DOCX file to import"),
 });
 
 /**
@@ -171,6 +183,7 @@ export const ExportResumeResponse = zod.object({
 });
 
 /**
+ * Requires an active Pro subscription (same source as Clerk publicMetadata.isPremium).
  * @summary Get ATS score for a resume
  */
 export const GetAtsScoreParams = zod.object({

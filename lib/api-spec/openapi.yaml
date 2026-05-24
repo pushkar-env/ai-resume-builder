@@ -80,6 +80,43 @@ paths:
           description: Unauthorized
           content:
             application/json:
+               schema:
+                 $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/import:
+    post:
+      operationId: importResume
+      tags: [resumes]
+      summary: Import an existing resume from PDF or DOCX
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ImportResumeBody"
+      responses:
+        "201":
+          description: Created resume from import
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resume"
+        "400":
+          description: Validation or parsing error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error during import
+          content:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
@@ -548,6 +585,16 @@ components:
       required:
         - title
         - templateId
+
+    ImportResumeBody:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The PDF or DOCX file to import
+      required:
+        - file
 
     UpdateResumeBody:
       type: object

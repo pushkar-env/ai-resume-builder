@@ -19,7 +19,13 @@ import {
 } from "@workspace/api-zod";
 import { getAuth, clerkClient } from "@clerk/express";
 import { logger } from "../lib/logger";
+import multer from "multer";
+import mammoth from "mammoth";
+import { PDFParse } from "pdf-parse";
 
+import { completeResumeAi } from "../lib/resume-ai-chat";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const toJSON = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 const router: IRouter = Router();
@@ -216,6 +222,170 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
   const sections = await db.insert(resumeSectionsTable).values(sectionsToInsert).returning();
 
   res.status(201).json(toJSON({ ...resume, sections }));
+});
+
+router.post("/resumes/import", requireAuth, upload.single("file"), async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).userId;
+  const file = req.file;
+
+  if (!file) {
+    res.status(400).json({ error: "No file provided" });
+    return;
+  }
+
+  try {
+    let extractedText = "";
+    
+    if (file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf")) {
+      const parser = new PDFParse({ data: file.buffer });
+      const pdfData = await parser.getText();
+      extractedText = pdfData.text;
+    } else if (
+      file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.originalname.toLowerCase().endsWith(".docx")
+    ) {
+      const docxData = await mammoth.extractRawText({ buffer: file.buffer });
+      extractedText = docxData.value;
+    } else {
+      res.status(400).json({ error: "Unsupported file type. Please upload a PDF or DOCX file." });
+      return;
+    }
+
+    if (!extractedText || extractedText.trim().length === 0) {
+      res.status(400).json({ error: "Could not extract text from the file." });
+      return;
+    }
+
+    // Prepare prompt
+    const prompt = `Parse the following resume text into a structured format.
+    
+    Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
+    Return ONLY a valid JSON object with the following structure, populated with the extracted information. Use empty strings or empty arrays if information is missing.
+    Do NOT wrap the JSON in quotes or code blocks, return ONLY the raw JSON string.
+
+    Structure:
+    {
+      "title": "A short suitable title for this resume (e.g. Software Engineer)",
+      "personal": {
+        "name": "", "jobTitle": "", "email": "", "phone": "", "location": "", "website": "", "github": "", "linkedin": ""
+      },
+      "summary": { "text": "" },
+      "experience": [
+        { "title": "", "company": "", "location": "", "startDate": "", "endDate": "", "bullets": [""] }
+      ],
+      "education": [
+        { "school": "", "degree": "", "field": "", "startDate": "", "endDate": "", "gpa": "" }
+      ],
+      "skills": [ { "name": "", "level": 90 } ],
+      "projects": [
+        { "name": "", "description": "", "url": "" }
+      ],
+      "certifications": [
+        { "name": "", "issuer": "", "date": "", "credentialUrl": "" }
+      ]
+    }
+
+    Resume Text:
+    """${extractedText.substring(0, 15000)}"""
+    `;
+
+    const aiResultText = await completeResumeAi(prompt, 2500, "import-resume");
+    if (!aiResultText) {
+      throw new Error("AI returned empty content");
+    }
+
+    let parsedData;
+    try {
+      const jsonMatch = aiResultText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("Could not parse JSON from AI response");
+      }
+    } catch (e: any) {
+      logger.error("Failed to parse AI output for resume import", { error: e, aiResultText });
+      import("fs").then(fs => fs.writeFileSync("import-json-error.txt", String(e?.stack || e)));
+      res.status(500).json({ error: "Failed to parse the imported resume." });
+      return;
+    }
+
+    // Default template configuration
+    const templateId = "ats-clean";
+    const accentColor = "#1f2937";
+    const title = parsedData.title || file.originalname.replace(/\.[^/.]+$/, "") || "Imported Resume";
+
+    const [resume] = await db.insert(resumesTable).values({
+      userId,
+      title,
+      templateId,
+      accentColor,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#111827",
+      backgroundColor: "#ffffff",
+    }).returning();
+
+    // Map to sections
+    const sectionsToInsert = [
+      {
+        resumeId: resume.id,
+        type: "personal",
+        title: "Personal Details",
+        displayOrder: 0,
+        content: parsedData.personal || {},
+      },
+      {
+        resumeId: resume.id,
+        type: "summary",
+        title: "Professional Summary",
+        displayOrder: 1,
+        content: parsedData.summary || { text: "" },
+      },
+      {
+        resumeId: resume.id,
+        type: "experience",
+        title: "Work Experience",
+        displayOrder: 2,
+        content: { items: parsedData.experience || [] },
+      },
+      {
+        resumeId: resume.id,
+        type: "education",
+        title: "Education",
+        displayOrder: 3,
+        content: { items: parsedData.education || [] },
+      },
+      {
+        resumeId: resume.id,
+        type: "skills",
+        title: "Skills",
+        displayOrder: 4,
+        content: { style: "bars", items: parsedData.skills || [] },
+      },
+      {
+        resumeId: resume.id,
+        type: "projects",
+        title: "Projects",
+        displayOrder: 5,
+        content: { items: parsedData.projects || [] },
+      },
+      {
+        resumeId: resume.id,
+        type: "certifications",
+        title: "Certifications",
+        displayOrder: 6,
+        content: { items: parsedData.certifications || [] },
+      },
+    ];
+
+    const sections = await db.insert(resumeSectionsTable).values(sectionsToInsert).returning();
+
+    res.status(201).json(toJSON({ ...resume, sections }));
+
+  } catch (error: any) {
+    logger.error("Error importing resume", { error });
+    import("fs").then(fs => fs.writeFileSync("import-error.txt", String(error?.stack || error)));
+    res.status(500).json({ error: "An error occurred while importing the resume." });
+  }
 });
 
 router.get("/resumes/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {

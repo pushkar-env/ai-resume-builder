@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { motion, useAnimationControls, type Variants } from "framer-motion";
-import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil } from "lucide-react";
+import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil, FileUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +47,7 @@ import {
   useDuplicateResume,
   useUpdateResume,
   useGetResume,
+  useImportResume,
   getListResumesQueryKey,
   getGetResumeQueryKey,
   type Resume,
@@ -346,6 +347,7 @@ export default function DashboardPage() {
   const [renameTitle, setRenameTitle] = useState("");
   const [showPaywall, setShowPaywall] = useState(false);
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
@@ -389,6 +391,40 @@ export default function DashboardPage() {
       return;
     }
     duplicateResume.mutate({ id });
+  };
+
+  const importResume = useImportResume({
+    mutation: {
+      onSuccess: (data: Resume) => {
+        queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+        toast({ title: "Resume imported successfully" });
+        navigate(`/builder/${data.id}`);
+      },
+      onError: (error: any) => {
+        toast({ 
+          title: "Failed to import resume", 
+          description: error?.message || "Ensure the file is a valid PDF or DOCX.", 
+          variant: "destructive" 
+        });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      },
+    },
+  });
+
+  const handleImportClick = () => {
+    if (!isPremiumUser && resumeList.length >= 1) {
+      setShowPaywall(true);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Pass the file to the mutation
+    importResume.mutate({ data: { file } });
   };
 
   const createResume = useCreateResume({
@@ -483,6 +519,41 @@ export default function DashboardPage() {
                 </div>
                 <h3 className="font-medium text-sm">Create New Resume</h3>
                 <p className="text-xs text-muted-foreground mt-1">Start from a blank template</p>
+              </div>
+            </motion.div>
+
+            {/* Import Card */}
+            <motion.div variants={fadeUp}>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                className="hidden" 
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileChange}
+              />
+              <div
+                onClick={handleImportClick}
+                className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
+                  ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
+                `}
+              >
+                {importResume.isPending ? (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                      <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                    </div>
+                    <h3 className="font-medium text-sm">Importing...</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Extracting with AI</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <FileUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-sm">Import Resume</h3>
+                    <p className="text-xs text-muted-foreground mt-1">Upload PDF or DOCX</p>
+                  </>
+                )}
               </div>
             </motion.div>
 
