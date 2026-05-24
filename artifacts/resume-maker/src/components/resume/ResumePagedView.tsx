@@ -134,6 +134,10 @@ export function ResumePagedView({
         .filter((b) => b.height > 0)
         .sort((a, b) => a.top - b.top);
 
+      const maxContentBottom = keepBlocks.length > 0
+        ? Math.max(...keepBlocks.map((b) => b.bottom))
+        : totalHeight;
+
       const starts: number[] = [0];
       const minStep = 48;
       const keepThreshold = Math.floor(viewHeight * 0.92);
@@ -144,7 +148,9 @@ export function ResumePagedView({
         const currentPageCapacity =
           currentPageIndex === 0 ? viewHeight : Math.max(1, viewHeight - CONTINUED_PAGE_TOP_PAD_PX);
         const idealNext = current + currentPageCapacity;
-        if (idealNext >= totalHeight) break;
+        
+        // If the current page can fit all remaining visible content, we are done.
+        if (idealNext >= maxContentBottom || idealNext >= totalHeight) break;
 
         let next = idealNext;
         const crossing = keepBlocks.find(
@@ -161,6 +167,13 @@ export function ResumePagedView({
 
         if (next - current < minStep) {
           next = Math.min(totalHeight, current + viewHeight);
+        }
+
+        // If the only content left to put on the new page is extremely tiny (< 15px),
+        // it's likely just bottom padding, border, or a tiny spacer. 
+        // Discard it to prevent a blank extra page.
+        if (maxContentBottom - next < 15) {
+          break;
         }
 
         if (next <= current) break;
