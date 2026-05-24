@@ -70,6 +70,7 @@ const templateColors: Record<string, string> = {
   developer: "bg-orange-100 text-orange-700",
   executive: "bg-amber-100 text-amber-700",
   startup: "bg-cyan-100 text-cyan-700",
+  faang: "bg-indigo-100 text-indigo-700",
 };
 
 function timeAgo(date: string) {
