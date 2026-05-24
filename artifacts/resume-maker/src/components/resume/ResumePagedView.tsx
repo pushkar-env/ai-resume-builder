@@ -17,6 +17,7 @@ const CONTINUED_PAGE_TOP_PAD_PX = 20;
 export interface ResumePagedViewProps {
   children: ReactNode;
   fontScale?: number;
+  autoFit?: boolean;
   showWatermark: boolean;
   backgroundColor: string;
   /** Applied to each `.a4-page` for custom font-color overrides in injected CSS */
@@ -42,12 +43,30 @@ export function ResumePagedView({
   dataFontColor,
   sidebarFill = null,
   measureKey,
+  autoFit = true,
 }: ResumePagedViewProps) {
   const measureZoomRef = useRef<HTMLDivElement>(null);
   const [pageStarts, setPageStarts] = useState<number[]>([0]);
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
+  
+  const [testAutoFitScale, setTestAutoFitScale] = useState<number>(1);
+  const [finalAutoFitScale, setFinalAutoFitScale] = useState<number>(1);
+  const testAutoFitScaleRef = useRef(testAutoFitScale);
+  testAutoFitScaleRef.current = testAutoFitScale;
+  
+  const prevMeasureKey = useRef(measureKey);
+  const prevAutoFit = useRef(autoFit);
 
-  const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
+  if (prevMeasureKey.current !== measureKey || prevAutoFit.current !== autoFit) {
+    prevMeasureKey.current = measureKey;
+    prevAutoFit.current = autoFit;
+    setTestAutoFitScale(1);
+    testAutoFitScaleRef.current = 1;
+  }
+
+  const baseFs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
+  const measureFs = baseFs * testAutoFitScale;
+  const displayFs = baseFs * finalAutoFitScale;
   const viewHeight = PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
 
   useLayoutEffect(() => {
@@ -72,7 +91,20 @@ export function ResumePagedView({
         setPageStarts([0]);
         return;
       }
+
+      // Auto-Fit Logic
+      if (autoFit && totalHeight > viewHeight && testAutoFitScaleRef.current > 0.85) {
+        const overflowRatio = totalHeight / viewHeight;
+        // If it overflows, calculate the exact scale needed (with a tiny 1% safety margin)
+        if (overflowRatio > 1.005) {
+          const targetScale = Math.max(0.85, testAutoFitScaleRef.current / overflowRatio * 0.99);
+          setTestAutoFitScale(targetScale);
+          return; // Wait for next render cycle with new scale
+        }
+      }
+
       setMeasuredHeight(totalHeight);
+      setFinalAutoFitScale(testAutoFitScaleRef.current);
 
       const keepBlocks = Array.from(
         el.querySelectorAll<HTMLElement>(
@@ -188,7 +220,7 @@ export function ResumePagedView({
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-0 z-0"
           style={{
-            width: Math.max(0, Math.round(sidebarFill.widthPx * fs)),
+            width: Math.max(0, Math.round(sidebarFill.widthPx * displayFs)),
             backgroundColor: sidebarFill.color,
           }}
         />
@@ -212,7 +244,7 @@ export function ResumePagedView({
             style={{
               height: viewHeight - (topPad + span),
               backgroundColor,
-              left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * fs)) : 0,
+              left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * displayFs)) : 0,
               right: 0,
             }}
           >
@@ -221,7 +253,7 @@ export function ResumePagedView({
         <div style={{ transform: topPad ? `translateY(${topPad}px)` : undefined }}>
         <div style={{ height: span, overflow: "hidden" }}>
           <div style={{ transform: `translateY(-${start}px)` }}>
-            <div style={{ zoom: fs, width: "100%" }}>{children}</div>
+            <div style={{ zoom: displayFs, width: "100%" }}>{children}</div>
           </div>
         </div>
         </div>
@@ -245,7 +277,7 @@ export function ResumePagedView({
               overflow: "visible",
             }}
           >
-            <div ref={measureZoomRef} style={{ zoom: fs, width: "100%" }}>
+            <div ref={measureZoomRef} style={{ zoom: measureFs, width: "100%" }}>
               {children}
             </div>
           </div>,

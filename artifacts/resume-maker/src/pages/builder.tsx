@@ -20,6 +20,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize, Eraser, Sparkles } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -471,6 +473,11 @@ export default function BuilderPage() {
     const n = v ? Number(v) : NaN;
     return Number.isFinite(n) && n > 0 ? n : 1.2;
   });
+  const [autoFit, setAutoFit] = useState<boolean>(() => {
+    if (typeof window === "undefined" || !id) return true;
+    const v = window.localStorage.getItem(`resumeAutoFit:${id}`);
+    return v !== "false";
+  });
   const [templateId, setTemplateId] = useState("modern");
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallTitle, setPaywallTitle] = useState("Premium Feature");
@@ -677,16 +684,19 @@ export default function BuilderPage() {
     const v = window.localStorage.getItem(`resumeFontScale:${id}`);
     const n = v ? Number(v) : NaN;
     setFontScale(Number.isFinite(n) && n > 0 ? n : 1.2);
+    const autoFitVal = window.localStorage.getItem(`resumeAutoFit:${id}`);
+    setAutoFit(autoFitVal !== "false");
     
     fontScaleHydratedFor.current = id;
   }, [id]);
 
-  // Persist font scale per-resume
+  // Persist font scale and auto fit per-resume
   useEffect(() => {
     if (typeof window === "undefined" || !id) return;
     if (fontScaleHydratedFor.current !== id) return;
     window.localStorage.setItem(`resumeFontScale:${id}`, String(fontScale));
-  }, [fontScale, id]);
+    window.localStorage.setItem(`resumeAutoFit:${id}`, String(autoFit));
+  }, [fontScale, autoFit, id]);
 
   // Reset when navigating to a different resume
   useEffect(() => {
@@ -1062,13 +1072,28 @@ export default function BuilderPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0.85" className="text-xs">Extra Small (85%)</SelectItem>
-                      <SelectItem value="0.9" className="text-xs">Small (90%)</SelectItem>
                       <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
                       <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
                       <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
+                      <SelectItem value="1.35" className="text-xs">Huge (135%)</SelectItem>
+                      <SelectItem value="1.5" className="text-xs">Massive (150%)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="flex items-start justify-between mt-4 px-1 gap-4">
+                    <Label htmlFor="auto-fit" className="text-xs text-muted-foreground flex flex-col gap-1.5 cursor-pointer">
+                      <span className="font-medium text-foreground">Auto-Fit Page</span>
+                      <span className="text-[10px] leading-snug opacity-80 max-w-[140px]">Shrinks contents automatically to prevent spilling to a second page.</span>
+                    </Label>
+                    <Switch
+                      id="auto-fit"
+                      checked={autoFit}
+                      onCheckedChange={(v) => {
+                        setAutoFit(v);
+                        bumpPreviewRevision();
+                      }}
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
 
                 {/* Font Color */}
@@ -1369,6 +1394,7 @@ export default function BuilderPage() {
                     fontColor={fontColor}
                     backgroundColor={backgroundColor}
                     showWatermark={!isPremiumUser}
+                    autoFit={autoFit}
                   />
                 </div>
               </div>

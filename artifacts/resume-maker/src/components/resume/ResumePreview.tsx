@@ -1913,6 +1913,7 @@ export function ResumePreview({
   fontColor,
   backgroundColor,
   showWatermark = false,
+  autoFit = true,
   /** `paginated` = A4 pages (builder/export). `continuous` = natural height for thumbnails so short resumes do not show a half-empty sheet. */
   layout = "paginated",
   /** Builder: revision counter instead of hashing full section JSON for pagination remeasure. */
@@ -1925,6 +1926,7 @@ export function ResumePreview({
   backgroundColor?: string;
   /** When true (Free plan), a subtle brand footer appears on every template and in PDF print export. */
   showWatermark?: boolean;
+  autoFit?: boolean;
   layout?: "paginated" | "continuous";
   contentRevision?: number;
 }) {
@@ -2162,6 +2164,7 @@ export function ResumePreview({
       ) : (
         <ResumePagedView
           fontScale={fontScale}
+          autoFit={autoFit}
           showWatermark={showWatermark}
           backgroundColor={bColor}
           dataFontColor={fColor}
