@@ -95,9 +95,14 @@ export function ResumePagedView({
       // Auto-Fit Logic
       if (autoFit && totalHeight > viewHeight && testAutoFitScaleRef.current > 0.85) {
         const overflowRatio = totalHeight / viewHeight;
-        // If it overflows, calculate the exact scale needed (with a tiny 1% safety margin)
         if (overflowRatio > 1.005) {
-          const targetScale = Math.max(0.85, testAutoFitScaleRef.current / overflowRatio * 0.99);
+          // Height grows non-linearly when text wraps due to zooming.
+          // A purely linear scale drop (current / overflow) often overshoots, making the font smaller than necessary.
+          // We cap the drop to 3% per iteration to glide down smoothly and stop exactly when it fits.
+          const idealDrop = testAutoFitScaleRef.current - (testAutoFitScaleRef.current / overflowRatio);
+          const safeDrop = Math.min(0.03, Math.max(0.005, idealDrop));
+          const targetScale = Math.max(0.85, testAutoFitScaleRef.current - safeDrop);
+          
           setTestAutoFitScale(targetScale);
           return; // Wait for next render cycle with new scale
         }
@@ -172,7 +177,7 @@ export function ResumePagedView({
         rafId = requestAnimationFrame(() => {
           requestAnimationFrame(run);
         });
-      }, 48);
+      }, 24);
     };
 
     schedule();
