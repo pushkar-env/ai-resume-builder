@@ -107,16 +107,7 @@ function BillingSection() {
     }
   };
 
-  const handleUpdatePayment = () => {
-    if (subscriptionDetails?.short_url) {
-      window.open(subscriptionDetails.short_url, "_blank");
-    } else {
-      toast({
-        title: "Update Payment Method",
-        description: "To use a different card or UPI, please cancel your current subscription and subscribe again.",
-      });
-    }
-  };
+
 
   return (
     <div className="w-full p-2">
@@ -175,14 +166,6 @@ function BillingSection() {
               )}
               {subscriptionId && !isCancelledRenewal && (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Button 
-                    variant="outline"
-                    onClick={handleUpdatePayment}
-                    size="sm"
-                    className="w-full sm:w-auto"
-                  >
-                    Update Payment
-                  </Button>
                   <Button 
                     variant="destructive" 
                     onClick={handleCancel}

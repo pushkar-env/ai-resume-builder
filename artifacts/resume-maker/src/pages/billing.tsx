@@ -386,6 +386,11 @@ export default function BillingPage() {
                   {!isProcessing && <ArrowRight className="h-4 w-4 ml-1.5" />}
                 </Button>
               )}
+              {!isPremium && (
+                <p className="text-center text-sm font-medium text-muted-foreground mt-3">
+                  Cancel anytime. No hidden fees.
+                </p>
+              )}
               <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1.5">
                 <Shield className="h-3 w-3" />
                 Secure checkout via Razorpay

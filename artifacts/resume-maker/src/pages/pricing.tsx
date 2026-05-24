@@ -229,6 +229,9 @@ export default function PricingPage() {
                     [Dev] Bypass Payment
                   </Button>
                 )}
+                <p className="text-center text-sm font-medium text-muted-foreground mt-2">
+                  Cancel anytime. No hidden fees.
+                </p>
               </div>
             )}
             <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
