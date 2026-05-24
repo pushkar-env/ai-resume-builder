@@ -110,7 +110,7 @@ export default function PricingPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Upgrade to Premium</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Unlock the full potential of Resumesensei. Pro removes export watermarks, unlocks every template, unlimited AI, and ATS score tracking.
+            Unlock the full potential of Resumesensei. Pro removes export watermarks, unlocks every template, unlimited AI, premium colors & fonts, and ATS score tracking.
           </p>
         </div>
       </div>

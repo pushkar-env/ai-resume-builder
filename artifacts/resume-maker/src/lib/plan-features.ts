@@ -11,6 +11,7 @@ export const PRO_PLAN_FEATURES = [
   "All 12 templates",
   "Unlimited AI assistance",
   "Watermark-free PDF & Word exports",
+  "Premium colors & custom fonts",
   "ATS score tracking",
   "Priority support",
 ] as const;

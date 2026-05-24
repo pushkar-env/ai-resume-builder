@@ -357,6 +357,23 @@ export default function DashboardPage() {
     );
   }, [resumes]);
 
+  // Clean up orphaned local storage keys (e.g. after a local DB wipe or deletion)
+  useEffect(() => {
+    if (!resumes || typeof window === "undefined") return;
+    const validIds = new Set(resumes.map((r: Resume) => r.id));
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && key.startsWith("resumeFontScale:")) {
+        const idStr = key.replace("resumeFontScale:", "");
+        if (idStr && !validIds.has(parseInt(idStr))) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+  }, [resumes]);
+
   const handleCreateRequest = () => {
     if (!isPremiumUser && resumeList.length >= 1) {
       setShowPaywall(true);

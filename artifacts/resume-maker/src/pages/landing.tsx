@@ -332,7 +332,7 @@ export default function LandingPage() {
                 Simple pricing
               </h2>
               <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-                Start free. Move to Pro when you want unlimited resumes, every template, and full AI.
+                Start free. Move to Pro when you want unlimited resumes, every template, premium colors & fonts, and full AI.
               </p>
             </div>
             <div className="mt-10 grid gap-5 sm:grid-cols-2">

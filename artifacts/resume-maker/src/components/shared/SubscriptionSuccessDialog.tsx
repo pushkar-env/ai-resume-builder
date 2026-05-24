@@ -38,7 +38,7 @@ export function SubscriptionSuccessDialog({ open, onOpenChange }: SubscriptionSu
           <ul className="space-y-2.5 text-sm text-muted-foreground">
             <li className="flex gap-2.5">
               <Sparkles className="h-4 w-4 shrink-0 text-primary mt-0.5" aria-hidden />
-              <span>Unlimited AI writing, premium templates, and ATS score tracking are ready to use.</span>
+              <span>Unlimited AI writing, premium templates, custom colors & fonts, and ATS score tracking are ready to use.</span>
             </li>
             <li className="flex gap-2.5">
               <Sparkles className="h-4 w-4 shrink-0 text-primary mt-0.5" aria-hidden />

@@ -21,7 +21,7 @@ export function PaywallDialog({
   open,
   onOpenChange,
   title = "Premium Feature",
-  description = "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization."
+  description = "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, premium colors & custom fonts, and more."
 }: PaywallDialogProps) {
   const [, navigate] = useLocation();
 
