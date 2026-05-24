@@ -686,9 +686,9 @@ export function NovaTemplate({ sections, color, font }: TP) {
   const skillsStyle = skillsStyleOf(sections);
 
   return (
-    <div className="px-14 py-12" style={{ fontFamily: font }}>
+    <div className="px-12 py-10" style={{ fontFamily: font }}>
       {/* Header — centered, minimal */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h1 className="text-[26px] font-extralight tracking-[0.18em] text-gray-900 uppercase leading-tight">{str(p.name) || "Your Name"}</h1>
         {roleOf(p) && <p className="text-[9px] mt-1.5 font-medium uppercase tracking-[0.2em]" style={{ color }}>{roleOf(p)}</p>}
         <div className="flex justify-center items-center gap-4 mt-3">
@@ -699,24 +699,24 @@ export function NovaTemplate({ sections, color, font }: TP) {
             </span>
           ))}
         </div>
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-center mt-4">
           <div className="h-px w-20" style={{ background: color }} />
         </div>
       </div>
 
       {str(summary.text) && (
-        <div className="mb-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2 text-center" style={{ color }}>Profile</p>
-          <div className="resume-text text-[9.5px] text-gray-500 leading-[1.8] text-center max-w-[420px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+        <div className="mb-5">
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-1.5 text-center" style={{ color }}>Profile</p>
+          <div className="resume-text text-[9px] text-gray-500 leading-[1.7] text-center max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
       {exp.length > 0 && (
-        <div className="mb-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Experience</p>
-          <div className="space-y-4">
+        <div className="mb-5">
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Experience</p>
+          <div className="space-y-3.5">
             {exp.map((e, i) => (
-              <div key={i} className="flex gap-6">
+              <div key={i} className="flex gap-5">
                 <div className="w-[90px] shrink-0 text-right">
                   <p className="text-[8px] text-gray-300 leading-relaxed">{str(e.startDate)}</p>
                   <p className="text-[8px] text-gray-300">{str(e.endDate) || (e.startDate ? "Present" : "")}</p>
@@ -734,7 +734,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-2 gap-6">
         {edu.length > 0 && (
           <div>
             <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Education</p>
@@ -756,9 +756,9 @@ export function NovaTemplate({ sections, color, font }: TP) {
       </div>
 
       {projects.length > 0 && (
-        <div className="mt-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Selected Projects</p>
-          <div className="space-y-2">
+        <div className="mt-5">
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Selected Projects</p>
+          <div className="space-y-1.5">
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
                 <div className="w-[130px] shrink-0">
@@ -773,8 +773,8 @@ export function NovaTemplate({ sections, color, font }: TP) {
       )}
 
       {certs.length > 0 && (
-        <div className="mt-7">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Certifications</p>
+        <div className="mt-5">
+          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Certifications</p>
           <div className="flex flex-wrap gap-3">
             {certs.map((c, i) => (
               <CertLine key={i} c={c} className="text-[8.5px] text-gray-500" color={color} />
