@@ -121,9 +121,8 @@ export default function PricingPage() {
             <Sparkles className="h-5 w-5 text-primary" aria-hidden />
           </div>
           <div className="min-w-0 flex-1 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
-            <span className="font-semibold text-foreground">Free vs Pro exports.</span>{" "}
-            Free saves PDF and Word with a minimal Resumesensei line at the bottom (you always see it in the builder preview).
-            Pro removes that footer so your file is 100% yours for recruiters and ATS.
+            <span className="font-semibold text-foreground">Own your career narrative.</span>{" "}
+            While our free plan includes all essential features with a subtle brand watermark, upgrading to Pro removes all branding—ensuring your resume is 100% yours, ATS-optimized, and fully ready to impress recruiters.
           </div>
         </div>
 

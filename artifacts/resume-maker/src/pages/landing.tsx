@@ -194,16 +194,13 @@ export default function LandingPage() {
               animate="visible"
               variants={fadeUp}
               transition={{ delay: 0.15 }}
-              className="mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
+              className="mt-9 flex flex-col items-center justify-center sm:flex-row"
             >
-              <Button size="lg" className="h-12 rounded-xl px-8 text-base shadow-sm" asChild>
+              <Button size="lg" className="h-12 rounded-xl px-8 text-base shadow-sm w-full sm:w-auto" asChild>
                 <Link href="/sign-up" className="gap-2">
                   Start free
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="h-12 rounded-xl px-8 text-base" asChild>
-                <Link href="/sign-in">Sign in</Link>
               </Button>
             </motion.div>
             <motion.p
@@ -295,7 +292,7 @@ export default function LandingPage() {
               Premium Templates
             </h2>
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Browse our collection of beautifully designed templates. Pro unlocks every template; Free includes three.
+              Browse our collection of beautifully designed templates. Start with our free essential designs, or upgrade to Pro to unlock the entire premium library.
             </p>
           </div>
           <div className="mx-auto max-w-7xl">

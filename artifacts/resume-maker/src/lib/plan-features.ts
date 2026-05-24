@@ -1,15 +1,14 @@
-/** Single source of truth for plan bullets — keep landing, billing, and pricing in sync. */
 export const FREE_PLAN_FEATURES = [
   "1 resume",
-  "3 templates",
-  "PDF, DOCX & JSON export (subtle footer on PDF & Word)",
+  "Free designer templates",
+  "PDF, DOCX & JSON exports (watermarked)",
   "Basic AI suggestions",
+  "Auto-Fit layout system",
 ] as const;
 
 export const PRO_PLAN_FEATURES = [
-  "Unlimited resumes",
-  "All 12 templates",
   "Unlimited AI assistance",
+  "All Premium templates",
   "Watermark-free PDF & Word exports",
   "Premium colors & custom fonts",
   "ATS score tracking",
