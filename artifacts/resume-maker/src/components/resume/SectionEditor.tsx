@@ -675,7 +675,7 @@ function SkillsEditor({
                   placeholder="Skill name"
                   className="h-9 lg:h-7 text-sm"
                 />
-                <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground">
+                <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground select-none">
                   {Math.ceil(Number(item.level ?? 70) / 20)} / 5
                 </span>
                 <button
@@ -687,20 +687,42 @@ function SkillsEditor({
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="flex gap-1 pt-0.5">
-                {[1, 2, 3, 4, 5].map((slot) => (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => updateLevel(i, slot * 20)}
-                    className={`h-2 flex-1 rounded-[2px] transition-colors ${
-                      slot <= Math.ceil(Number(item.level ?? 70) / 20)
-                        ? "bg-primary"
-                        : "bg-muted hover:bg-muted-foreground/30"
-                    }`}
-                  />
-                ))}
-              </div>
+              
+              {style === "radial" ? (
+                <div className="flex gap-2 pt-0.5 items-center select-none">
+                  {[1, 2, 3, 4, 5].map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => updateLevel(i, slot * 20)}
+                      className={`h-5 w-5 rounded-full border transition-all flex items-center justify-center cursor-pointer select-none text-[9px] font-semibold ${
+                        slot <= Math.ceil(Number(item.level ?? 70) / 20)
+                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                          : "border-input bg-background text-muted-foreground hover:border-primary hover:text-primary"
+                      }`}
+                      title={`Set level ${slot} / 5`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex gap-1 pt-0.5 select-none">
+                  {[1, 2, 3, 4, 5].map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => updateLevel(i, slot * 20)}
+                      className={`h-2 flex-1 rounded-[2px] transition-colors cursor-pointer select-none ${
+                        slot <= Math.ceil(Number(item.level ?? 70) / 20)
+                          ? "bg-primary"
+                          : "bg-muted hover:bg-muted-foreground/30"
+                      }`}
+                      title={`Set level ${slot} / 5`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
