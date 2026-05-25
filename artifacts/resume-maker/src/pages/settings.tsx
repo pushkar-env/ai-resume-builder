@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ProBadge } from "@/components/shared/ProBadge";
+import { ProButton } from "@/components/shared/ProButton";
 
 function BillingSection() {
   const { user } = useUser();
@@ -129,9 +131,9 @@ function BillingSection() {
             </h3>
             <p className="text-sm text-muted-foreground mt-1">You are currently on the free plan.</p>
           </div>
-          <Button asChild>
-            <Link href="/pricing">Upgrade to Pro</Link>
-          </Button>
+          <Link href="/pricing" className="w-full sm:w-auto">
+            <ProButton className="w-full" text="Upgrade to Pro" />
+          </Link>
         </div>
       ) : (
         <div className="space-y-6">
@@ -143,7 +145,7 @@ function BillingSection() {
               </div>
               <div>
                 <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-                  Pro Plan
+                  <ProBadge size="default" /> Plan
                   {isCancelledRenewal ? (
                     <span className="text-[10px] uppercase tracking-wider font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Cancels Soon</span>
                   ) : (

@@ -16,6 +16,8 @@ import {
   SheetTrigger,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { ProBadge } from "@/components/shared/ProBadge";
+import { ProButton } from "@/components/shared/ProButton";
 
 const appNavLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -164,24 +166,17 @@ export function Navbar() {
               <>
                 {user.publicMetadata?.isPremium ? (
                   <>
-                    <span className="hidden sm:flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
-                      <Star className="h-3 w-3 fill-primary text-primary" aria-hidden /> Pro
-                    </span>
-                    <span
-                      className="flex sm:hidden items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-primary"
-                      title="Resumesensei Pro"
-                      aria-label="You are on the Pro plan"
-                    >
-                      <Star className="h-3 w-3 shrink-0 fill-primary text-primary" aria-hidden />
-                      Pro
-                    </span>
+                    <div className="hidden sm:flex items-center">
+                      <ProBadge size="sm" />
+                    </div>
+                    <div className="flex sm:hidden items-center" title="Resumesensei Pro" aria-label="You are on the Pro plan">
+                      <ProBadge size="sm" />
+                    </div>
                   </>
                 ) : (
-                  <Button size="sm" className="hidden sm:flex h-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-sm gap-1.5 px-3" asChild>
-                    <Link href="/pricing">
-                      <Zap className="h-3.5 w-3.5 fill-white" /> Go Pro
-                    </Link>
-                  </Button>
+                  <Link href="/pricing" className="hidden sm:block">
+                    <ProButton size="sm" className="h-8 px-3" text="Go Pro" showIcon />
+                  </Link>
                 )}
                 <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
@@ -202,10 +197,9 @@ export function Navbar() {
                         {user.firstName} {user.lastName}
                       </p>
                       {user.publicMetadata?.isPremium ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
-                          <Star className="h-2.5 w-2.5 fill-primary text-primary" aria-hidden />
-                          Pro
-                        </span>
+                        <div className="scale-75 origin-left">
+                          <ProBadge size="sm" />
+                        </div>
                       ) : null}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{user.emailAddresses[0]?.emailAddress}</p>

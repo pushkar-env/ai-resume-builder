@@ -60,6 +60,7 @@ import { ResumePreview } from "@/components/resume/ResumePreview";
 import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
 import { getDefaultAccentColor } from "@/lib/template-config";
+import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { SEO } from "@/components/shared/SEO";
@@ -375,8 +376,7 @@ function ExportDialog({
               disabled={loading !== null}
             >
               <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                <Sparkles className="h-3 w-3" aria-hidden />
-                Pro
+                <ProBadge size="sm" />
               </span>
               <span className="text-sm font-semibold text-foreground">Remove watermark</span>
               <span className="text-xs text-muted-foreground leading-snug">

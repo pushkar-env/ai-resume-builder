@@ -12,6 +12,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getListResumesQueryKey } from "@workspace/api-client-react";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
+import { ProBadge } from "@/components/shared/ProBadge";
+import { ProButton } from "@/components/shared/ProButton";
 
 export default function PricingPage() {
   const { user } = useUser();
@@ -185,7 +187,9 @@ export default function PricingPage() {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-md">
               Most Popular
             </div>
-            <h3 className="text-xl font-bold mb-2 text-foreground">Pro</h3>
+            <div className="mb-2">
+              <ProBadge size="lg" />
+            </div>
             <p className="text-muted-foreground text-sm mb-6">For serious job seekers</p>
             <div className="mb-6">
               <span className="text-4xl font-black text-foreground">
@@ -213,15 +217,14 @@ export default function PricingPage() {
               </Button>
             ) : (
               <div className="space-y-3">
-                <Button 
-                  className="w-full gap-2 shadow-lg hover:shadow-xl transition-all" 
-                  size="lg"
+                <ProButton 
+                  effect="sleek"
+                  className="w-full h-11 text-base shadow-lg" 
                   onClick={handleUpgrade}
                   disabled={isProcessing}
-                >
-                  {isProcessing ? "Processing..." : "Upgrade to Pro"}
-                  {!isProcessing && <ArrowRight className="h-4 w-4" />}
-                </Button>
+                  text={isProcessing ? "Processing..." : "Upgrade to Pro"}
+                  showIcon={!isProcessing}
+                />
                 
                 {/* Safe fallback for testing without keys */}
                 {import.meta.env.DEV && (

@@ -1,5 +1,6 @@
-import { Star, Zap } from "lucide-react";
+import { Star } from "lucide-react";
 import { useLocation } from "wouter";
+import { ProButton } from "./ProButton";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,12 +40,7 @@ export function PaywallDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col sm:flex-col gap-2 mt-4">
-          <Button 
-            className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white gap-2 shadow-md" 
-            onClick={() => navigate("/pricing")}
-          >
-            <Zap className="h-4 w-4 fill-white" /> Upgrade to Pro
-          </Button>
+          <ProButton className="w-full" onClick={() => navigate("/pricing")} />
           <Button variant="ghost" className="w-full" onClick={() => onOpenChange(false)}>
             Maybe later
           </Button>

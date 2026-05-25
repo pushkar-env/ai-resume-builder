@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Sparkles, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ProBadge } from "@/components/shared/ProBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
@@ -175,15 +176,7 @@ export default function TemplatesPage() {
                 >
                   {/* Premium badge */}
                   {template.isPremium && !isPremiumUser && (
-                    <div className="absolute top-2.5 right-2.5 z-20">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-violet-500 rounded-full blur-[6px] opacity-60 animate-pulse"></div>
-                        <Badge className="relative gap-1 text-[10px] h-5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white border-0 shadow-md">
-                          <Sparkles className="h-2.5 w-2.5" />
-                          Pro
-                        </Badge>
-                      </div>
-                    </div>
+                    <ProBadge size="sm" className="absolute top-2.5 right-2.5 z-20" />
                   )}
 
                   {/* Selected checkmark */}

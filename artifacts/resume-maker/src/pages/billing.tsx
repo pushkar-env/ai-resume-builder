@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
 import { ResumeRenewalFlow } from "@/components/shared/ResumeRenewalFlow";
+import { ProButton } from "@/components/shared/ProButton";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 
@@ -390,10 +391,14 @@ export default function BillingPage() {
                   You are on Pro
                 </Button>
               ) : (
-                <Button className="w-full" onClick={handleUpgrade} disabled={isProcessing}>
-                  {isProcessing ? "Processing..." : "Upgrade to Pro"}
-                  {!isProcessing && <ArrowRight className="h-4 w-4 ml-1.5" />}
-                </Button>
+                <ProButton 
+                  effect="sleek"
+                  className="w-full" 
+                  onClick={handleUpgrade} 
+                  disabled={isProcessing}
+                  text={isProcessing ? "Processing..." : "Upgrade to Pro"}
+                  showIcon={!isProcessing}
+                />
               )}
               {!isPremium && (
                 <p className="text-center text-sm font-medium text-muted-foreground mt-3">
