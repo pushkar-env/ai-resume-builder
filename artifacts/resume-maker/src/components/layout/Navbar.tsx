@@ -83,7 +83,20 @@ export function Navbar() {
                     <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-9 w-9 object-contain shrink-0" />
                     <span className="text-sm font-bold tracking-tight">Resumesensei</span>
                   </Link>
-                  {user?.publicMetadata?.isPremium ? (
+                  {user && !user.publicMetadata?.isPremium ? (
+                    <div className="mb-6 flex flex-col gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                      <p className="text-xs font-semibold text-foreground relative z-10">
+                        Upgrade to Pro
+                      </p>
+                      <p className="text-[11px] leading-snug text-muted-foreground relative z-10">
+                        Unlock unlimited AI resume builds, templates, and exports.
+                      </p>
+                      <Link href="/pricing" className="w-full relative z-10 mt-1">
+                        <ProButton size="sm" className="w-full h-8" text="Upgrade to Pro" showIcon />
+                      </Link>
+                    </div>
+                  ) : user?.publicMetadata?.isPremium ? (
                     <div className="mb-6 flex flex-col gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                       <div className="flex items-center gap-2 relative z-10">
@@ -174,8 +187,8 @@ export function Navbar() {
                     </div>
                   </>
                 ) : (
-                  <Link href="/pricing" className="hidden sm:block">
-                    <ProButton size="sm" className="h-8 px-3" text="Go Pro" showIcon />
+                  <Link href="/pricing" className="flex items-center">
+                    <ProButton size="sm" className="h-8 px-2.5 sm:px-3 text-xs sm:text-sm" text="Go Pro" showIcon />
                   </Link>
                 )}
                 <DropdownMenu modal={false}>

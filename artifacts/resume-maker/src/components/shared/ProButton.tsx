@@ -20,13 +20,12 @@ export const ProButton = React.forwardRef<HTMLButtonElement, ProButtonProps>(
         className={cn(
           "relative overflow-hidden font-semibold transition-all shadow-md hover:shadow-lg border-0 text-white",
           "hover:-translate-y-[1px] active:translate-y-[1px] active:scale-[0.98]",
-          isSleek ? "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500" : "bg-gradient-to-r from-violet-600/90 via-purple-600/90 to-indigo-600/90 hover:from-violet-500/95 hover:via-purple-500/95 hover:to-indigo-500/95",
+          isSleek ? "bg-gradient-to-r from-violet-500 via-pink-500 to-blue-500 hover:from-violet-400 hover:via-pink-400 hover:to-blue-400" : "bg-gradient-to-r from-violet-600 via-pink-500 to-blue-600 hover:from-violet-500 hover:via-pink-400 hover:to-blue-500",
           className
         )}
         style={!isSleek ? {
-          backgroundImage: "linear-gradient(to right, rgba(139, 92, 246, 0.9) 0%, rgba(168, 85, 247, 0.9) 50%, rgba(79, 70, 229, 0.9) 100%), linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.4) 50%, transparent 75%)",
-          backgroundSize: "100% 100%, 200% 100%",
-          backgroundBlendMode: "overlay"
+          backgroundImage: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #2563eb 100%)",
+          backgroundSize: "200% 100%",
         } : undefined}
         {...props}
       >
