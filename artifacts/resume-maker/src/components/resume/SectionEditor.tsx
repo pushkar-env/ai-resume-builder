@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -663,68 +664,57 @@ function SkillsEditor({
       {/* Skill list — compact when no level UI, expanded with sliders when needed */}
       {showLevel ? (
         <div className="space-y-2">
-          {items.map((item, i) => (
-            <div key={i} className="rounded-md border border-border p-2 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Input
-                  value={(item.name as string) ?? ""}
-                  onChange={(e) => {
-                    const next = [...items]; next[i] = { ...next[i], name: e.target.value };
-                    onChange({ ...content, items: next });
-                  }}
-                  placeholder="Skill name"
-                  className="h-9 lg:h-7 text-sm"
-                />
-                <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground select-none">
-                  {Math.ceil(Number(item.level ?? 70) / 20)} / 5
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })}
-                  className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
-                  title="Delete skill"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+          {items.map((item, i) => {
+            const currentVal = Math.min(5, Math.max(1, Math.ceil(Number(item.level ?? 70) / 20)));
+            return (
+              <div key={i} className="rounded-md border border-border p-2 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={(item.name as string) ?? ""}
+                    onChange={(e) => {
+                      const next = [...items]; next[i] = { ...next[i], name: e.target.value };
+                      onChange({ ...content, items: next });
+                    }}
+                    placeholder="Skill name"
+                    className="h-9 lg:h-7 text-sm"
+                  />
+                  <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground select-none">
+                    {currentVal} / 5
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })}
+                    className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
+                    title="Delete skill"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                
+                <div className="pt-1.5 pb-0.5 px-1 space-y-1">
+                  <Slider
+                    min={1}
+                    max={5}
+                    step={1}
+                    value={[currentVal]}
+                    onValueChange={(vals) => {
+                      if (vals && vals.length > 0) {
+                        updateLevel(i, vals[0] * 20);
+                      }
+                    }}
+                    className="cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[9px] text-muted-foreground font-medium px-0.5 select-none">
+                    <span>1 (Beginner)</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                    <span>5 (Expert)</span>
+                  </div>
+                </div>
               </div>
-              
-              {style === "radial" ? (
-                <div className="flex gap-2 pt-0.5 items-center select-none">
-                  {[1, 2, 3, 4, 5].map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => updateLevel(i, slot * 20)}
-                      className={`h-5 w-5 rounded-full border transition-all flex items-center justify-center cursor-pointer select-none text-[9px] font-semibold ${
-                        slot <= Math.ceil(Number(item.level ?? 70) / 20)
-                          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                          : "border-input bg-background text-muted-foreground hover:border-primary hover:text-primary"
-                      }`}
-                      title={`Set level ${slot} / 5`}
-                    >
-                      {slot}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex gap-1 pt-0.5 select-none">
-                  {[1, 2, 3, 4, 5].map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => updateLevel(i, slot * 20)}
-                      className={`h-2 flex-1 rounded-[2px] transition-colors cursor-pointer select-none ${
-                        slot <= Math.ceil(Number(item.level ?? 70) / 20)
-                          ? "bg-primary"
-                          : "bg-muted hover:bg-muted-foreground/30"
-                      }`}
-                      title={`Set level ${slot} / 5`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
