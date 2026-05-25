@@ -406,21 +406,21 @@ function ExperienceEditor({
           <DeleteIconButton onClick={() => removeItem(i)} label={`experience #${i + 1}`} />
           <div className="grid grid-cols-2 gap-2 items-end pr-7">
             <Field label="Job Title">
-              <Input size={1} value={(item.title as string) ?? ""} onChange={(e) => updateItem(i, "title", e.target.value)} placeholder="Software Engineer" className="h-8 text-sm" />
+              <Input size={1} value={(item.title as string) ?? ""} onChange={(e) => updateItem(i, "title", e.target.value)} placeholder="Software Engineer" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="Company">
-              <Input size={1} value={(item.company as string) ?? ""} onChange={(e) => updateItem(i, "company", e.target.value)} placeholder="Acme Corp" className="h-8 text-sm" />
+              <Input size={1} value={(item.company as string) ?? ""} onChange={(e) => updateItem(i, "company", e.target.value)} placeholder="Acme Corp" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Field label="Start">
-              <Input size={1} value={(item.startDate as string) ?? ""} onChange={(e) => updateItem(i, "startDate", e.target.value)} placeholder="Jan 2020" className="h-8 text-sm" />
+              <Input size={1} value={(item.startDate as string) ?? ""} onChange={(e) => updateItem(i, "startDate", e.target.value)} placeholder="Jan 2020" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="End">
-              <Input size={1} value={(item.endDate as string) ?? ""} onChange={(e) => updateItem(i, "endDate", e.target.value)} placeholder="Present" className="h-8 text-sm" />
+              <Input size={1} value={(item.endDate as string) ?? ""} onChange={(e) => updateItem(i, "endDate", e.target.value)} placeholder="Present" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="Location">
-              <Input size={1} value={(item.location as string) ?? ""} onChange={(e) => updateItem(i, "location", e.target.value)} placeholder="SF, CA" className="h-8 text-sm" />
+              <Input size={1} value={(item.location as string) ?? ""} onChange={(e) => updateItem(i, "location", e.target.value)} placeholder="SF, CA" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
 
@@ -486,7 +486,7 @@ function ExperienceEditor({
         </div>
         );
       })}
-      <Button variant="outline" size="sm" onClick={addItem} className="gap-1.5 h-8 text-xs w-full">
+      <Button variant="outline" size="sm" onClick={addItem} className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full">
         <Plus className="h-3.5 w-3.5" />
         Add experience
       </Button>
@@ -510,26 +510,26 @@ function EducationEditor({ content, onChange }: { content: SectionContent; onCha
           <DeleteIconButton onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })} label={`education #${i + 1}`} />
           <div className="pr-7">
             <Field label="School / University">
-              <Input size={1} value={(item.school as string) ?? ""} onChange={(e) => updateItem(i, "school", e.target.value)} placeholder="MIT" className="h-8 text-sm" />
+              <Input size={1} value={(item.school as string) ?? ""} onChange={(e) => updateItem(i, "school", e.target.value)} placeholder="MIT" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-2 items-end">
             <Field label="Degree">
-              <Input size={1} value={(item.degree as string) ?? ""} onChange={(e) => updateItem(i, "degree", e.target.value)} placeholder="B.S. Computer Science" className="h-8 text-sm" />
+              <Input size={1} value={(item.degree as string) ?? ""} onChange={(e) => updateItem(i, "degree", e.target.value)} placeholder="B.S. Computer Science" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="Field">
-              <Input size={1} value={(item.field as string) ?? ""} onChange={(e) => updateItem(i, "field", e.target.value)} placeholder="AI/ML" className="h-8 text-sm" />
+              <Input size={1} value={(item.field as string) ?? ""} onChange={(e) => updateItem(i, "field", e.target.value)} placeholder="AI/ML" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Field label="Start">
-              <Input size={1} value={(item.startDate as string) ?? ""} onChange={(e) => updateItem(i, "startDate", e.target.value)} placeholder="2018" className="h-8 text-sm" />
+              <Input size={1} value={(item.startDate as string) ?? ""} onChange={(e) => updateItem(i, "startDate", e.target.value)} placeholder="2018" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="End">
-              <Input size={1} value={(item.endDate as string) ?? ""} onChange={(e) => updateItem(i, "endDate", e.target.value)} placeholder="2022" className="h-8 text-sm" />
+              <Input size={1} value={(item.endDate as string) ?? ""} onChange={(e) => updateItem(i, "endDate", e.target.value)} placeholder="2022" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="GPA">
-              <Input size={1} value={(item.gpa as string) ?? ""} onChange={(e) => updateItem(i, "gpa", e.target.value)} placeholder="3.9" className="h-8 text-sm" />
+              <Input size={1} value={(item.gpa as string) ?? ""} onChange={(e) => updateItem(i, "gpa", e.target.value)} placeholder="3.9" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
         </div>
@@ -537,7 +537,7 @@ function EducationEditor({ content, onChange }: { content: SectionContent; onCha
       <Button
         variant="outline" size="sm"
         onClick={() => onChange({ ...content, items: [...items, { school: "", degree: "", field: "", startDate: "", endDate: "", gpa: "" }] })}
-        className="gap-1.5 h-8 text-xs w-full"
+        className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
         Add education
@@ -642,7 +642,7 @@ function SkillsEditor({
       {/* Style selector */}
       <Field label="Display Style">
         <Select value={style} onValueChange={(v) => onChange({ ...content, style: v })}>
-          <SelectTrigger className="h-8 text-sm">
+          <SelectTrigger className="h-10 lg:h-8 text-sm">
             <SelectValue>
               {SKILL_STYLES.find(s => s.value === style)?.label}
             </SelectValue>
@@ -673,7 +673,7 @@ function SkillsEditor({
                     onChange({ ...content, items: next });
                   }}
                   placeholder="Skill name"
-                  className="h-7 text-sm"
+                  className="h-9 lg:h-7 text-sm"
                 />
                 <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground">
                   {Math.ceil(Number(item.level ?? 70) / 20)} / 5
@@ -726,16 +726,16 @@ function SkillsEditor({
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
           placeholder="Add a skill..."
-          className="h-8 text-sm"
+          className="h-10 lg:h-8 text-sm"
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
         />
-        <Button variant="outline" size="sm" onClick={addSkill} className="h-8 text-xs shrink-0">
+        <Button variant="outline" size="sm" onClick={addSkill} className="h-10 lg:h-8 text-xs shrink-0">
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
       <Button
         variant="outline" size="sm"
-        className="gap-1.5 h-8 text-xs"
+        className="gap-1.5 h-10 lg:h-8 text-xs font-medium"
         onClick={handleSuggest}
         disabled={suggestSkills.isPending}
       >
@@ -836,14 +836,14 @@ function ProjectsEditor({
           <DeleteIconButton onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })} label={`project #${i + 1}`} />
           <div className="space-y-2 pr-7">
             <Field label="Project Name">
-              <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="My Project" className="h-8 text-sm" />
+              <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="My Project" className="h-10 lg:h-8 text-sm" />
             </Field>
             <div className="grid grid-cols-2 gap-2 items-end">
               <Field label="Link Label">
-                <Input size={1} value={(item.label as string) ?? ""} onChange={(e) => updateItem(i, "label", e.target.value)} placeholder="e.g. View Live" className="h-8 text-sm" />
+                <Input size={1} value={(item.label as string) ?? ""} onChange={(e) => updateItem(i, "label", e.target.value)} placeholder="e.g. View Live" className="h-10 lg:h-8 text-sm" />
               </Field>
               <Field label="URL">
-                <Input size={1} value={(item.url as string) ?? ""} onChange={(e) => updateItem(i, "url", e.target.value)} placeholder="github.com/..." className="h-8 text-sm" />
+                <Input size={1} value={(item.url as string) ?? ""} onChange={(e) => updateItem(i, "url", e.target.value)} placeholder="github.com/..." className="h-10 lg:h-8 text-sm" />
               </Field>
             </div>
           </div>
@@ -885,7 +885,7 @@ function ProjectsEditor({
       <Button
         variant="outline" size="sm"
         onClick={() => onChange({ ...content, items: [...items, { name: "", url: "", description: "" }] })}
-        className="gap-1.5 h-8 text-xs w-full"
+        className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
         Add project
@@ -910,26 +910,26 @@ function CertificationsEditor({ content, onChange }: { content: SectionContent; 
           <DeleteIconButton onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })} label={`certification #${i + 1}`} />
           <div className="pr-7">
             <Field label="Certification Name">
-              <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="AWS Solutions Architect" className="h-8 text-sm" />
+              <Input size={1} value={(item.name as string) ?? ""} onChange={(e) => updateItem(i, "name", e.target.value)} placeholder="AWS Solutions Architect" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-2 items-end">
             <Field label="Issuer">
-              <Input size={1} value={(item.issuer as string) ?? ""} onChange={(e) => updateItem(i, "issuer", e.target.value)} placeholder="Amazon" className="h-8 text-sm" />
+              <Input size={1} value={(item.issuer as string) ?? ""} onChange={(e) => updateItem(i, "issuer", e.target.value)} placeholder="Amazon" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="Date">
-              <Input size={1} value={(item.date as string) ?? ""} onChange={(e) => updateItem(i, "date", e.target.value)} placeholder="Mar 2024" className="h-8 text-sm" />
+              <Input size={1} value={(item.date as string) ?? ""} onChange={(e) => updateItem(i, "date", e.target.value)} placeholder="Mar 2024" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
           <Field label="Credential Link">
-            <Input size={1} value={((item.credentialUrl as string) ?? (item.url as string) ?? "")} onChange={(e) => updateItem(i, "credentialUrl", e.target.value)} placeholder="https://verify.example.com/abc" className="h-8 text-sm" />
+            <Input size={1} value={((item.credentialUrl as string) ?? (item.url as string) ?? "")} onChange={(e) => updateItem(i, "credentialUrl", e.target.value)} placeholder="https://verify.example.com/abc" className="h-10 lg:h-8 text-sm" />
           </Field>
         </div>
       ))}
       <Button
         variant="outline" size="sm"
         onClick={() => onChange({ ...content, items: [...items, { name: "", issuer: "", date: "", credentialUrl: "" }] })}
-        className="gap-1.5 h-8 text-xs w-full"
+        className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
         Add certification

@@ -214,7 +214,7 @@ function SortableSectionItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-1.5 rounded-lg px-2 py-2 cursor-pointer transition-colors group ${
+      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-3 lg:py-2 cursor-pointer transition-colors group ${
         isActive ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground hover:text-foreground"
       }`}
       onClick={onSelect}
@@ -952,7 +952,7 @@ export default function BuilderPage() {
             <div className="px-3 pb-3 overflow-hidden min-w-0">
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-0.5">
+                  <div className="space-y-1.5 lg:space-y-0.5">
                     {localSections.map((s) => (
                       <SortableSectionItem
                         key={s.id}
@@ -969,7 +969,7 @@ export default function BuilderPage() {
               </DndContext>
 
               {/* Controls (scrollable on mobile) */}
-              <div className="mt-3 border-t border-border pt-3 space-y-2">
+              <div className="mt-4 border-t border-border pt-4 space-y-4 lg:space-y-2">
                 {/* Template selector */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
@@ -1207,26 +1207,26 @@ export default function BuilderPage() {
           </ScrollArea>
 
           {/* Pinned footer — clear action + nav (full-width for narrow sidebar / mobile) */}
-          <div className="border-t border-border p-3 shrink-0 bg-background min-w-0 flex flex-row items-center gap-2">
+          <div className="border-t border-border p-3 shrink-0 bg-background flex flex-row items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
-              className="flex-1 min-w-0 gap-1.5 h-8 text-xs font-medium text-muted-foreground justify-center hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="gap-1.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               onClick={() => navigate("/dashboard")}
             >
               <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate min-w-0">Back</span>
+              <span>Back</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="flex-1 min-w-0 gap-1.5 h-8 text-xs font-medium justify-center hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
+              className="gap-1.5 h-8 text-xs font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
               onClick={() => setClearAllOpen(true)}
               disabled={localSections.length === 0}
             >
               <Eraser className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate min-w-0">Clear</span>
+              <span>Clear</span>
             </Button>
           </div>
         </aside>
