@@ -28,6 +28,7 @@
     "pdf-parse": "^2.4.5",
     "pino": "^9",
     "pino-http": "^10",
+    "puppeteer": "^25.0.4",
     "razorpay": "^2.9.6"
   },
   "devDependencies": {

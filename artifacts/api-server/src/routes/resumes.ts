@@ -22,6 +22,7 @@ import { logger } from "../lib/logger";
 import multer from "multer";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
+import puppeteer from "puppeteer";
 
 import { completeResumeAi } from "../lib/resume-ai-chat";
 
@@ -303,7 +304,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         throw new Error("Could not parse JSON from AI response");
       }
     } catch (e: any) {
-      logger.error("Failed to parse AI output for resume import", { error: e, aiResultText });
+      logger.error({ error: e, aiResultText }, "Failed to parse AI output for resume import");
       import("fs").then(fs => fs.writeFileSync("import-json-error.txt", String(e?.stack || e)));
       res.status(500).json({ error: "Failed to parse the imported resume." });
       return;
@@ -382,7 +383,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     res.status(201).json(toJSON({ ...resume, sections }));
 
   } catch (error: any) {
-    logger.error("Error importing resume", { error });
+    logger.error({ error }, "Error importing resume");
     import("fs").then(fs => fs.writeFileSync("import-error.txt", String(error?.stack || error)));
     res.status(500).json({ error: "An error occurred while importing the resume." });
   }
@@ -667,6 +668,43 @@ router.get("/resumes/:id/ats-score", requireAuth, async (req: Request, res: Resp
     passedChecks,
     failedChecks,
   }));
+});
+
+router.post("/resumes/export-pdf", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const { html } = req.body;
+  if (!html) {
+    res.status(400).json({ error: "No HTML provided" });
+    return;
+  }
+
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "load" });
+    
+    // Some fonts might need a bit more time to render perfectly, waiting a small fixed amount can help
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      preferCSSPageSize: true,
+      margin: { top: 0, bottom: 0, left: 0, right: 0 }
+    });
+    
+    await browser.close();
+    
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
+    res.send(Buffer.from(pdfBuffer));
+  } catch (error: any) {
+    logger.error({ error }, "Error generating PDF");
+    res.status(500).json({ error: "Failed to generate PDF" });
+  }
 });
 
 export default router;

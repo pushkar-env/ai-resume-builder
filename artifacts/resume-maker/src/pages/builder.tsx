@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { useParams, useLocation } from "wouter";
-import { useUser } from "@clerk/react";
+import { useUser, useAuth } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
@@ -251,6 +251,7 @@ function ExportDialog({
   onRemoveWatermarkClick: () => void;
 }) {
   const { toast } = useToast();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [freeStep, setFreeStep] = useState<"gate" | "formats">("gate");
 
@@ -272,61 +273,32 @@ function ExportDialog({
           toast({ title: "Could not capture resume preview", variant: "destructive" });
           return;
         }
-        const iframe = document.createElement("iframe");
-        iframe.style.position = "fixed";
-        iframe.style.right = "0";
-        iframe.style.bottom = "0";
-        iframe.style.width = "0";
-        iframe.style.height = "0";
-        iframe.style.border = "0";
-        document.body.appendChild(iframe);
+        
+        try {
+          const token = await getToken();
+          const apiUrl = import.meta.env.VITE_API_URL || "/api";
+          const res = await fetch(`${apiUrl}/resumes/export-pdf`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ html }),
+          });
 
-        const htmlWithReady = html.replace(
-          "</body>",
-          `<script>
-              (function(){
-                function whenReady(cb){
-                  var links = Array.prototype.slice.call(document.querySelectorAll('link[rel="stylesheet"]'));
-                  var pending = links.filter(function(l){ return !l.sheet; });
-                  if (pending.length === 0) return cb();
-                  var done = 0;
-                  pending.forEach(function(l){
-                    var finish = function(){ if (++done === pending.length) cb(); };
-                    l.addEventListener('load', finish);
-                    l.addEventListener('error', finish);
-                  });
-                  setTimeout(cb, 3000);
-                }
-                function go(){
-                  var fontsReady = (document.fonts && document.fonts.ready) || Promise.resolve();
-                  Promise.resolve(fontsReady).then(function(){
-                    requestAnimationFrame(function(){
-                      window.focus();
-                      window.print();
-                    });
-                  });
-                }
-                if (document.readyState === 'complete') whenReady(go);
-                else window.addEventListener('load', function(){ whenReady(go); });
-              })();
-            </script></body>`
-        );
+          if (!res.ok) {
+            throw new Error("Failed to generate PDF on the server");
+          }
 
-        const doc = iframe.contentWindow?.document;
-        if (doc) {
-          doc.open();
-          doc.write(htmlWithReady);
-          doc.close();
-          toast({ title: 'Print dialog opened — save as PDF', description: "On mobile, use the share button to Save to Files." });
-
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-          }, 60000);
-        } else {
-          toast({ title: "Failed to open print frame", variant: "destructive" });
+          const blob = await res.blob();
+          downloadFileBlob(blob, `${base}.pdf`);
+          toast({ title: "PDF downloaded successfully" });
+        } catch (error) {
+          console.error(error);
+          toast({ title: "Failed to download PDF", variant: "destructive" });
         }
+
+
       } else {
         try {
           const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
