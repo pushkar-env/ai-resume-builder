@@ -1039,10 +1039,9 @@ export default function BuilderPage() {
                       <SelectItem value="1.5" className="text-xs">Massive (150%)</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="flex items-start justify-between mt-4 px-1 gap-4">
-                    <Label htmlFor="auto-fit" className="text-xs text-muted-foreground flex flex-col gap-1.5 cursor-pointer">
-                      <span className="font-medium text-foreground">Auto-Fit Page</span>
-                      <span className="text-[10px] leading-snug opacity-80 max-w-[140px]">Shrinks contents automatically to prevent spilling to a second page.</span>
+                  <div className="flex items-center justify-between mt-4 px-1 gap-4">
+                    <Label htmlFor="auto-fit" className="text-xs font-medium text-foreground cursor-pointer">
+                      Auto-Fit Page
                     </Label>
                     <Switch
                       id="auto-fit"
@@ -1051,7 +1050,6 @@ export default function BuilderPage() {
                         setAutoFit(v);
                         bumpPreviewRevision();
                       }}
-                      className="mt-1"
                     />
                   </div>
                 </div>
