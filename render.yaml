@@ -4,7 +4,7 @@ services:
     env: node
     plan: free
     # We build from the root to ensure monorepo workspace dependencies are installed
-    buildCommand: pnpm install && pnpm run build
+    buildCommand: pnpm install && pnpm -r --filter "@workspace/api-server" exec puppeteer browsers install chrome && pnpm run build
     startCommand: pnpm --dir artifacts/api-server run start
     envVars:
       - key: NODE_ENV
