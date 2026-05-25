@@ -551,6 +551,7 @@ const SKILL_STYLES: Array<{ value: string; label: string; hint: string }> = [
   { value: "bars", label: "Progress bars", hint: "Skill name with a percentage bar" },
   { value: "chips", label: "Chips / pills", hint: "Compact coloured tags" },
   { value: "radial", label: "Radial dials", hint: "Circular progress dials" },
+  { value: "bullets", label: "Bullet points", hint: "Bulleted list with accent color" },
   { value: "text", label: "Plain text list", hint: "Comma-separated minimal style" },
 ];
 

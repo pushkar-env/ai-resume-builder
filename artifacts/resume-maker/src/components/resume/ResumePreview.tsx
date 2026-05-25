@@ -395,6 +395,24 @@ function renderSkills(
     );
   }
 
+  if (effective === "bullets") {
+    return (
+      <div className="flex flex-wrap gap-x-3.5 gap-y-1.5">
+        {skills.map((s, i) => (
+          <div key={i} className="inline-flex items-center gap-1.5 min-w-0">
+            <span
+              className="h-1 w-1 rounded-full shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <span className={`text-[8.5px] font-medium leading-none ${dark ? "text-white/90" : "text-gray-700"}`}>
+              {str(s.name)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // chips (default)
   return (
     <div className="flex flex-wrap gap-1">
