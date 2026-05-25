@@ -56,6 +56,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import {
   previewCardHoverTransition,
   previewCardWhileHover,
@@ -493,19 +494,7 @@ export default function DashboardPage() {
         </div>
 
         {resumesLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="h-40">
-                <CardContent className="p-5 h-full flex flex-col justify-between">
-                  <div>
-                    <Skeleton className="h-5 w-3/4 mb-3" />
-                    <Skeleton className="h-4 w-1/2 mb-2" />
-                  </div>
-                  <Skeleton className="h-4 w-1/3" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <PremiumLoadingScreen title="Fetching your resumes" subtitle="Preparing your dashboard" />
         ) : (
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {/* Create New Card */}

@@ -61,7 +61,7 @@ import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
 import { getDefaultAccentColor } from "@/lib/template-config";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
-import { BuilderLoadingScreen } from "@/components/shared/BuilderLoadingScreen";
+import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { SEO } from "@/components/shared/SEO";
 import {
   useGetResume,
@@ -923,7 +923,7 @@ export default function BuilderPage() {
   });
 
   if (isLoading) {
-    return <BuilderLoadingScreen />;
+    return <PremiumLoadingScreen title="Setting up your workspace" />;
   }
 
   return (

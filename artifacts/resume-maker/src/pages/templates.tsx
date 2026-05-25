@@ -14,6 +14,7 @@ import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { useUser } from "@clerk/react";
 import { SEO } from "@/components/shared/SEO";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { Zap } from "lucide-react";
 import {
   previewCardHoverTransition,
@@ -143,17 +144,7 @@ export default function TemplatesPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-border overflow-hidden">
-                <Skeleton className="aspect-[3/4] w-full" />
-                <div className="p-4 space-y-2">
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-3 w-3/4" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <PremiumLoadingScreen title="Loading templates" subtitle="Fetching premium designs" />
         ) : (
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filtered.map((template) => {

@@ -1,7 +1,13 @@
 import { motion } from "framer-motion";
 import { Pen, FileText } from "lucide-react";
 
-export function BuilderLoadingScreen() {
+export function PremiumLoadingScreen({ 
+  title = "Loading...", 
+  subtitle 
+}: { 
+  title?: string,
+  subtitle?: string 
+}) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
       <div className="relative flex flex-col items-center">
@@ -65,13 +71,20 @@ export function BuilderLoadingScreen() {
           className="text-center"
         >
           <h2 className="text-2xl font-black tracking-tight text-foreground">
-            Setting up your workspace
+            {title}
           </h2>
-          <div className="flex items-center justify-center gap-1.5 mt-4">
-            <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-            <span className="w-2 h-2 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: "150ms" }} />
-            <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-          </div>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground mt-2 font-medium">
+              {subtitle}
+            </p>
+          )}
+          {!subtitle && (
+            <div className="flex items-center justify-center gap-1.5 mt-4">
+              <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-2 h-2 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
