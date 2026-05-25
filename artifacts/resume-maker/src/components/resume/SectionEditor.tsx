@@ -663,58 +663,75 @@ function SkillsEditor({
 
       {/* Skill list — compact when no level UI, expanded with sliders when needed */}
       {showLevel ? (
-        <div className="space-y-2">
-          {items.map((item, i) => {
-            const currentVal = Math.min(5, Math.max(1, Math.ceil(Number(item.level ?? 70) / 20)));
-            return (
-              <div key={i} className="rounded-md border border-border p-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={(item.name as string) ?? ""}
-                    onChange={(e) => {
-                      const next = [...items]; next[i] = { ...next[i], name: e.target.value };
-                      onChange({ ...content, items: next });
-                    }}
-                    placeholder="Skill name"
-                    className="h-9 lg:h-7 text-sm"
-                  />
-                  <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground select-none">
-                    {currentVal} / 5
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })}
-                    className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
-                    title="Delete skill"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                
-                <div className="pt-1.5 pb-0.5 px-1 space-y-1">
-                  <Slider
-                    min={1}
-                    max={5}
-                    step={1}
-                    value={[currentVal]}
-                    onValueChange={(vals) => {
-                      if (vals && vals.length > 0) {
-                        updateLevel(i, vals[0] * 20);
-                      }
-                    }}
-                    className="cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[9px] text-muted-foreground font-medium px-0.5 select-none">
-                    <span>1 (Beginner)</span>
-                    <span>2</span>
-                    <span>3</span>
-                    <span>4</span>
-                    <span>5 (Expert)</span>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1 select-none font-medium">
+            <span>Skill Level Scale:</span>
+            <span>1 = Beginner, 5 = Expert</span>
+          </div>
+          <div className="space-y-2">
+            {items.map((item, i) => {
+              const currentVal = Math.min(5, Math.max(1, Math.ceil(Number(item.level ?? 70) / 20)));
+              return (
+                <div key={i} className="rounded-md border border-border p-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={(item.name as string) ?? ""}
+                      onChange={(e) => {
+                        const next = [...items]; next[i] = { ...next[i], name: e.target.value };
+                        onChange({ ...content, items: next });
+                      }}
+                      placeholder="Skill name"
+                      className="h-9 lg:h-7 text-sm"
+                    />
+                    <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground select-none">
+                      {currentVal} / 5
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })}
+                      className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
+                      title="Delete skill"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  
+                  <div className="pt-1.5 pb-6 px-1 relative">
+                    <Slider
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={[currentVal]}
+                      onValueChange={(vals) => {
+                        if (vals && vals.length > 0) {
+                          updateLevel(i, vals[0] * 20);
+                        }
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <div className="absolute left-0 right-0 top-[22px] select-none h-6">
+                      {[1, 2, 3, 4, 5].map((val, idx) => {
+                        const leftOffset = `calc(12px + (100% - 24px) * ${idx / 4})`;
+                        const isActive = val === currentVal;
+                        return (
+                          <div
+                            key={val}
+                            className="absolute flex flex-col items-center -translate-x-1/2"
+                            style={{ left: leftOffset }}
+                          >
+                            <div className={`w-[1px] h-1 mb-1 transition-colors ${isActive ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
+                            <span className={`text-[10px] font-semibold transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {val}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
