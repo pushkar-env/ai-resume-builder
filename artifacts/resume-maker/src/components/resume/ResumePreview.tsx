@@ -325,15 +325,21 @@ function renderSkills(
     return (
       <div className="space-y-1.5">
         {skills.map((s, i) => {
-          const pct = skillPct(s.level);
+          const rating = Math.ceil(skillPct(s.level) / 20) || 1;
           return (
             <div key={i}>
               <div className="flex justify-between mb-0.5">
                 <span className={`text-[8px] font-medium ${dark ? "text-white" : "text-gray-700"}`}>{str(s.name)}</span>
-                <span className={`text-[7px] ${dark ? "text-white/60" : "text-gray-400"}`}>{pct}%</span>
+                <span className={`text-[7px] ${dark ? "text-white/60" : "text-gray-400"}`}>{rating} / 5</span>
               </div>
-              <div className={`h-1 rounded-full ${dark ? "bg-white/20" : "bg-gray-100"}`}>
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+              <div className="flex gap-[2px]">
+                {[1, 2, 3, 4, 5].map(slot => (
+                  <div
+                    key={slot}
+                    className="h-1 flex-1 rounded-[1px] transition-all"
+                    style={{ background: slot <= rating ? color : dark ? alpha("#ffffff", 0.15) : alpha("#000000", 0.08) }}
+                  />
+                ))}
               </div>
             </div>
           );
@@ -344,18 +350,34 @@ function renderSkills(
 
   if (effective === "radial") {
     const C = 2 * Math.PI * 14;
+    const step = C / 5;
+    const slotLen = 10;
+
     return (
       <div className="grid grid-cols-3 gap-x-1 gap-y-2">
         {skills.map((s, i) => {
-          const lvl = skillPct(s.level);
-          const offset = C - (lvl / 100) * C;
+          const rating = Math.ceil(skillPct(s.level) / 20) || 1;
           return (
             <div key={i} className="flex flex-col items-center">
               <svg width="34" height="34" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="14" fill="none" stroke={dark ? "rgba(255,255,255,0.18)" : "#e5e7eb"} strokeWidth="3" />
-                <circle cx="18" cy="18" r="14" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
-                  strokeDasharray={C} strokeDashoffset={offset} transform="rotate(-90 18 18)" />
-                <text x="18" y="20.5" textAnchor="middle" fontSize="7.5" fontWeight={700} fill={color}>{lvl}</text>
+                {[1, 2, 3, 4, 5].map((slot) => {
+                  const isActive = slot <= rating;
+                  const offset = -(slot - 1) * step;
+                  return (
+                    <circle
+                      key={slot}
+                      cx="18" cy="18" r="14"
+                      fill="none"
+                      stroke={isActive ? color : dark ? "rgba(255,255,255,0.18)" : "#e5e7eb"}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeDasharray={`${slotLen} ${C - slotLen}`}
+                      strokeDashoffset={offset}
+                      transform="rotate(-90 18 18)"
+                    />
+                  );
+                })}
+                <text x="18" y="20.5" textAnchor="middle" fontSize="7.5" fontWeight={700} fill={color}>{rating}/5</text>
               </svg>
               <span className={`text-[7px] mt-0.5 text-center leading-tight ${dark ? "text-white/85" : "text-gray-700"}`}>{str(s.name)}</span>
             </div>

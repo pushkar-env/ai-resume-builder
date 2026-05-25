@@ -675,7 +675,9 @@ function SkillsEditor({
                   placeholder="Skill name"
                   className="h-7 text-sm"
                 />
-                <span className="text-[10px] tabular-nums w-7 text-right text-muted-foreground">{Number(item.level ?? 70)}%</span>
+                <span className="text-[10px] tabular-nums w-9 shrink-0 whitespace-nowrap text-right text-muted-foreground">
+                  {Math.ceil(Number(item.level ?? 70) / 20)} / 5
+                </span>
                 <button
                   type="button"
                   onClick={() => onChange({ ...content, items: items.filter((_, idx) => idx !== i) })}
@@ -685,12 +687,20 @@ function SkillsEditor({
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <input
-                type="range" min={0} max={100} step={5}
-                value={Number(item.level ?? 70)}
-                onChange={(e) => updateLevel(i, Number(e.target.value))}
-                className="w-full h-1.5 accent-primary"
-              />
+              <div className="flex gap-1 pt-0.5">
+                {[1, 2, 3, 4, 5].map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => updateLevel(i, slot * 20)}
+                    className={`h-2 flex-1 rounded-[2px] transition-colors ${
+                      slot <= Math.ceil(Number(item.level ?? 70) / 20)
+                        ? "bg-primary"
+                        : "bg-muted hover:bg-muted-foreground/30"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           ))}
         </div>
