@@ -193,14 +193,14 @@ export function Navbar() {
                 )}
                 <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8 px-2">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-2 h-8 px-1 sm:px-2 rounded-full sm:rounded-md">
                     <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                       {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
                     </div>
                     <span className="hidden sm:block text-sm max-w-[120px] truncate">
                       {user.firstName ?? user.emailAddresses[0]?.emailAddress}
                     </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    <ChevronDown className="hidden sm:block h-3.5 w-3.5 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
