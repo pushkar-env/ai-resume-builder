@@ -61,6 +61,7 @@ import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
 import { getDefaultAccentColor } from "@/lib/template-config";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import { BuilderLoadingScreen } from "@/components/shared/BuilderLoadingScreen";
 import { SEO } from "@/components/shared/SEO";
 import {
   useGetResume,
@@ -922,21 +923,7 @@ export default function BuilderPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col h-screen">
-        <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-3">
-          <Skeleton className="h-5 w-48" />
-        </div>
-        <div className="flex flex-1 overflow-hidden">
-          <div className="w-64 border-r border-border p-4 space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)}
-          </div>
-          <div className="flex-1 p-6">
-            <Skeleton className="h-full w-full" />
-          </div>
-        </div>
-      </div>
-    );
+    return <BuilderLoadingScreen />;
   }
 
   return (
