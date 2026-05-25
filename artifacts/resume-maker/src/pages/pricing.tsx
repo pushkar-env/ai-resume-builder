@@ -9,6 +9,7 @@ import { Link, useLocation } from "wouter";
 import { SEO } from "@/components/shared/SEO";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { useQueryClient } from "@tanstack/react-query";
+import { SITE_URL } from "@/lib/brand";
 import { getListResumesQueryKey } from "@workspace/api-client-react";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
@@ -101,7 +102,7 @@ export default function PricingPage() {
       <SEO 
         title="Pricing | Resumesensei Pro"
         description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
-        canonicalUrl="https://resumesensei.com/pricing"
+        canonicalUrl={`${SITE_URL}/pricing`}
       />
       <Navbar />
 

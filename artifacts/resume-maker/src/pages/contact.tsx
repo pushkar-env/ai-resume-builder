@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { SEO } from "@/components/shared/SEO";
+import { SITE_URL } from "@/lib/brand";
 import { Mail, MapPin, MessageSquare, Clock, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,8 +86,8 @@ export default function ContactPage() {
     <div className="min-h-screen min-w-0 w-full max-w-[100vw] bg-background flex flex-col overflow-x-clip">
       <SEO
         title="Contact Us | Resumesensei"
-        description="Have questions? Contact Resumesensei for support, billing inquiries, or general feedback."
-        canonicalUrl="https://resumesensei.com/contact"
+        description="Have a question or need assistance with our AI resume builder? Reach out to our customer support or enterprise sales team."
+        canonicalUrl={`${SITE_URL}/contact`}
       />
       <Navbar />
 

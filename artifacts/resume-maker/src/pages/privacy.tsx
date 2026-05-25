@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { Shield } from "lucide-react";
+import { SITE_URL } from "@/lib/brand";
 
 const SUPPORT_EMAIL = "support@resumesensei.com";
 import { LegalPageShell } from "@/components/layout/legal-page-shell";
@@ -9,7 +10,7 @@ export default function PrivacyPage() {
     <LegalPageShell
       title="Privacy Policy | Resumesensei"
       description="How Resumesensei collects, uses, and protects your information when you use our resume builder and related services."
-      canonicalUrl="https://resumesensei.com/privacy"
+      canonicalUrl={`${SITE_URL}/privacy`}
       heading="Privacy Policy"
       lastUpdated="May 11, 2026"
       icon={<Shield className="h-6 w-6" aria-hidden />}
