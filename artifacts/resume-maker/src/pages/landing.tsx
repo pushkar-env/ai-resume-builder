@@ -11,6 +11,7 @@ import {
   Monitor,
   Download,
   Gauge,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LandingNavbar } from "@/components/layout/Navbar";
@@ -20,9 +21,10 @@ import { HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/brand";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { TemplatesCarousel } from "@/components/landing/TemplatesCarousel";
+import { Testimonials } from "@/components/landing/Testimonials";
 
 const SEO_KEYWORDS =
-  "resume builder, AI resume, ATS resume checker, ATS friendly resume, CV maker, professional resume templates, PDF resume, DOCX resume, job application resume, India resume builder";
+  "resume builder, AI resume, ATS resume checker, ATS friendly resume, CV maker, professional resume templates, PDF resume, DOCX resume, job application resume, India resume builder, import resume, highly customizable templates, AI powered resume";
 
 const faqs = [
   {
@@ -61,8 +63,9 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
       url: `${SITE_URL}/pricing`,
     },
     featureList: [
-      "AI-assisted summaries and bullet points",
-      "Twelve professional resume templates",
+      "AI-powered summaries and bullet points",
+      "Import existing PDF or DOCX resumes",
+      "Highly customizable, professional resume templates",
       "Live A4 preview aligned with export",
       "ATS score tracking on Pro (dashboard)",
       "PDF, DOCX, and JSON export on Free (PDF/Word include a subtle brand footer); Pro is watermark-free",
@@ -84,34 +87,34 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
 
 const capabilities = [
   {
+    icon: Upload,
+    title: "Import existing resume",
+    description: "Upload your old PDF or DOCX and let our parser structure it into your new layout instantly.",
+  },
+  {
     icon: Sparkles,
-    title: "AI-assisted writing",
-    description: "Refine summaries and experience bullets with context-aware suggestions.",
+    title: "AI-powered writing",
+    description: "Refine summaries and experience bullets with context-aware, highly impactful suggestions.",
   },
   {
     icon: LayoutTemplate,
-    title: "12 polished templates",
-    description: "Distinct layouts for tech, business, creative roles, and ATS-first designs.",
+    title: "Highly customizable templates",
+    description: "Distinct, premium layouts with customizable fonts, spacing, and colors to match your brand.",
   },
   {
     icon: Monitor,
     title: "Live A4 preview",
-    description: "Edit alongside a faithful preview so layout matches what you export.",
+    description: "Edit alongside a faithful preview so layout exactly matches what you export.",
   },
   {
     icon: Gauge,
     title: "ATS score tracking",
-    description: "Pro shows how your resume reads to automated screeners so you can iterate before you apply.",
+    description: "Pro shows how your resume reads to automated screeners so you can iterate before applying.",
   },
   {
     icon: Download,
     title: "PDF, DOCX & JSON export",
-    description: "Free and Pro both export from your live preview. Free adds a minimal footer on PDF and Word; Pro removes it.",
-  },
-  {
-    icon: Zap,
-    title: "Fast, focused editor",
-    description: "Structured sections, rich text, and a workflow built for real job searches.",
+    description: "Free and Pro both export from your live preview. Free adds a minimal footer; Pro removes it.",
   },
 ] as const;
 
@@ -152,19 +155,21 @@ export default function LandingPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="relative pt-24 pb-16 sm:pt-28 sm:pb-20" aria-labelledby="hero-heading">
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute left-1/2 top-0 h-[420px] w-[min(100%,720px)] -translate-x-1/2 rounded-[100%] bg-primary/[0.06] blur-3xl" />
+        <section className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 overflow-hidden" aria-labelledby="hero-heading">
+          <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center">
+            <div className="absolute top-[-10%] left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
+            <div className="absolute top-[20%] left-[20%] h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[80px]" />
+            <div className="absolute top-[30%] right-[20%] h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-[100px]" />
           </div>
           <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
             <motion.p
               initial="hidden"
               animate="visible"
               variants={fadeUp}
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium tracking-wide text-primary shadow-sm backdrop-blur-sm"
             >
-              <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-              AI resume builder
+              <Sparkles className="h-4 w-4 text-primary" aria-hidden />
+              AI-powered Resume Builder
             </motion.p>
             <motion.h1
               id="hero-heading"
@@ -299,6 +304,9 @@ export default function LandingPage() {
             <TemplatesCarousel />
           </div>
         </section>
+
+        {/* Testimonials */}
+        <Testimonials />
 
         {/* FAQ */}
         <section className="border-t border-border/60 py-16 sm:py-20" aria-labelledby="faq-heading">
