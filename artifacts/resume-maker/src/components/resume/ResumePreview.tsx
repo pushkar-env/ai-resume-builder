@@ -1281,7 +1281,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
           {(() => {
             const style = skillsStyleOf(sections);
             return style && style !== "text"
-              ? renderSkills(skills, style, "#000000", false)
+              ? renderSkills(skills, style, color, false)
               : <p className="text-[8.5px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join(" | ")}</p>;
           })()}
         </>
@@ -1292,7 +1292,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             <div key={i} className="resume-export-block text-[8.5px] text-gray-700 mb-0.5">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="font-bold text-gray-900">{str(pr.name)}</p>
-                <ProjectLink url={pr.url} label={pr.label} color="#000" className="text-[7.5px]" />
+                <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
               </div>
               {str(pr.description) && (
                 <div
