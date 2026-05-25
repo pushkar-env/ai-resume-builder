@@ -139,13 +139,13 @@ function BillingSection() {
         <div className="space-y-6">
           {/* Header & Actions */}
           <div className="bg-card rounded-xl p-6 border border-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
-              <div>
-                <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-                  <ProBadge size="default" /> Plan
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-base sm:text-lg text-foreground flex flex-wrap items-center gap-2">
+                  <ProBadge size="default" /> <span className="shrink-0">Plan</span>
                   {isCancelledRenewal ? (
                     <span className="text-[10px] uppercase tracking-wider font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Cancels Soon</span>
                   ) : (

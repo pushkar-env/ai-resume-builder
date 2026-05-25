@@ -478,7 +478,7 @@ export default function DashboardPage() {
     : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <SEO 
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
@@ -496,7 +496,7 @@ export default function DashboardPage() {
         {resumesLoading ? (
           <PremiumLoadingScreen title="Fetching your resumes" subtitle="Preparing your dashboard" />
         ) : (
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full">
             {/* Create New Card */}
             <motion.div variants={fadeUp}>
               <div
