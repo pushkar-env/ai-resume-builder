@@ -35,6 +35,30 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("@clerk") || id.includes("clerk")) {
+              return "vendor-clerk";
+            }
+            if (id.includes("framer-motion")) {
+              return "vendor-motion";
+            }
+            if (id.includes("lucide-react") || id.includes("lucide")) {
+              return "vendor-icons";
+            }
+            if (id.includes("@radix-ui") || id.includes("radix-ui")) {
+              return "vendor-radix";
+            }
+            if (id.includes("@dnd-kit") || id.includes("dnd-kit")) {
+              return "vendor-dnd";
+            }
+            return "vendor";
+          }
+        }
+      }
+    }
   },
   server: {
     port,

@@ -156,90 +156,110 @@ export default function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          
           {/* Free Plan */}
-          <div className="rounded-3xl border border-border bg-card p-8 shadow-sm flex flex-col">
-            <h3 className="text-xl font-bold mb-2">Free Plan</h3>
-            <p className="text-muted-foreground text-sm mb-6">Perfect for getting started</p>
-            <div className="mb-6">
-              <span className="text-4xl font-black">₹0</span>
-              <span className="text-muted-foreground"> / forever</span>
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-sm flex flex-col h-full justify-between">
+            <div className="flex flex-col flex-grow">
+              <h3 className="text-xl font-bold mb-2">Free Plan</h3>
+              <p className="text-muted-foreground text-sm mb-6">Perfect for getting started</p>
+              <div className="mb-6">
+                <span className="text-4xl font-black">₹0</span>
+                <span className="text-muted-foreground"> / forever</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-grow">
+                {FREE_PLAN_FEATURES.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-sm">
+                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Check className="h-3 w-3 text-primary" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-4 mb-8 flex-1">
-              {FREE_PLAN_FEATURES.map((feature) => (
-                <li key={feature} className="flex items-center gap-3 text-sm">
-                  <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Check className="h-3 w-3 text-primary" />
-                  </div>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            {!isPremium && (
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/dashboard">Continue with Free</Link>
-              </Button>
-            )}
+
+            <div>
+              {isPremium ? (
+                <Button variant="outline" className="w-full h-11 text-base" disabled>
+                  Free Plan
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full h-11 text-base shadow-sm" asChild>
+                    <Link href="/dashboard">Continue with Free</Link>
+                  </Button>
+                  <p className="text-center text-sm font-medium text-muted-foreground mt-2">
+                    Free forever. No credit card required.
+                  </p>
+                </div>
+              )}
+              <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5 opacity-0 pointer-events-none select-none">
+                <Shield className="h-3 w-3" /> Secure checkout spacer
+              </p>
+            </div>
           </div>
 
           {/* Pro Plan */}
-          <div className="rounded-3xl border-2 border-primary bg-primary/5 p-8 shadow-xl relative flex flex-col transform md:-translate-y-4">
+          <div className="rounded-3xl border-2 border-primary bg-primary/5 p-8 shadow-xl relative flex flex-col h-full justify-between">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-md">
               Most Popular
             </div>
-            <div className="mb-2">
-              <ProBadge size="lg" />
-            </div>
-            <p className="text-muted-foreground text-sm mb-6">For serious job seekers</p>
-            <div className="mb-6">
-              <span className="text-4xl font-black text-foreground">
-                {billingCycle === "yearly" ? "₹999" : "₹99"}
-              </span>
-              <span className="text-muted-foreground">
-                {billingCycle === "yearly" ? " / yearly" : " / monthly"}
-              </span>
-            </div>
-            <ul className="space-y-4 mb-8 flex-1">
-              {PRO_PLAN_FEATURES.map((feature) => (
-                <li key={feature} className="flex items-center gap-3 text-sm">
-                  <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            
-            {isPremium ? (
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2" disabled>
-                <Check className="h-4 w-4" />
-                You are on Pro!
-              </Button>
-            ) : (
-              <div className="space-y-3">
-                <ProButton 
-                  effect="sleek"
-                  className="w-full h-11 text-base shadow-lg" 
-                  onClick={handleUpgrade}
-                  disabled={isProcessing}
-                  text={isProcessing ? "Processing..." : "Upgrade to Pro"}
-                  showIcon={!isProcessing}
-                />
-                
-                {/* Safe fallback for testing without keys */}
-                {import.meta.env.DEV && (
-                  <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={handleDevUpgrade}>
-                    [Dev] Bypass Payment
-                  </Button>
-                )}
-                <p className="text-center text-sm font-medium text-muted-foreground mt-2">
-                  Cancel anytime. No hidden fees.
-                </p>
+            <div className="flex flex-col flex-grow">
+              <div className="mb-2">
+                <ProBadge size="lg" />
               </div>
-            )}
-            <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
-              <Shield className="h-3 w-3" /> Secure checkout via Razorpay (UPI, Cards, Netbanking)
-            </p>
+              <p className="text-muted-foreground text-sm mb-6">For serious job seekers</p>
+              <div className="mb-6">
+                <span className="text-4xl font-black text-foreground">
+                  {billingCycle === "yearly" ? "₹999" : "₹99"}
+                </span>
+                <span className="text-muted-foreground">
+                  {billingCycle === "yearly" ? " / yearly" : " / monthly"}
+                </span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-grow">
+                {PRO_PLAN_FEATURES.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3 text-sm">
+                    <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              {isPremium ? (
+                <Button className="w-full h-11 text-base bg-green-600 hover:bg-green-700 text-white gap-2" disabled>
+                  <Check className="h-4 w-4" />
+                  You are on Pro!
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <ProButton 
+                    effect="sleek"
+                    className="w-full h-11 text-base shadow-lg" 
+                    onClick={handleUpgrade}
+                    disabled={isProcessing}
+                    text={isProcessing ? "Processing..." : "Upgrade to Pro"}
+                    showIcon={!isProcessing}
+                  />
+                  
+                  {/* Safe fallback for testing without keys */}
+                  {import.meta.env.DEV && (
+                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={handleDevUpgrade}>
+                      [Dev] Bypass Payment
+                    </Button>
+                  )}
+                  <p className="text-center text-sm font-medium text-muted-foreground mt-2">
+                    Cancel anytime. No hidden fees.
+                  </p>
+                </div>
+              )}
+              <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
+                <Shield className="h-3 w-3" /> Secure checkout via Razorpay (UPI, Cards, Netbanking)
+              </p>
+            </div>
           </div>
 
         </div>

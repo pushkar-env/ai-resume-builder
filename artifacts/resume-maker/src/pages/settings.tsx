@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { ProButton } from "@/components/shared/ProButton";
+import { SEO } from "@/components/shared/SEO";
 
 function BillingSection() {
   const { user } = useUser();
@@ -253,6 +254,11 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO 
+        title="Account Settings | Resumesensei"
+        description="Manage your account profile, details, security, and billing settings."
+        robots="noindex, nofollow"
+      />
       <Navbar />
       
       <div className="border-b border-border/60 bg-gradient-to-b from-muted/30 to-transparent">
