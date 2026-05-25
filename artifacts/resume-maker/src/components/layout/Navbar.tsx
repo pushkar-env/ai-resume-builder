@@ -84,14 +84,15 @@ export function Navbar() {
                     <span className="text-sm font-bold tracking-tight">Resumesensei</span>
                   </Link>
                   {user?.publicMetadata?.isPremium ? (
-                    <div className="mb-6 flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-primary">
-                      <Star className="mt-0.5 h-4 w-4 shrink-0 fill-primary text-primary" aria-hidden />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold uppercase tracking-wide">Pro plan</p>
-                        <p className="text-[11px] leading-snug text-muted-foreground">
-                          You have full access to premium features.
-                        </p>
+                    <div className="mb-6 flex flex-col gap-2 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+                      <div className="flex items-center gap-2 relative z-10">
+                        <ProBadge size="default" />
+                        <span className="text-sm font-bold text-foreground">Plan</span>
                       </div>
+                      <p className="text-xs leading-snug text-muted-foreground relative z-10 mt-0.5">
+                        You have full access to premium features.
+                      </p>
                     </div>
                   ) : null}
                   <nav className="flex flex-col gap-2" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
