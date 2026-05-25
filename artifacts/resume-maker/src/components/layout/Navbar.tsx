@@ -88,7 +88,6 @@ export function Navbar() {
                       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
                       <div className="flex items-center gap-2 relative z-10">
                         <ProBadge size="default" />
-                        <span className="text-sm font-bold text-foreground">Plan</span>
                       </div>
                       <p className="text-xs leading-snug text-muted-foreground relative z-10 mt-0.5">
                         You have full access to premium features.
@@ -197,11 +196,6 @@ export function Navbar() {
                       <p className="text-sm font-medium">
                         {user.firstName} {user.lastName}
                       </p>
-                      {user.publicMetadata?.isPremium ? (
-                        <div className="scale-75 origin-left">
-                          <ProBadge size="sm" />
-                        </div>
-                      ) : null}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{user.emailAddresses[0]?.emailAddress}</p>
                   </div>

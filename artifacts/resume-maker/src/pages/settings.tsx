@@ -145,7 +145,7 @@ function BillingSection() {
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-bold text-base sm:text-lg text-foreground flex flex-wrap items-center gap-2">
-                  <ProBadge size="default" /> <span className="shrink-0">Plan</span>
+                  <ProBadge size="default" />
                   {isCancelledRenewal ? (
                     <span className="text-[10px] uppercase tracking-wider font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Cancels Soon</span>
                   ) : (

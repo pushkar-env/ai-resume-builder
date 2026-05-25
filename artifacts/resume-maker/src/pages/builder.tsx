@@ -1207,26 +1207,26 @@ export default function BuilderPage() {
           </ScrollArea>
 
           {/* Pinned footer — clear action + nav (full-width for narrow sidebar / mobile) */}
-          <div className="border-t border-border p-3 shrink-0 bg-background min-w-0 flex flex-col gap-2">
+          <div className="border-t border-border p-3 shrink-0 bg-background min-w-0 flex flex-row items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex-1 min-w-0 gap-1.5 h-8 text-xs font-medium text-muted-foreground justify-center hover:text-foreground hover:bg-muted/60 transition-colors"
+              onClick={() => navigate("/dashboard")}
+            >
+              <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate min-w-0">Back</span>
+            </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 w-full min-w-0 gap-1.5 text-[11px] px-2 justify-start"
+              className="flex-1 min-w-0 gap-1.5 h-8 text-xs font-medium justify-center hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
               onClick={() => setClearAllOpen(true)}
               disabled={localSections.length === 0}
             >
               <Eraser className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate min-w-0 text-left">Clear all content</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full min-w-0 gap-1.5 h-8 text-xs text-muted-foreground justify-start"
-              onClick={() => navigate("/dashboard")}
-            >
-              <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate min-w-0">Back to dashboard</span>
+              <span className="truncate min-w-0">Clear</span>
             </Button>
           </div>
         </aside>
