@@ -287,7 +287,8 @@ function ExportDialog({
           });
 
           if (!res.ok) {
-            throw new Error("Failed to generate PDF on the server");
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(`Server PDF Generation Failed: ${errData.details || errData.error || res.statusText}`);
           }
 
           const blob = await res.blob();

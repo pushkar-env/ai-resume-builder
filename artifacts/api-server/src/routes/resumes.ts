@@ -23,6 +23,8 @@ import multer from "multer";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import puppeteer from "puppeteer";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 import { completeResumeAi } from "../lib/resume-ai-chat";
 
@@ -678,16 +680,26 @@ router.post("/resumes/export-pdf", requireAuth, async (req: Request, res: Respon
   }
 
   try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox", 
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-zygote"
-      ],
-    });
+    let browser;
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL || process.env.AWS_REGION) {
+      // Use the serverless-optimized Chromium in production
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
+      } as any);
+    } else {
+      // Use standard Puppeteer for local development
+      browser = await puppeteer.launch({
+        headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        args: [
+          "--no-sandbox", 
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage"
+        ],
+      });
+    }
     
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
@@ -708,8 +720,11 @@ router.post("/resumes/export-pdf", requireAuth, async (req: Request, res: Respon
     res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
     res.send(Buffer.from(pdfBuffer));
   } catch (error: any) {
-    logger.error({ error }, "Error generating PDF");
-    res.status(500).json({ error: "Failed to generate PDF" });
+    logger.error({ error: error.message || error }, "Error generating PDF");
+    res.status(500).json({ 
+      error: "Failed to generate PDF", 
+      details: error.message || String(error) 
+    });
   }
 });
 
