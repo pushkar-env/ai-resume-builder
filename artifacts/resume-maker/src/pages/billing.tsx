@@ -17,6 +17,15 @@ import {
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
@@ -51,6 +60,7 @@ export default function BillingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [isCancelling, setIsCancelling] = useState(false);
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
   const subscriptionId = user?.publicMetadata?.subscriptionId as string | undefined;
@@ -115,7 +125,6 @@ export default function BillingPage() {
 
   const handleCancelSubscription = async () => {
     if (!subscriptionId) return;
-    if (!window.confirm("Cancel your subscription? You will retain Pro access until the current cycle ends.")) return;
 
     setIsCancelling(true);
     try {
@@ -229,7 +238,7 @@ export default function BillingPage() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={handleCancelSubscription}
+                      onClick={() => setCancelDialogOpen(true)}
                       disabled={isCancelling}
                       className="w-full sm:w-auto"
                     >
@@ -403,6 +412,29 @@ export default function BillingPage() {
       <AppFooter />
 
       <SubscriptionSuccessDialog open={subscriptionSuccessOpen} onOpenChange={setSubscriptionSuccessOpen} />
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel your Pro subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel? You will retain full Pro access until the end of your current billing cycle, but your plan will not automatically renew.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Keep Pro</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isCancelling}
+              onClick={() => {
+                void handleCancelSubscription().then(() => setCancelDialogOpen(false));
+              }}
+            >
+              {isCancelling ? "Cancelling..." : "Yes, cancel plan"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
