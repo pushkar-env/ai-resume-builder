@@ -613,7 +613,11 @@ export function FaangTemplate({ sections, color, font }: TP) {
                     <p className="text-[9px] font-semibold" style={{ color }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                       <div key={j} className="flex gap-1.5 mt-1">
-                        <span className="text-[8px] text-gray-400 shrink-0">▸</span>
+                        <span className="shrink-0 mt-[4.5px] text-gray-400">
+                          <svg viewBox="0 0 10 10" width="4.5" height="4.5" fill="currentColor">
+                            <path d="M0,0 L10,5 L0,10 Z" />
+                          </svg>
+                        </span>
                         <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
