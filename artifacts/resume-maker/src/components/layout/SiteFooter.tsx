@@ -84,11 +84,7 @@ export function SiteFooter() {
                   Sign in
                 </Link>
               </li>
-              <li>
-                <Link href="/templates" className="hover:text-foreground transition-colors inline-block">
-                  Templates
-                </Link>
-              </li>
+
               <li>
                 <Link href="/privacy" className="hover:text-foreground transition-colors inline-block">
                   Privacy Policy
