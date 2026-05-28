@@ -1637,7 +1637,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
                 </div>
                 <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
               </div>
-              {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
+              {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                 <div key={j} className="flex gap-1.5 text-[11px] text-gray-600 leading-[1.5] ml-1.5 mt-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
               ))}
             </div>
