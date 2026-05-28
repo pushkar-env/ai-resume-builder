@@ -105,14 +105,14 @@ function initialPreviewZoomForViewport(): number {
 }
 
 const FONT_OPTIONS = [
-  { label: "Modern Tech (Inter)", value: "Inter, sans-serif" },
-  { label: "Poppins Clean (Poppins)", value: "Poppins, sans-serif" },
-  { label: "Premium Minimal (Manrope)", value: "Manrope, sans-serif" },
-  { label: "Classic Serif (Merriweather)", value: "Merriweather, serif" },
-  { label: "Executive (Plus Jakarta)", value: "'Plus Jakarta Sans', sans-serif", isPremium: true },
-  { label: "Enterprise (IBM Plex)", value: "'IBM Plex Sans', sans-serif", isPremium: true },
-  { label: "Creative (Sora)", value: "Sora, sans-serif", isPremium: true },
-  { label: "High-End (General Sans)", value: "'General Sans', sans-serif", isPremium: true },
+  { label: "Inter", value: "Inter, sans-serif" },
+  { label: "Poppins", value: "Poppins, sans-serif" },
+  { label: "Manrope", value: "Manrope, sans-serif" },
+  { label: "Merriweather", value: "Merriweather, serif" },
+  { label: "Plus Jakarta Sans", value: "'Plus Jakarta Sans', sans-serif", isPremium: true },
+  { label: "IBM Plex Sans", value: "'IBM Plex Sans', sans-serif", isPremium: true },
+  { label: "Sora", value: "Sora, sans-serif", isPremium: true },
+  { label: "General Sans", value: "'General Sans', sans-serif", isPremium: true },
 ];
 
 type Section = NonNullable<ResumeDetail["sections"]>[number];

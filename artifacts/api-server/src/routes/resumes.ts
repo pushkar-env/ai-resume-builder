@@ -196,7 +196,7 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
       "ats-clean": "#1f2937",
       "academic": "#1e40af",
       "corporate-navy": "#1e3a5f",
-      "compact": "#059669",
+      "compact": "#000000",
       "european": "#7c3aed",
       "two-column": "#0d9488",
     };

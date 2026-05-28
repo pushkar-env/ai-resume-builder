@@ -1587,104 +1587,130 @@ export function CompactTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
 
+  const renderedSections: React.ReactNode[] = [];
+
+  if (str(summary.text)) {
+    renderedSections.push(
+      <div className="resume-text text-[11px] text-gray-600 leading-[1.6]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+    );
+  }
+
+  if (skills.length > 0) {
+    const style = skillsStyleOf(sections);
+    if (style && style !== "text") {
+      renderedSections.push(
+        <div>
+          <p className="text-[12.5px] font-bold uppercase tracking-wide mb-2" style={{ color }}>Skills</p>
+          {renderSkills(skills, style, color, false)}
+        </div>
+      );
+    } else {
+      renderedSections.push(
+        <div>
+          <span className="text-[12.5px] font-bold uppercase tracking-wide mr-2" style={{ color }}>Skills:</span>
+          <span className="text-[11px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join("  ·  ")}</span>
+        </div>
+      );
+    }
+  }
+
+  if (exp.length > 0) {
+    renderedSections.push(
+      <div>
+        <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Experience</p>
+        <div className="space-y-3.5">
+          {exp.map((e, i) => (
+            <div key={i}>
+              <div className="flex justify-between items-baseline">
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                  <p className="text-[11px] text-gray-500">@ {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                </div>
+                <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
+              </div>
+              {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
+                <div key={j} className="flex gap-1.5 text-[11px] text-gray-600 leading-[1.5] ml-1.5 mt-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (projects.length > 0) {
+    renderedSections.push(
+      <div>
+        <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Projects</p>
+        <div className="space-y-2">
+          {projects.map((pr, i) => (
+            <div key={i} className="mb-2 last:mb-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
+              </div>
+              {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (edu.length > 0) {
+    renderedSections.push(
+      <div>
+        <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Education</p>
+        <div className="space-y-2">
+          {edu.map((e, i) => (
+            <div key={i} className="flex justify-between items-baseline">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-500">— {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+              </div>
+              <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (certs.length > 0) {
+    renderedSections.push(
+      <div>
+        <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Certifications</p>
+        <div className="space-y-1">
+          {certs.map((c, i) => (
+            <div key={i} className="mb-1 last:mb-0">
+              <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-7 py-5" style={{ fontFamily: font }}>
-      <div className="flex items-start justify-between mb-3 pb-3" style={{ borderBottom: `2px solid ${color}` }}>
-        <div>
-          <h1 className="text-[26px] font-black text-gray-950 leading-none">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[11.5px] font-semibold mt-1.5" style={{ color }}>{roleOf(p)}</p>}
-        </div>
-        <div className="text-right">
+      <div className="text-center mb-3.5 pb-3.5" style={{ borderBottom: `2px solid ${color}` }}>
+        <h1 className="text-[26px] font-black text-gray-950 leading-none">{str(p.name) || "Your Name"}</h1>
+        {roleOf(p) && <p className="text-[11.5px] font-semibold mt-1.5" style={{ color }}>{roleOf(p)}</p>}
+        <div className="text-[10px] text-gray-500 mt-2 flex flex-wrap justify-center gap-x-2 gap-y-1 leading-normal">
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[10px] text-gray-500 leading-normal">{v}</p>
+            <span key={i} className="flex items-center gap-2">
+              {i > 0 && <span className="text-gray-300">|</span>}
+              <span>{v}</span>
+            </span>
           ))}
         </div>
       </div>
 
-      {str(summary.text) && (
-        <div className="resume-text text-[11px] text-gray-600 leading-[1.6] mb-3" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
-      )}
-
-      {skills.length > 0 && (() => {
-        const style = skillsStyleOf(sections);
-        if (style && style !== "text") {
-          return (
-            <div className="mb-3 pb-3" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
-              <p className="text-[12.5px] font-bold uppercase tracking-wide mb-2" style={{ color }}>Skills</p>
-              {renderSkills(skills, style, color, false)}
-            </div>
-          );
-        }
-        return (
-          <div className="mb-3 pb-3" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
-            <span className="text-[12.5px] font-bold uppercase tracking-wide mr-2" style={{ color }}>Skills:</span>
-            <span className="text-[11px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join("  ·  ")}</span>
-          </div>
-        );
-      })()}
-
-      {exp.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Experience</p>
-          <div className="space-y-3.5">
-            {exp.map((e, i) => (
-              <div key={i}>
-                <div className="flex justify-between items-baseline">
-                  <div className="flex items-baseline gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
-                    <p className="text-[11px] text-gray-500">@ {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
-                  </div>
-                  <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
-                </div>
-                {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
-                  <div key={j} className="flex gap-1.5 text-[11px] text-gray-600 leading-[1.5] ml-1.5 mt-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
-                ))}
-              </div>
-            ))}
-          </div>
+      {renderedSections.map((sec, idx) => (
+        <div key={idx} className={idx < renderedSections.length - 1 ? "mb-3 pb-3" : ""} style={idx < renderedSections.length - 1 ? { borderBottom: `1px solid ${alpha(color, 0.15)}` } : undefined}>
+          {sec}
         </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-5 mt-4">
-        {edu.length > 0 && (
-          <div>
-            <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Education</p>
-            {edu.map((e, i) => (
-              <div key={i} className="mb-2 last:mb-0">
-                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        <div>
-          {projects.length > 0 && (
-            <div className="mb-3">
-              <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Projects</p>
-              {projects.map((pr, i) => (
-                <div key={i} className="mb-2 last:mb-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-semibold text-gray-800">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
-                  </div>
-                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
-                </div>
-              ))}
-            </div>
-          )}
-          {certs.length > 0 && (
-            <div>
-              <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Certifications</p>
-              {certs.map((c, i) => (
-                <div key={i} className="mb-1 last:mb-0">
-                  <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

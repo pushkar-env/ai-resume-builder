@@ -80,7 +80,7 @@ const TEMPLATES = [
     id: "compact",
     name: "Compact One-Page",
     description: "Dense, pixel-perfect layout that fits everything in a single page",
-    category: "Professional",
+    category: "ATS",
     previewImageUrl: "",
     isPremium: false,
   },
