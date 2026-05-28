@@ -188,7 +188,7 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
 
     const defaultColors: Record<string, string> = {
       "silicon-valley": "#6366f1",
-      "faang": "#0ea5e9",
+      "faang": "#000000",
       "nova": "#64748b",
       "executive-pro": "#92400e",
       "creative-pro": "#0d9488",

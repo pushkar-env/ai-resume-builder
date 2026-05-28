@@ -1,6 +1,6 @@
 export const TEMPLATE_CONFIG: Record<string, { accent: string; bg: string }> = {
   "silicon-valley": { accent: "#6366f1", bg: "#0f1117" },
-  "faang":          { accent: "#4338ca", bg: "#eef2ff" },
+  "faang":          { accent: "#000000", bg: "#f8fafc" },
   "nova":           { accent: "#64748b", bg: "#f8fafc" },
   "executive-pro":  { accent: "#92400e", bg: "#fffbeb" },
   "creative-pro":   { accent: "#0d9488", bg: "#f0fdfa" },

@@ -873,7 +873,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <div className="mb-6 text-center">
-          <div className="resume-text text-[11px] text-gray-600 leading-[1.8] italic max-w-[480px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+          <div className="resume-text text-[11px] text-gray-600 leading-[1.8] max-w-[480px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
@@ -965,7 +965,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
                 </span>
               )}
               {str(pr.description) && (
-                <span className="resume-text text-[11px] italic text-gray-600 ml-2">
+                <span className="resume-text text-[11px] text-gray-600 ml-2">
                   —{" "}
                   <span dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
                 </span>
@@ -1369,7 +1369,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
 
       {str(summary.text) && (
         <><SH label="Research Interests / Summary" />
-          <div className="resume-text text-[11px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+          <div className="resume-text text-[11px] text-gray-700 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </>
       )}
 
@@ -1420,7 +1420,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                   <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                 </span>
               </p>
-              {str(pr.description) && <div className="resume-text text-[11px] italic text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+              {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
             </div>
           ))}
         </>

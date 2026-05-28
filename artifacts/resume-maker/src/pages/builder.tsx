@@ -106,7 +106,9 @@ function initialPreviewZoomForViewport(): number {
 
 const FONT_OPTIONS = [
   { label: "Modern Tech (Inter)", value: "Inter, sans-serif" },
+  { label: "Poppins Clean (Poppins)", value: "Poppins, sans-serif" },
   { label: "Premium Minimal (Manrope)", value: "Manrope, sans-serif" },
+  { label: "Classic Serif (Merriweather)", value: "Merriweather, serif" },
   { label: "Executive (Plus Jakarta)", value: "'Plus Jakarta Sans', sans-serif", isPremium: true },
   { label: "Enterprise (IBM Plex)", value: "'IBM Plex Sans', sans-serif", isPremium: true },
   { label: "Creative (Sora)", value: "Sora, sans-serif", isPremium: true },
