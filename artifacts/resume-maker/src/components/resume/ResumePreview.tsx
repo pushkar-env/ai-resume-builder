@@ -60,6 +60,15 @@ function parseHexRgb(hex: string): { r: number; g: number; b: number } | null {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
+function blendWithWhite(hex: string, a: number) {
+  const rgb = parseHexRgb(hex);
+  if (!rgb) return hex;
+  const r = Math.round(rgb.r * a + 255 * (1 - a));
+  const g = Math.round(rgb.g * a + 255 * (1 - a));
+  const b = Math.round(rgb.b * a + 255 * (1 - a));
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
 function srgbChannelToLinear(c: number): number {
   const s = c / 255;
   return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
@@ -1741,27 +1750,27 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   return (
     <div className="flex flex-col" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header with photo */}
-      <div className="px-8 py-6 flex gap-5 items-center flex-wrap md:flex-nowrap" style={{ background: alpha(color, 0.06), borderBottom: `2px solid ${color}` }}>
+      <div className="px-8 py-6 flex gap-5 items-center" style={{ background: blendWithWhite(color, 0.06), borderBottom: `2px solid ${color}`, position: "relative", zIndex: 1 }}>
         {/* Photo (or initials placeholder) */}
         <div className="h-[84px] w-[70px] shrink-0 rounded overflow-hidden flex items-center justify-center text-[22px] font-black" style={{ background: alpha(color, 0.2), border: `2px solid ${alpha(color, 0.3)}` }}>
           {photo
             ? <img src={photo} alt="" className="h-full w-full object-cover" />
             : <span style={{ color }}>{initialsFor((p.name as string) ?? "")}</span>}
         </div>
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1">
           <h1 className="text-[30px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
           {roleOf(p) && <p className="text-[12px] font-semibold mt-1" style={{ color }}>{roleOf(p)}</p>}
         </div>
-        <div className="text-left md:text-right min-w-[200px]">
+        <div className="text-right shrink-0">
           {contactValues(p, color).map((v, i) => (
             <p key={i} className="text-[10px] text-gray-500 leading-normal">{v}</p>
           ))}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col md:flex-row" data-resume-two-col-root>
+      <div className="flex flex-1 flex-row" data-resume-two-col-root>
         {/* Left */}
-        <div className="w-full md:w-[230px] shrink-0 px-5 py-5" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
+        <div className="w-[230px] shrink-0 px-5 py-5" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
           {skills.length > 0 && (
             <div className="mb-4">
               <SH label="Skills" />
