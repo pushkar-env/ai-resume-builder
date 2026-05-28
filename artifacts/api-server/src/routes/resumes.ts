@@ -310,8 +310,8 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     }
 
     // Default template configuration
-    const templateId = "ats-clean";
-    const accentColor = "#1f2937";
+    const templateId = "compact";
+    const accentColor = "#000000";
     const title = parsedData.title || file.originalname.replace(/\.[^/.]+$/, "") || "Imported Resume";
 
     const [resume] = await db.insert(resumesTable).values({
