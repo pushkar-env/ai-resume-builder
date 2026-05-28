@@ -6,7 +6,7 @@ import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
 import { RESUME_GALLERY_THUMB_CSS } from "@/lib/resume-gallery-thumb-styles";
 import { ResumePagedView } from "@/components/resume/ResumePagedView";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
-import { getDefaultAccentColor } from "@/lib/template-config";
+import { getDefaultAccentColor, TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -1994,7 +1994,26 @@ export function ResumePreview({
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
   const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
-  const props = { sections: resume.sections, color, font };
+
+  const sections = useMemo(() => {
+    return (resume.sections ?? []).map((s) => {
+      if (s.type === "skills") {
+        const content = s.content as Record<string, unknown> | undefined;
+        if (!content || !content.style) {
+          return {
+            ...s,
+            content: {
+              ...(content ?? {}),
+              style: TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips",
+            },
+          };
+        }
+      }
+      return s;
+    });
+  }, [resume.sections, templateId]);
+
+  const props = { sections, color, font };
   const sidebarFill =
     templateId === "silicon-valley"
       ? { widthPx: 240, color: alpha(color, 0.05) }
@@ -2019,7 +2038,7 @@ export function ResumePreview({
       {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
       {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
       {templateId === "midnight" && <MidnightTemplate {...props} />}
-      {templateId === "ats-clean" && <AtsCleanTemplate sections={resume.sections} color={color} font={font} />}
+      {templateId === "ats-clean" && <AtsCleanTemplate sections={sections} color={color} font={font} />}
       {templateId === "academic" && <AcademicTemplate {...props} />}
       {templateId === "corporate-navy" && <CorporateNavyTemplate {...props} />}
       {templateId === "compact" && <CompactTemplate {...props} />}

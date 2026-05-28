@@ -13,7 +13,27 @@ export const TEMPLATE_CONFIG: Record<string, { accent: string; bg: string }> = {
   "two-column":     { accent: "#0d9488", bg: "#0f1117" },
 };
 
+export const TEMPLATE_DEFAULT_SKILL_STYLES: Record<string, string> = {
+  "silicon-valley": "radial",
+  "faang":          "chips",
+  "nova":           "text",
+  "executive-pro":  "bars",
+  "creative-pro":   "chips",
+  "midnight":       "radial",
+  "ats-clean":      "bullets",
+  "academic":       "text",
+  "corporate-navy": "bars",
+  "compact":        "chips",
+  "european":       "radial",
+  "two-column":     "bullets",
+};
+
 export function getDefaultAccentColor(templateId: string | null | undefined): string {
   if (!templateId) return "#7c3aed";
   return TEMPLATE_CONFIG[templateId]?.accent ?? "#7c3aed";
+}
+
+export function getDefaultSkillStyle(templateId: string | null | undefined): string {
+  if (!templateId) return "chips";
+  return TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips";
 }

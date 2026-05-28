@@ -10,6 +10,8 @@ import {
   TextRun,
   convertInchesToTwip,
 } from "docx";
+import { TEMPLATE_DEFAULT_SKILL_STYLES } from "./template-config";
+
 
 type SC = Record<string, unknown>;
 type Item = Record<string, unknown>;
@@ -390,7 +392,8 @@ export async function buildResumeDocxBlob(
   }
 
   if (skills.length > 0) {
-    const style = skillsStyleFromOrdered(ordered) ?? "chips";
+    const defaultStyle = resume.templateId ? (TEMPLATE_DEFAULT_SKILL_STYLES[resume.templateId] ?? "chips") : "chips";
+    const style = skillsStyleFromOrdered(ordered) ?? defaultStyle;
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {
       body.push(sectionHeading("Skills", accent, font));

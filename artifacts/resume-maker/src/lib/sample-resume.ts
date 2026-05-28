@@ -72,7 +72,6 @@ export const SAMPLE_RESUME = {
     {
       id: 5, type: "skills", title: "Skills", displayOrder: 4, isVisible: true,
       content: {
-        style: "bars",
         items: [
           { name: "TypeScript", level: 95 },
           { name: "Python", level: 90 },

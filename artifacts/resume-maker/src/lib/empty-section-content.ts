@@ -22,7 +22,7 @@ export function emptySectionContentForType(type: string): Record<string, unknown
     case "education":
       return { items: [] };
     case "skills":
-      return { style: "bars", items: [] };
+      return { items: [] };
     case "projects":
       return { items: [] };
     case "certifications":

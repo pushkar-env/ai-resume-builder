@@ -111,7 +111,6 @@ const SEEDED_SECTIONS = [
   {
     type: "skills", title: "Skills", displayOrder: 4,
     content: {
-      style: "bars",
       items: [
         { name: "TypeScript", level: 95 },
         { name: "Python", level: 90 },
@@ -164,7 +163,7 @@ const EMPTY_SECTIONS = [
   { type: "summary", title: "Professional Summary", displayOrder: 1, content: { text: "" } },
   { type: "experience", title: "Work Experience", displayOrder: 2, content: { items: [] } },
   { type: "education", title: "Education", displayOrder: 3, content: { items: [] } },
-  { type: "skills", title: "Skills", displayOrder: 4, content: { style: "bars", items: [] } },
+  { type: "skills", title: "Skills", displayOrder: 4, content: { items: [] } },
   { type: "projects", title: "Projects", displayOrder: 5, content: { items: [] } },
   { type: "certifications", title: "Certifications", displayOrder: 6, content: { items: [] } },
 ];

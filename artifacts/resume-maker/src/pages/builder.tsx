@@ -1251,6 +1251,7 @@ export default function BuilderPage() {
                       onVisibilityToggle={() => handleVisibilityToggle(activeSection.id)}
                       resumeId={resumeId}
                       allSections={localSections as { id: number; type: string; content: SectionContent }[]}
+                      templateId={templateId}
                     />
                   </motion.div>
                 ) : (

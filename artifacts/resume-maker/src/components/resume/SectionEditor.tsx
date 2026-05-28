@@ -24,6 +24,7 @@ import { useUser } from "@clerk/react";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { AI_REQUEST_OPTIONS, isAiTimeoutError } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+import { TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
 
 function aiErrorToast(toast: ReturnType<typeof useToast>["toast"], err: unknown, fallback: string) {
   if (isAiTimeoutError(err)) {
@@ -56,6 +57,7 @@ interface SectionEditorProps {
   resumeId: number;
   /** All sections in the resume — used so editors can read context (e.g. job title from personal). */
   allSections?: Array<{ type: string; content: SectionContent }>;
+  templateId?: string;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -556,12 +558,13 @@ const SKILL_STYLES: Array<{ value: string; label: string; hint: string }> = [
 ];
 
 function SkillsEditor({
-  content, onChange, allSections, isPremium, onShowPaywall,
-}: { content: SectionContent; onChange: (c: SectionContent) => void; allSections?: SectionEditorProps["allSections"]; isPremium: boolean; onShowPaywall: () => void; }) {
+  content, onChange, allSections, isPremium, onShowPaywall, templateId,
+}: { content: SectionContent; onChange: (c: SectionContent) => void; allSections?: SectionEditorProps["allSections"]; isPremium: boolean; onShowPaywall: () => void; templateId?: string; }) {
   const [newSkill, setNewSkill] = useState("");
   const { toast } = useToast();
   const items: Array<Record<string, unknown>> = (content.items as Array<Record<string, unknown>>) ?? [];
-  const style = (content.style as string) ?? "bars";
+  const defaultStyle = templateId ? (TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips") : "chips";
+  const style = (content.style as string) ?? defaultStyle;
   const showLevel = style === "bars" || style === "radial";
 
   const [suggested, setSuggested] = useState<string[]>([]);
@@ -968,7 +971,7 @@ function CertificationsEditor({ content, onChange }: { content: SectionContent; 
   );
 }
 
-export function SectionEditor({ section, onChange, onVisibilityToggle, resumeId, allSections }: SectionEditorProps) {
+export function SectionEditor({ section, onChange, onVisibilityToggle, resumeId, allSections, templateId }: SectionEditorProps) {
   const { user } = useUser();
   const isPremium = user?.publicMetadata?.isPremium === true;
   const [showPaywall, setShowPaywall] = useState(false);
@@ -989,7 +992,7 @@ export function SectionEditor({ section, onChange, onVisibilityToggle, resumeId,
           {section.type === "summary" && <SummaryEditor content={section.content} onChange={onChange} allSections={allSections} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
           {section.type === "experience" && <ExperienceEditor content={section.content} onChange={onChange} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
           {section.type === "education" && <EducationEditor content={section.content} onChange={onChange} />}
-          {section.type === "skills" && <SkillsEditor content={section.content} onChange={onChange} allSections={allSections} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
+          {section.type === "skills" && <SkillsEditor content={section.content} onChange={onChange} allSections={allSections} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} templateId={templateId} />}
           {section.type === "projects" && <ProjectsEditor content={section.content} onChange={onChange} isPremium={isPremium} onShowPaywall={() => setShowPaywall(true)} />}
           {section.type === "certifications" && <CertificationsEditor content={section.content} onChange={onChange} />}
         </>
