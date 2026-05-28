@@ -106,8 +106,8 @@ function SkillBar({ name, level, color }: { name: string; level?: unknown; color
   return (
     <div className="mb-1.5">
       <div className="flex justify-between items-center mb-0.5">
-        <span className="text-[8.5px] text-gray-700 font-medium">{name}</span>
-        <span className="text-[7px] text-gray-400">{pct}%</span>
+        <span className="text-[11px] text-gray-700 font-medium">{name}</span>
+        <span className="text-[9.5px] text-gray-400">{pct}%</span>
       </div>
       <div className="h-1 rounded-full bg-gray-100 overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
@@ -249,7 +249,7 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
     <div className="flex flex-col gap-1 w-full min-w-0" data-resume-keep>
       <div
         dangerouslySetInnerHTML={{ __html: richHtml(text) }}
-        className="resume-text text-[8.5px] leading-[1.55] [&>p]:mb-1 last:[&>p]:mb-0"
+        className="resume-text text-[11px] leading-[1.55] [&>p]:mb-1 last:[&>p]:mb-0"
       />
       {link ? (
         <div>
@@ -289,7 +289,7 @@ function CertLine({
 }
 
 /* ─── Project Link ─── */
-function ProjectLink({ url, label, color, className = "text-[7.5px]", dark = false }: { url: unknown; label: unknown; color?: string; className?: string; dark?: boolean }) {
+function ProjectLink({ url, label, color, className = "text-[10px]", dark = false }: { url: unknown; label: unknown; color?: string; className?: string; dark?: boolean }) {
   const u = str(url).trim();
   const l = str(label).trim();
   if (!u && !l) return null;
@@ -329,8 +329,8 @@ function renderSkills(
           return (
             <div key={i}>
               <div className="flex justify-between mb-0.5">
-                <span className={`text-[8px] font-medium ${dark ? "text-white" : "text-gray-700"}`}>{str(s.name)}</span>
-                <span className={`text-[7px] ${dark ? "text-white/60" : "text-gray-400"}`}>{rating} / 5</span>
+                <span className={`text-[11px] font-medium ${dark ? "text-white" : "text-gray-700"}`}>{str(s.name)}</span>
+                <span className={`text-[9.5px] ${dark ? "text-white/60" : "text-gray-400"}`}>{rating} / 5</span>
               </div>
               <div className="flex gap-[2px]">
                 {[1, 2, 3, 4, 5].map(slot => (
@@ -377,9 +377,9 @@ function renderSkills(
                     />
                   );
                 })}
-                <text x="18" y="20.5" textAnchor="middle" fontSize="7.5" fontWeight={700} fill={color}>{rating}/5</text>
+                <text x="18" y="20.5" textAnchor="middle" fontSize="9.5" fontWeight={700} fill={color}>{rating}/5</text>
               </svg>
-              <span className={`text-[7px] mt-0.5 text-center leading-tight ${dark ? "text-white/85" : "text-gray-700"}`}>{str(s.name)}</span>
+              <span className={`text-[9.5px] mt-0.5 text-center leading-tight ${dark ? "text-white/85" : "text-gray-700"}`}>{str(s.name)}</span>
             </div>
           );
         })}
@@ -389,7 +389,7 @@ function renderSkills(
 
   if (effective === "text") {
     return (
-      <p className={`text-[8.5px] leading-[1.7] ${dark ? "text-white/75" : "text-gray-600"}`}>
+      <p className={`text-[11px] leading-[1.7] ${dark ? "text-white/75" : "text-gray-600"}`}>
         {skills.map(s => str(s.name)).filter(Boolean).join("  ·  ")}
       </p>
     );
@@ -404,7 +404,7 @@ function renderSkills(
               className="h-1 w-1 rounded-full shrink-0"
               style={{ backgroundColor: color }}
             />
-            <span className={`text-[8.5px] font-medium leading-normal ${dark ? "text-white/90" : "text-gray-700"}`}>
+            <span className={`text-[11px] font-medium leading-normal ${dark ? "text-white/90" : "text-gray-700"}`}>
               {str(s.name)}
             </span>
           </div>
@@ -417,7 +417,7 @@ function renderSkills(
   return (
     <div className="flex flex-wrap gap-1">
       {skills.map((s, i) => (
-        <span key={i} className="text-[8px] px-2 py-0.5 rounded font-semibold"
+        <span key={i} className="text-[10.5px] px-2 py-0.5 rounded font-semibold"
           style={{ background: dark ? alpha(color, 0.3) : alpha(color, 0.12), color: color }}>
           {str(s.name)}
         </span>
@@ -433,7 +433,7 @@ function skillsStyleOf(sections: ResumeDetail["sections"]): string | undefined {
 /* ─── Timeline dot — sits centered on the parent's left border (Silicon Valley uses pl-4) ─── */
 function TimelineDot({ color }: { color: string }) {
   return (
-    <div className="absolute top-[4px] h-2.5 w-2.5 rounded-full border-2 bg-white" style={{ left: '-17px', transform: 'translateX(-50%)', borderColor: color }} />
+    <div className="absolute top-[4px] h-2.5 w-2.5 rounded-full border-2 bg-white" style={{ left: '-21px', transform: 'translateX(-50%)', borderColor: color }} />
   );
 }
 
@@ -461,35 +461,35 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
           <div className="mb-3">
             <Avatar p={p} bg={color} />
           </div>
-          <h1 className="text-[15px] font-bold text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[10px] mt-0.5 font-medium" style={{ color }}>{roleOf(p)}</p>}
+          <h1 className="text-[28px] font-bold text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[12px] mt-1 font-semibold" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2" style={{ color }}>Contact</p>
+        <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8.5px] text-gray-600 mb-0.5 leading-relaxed break-all">{v}</p>
+            <p key={i} className="text-[11px] text-gray-600 mb-1 leading-relaxed break-all">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Skills</p>
+          <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-5 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Education</p>
+          <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Education</p>
             {edu.map((e, i) => (
-              <div key={i} className="mb-2">
-                <p className="text-[9px] font-semibold text-gray-900">{str(e.school)}</p>
-                <p className="text-[8px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-3.5 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -497,34 +497,34 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
 
         {/* Certifications */}
         {certs.length > 0 && (
-          <div className="px-5 py-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] mb-2.5" style={{ color }}>Certifications</p>
+          <div className="px-5 py-5">
+            <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
+              <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1" color={color} />
             ))}
           </div>
         )}
       </div>
 
       {/* Main */}
-      <div className="resume-template-columns-main flex-1 px-7 py-6">
+      <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
+          <div className="mb-7">
+            <div className="flex items-center gap-2 mb-2.5">
+              <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+            <div className="resume-text text-[11px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
         {exp.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Experience</p>
+          <div className="mb-7">
+            <div className="flex items-center gap-2 mb-3.5">
+              <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Experience</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <div className="relative pl-4 border-l-2 border-transparent">
+            <div className="relative pl-5 border-l-2 border-transparent">
               <div className="absolute w-[2px] bg-gray-100" style={{ top: '8px', bottom: '-4px', left: '-1px', transform: 'translateX(-50%)', zIndex: 0 }} />
               <div className="space-y-4">
               {exp.map((e, i) => (
@@ -532,15 +532,15 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                   <TimelineDot color={color} />
                   <div className="flex justify-between items-start mb-0.5">
                     <div>
-                      <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
-                      <p className="text-[9px] font-medium text-gray-500">{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
+                      <p className="text-[12.5px] font-bold text-gray-900">{str(e.title)}</p>
+                      <p className="text-[11.5px] font-semibold text-gray-500">{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                     </div>
-                    <p className="text-[8px] text-gray-400 shrink-0 ml-3 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                    <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                   </div>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                     <div key={j} className="flex gap-1.5 mt-1">
-                      <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                      <span className="mt-[6px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -551,19 +551,19 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
         )}
 
         {projects.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              <p className="text-[8px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Projects</p>
+          <div className="mb-7">
+            <div className="flex items-center gap-2 mb-3.5">
+              <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Projects</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-4">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="rounded-lg p-3" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -591,52 +591,52 @@ export function FaangTemplate({ sections, color, font }: TP) {
   return (
     <div className="px-10 py-8" style={{ fontFamily: font }}>
       {/* Header */}
-      <div className="mb-5">
-        <h1 className="text-[24px] font-black text-gray-950 tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
-        {roleOf(p) && <p className="text-[11px] font-semibold mt-1" style={{ color }}>{roleOf(p)}</p>}
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-2">
+      <div className="mb-6">
+        <h1 className="text-[30px] font-black text-gray-950 tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
+        {roleOf(p) && <p className="text-[12px] font-bold mt-1.5" style={{ color }}>{roleOf(p)}</p>}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8.5px] text-gray-500">{v}</span>
+            <span key={i} className="text-[10px] text-gray-500">{v}</span>
           ))}
         </div>
-        <div className="mt-3 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${color}, transparent)` }} />
+        <div className="mt-3.5 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${color}, transparent)` }} />
       </div>
 
-      <div className="flex gap-7">
+      <div className="flex gap-8">
         {/* Main column */}
         <div className="flex-1 min-w-0">
           {str(summary.text) && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-1.5">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2.5">
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Summary</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">Summary</p>
               </div>
-              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+              <div className="resume-text text-[11px] text-gray-600 leading-[1.65]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
             </div>
           )}
 
           {exp.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2.5">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Experience</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">Experience</p>
               </div>
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 {exp.map((e, i) => (
                   <div key={i} className="pl-3" style={{ borderLeft: `2px solid ${alpha(color, 0.2)}` }}>
                     <div className="flex justify-between items-baseline">
-                      <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
-                      <p className="text-[7.5px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                      <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                      <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                     </div>
-                    <p className="text-[9px] font-semibold" style={{ color }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
+                    <p className="text-[11px] font-bold" style={{ color }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                      <div key={j} className="flex gap-1.5 mt-1">
-                        <span className="shrink-0 mt-[4.5px] text-gray-400">
+                      <div key={j} className="flex gap-1.5 mt-1.5">
+                        <span className="shrink-0 mt-[6px] text-gray-400">
                           <svg viewBox="0 0 10 10" width="4.5" height="4.5" fill="currentColor">
                             <path d="M0,0 L10,5 L0,10 Z" />
                           </svg>
                         </span>
-                        <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                        <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
@@ -646,19 +646,19 @@ export function FaangTemplate({ sections, color, font }: TP) {
           )}
 
           {projects.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-2.5">
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Projects</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">Projects</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {projects.map((pr, i) => (
                   <div key={i}>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                      <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                     </div>
-                    {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                    {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -666,18 +666,18 @@ export function FaangTemplate({ sections, color, font }: TP) {
           )}
 
           {edu.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
+            <div className="mb-6 last:mb-0">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800">Education</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">Education</p>
               </div>
               {edu.map((e, i) => (
-                <div key={i} className="flex justify-between items-start mb-1.5">
+                <div key={i} className="flex justify-between items-start mb-2.5 last:mb-0">
                   <div>
-                    <p className="text-[9.5px] font-bold text-gray-900">{str(e.school)}</p>
-                    <p className="text-[8.5px] text-gray-500">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                    <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                    <p className="text-[11px] text-gray-500">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
                   </div>
-                  <p className="text-[7.5px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -686,23 +686,23 @@ export function FaangTemplate({ sections, color, font }: TP) {
 
         {/* Right skills column */}
         {(skills.length > 0 || certs.length > 0) && (
-          <div className="w-[145px] shrink-0">
+          <div className="w-[170px] shrink-0">
             {skills.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2.5" style={{ color }}>Skills</p>
+              <div className="mb-6">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3" style={{ color }}>Skills</p>
                 {renderSkills(skills, skillsStyle, color, false)}
               </div>
             )}
             {certs.length > 0 && (
               <div>
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-2" style={{ color }}>Certs</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3" style={{ color }}>Certs</p>
                 {certs.map((c, i) => {
                   const url = (str(c.credentialUrl) || str(c.url)).trim();
                   return (
-                    <div key={i} className="mb-1.5 p-1.5 rounded" style={{ background: alpha(color, 0.06) }}>
-                      <p className="text-[8px] font-semibold text-gray-800">{str(c.name)}</p>
-                      {str(c.issuer) && <p className="text-[7px] text-gray-500">{str(c.issuer)}</p>}
-                      {url && <a href={url} target="_blank" rel="noreferrer noopener" className="text-[7px] underline" style={{ color }}>verify</a>}
+                    <div key={i} className="mb-2 p-2 rounded" style={{ background: alpha(color, 0.06) }}>
+                      <p className="text-[11px] font-semibold text-gray-800">{str(c.name)}</p>
+                      {str(c.issuer) && <p className="text-[9.5px] text-gray-500 mt-0.5">{str(c.issuer)}</p>}
+                      {url && <a href={url} target="_blank" rel="noreferrer noopener" className="text-[9.5px] underline mt-0.5 block" style={{ color }}>verify</a>}
                     </div>
                   );
                 })}
@@ -732,13 +732,13 @@ export function NovaTemplate({ sections, color, font }: TP) {
   return (
     <div className="px-12 py-10" style={{ fontFamily: font }}>
       {/* Header — centered, minimal */}
-      <div className="text-center mb-6">
-        <h1 className="text-[26px] font-extralight tracking-[0.18em] text-gray-900 uppercase leading-tight">{str(p.name) || "Your Name"}</h1>
-        {roleOf(p) && <p className="text-[9px] mt-1.5 font-medium uppercase tracking-[0.2em]" style={{ color }}>{roleOf(p)}</p>}
-        <div className="flex justify-center items-center gap-4 mt-3">
+      <div className="text-center mb-7">
+        <h1 className="text-[30px] font-extralight tracking-[0.18em] text-gray-900 uppercase leading-tight">{str(p.name) || "Your Name"}</h1>
+        {roleOf(p) && <p className="text-[12px] mt-2 font-semibold uppercase tracking-[0.2em]" style={{ color }}>{roleOf(p)}</p>}
+        <div className="flex justify-center items-center flex-wrap gap-x-4 gap-y-1.5 mt-3.5">
           {contactValues(p, color).map((v, i, arr) => (
             <span key={i} className="flex items-center gap-4">
-              <span className="text-[8.5px] text-gray-400 tracking-wide">{v}</span>
+              <span className="text-[10px] text-gray-400 tracking-wide">{v}</span>
               {i < arr.length - 1 && <span className="text-gray-200 text-xs">·</span>}
             </span>
           ))}
@@ -749,27 +749,27 @@ export function NovaTemplate({ sections, color, font }: TP) {
       </div>
 
       {str(summary.text) && (
-        <div className="mb-5">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-1.5 text-center" style={{ color }}>Profile</p>
-          <div className="resume-text text-[9px] text-gray-500 leading-[1.7] text-center max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+        <div className="mb-6">
+          <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-2 text-center" style={{ color }}>Profile</p>
+          <div className="resume-text text-[11px] text-gray-500 leading-[1.7] text-center max-w-[480px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
       {exp.length > 0 && (
-        <div className="mb-5">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Experience</p>
-          <div className="space-y-3.5">
+        <div className="mb-6">
+          <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5" style={{ color }}>Experience</p>
+          <div className="space-y-4">
             {exp.map((e, i) => (
               <div key={i} className="flex gap-5">
-                <div className="w-[90px] shrink-0 text-right">
-                  <p className="text-[8px] text-gray-300 leading-relaxed">{str(e.startDate)}</p>
-                  <p className="text-[8px] text-gray-300">{str(e.endDate) || (e.startDate ? "Present" : "")}</p>
+                <div className="w-[115px] shrink-0 text-right">
+                  <p className="text-[10px] text-gray-400 leading-relaxed">{str(e.startDate)}</p>
+                  <p className="text-[10px] text-gray-400">{str(e.endDate) || (e.startDate ? "Present" : "")}</p>
                 </div>
                 <div className="flex-1 border-l border-gray-100 pl-5">
-                  <p className="text-[10.5px] font-semibold text-gray-800">{str(e.title)}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                  <p className="text-[12px] font-bold text-gray-800">{str(e.title)}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <div key={j} className="flex-1 min-w-0 text-[8.5px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></div>
+                    <div key={j} className="flex-1 min-w-0 text-[11px] text-gray-500 leading-[1.6] mt-1"><BulletContent b={b} color={color} /></div>
                   ))}
                 </div>
               </div>
@@ -778,38 +778,38 @@ export function NovaTemplate({ sections, color, font }: TP) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-7 mb-6">
         {edu.length > 0 && (
           <div>
-            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Education</p>
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5" style={{ color }}>Education</p>
             {edu.map((e, i) => (
-              <div key={i} className="mb-2.5">
-                <p className="text-[9.5px] font-semibold text-gray-800">{str(e.school)}</p>
-                <p className="text-[8.5px] text-gray-400">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[8px] text-gray-300 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-3 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-800">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-400">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[10px] text-gray-300 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
         )}
         {skills.length > 0 && (
           <div>
-            <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-3" style={{ color }}>Expertise</p>
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5" style={{ color }}>Expertise</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
       </div>
 
       {projects.length > 0 && (
-        <div className="mt-5">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Selected Projects</p>
-          <div className="space-y-1.5">
+        <div className="mb-6">
+          <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5" style={{ color }}>Selected Projects</p>
+          <div className="space-y-3">
             {projects.map((pr, i) => (
               <div key={i} className="flex gap-4">
-                <div className="w-[130px] shrink-0">
-                  <p className="text-[9.5px] font-semibold text-gray-700">{str(pr.name)}</p>
-                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7px]" />
+                <div className="w-[150px] shrink-0">
+                  <p className="text-[12px] font-bold text-gray-700">{str(pr.name)}</p>
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                 </div>
-                <div className="resume-text text-[8.5px] text-gray-400 flex-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
+                <div className="resume-text text-[11px] text-gray-500 flex-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
               </div>
             ))}
           </div>
@@ -817,11 +817,11 @@ export function NovaTemplate({ sections, color, font }: TP) {
       )}
 
       {certs.length > 0 && (
-        <div className="mt-5">
-          <p className="text-[7.5px] font-semibold uppercase tracking-[0.2em] mb-2.5" style={{ color }}>Certifications</p>
+        <div className="mb-6 last:mb-0">
+          <p className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5" style={{ color }}>Certifications</p>
           <div className="flex flex-wrap gap-3">
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8.5px] text-gray-500" color={color} />
+              <CertLine key={i} c={c} className="text-[11px] text-gray-500" color={color} />
             ))}
           </div>
         </div>
@@ -845,7 +845,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
   const skillsStyle = skillsStyleOf(sections);
 
   const rule = (
-    <div className="flex items-center gap-3 my-3">
+    <div className="flex items-center gap-3 my-4">
       <div className="flex-1 h-px" style={{ background: alpha(color, 0.2) }} />
       <div className="h-1 w-1 rounded-full" style={{ background: alpha(color, 0.4) }} />
       <div className="flex-1 h-px" style={{ background: alpha(color, 0.2) }} />
@@ -856,15 +856,15 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
     <div className="px-12 py-10" style={{ fontFamily: font }}>
       {/* Header */}
       <div className="text-center mb-1">
-        <h1 className="text-[22px] tracking-[0.06em] text-gray-900" style={{ fontWeight: 400 }}>
+        <h1 className="text-[30px] tracking-[0.06em] text-gray-900" style={{ fontWeight: 400 }}>
           {str(p.name) || "Your Name"}
         </h1>
         {roleOf(p) && (
-          <p className="text-[9.5px] font-medium tracking-[0.15em] uppercase mt-1" style={{ color }}>{roleOf(p)}</p>
+          <p className="text-[12px] font-semibold tracking-[0.15em] uppercase mt-1.5" style={{ color }}>{roleOf(p)}</p>
         )}
-        <div className="flex justify-center gap-5 mt-2">
+        <div className="flex justify-center flex-wrap gap-x-5 gap-y-1 mt-2">
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8.5px] text-gray-500 italic">{v}</span>
+            <span key={i} className="text-[10px] text-gray-500 italic">{v}</span>
           ))}
         </div>
       </div>
@@ -872,33 +872,33 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
       {rule}
 
       {str(summary.text) && (
-        <div className="mb-4 text-center">
-          <div className="resume-text text-[9px] text-gray-600 leading-[1.8] italic max-w-[440px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+        <div className="mb-6 text-center">
+          <div className="resume-text text-[11px] text-gray-600 leading-[1.8] italic max-w-[480px] mx-auto" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
       {exp.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center gap-3 mb-2.5">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3.5">
             <div className="flex-1 h-px bg-gray-200" />
-            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Professional Experience</p>
+            <p className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Professional Experience</p>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {exp.map((e, i) => (
               <div key={i}>
                 <div className="flex justify-between items-baseline">
                   <div>
-                    <span className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</span>
-                    <span className="text-[9px] text-gray-500 ml-2">·</span>
-                    <span className="text-[9px] text-gray-600 ml-2 italic">{str(e.company)}</span>
+                    <span className="text-[12px] font-bold text-gray-900">{str(e.title)}</span>
+                    <span className="text-[10px] text-gray-500 ml-2">·</span>
+                    <span className="text-[11px] text-gray-600 ml-2 italic">{str(e.company)}</span>
                   </div>
-                  <p className="text-[8px] text-gray-400 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                  <p className="text-[10px] text-gray-400 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                 </div>
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                  <div key={j} className="flex gap-2 mt-1">
-                    <span className="text-[8px] shrink-0 mt-0.5" style={{ color }}>—</span>
-                    <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></div>
+                  <div key={j} className="flex gap-2 mt-1.5">
+                    <span className="text-[10px] shrink-0 mt-0.5" style={{ color }}>—</span>
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.6]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -907,19 +907,19 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-8 mt-2">
+      <div className="grid grid-cols-2 gap-8 mt-4 mb-6">
         {edu.length > 0 && (
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-3">
               <div className="flex-1 h-px bg-gray-200" />
-              <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Education</p>
+              <p className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Education</p>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
             {edu.map((e, i) => (
-              <div key={i} className="mb-2">
-                <p className="text-[9.5px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[8.5px] italic text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-3.5 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] italic text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[10px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -929,19 +929,19 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
           <div>
             {skills.length > 0 && (
               <>
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-3">
                   <div className="flex-1 h-px bg-gray-200" />
-                  <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Core Competencies</p>
+                  <p className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Core Competencies</p>
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
                 {renderSkills(skills, skillsStyle, color, false)}
               </>
             )}
             {certs.length > 0 && (
-              <div className="mt-3">
-                <p className="text-[7.5px] uppercase tracking-[0.15em] text-gray-400 mb-1" style={{ color }}>Certifications</p>
+              <div className="mt-4">
+                <p className="text-[11px] uppercase tracking-[0.15em] text-gray-400 mb-2" style={{ color }}>Certifications</p>
                 {certs.map((c, i) => (
-                  <CertLine key={i} c={c} className="text-[8px] italic text-gray-600" color={color} />
+                  <CertLine key={i} c={c} className="text-[11px] italic text-gray-600 mb-0.5 last:mb-0" color={color} />
                 ))}
               </div>
             )}
@@ -950,22 +950,22 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
       </div>
 
       {projects.length > 0 && (
-        <div className="mt-4">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="mt-6">
+          <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px bg-gray-200" />
-            <p className="text-[8px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Notable Projects</p>
+            <p className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400" style={{ color }}>Notable Projects</p>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
           {projects.map((pr, i) => (
-            <div key={i} className="mb-1.5">
-              <span className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</span>
+            <div key={i} className="mb-2 last:mb-0">
+              <span className="text-[12px] font-bold text-gray-900">{str(pr.name)}</span>
               {(str(pr.url) || str(pr.label)) && (
                 <span className="ml-2">
-                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[8px] italic" />
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px] italic" />
                 </span>
               )}
               {str(pr.description) && (
-                <span className="resume-text text-[8.5px] italic text-gray-600 ml-2">
+                <span className="resume-text text-[11px] italic text-gray-600 ml-2">
                   —{" "}
                   <span dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />
                 </span>
@@ -994,87 +994,87 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
   return (
     <div className="flex" data-resume-two-col-root style={{ fontFamily: font, minHeight: "100%" }}>
-      <div className="w-[195px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: alpha(color, 0.08), minHeight: "100%", borderRight: `1px solid ${alpha(color, 0.15)}` }}>
+      <div className="w-[220px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: alpha(color, 0.08), minHeight: "100%", borderRight: `1px solid ${alpha(color, 0.15)}` }}>
         {/* Avatar + name */}
         <div className="p-5 pb-4">
-          <div className="mb-3">
+          <div className="mb-3.5">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[13px] font-black text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[8.5px] font-semibold mt-1 uppercase tracking-wide" style={{ color }}>{roleOf(p)}</p>}
+          <h1 className="text-[28px] font-black text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[12px] font-bold mt-1.5 uppercase tracking-wide" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-3" style={{ background: alpha(color, 0.04) }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-1.5" style={{ color }}>Contact</p>
+        <div className="px-5 py-4" style={{ background: alpha(color, 0.04) }}>
+          <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8px] text-gray-600 break-all leading-relaxed">{v}</p>
+            <p key={i} className="text-[11px] text-gray-600 break-all leading-relaxed mb-0.5 last:mb-0">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-3" style={{ background: alpha(color, 0.02) }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Skills</p>
+          <div className="px-5 py-4" style={{ background: alpha(color, 0.02) }}>
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-5 py-3">
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Education</p>
+          <div className="px-5 py-4">
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Education</p>
             {edu.map((e, i) => (
-              <div key={i} className="mb-2">
-                <p className="text-[8.5px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[7.5px] text-gray-600">{str(e.degree)}</p>
-                <p className="text-[7px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-3.5 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
         )}
 
         {certs.length > 0 && (
-          <div className="px-5 py-3">
-            <p className="text-[7px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Certifications</p>
+          <div className="px-5 py-4">
+            <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
+              <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1 last:mb-0" color={color} />
             ))}
           </div>
         )}
       </div>
 
       {/* Main */}
-      <div className="resume-template-columns-main flex-1 px-6 py-6">
+      <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-5 p-3.5 rounded-xl" style={{ background: alpha(color, 0.06) }}>
-            <p className="text-[7.5px] font-bold uppercase tracking-[0.15em] mb-1.5" style={{ color }}>About Me</p>
-            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+          <div className="mb-6 p-4 rounded-xl" style={{ background: alpha(color, 0.06) }}>
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>About Me</p>
+            <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
         {exp.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-2.5">
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3.5">
               <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
-              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Experience</p>
+              <p className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Experience</p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {exp.map((e, i) => (
-                <div key={i} className="rounded-xl p-3" style={{ border: `1px solid ${alpha(color, 0.15)}` }}>
-                  <div className="flex justify-between items-start">
+                <div key={i} className="rounded-xl p-3.5" style={{ border: `1px solid ${alpha(color, 0.15)}` }}>
+                  <div className="flex justify-between items-start gap-4 flex-wrap mb-1">
                     <div>
-                      <p className="text-[10px] font-black text-gray-900">{str(e.title)}</p>
-                      <p className="text-[8.5px] font-semibold mt-0.5" style={{ color }}>{str(e.company)}</p>
+                      <p className="text-[12px] font-black text-gray-900">{str(e.title)}</p>
+                      <p className="text-[11px] font-semibold mt-0.5" style={{ color }}>{str(e.company)}</p>
                     </div>
-                    <span className="text-[7.5px] text-white px-2 py-0.5 rounded-full shrink-0" style={{ background: color }}>
+                    <span className="text-[10px] text-white px-2.5 py-0.5 rounded-full shrink-0" style={{ background: color }}>
                       {str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}
                     </span>
                   </div>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <div key={j} className="flex gap-1.5 mt-1">
-                      <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                    <div key={j} className="flex gap-1.5 mt-1.5">
+                      <span className="mt-[6px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1085,18 +1085,18 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
         {projects.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex items-center gap-2 mb-3.5">
               <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
-              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Projects</p>
+              <p className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Projects</p>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-xl p-2.5" style={{ background: alpha(color, 0.06) }}>
+                <div key={i} className="rounded-xl p-3" style={{ background: alpha(color, 0.06) }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1127,48 +1127,48 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   return (
     <div className="px-9 py-8" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header */}
-      <div className="mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+      <div className="mb-7 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-[22px] font-black text-gray-900 tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
-            {roleOf(p) && <p className="text-[9.5px] font-semibold mt-1.5 tracking-[0.14em] uppercase" style={{ color: gold }}>{roleOf(p)}</p>}
+            <h1 className="text-[30px] font-black text-gray-900 tracking-tight leading-none">{str(p.name) || "Your Name"}</h1>
+            {roleOf(p) && <p className="text-[12px] font-semibold mt-2 tracking-[0.14em] uppercase" style={{ color: gold }}>{roleOf(p)}</p>}
           </div>
           <Avatar p={p} bg={gold} textColor="#ffffff" sizeClass="h-12 w-12 text-lg" />
         </div>
-        <div className="flex gap-5 mt-3 flex-wrap">
+        <div className="flex gap-5 mt-3.5 flex-wrap">
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8px] text-gray-600">{v}</span>
+            <span key={i} className="text-[10px] text-gray-600">{v}</span>
           ))}
         </div>
       </div>
 
       {str(summary.text) && (
-        <div className="mb-5">
-          <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: gold }}>Profile</p>
-          <div className="resume-text text-[9px] text-gray-600 leading-[1.75]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+        <div className="mb-6">
+          <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: gold }}>Profile</p>
+          <div className="resume-text text-[11px] text-gray-600 leading-[1.75]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </div>
       )}
 
       {exp.length > 0 && (
-        <div className="mb-5">
-          <div className="flex items-center gap-3 mb-3">
-            <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Experience</p>
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-3.5">
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Experience</p>
             <div className="flex-1 h-px" style={{ background: border }} />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {exp.map((e, i) => (
               <div key={i} className="rounded-lg p-3.5" style={{ background: card, border: `1px solid ${border}` }}>
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
-                    <p className="text-[8.5px] font-medium mt-0.5" style={{ color: gold }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
+                    <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                    <p className="text-[11.5px] font-medium mt-0.5" style={{ color: gold }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                   </div>
-                  <p className="text-[7.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                  <p className="text-[10px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                 </div>
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
                   <div key={j} className="flex gap-1.5 mt-1.5">
-                    <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: gold }} />
-                    <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                    <span className="mt-[6px] h-1 w-1 rounded-full shrink-0" style={{ background: gold }} />
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                   </div>
                 ))}
               </div>
@@ -1180,37 +1180,37 @@ export function MidnightTemplate({ sections, color, font }: TP) {
       <div className="grid grid-cols-2 gap-6">
         <div>
           {edu.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-3 mb-2">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Education</p>
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3.5">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Education</p>
                 <div className="flex-1 h-px" style={{ background: border }} />
               </div>
               {edu.map((e, i) => (
-                <div key={i} className="rounded-lg p-2.5 mb-2" style={{ background: card, border: `1px solid ${border}` }}>
-                  <p className="text-[9px] font-semibold text-gray-900">{str(e.school)}</p>
-                  <p className="text-[8px] text-gray-600">{str(e.degree)}</p>
-                  <p className="text-[7.5px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                <div key={i} className="rounded-lg p-3 mb-3 last:mb-0" style={{ background: card, border: `1px solid ${border}` }}>
+                  <p className="text-[12px] font-semibold text-gray-900">{str(e.school)}</p>
+                  <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                 </div>
               ))}
             </div>
           )}
           {certs.length > 0 && (
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Certs</p>
+              <div className="flex items-center gap-3 mb-3.5">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Certs</p>
                 <div className="flex-1 h-px" style={{ background: border }} />
               </div>
               {certs.map((c, i) => (
-                <CertLine key={i} c={c} className="text-[8.5px] text-gray-600 mb-0.5" color={gold} />
+                <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1 last:mb-0" color={gold} />
               ))}
             </div>
           )}
         </div>
         <div>
           {skills.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center gap-3 mb-2">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Skills</p>
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-3.5">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Skills</p>
                 <div className="flex-1 h-px" style={{ background: border }} />
               </div>
               {renderSkills(skills, skillsStyle, gold, false)}
@@ -1218,15 +1218,15 @@ export function MidnightTemplate({ sections, color, font }: TP) {
           )}
           {projects.length > 0 && (
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Projects</p>
+              <div className="flex items-center gap-3 mb-3.5">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0" style={{ color: gold }}>Projects</p>
                 <div className="flex-1 h-px" style={{ background: border }} />
               </div>
               {projects.map((pr, i) => (
-                <div key={i} className="mb-1.5">
-                  <p className="text-[9px] font-semibold text-gray-900">{str(pr.name)}</p>
-                  <ProjectLink url={pr.url} label={pr.label} color={gold} className="text-[7px]" />
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                <div key={i} className="mb-3 last:mb-0">
+                  <p className="text-[12px] font-semibold text-gray-900">{str(pr.name)}</p>
+                  <ProjectLink url={pr.url} label={pr.label} color={gold} className="text-[10px]" />
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1251,34 +1251,34 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="mt-4 first:mt-0">
-      <p className="text-[9px] font-black uppercase tracking-wide" style={{ color }}>{label}</p>
-      <div className="h-px mt-0.5 mb-2" style={{ background: color }} />
+    <div className="mt-6 first:mt-0">
+      <p className="text-[13.5px] font-black uppercase tracking-wide" style={{ color }}>{label}</p>
+      <div className="h-px mt-1 mb-3" style={{ background: color }} />
     </div>
   );
 
   return (
     <div className="px-8 py-7" style={{ fontFamily: font }}>
-      <div className="text-center mb-3">
-        <h1 className="text-[17px] font-black text-gray-950">{str(p.name) || "Your Name"}</h1>
-        <p className="text-[8.5px] text-gray-700 mt-0.5">
+      <div className="text-center mb-4">
+        <h1 className="text-[32px] font-black text-gray-950">{str(p.name) || "Your Name"}</h1>
+        <p className="text-[10px] text-gray-700 mt-1">
           {contactValues(p, color).map((v, i) => (
             <span key={i}>{i > 0 && "  |  "}{v}</span>
           ))}
         </p>
 
       </div>
-      {str(summary.text) && (<><SH label="Professional Summary" /><div className="resume-text text-[9px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} /></>)}
+      {str(summary.text) && (<><SH label="Professional Summary" /><div className="resume-text text-[11px] text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} /></>)}
       {exp.length > 0 && (
         <><SH label="Work Experience" />
           {exp.map((e, i) => (
-            <div key={i} className="mb-3">
-              <div className="flex justify-between">
-                <p className="text-[9.5px] font-bold text-gray-900">{str(e.title)}, {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
-                <p className="text-[8.5px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+            <div key={i} className="mb-4 last:mb-0">
+              <div className="flex justify-between items-baseline mb-0.5">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.title)}, {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                <p className="text-[10px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <div key={j} className="flex gap-1.5 text-[8.5px] text-gray-700 leading-relaxed ml-3"><span className="shrink-0 font-bold">•</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
+                <div key={j} className="flex gap-1.5 text-[11px] text-gray-700 leading-relaxed ml-3"><span className="shrink-0 font-bold">•</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
               ))}
             </div>
           ))}
@@ -1287,9 +1287,9 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
       {edu.length > 0 && (
         <><SH label="Education" />
           {edu.map((e, i) => (
-            <div key={i} className="flex justify-between mb-1.5">
-              <p className="text-[9px] font-bold text-gray-900">{str(e.school)} — {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-              <p className="text-[8.5px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+            <div key={i} className="flex justify-between items-baseline mb-2 last:mb-0">
+              <p className="text-[11.5px] font-bold text-gray-900">{str(e.school)} — {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+              <p className="text-[10px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
             </div>
           ))}
         </>
@@ -1300,21 +1300,21 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             const style = skillsStyleOf(sections);
             return style && style !== "text"
               ? renderSkills(skills, style, color, false)
-              : <p className="text-[8.5px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join(" | ")}</p>;
+              : <p className="text-[11px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join(" | ")}</p>;
           })()}
         </>
       )}
       {projects.length > 0 && (
         <><SH label="Projects" />
           {projects.map((pr, i) => (
-            <div key={i} className="resume-export-block text-[8.5px] text-gray-700 mb-0.5">
+            <div key={i} className="resume-export-block text-[11px] text-gray-700 mb-3 last:mb-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="font-bold text-gray-900">{str(pr.name)}</p>
-                <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
               </div>
               {str(pr.description) && (
                 <div
-                  className="resume-text text-[8.5px] text-gray-700 [&_p]:m-0"
+                  className="resume-text text-[11px] text-gray-700 mt-0.5 [&_p]:m-0"
                   dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
                 />
               )}
@@ -1325,7 +1325,9 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
       {certs.length > 0 && (
         <><SH label="Certifications" />
           {certs.map((c, i) => (
-            <CertLine key={i} c={c} className="text-[8.5px] text-gray-700 mb-0.5" />
+            <div key={i} className="mb-1.5 last:mb-0">
+              <CertLine key={i} c={c} className="text-[11px] text-gray-700" color={color} />
+            </div>
           ))}
         </>
       )}
@@ -1347,40 +1349,40 @@ export function AcademicTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mt-4 first:mt-0 mb-2">
-      <h2 className="text-[9px] font-bold uppercase tracking-[0.1em]" style={{ color }}>{label}</h2>
+    <div className="flex items-center gap-2 mt-6 first:mt-0 mb-3">
+      <h2 className="text-[13.5px] font-bold uppercase tracking-[0.1em]" style={{ color }}>{label}</h2>
       <div className="flex-1 h-px bg-gray-300" />
     </div>
   );
 
   return (
     <div className="px-10 py-8" style={{ fontFamily: font }}>
-      <div className="text-center mb-4 pb-3" style={{ borderBottom: `2px solid ${color}` }}>
-        <h1 className="text-[20px] font-bold text-gray-900 tracking-wide">{str(p.name) || "Your Name"}</h1>
-        {roleOf(p) && <p className="text-[10px] text-gray-600 italic mt-0.5">{roleOf(p)}</p>}
-        <div className="flex justify-center gap-4 mt-2 flex-wrap">
+      <div className="text-center mb-4 pb-3.5" style={{ borderBottom: `2px solid ${color}` }}>
+        <h1 className="text-[30px] font-bold text-gray-900 tracking-wide">{str(p.name) || "Your Name"}</h1>
+        {roleOf(p) && <p className="text-[12px] text-gray-600 italic mt-1">{roleOf(p)}</p>}
+        <div className="flex justify-center gap-4 mt-2.5 flex-wrap">
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[8px] text-gray-500">{v}</span>
+            <span key={i} className="text-[10px] text-gray-500">{v}</span>
           ))}
         </div>
       </div>
 
       {str(summary.text) && (
         <><SH label="Research Interests / Summary" />
-          <div className="resume-text text-[9px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+          <div className="resume-text text-[11px] text-gray-700 leading-[1.7] italic" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
         </>
       )}
 
       {edu.length > 0 && (
         <><SH label="Education" />
           {edu.map((e, i) => (
-            <div key={i} className="flex justify-between mb-2">
+            <div key={i} className="flex justify-between items-baseline mb-3 last:mb-0">
               <div>
-                <p className="text-[10px] font-bold text-gray-900">{str(e.degree)}{e.field ? ` in ${str(e.field)}` : ""}</p>
-                <p className="text-[9px] italic text-gray-600">{str(e.school)}</p>
-                {str(e.gpa) && <p className="text-[8px] text-gray-500">GPA: {str(e.gpa)}</p>}
+                <p className="text-[12px] font-bold text-gray-900">{str(e.degree)}{e.field ? ` in ${str(e.field)}` : ""}</p>
+                <p className="text-[11px] italic text-gray-600 mt-0.5">{str(e.school)}</p>
+                {str(e.gpa) && <p className="text-[10px] text-gray-500 mt-0.5">GPA: {str(e.gpa)}</p>}
               </div>
-              <p className="text-[8.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <p className="text-[10px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
             </div>
           ))}
         </>
@@ -1389,16 +1391,16 @@ export function AcademicTemplate({ sections, color, font }: TP) {
       {exp.length > 0 && (
         <><SH label="Academic & Professional Experience" />
           {exp.map((e, i) => (
-            <div key={i} className="mb-3">
-              <div className="flex justify-between">
+            <div key={i} className="mb-4 last:mb-0">
+              <div className="flex justify-between items-baseline mb-0.5">
                 <div>
-                  <p className="text-[10px] font-bold text-gray-900">{str(e.title)}</p>
-                  <p className="text-[9px] italic text-gray-600">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                  <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                  <p className="text-[11px] italic text-gray-600 mt-0.5">{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                 </div>
-                <p className="text-[8.5px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                <p className="text-[10px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
               </div>
               {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                <div key={j} className="flex gap-1.5 text-[8.5px] text-gray-700 ml-3 mt-0.5">
+                <div key={j} className="flex gap-1.5 text-[11px] text-gray-700 ml-3 mt-1 first:mt-0.5">
                   <span className="shrink-0">•</span>
                   <div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div>
                 </div>
@@ -1411,14 +1413,14 @@ export function AcademicTemplate({ sections, color, font }: TP) {
       {projects.length > 0 && (
         <><SH label="Publications & Research Projects" />
           {projects.map((pr, i) => (
-            <div key={i} className="mb-2">
-              <p className="text-[9px] font-bold text-gray-900">
+            <div key={i} className="mb-3.5 last:mb-0">
+              <p className="text-[12px] font-bold text-gray-900">
                 {str(pr.name)}
                 <span className="ml-2 font-normal not-italic">
-                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                  <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                 </span>
               </p>
-              {str(pr.description) && <div className="resume-text text-[8.5px] italic text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+              {str(pr.description) && <div className="resume-text text-[11px] italic text-gray-600 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
             </div>
           ))}
         </>
@@ -1432,7 +1434,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
               const style = skillsStyleOf(sections);
               return style && style !== "text"
                 ? renderSkills(skills, style, color, false)
-                : <p className="text-[8.5px] text-gray-700 leading-[1.7]">{skills.map(s => str(s.name)).filter(Boolean).join(", ")}</p>;
+                : <p className="text-[11px] text-gray-700 leading-[1.7]">{skills.map(s => str(s.name)).filter(Boolean).join(", ")}</p>;
             })()}
           </div>
         )}
@@ -1440,7 +1442,9 @@ export function AcademicTemplate({ sections, color, font }: TP) {
           <div>
             <SH label="Certifications" />
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8.5px] text-gray-700 mb-0.5" color={color} />
+              <div key={i} className="mb-1.5 last:mb-0">
+                <CertLine key={i} c={c} className="text-[11px] text-gray-700" color={color} />
+              </div>
             ))}
           </div>
         )}
@@ -1469,12 +1473,12 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
   return (
     <div style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header */}
-      <div className="px-8 py-6" style={{ background: navy }}>
-        <h1 className="text-[20px] font-black text-white tracking-tight">{str(p.name) || "Your Name"}</h1>
-        {roleOf(p) && <p className="text-[9.5px] font-semibold text-white/70 mt-0.5 tracking-wide">{roleOf(p)}</p>}
-        <div className="flex gap-5 mt-3 flex-wrap">
+      <div className="px-8 py-7" style={{ background: navy }}>
+        <h1 className="text-[30px] font-black text-white tracking-tight">{str(p.name) || "Your Name"}</h1>
+        {roleOf(p) && <p className="text-[12px] font-semibold text-white/70 mt-1 tracking-wide">{roleOf(p)}</p>}
+        <div className="flex gap-5 mt-3.5 flex-wrap">
           {contactValues(p, headerContactLinkColor).map((v, i) => (
-            <span key={i} className="text-[8px] text-white/60">
+            <span key={i} className="text-[10px] text-white/60">
               {v}
             </span>
           ))}
@@ -1484,31 +1488,31 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
       {/* Accent bar */}
       <div className="h-1" style={{ background: `linear-gradient(to right, ${navy}, ${alpha(navy, 0.3)})` }} />
 
-      <div className="px-8 py-5">
+      <div className="px-8 py-6">
         {str(summary.text) && (
-          <div className="mb-4 pb-4" style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}>
-            <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-1.5" style={{ color: navy }}>Professional Summary</p>
-            <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+          <div className="mb-6 pb-5" style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}>
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Professional Summary</p>
+            <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
         {exp.length > 0 && (
-          <div className="resume-export-block mb-4">
-            <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2.5" style={{ color: navy }}>Work Experience</p>
-            <div className="space-y-3">
+          <div className="resume-export-block mb-6">
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3.5" style={{ color: navy }}>Work Experience</p>
+            <div className="space-y-4">
               {exp.map((e, i) => (
                 <div key={i} className="pl-3" style={{ borderLeft: `3px solid ${alpha(navy, 0.2)}` }}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
-                      <p className="text-[9px] font-semibold" style={{ color: navy }}>{str(e.company)}{e.location ? ` — ${str(e.location)}` : ""}</p>
+                      <p className="text-[12.5px] font-bold text-gray-900">{str(e.title)}</p>
+                      <p className="text-[11.5px] font-semibold" style={{ color: navy }}>{str(e.company)}{e.location ? ` — ${str(e.location)}` : ""}</p>
                     </div>
-                    <p className="text-[8px] text-gray-400 shrink-0 ml-3 mt-0.5 font-medium">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                    <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 font-medium">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                   </div>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <div key={j} className="flex gap-1.5 mt-1">
-                      <span className="text-[7.5px] shrink-0 mt-0.5 font-bold" style={{ color: navy }}>›</span>
-                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                    <div key={j} className="flex gap-1.5 mt-1.5">
+                      <span className="text-[9px] shrink-0 mt-0.5 font-bold" style={{ color: navy }}>›</span>
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1520,43 +1524,45 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         <div className="resume-export-grid grid grid-cols-2 gap-6">
           <div>
             {edu.length > 0 && (
-              <div className="resume-export-block mb-3">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Education</p>
+              <div className="resume-export-block mb-4">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3" style={{ color: navy }}>Education</p>
                 {edu.map((e, i) => (
-                  <div key={i} className="mb-2 p-2 rounded" style={{ background: alpha(navy, 0.04) }}>
-                    <p className="text-[9.5px] font-bold text-gray-900">{str(e.school)}</p>
-                    <p className="text-[8.5px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                    <p className="text-[7.5px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <div key={i} className="mb-2.5 p-2 rounded" style={{ background: alpha(navy, 0.04) }}>
+                    <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                    <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                   </div>
                 ))}
               </div>
             )}
             {certs.length > 0 && (
               <div>
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Certifications</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3" style={{ color: navy }}>Certifications</p>
                 {certs.map((c, i) => (
-                  <CertLine key={i} c={c} className="text-[8.5px] text-gray-600 mb-0.5" color={navy} />
+                  <div key={i} className="mb-1 last:mb-0">
+                    <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={navy} />
+                  </div>
                 ))}
               </div>
             )}
           </div>
           <div>
             {skills.length > 0 && (
-              <div className="mb-3">
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Core Skills</p>
+              <div className="mb-4">
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3" style={{ color: navy }}>Core Skills</p>
                 {renderSkills(skills, skillsStyle, navy, false)}
               </div>
             )}
             {projects.length > 0 && (
               <div>
-                <p className="text-[7.5px] font-bold uppercase tracking-[0.16em] mb-2" style={{ color: navy }}>Key Projects</p>
+                <p className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3" style={{ color: navy }}>Key Projects</p>
                 {projects.map((pr, i) => (
-                  <div key={i} className="mb-1">
+                  <div key={i} className="mb-2 last:mb-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                      <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                     </div>
-                    {str(pr.description) && <div className="resume-text text-[8px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                    {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
                 ))}
               </div>
@@ -1583,55 +1589,55 @@ export function CompactTemplate({ sections, color, font }: TP) {
 
   return (
     <div className="px-7 py-5" style={{ fontFamily: font }}>
-      <div className="flex items-start justify-between mb-2 pb-2" style={{ borderBottom: `2px solid ${color}` }}>
+      <div className="flex items-start justify-between mb-3 pb-3" style={{ borderBottom: `2px solid ${color}` }}>
         <div>
-          <h1 className="text-[16px] font-black text-gray-950 leading-none">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[9px] font-semibold mt-0.5" style={{ color }}>{roleOf(p)}</p>}
+          <h1 className="text-[26px] font-black text-gray-950 leading-none">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[11.5px] font-semibold mt-1.5" style={{ color }}>{roleOf(p)}</p>}
         </div>
         <div className="text-right">
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8px] text-gray-500">{v}</p>
+            <p key={i} className="text-[10px] text-gray-500 leading-normal">{v}</p>
           ))}
         </div>
       </div>
 
       {str(summary.text) && (
-        <div className="resume-text text-[8.5px] text-gray-600 leading-[1.6] mb-2" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+        <div className="resume-text text-[11px] text-gray-600 leading-[1.6] mb-3" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
       )}
 
       {skills.length > 0 && (() => {
         const style = skillsStyleOf(sections);
         if (style && style !== "text") {
           return (
-            <div className="mb-2 pb-2" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
-              <p className="text-[7.5px] font-bold uppercase tracking-wide mb-1" style={{ color }}>Skills</p>
+            <div className="mb-3 pb-3" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
+              <p className="text-[12.5px] font-bold uppercase tracking-wide mb-2" style={{ color }}>Skills</p>
               {renderSkills(skills, style, color, false)}
             </div>
           );
         }
         return (
-          <div className="mb-2 pb-2" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
-            <span className="text-[7.5px] font-bold uppercase tracking-wide mr-2" style={{ color }}>Skills:</span>
-            <span className="text-[8.5px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join("  ·  ")}</span>
+          <div className="mb-3 pb-3" style={{ borderBottom: `1px solid ${alpha(color, 0.15)}` }}>
+            <span className="text-[12.5px] font-bold uppercase tracking-wide mr-2" style={{ color }}>Skills:</span>
+            <span className="text-[11px] text-gray-700">{skills.map(s => str(s.name)).filter(Boolean).join("  ·  ")}</span>
           </div>
         );
       })()}
 
       {exp.length > 0 && (
-        <div className="mb-2">
-          <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color }}>Experience</p>
-          <div className="space-y-2">
+        <div className="mb-3">
+          <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Experience</p>
+          <div className="space-y-3.5">
             {exp.map((e, i) => (
               <div key={i}>
                 <div className="flex justify-between items-baseline">
-                  <div className="flex items-baseline gap-1.5">
-                    <p className="text-[9.5px] font-bold text-gray-900">{str(e.title)}</p>
-                    <p className="text-[8.5px] text-gray-500">@ {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                    <p className="text-[11px] text-gray-500">@ {str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                   </div>
-                  <p className="text-[7.5px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
+                  <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Now" : ""}</p>
                 </div>
                 {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).slice(0, 2).map((b, j) => (
-                  <div key={j} className="flex gap-1.5 text-[8px] text-gray-600 leading-[1.5] ml-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
+                  <div key={j} className="flex gap-1.5 text-[11px] text-gray-600 leading-[1.5] ml-1.5 mt-1"><span className="shrink-0 font-bold">·</span><div className="flex-1 min-w-0"><BulletContent b={b} color={color} /></div></div>
                 ))}
               </div>
             ))}
@@ -1639,38 +1645,42 @@ export function CompactTemplate({ sections, color, font }: TP) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-2 gap-5 mt-4">
         {edu.length > 0 && (
           <div>
-            <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color }}>Education</p>
+            <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Education</p>
             {edu.map((e, i) => (
-              <div key={i} className="mb-1">
-                <p className="text-[9px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[8px] text-gray-500">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-2 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
         )}
         <div>
           {projects.length > 0 && (
-            <div className="mb-2">
-              <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color }}>Projects</p>
+            <div className="mb-3">
+              <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Projects</p>
               {projects.map((pr, i) => (
-                <div key={i} className="mb-0.5">
+                <div key={i} className="mb-2 last:mb-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[8.5px] font-semibold text-gray-800">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    <p className="text-[12px] font-semibold text-gray-800">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[7.5px] text-gray-500" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
           )}
           {certs.length > 0 && (
             <div>
-              <p className="text-[7.5px] font-bold uppercase tracking-[0.14em] mb-1" style={{ color }}>Certifications</p>
-              {certs.map((c, i) => <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />)}
+              <p className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Certifications</p>
+              {certs.map((c, i) => (
+                <div key={i} className="mb-1 last:mb-0">
+                  <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -1695,9 +1705,9 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   const photo = (p.photo as string) ?? "";
 
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mb-2 mt-3 first:mt-0">
+    <div className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
       <div className="h-3 w-[3px] rounded-full" style={{ background: color }} />
-      <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</p>
+      <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</p>
       <div className="flex-1 h-px bg-gray-100" />
     </div>
   );
@@ -1705,108 +1715,110 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   return (
     <div className="flex flex-col" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header with photo */}
-      <div className="px-8 py-5 flex gap-5 items-center" style={{ background: alpha(color, 0.06), borderBottom: `2px solid ${color}` }}>
+      <div className="px-8 py-6 flex gap-5 items-center flex-wrap md:flex-nowrap" style={{ background: alpha(color, 0.06), borderBottom: `2px solid ${color}` }}>
         {/* Photo (or initials placeholder) */}
-        <div className="h-[72px] w-[60px] shrink-0 rounded overflow-hidden flex items-center justify-center text-[22px] font-black" style={{ background: alpha(color, 0.2), border: `2px solid ${alpha(color, 0.3)}` }}>
+        <div className="h-[84px] w-[70px] shrink-0 rounded overflow-hidden flex items-center justify-center text-[22px] font-black" style={{ background: alpha(color, 0.2), border: `2px solid ${alpha(color, 0.3)}` }}>
           {photo
             ? <img src={photo} alt="" className="h-full w-full object-cover" />
             : <span style={{ color }}>{initialsFor((p.name as string) ?? "")}</span>}
         </div>
-        <div className="flex-1">
-          <h1 className="text-[18px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[9.5px] font-semibold mt-0.5" style={{ color }}>{roleOf(p)}</p>}
+        <div className="flex-1 min-w-[200px]">
+          <h1 className="text-[30px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[12px] font-semibold mt-1" style={{ color }}>{roleOf(p)}</p>}
         </div>
-        <div className="text-right">
+        <div className="text-left md:text-right min-w-[200px]">
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8.5px] text-gray-500">{v}</p>
+            <p key={i} className="text-[10px] text-gray-500 leading-normal">{v}</p>
           ))}
         </div>
       </div>
 
-      <div className="flex flex-1" data-resume-two-col-root>
+      <div className="flex flex-1 flex-col md:flex-row" data-resume-two-col-root>
         {/* Left */}
-        <div className="w-[210px] shrink-0 px-5 py-4" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
+        <div className="w-full md:w-[230px] shrink-0 px-5 py-5" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
           {skills.length > 0 && (
-            <>
+            <div className="mb-4">
               <SH label="Skills" />
               {renderSkills(skills, skillsStyle, color, false)}
-            </>
+            </div>
           )}
 
           {edu.length > 0 && (
-            <>
+            <div className="mb-4">
               <SH label="Education" />
               {edu.map((e, i) => (
-                <div key={i} className="mb-2">
-                  <p className="text-[9px] font-semibold text-gray-800">{str(e.school)}</p>
-                  <p className="text-[8px] text-gray-500">{str(e.degree)}</p>
-                  <p className="text-[7.5px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                <div key={i} className="mb-3.5 last:mb-0">
+                  <p className="text-[12px] font-semibold text-gray-800">{str(e.school)}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                 </div>
               ))}
-            </>
+            </div>
           )}
 
           {certs.length > 0 && (
-            <>
+            <div>
               <SH label="Certifications" />
-              {certs.map((c, i) => <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />)}
-            </>
+              {certs.map((c, i) => (
+                <div key={i} className="mb-1 last:mb-0">
+                  <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
         {/* Right */}
-        <div className="flex-1 min-w-0 px-6 py-4">
+        <div className="flex-1 min-w-0 px-7 py-5">
           {str(summary.text) && (
-            <>
+            <div className="mb-6">
               <SH label="Profile" />
-              <div className="resume-text text-[9px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
-            </>
+              <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+            </div>
           )}
 
           {exp.length > 0 && (
-            <>
+            <div className="mb-6">
               <SH label="Work Experience" />
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {exp.map((e, i) => (
                   <div key={i}>
-                    <div className="flex justify-between items-baseline">
-                      <p className="text-[10px] font-bold text-gray-900">{str(e.title)}</p>
-                      <p className="text-[8px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
+                      <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                     </div>
-                    <p className="text-[8.5px] font-semibold" style={{ color }}>{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
+                    <p className="text-[11.5px] font-semibold" style={{ color }}>{str(e.company)}{e.location ? `, ${str(e.location)}` : ""}</p>
                     {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                      <div key={j} className="flex gap-1.5 mt-1">
-                        <span className="mt-[4px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                        <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
+                      <div key={j} className="flex gap-1.5 mt-1.5">
+                        <span className="mt-[6px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
+                        <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]"><BulletContent b={b} color={color} /></div>
                       </div>
                     ))}
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
 
           {projects.length > 0 && (
-            <>
+            <div>
               <SH label="Projects" />
               {projects.map((pr, i) => (
-                <div key={i} className="mb-1.5">
+                <div key={i} className="mb-3.5 last:mb-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[9.5px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[8.5px] text-gray-600" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
-            </>
+            </div>
           )}
-
         </div>
       </div>
     </div>
   );
 }
-
 /* ═══════════════════════════════════════════════════════════
    12. TWO COLUMN PREMIUM — 35/65 elegant split
 ═══════════════════════════════════════════════════════════ */
@@ -1825,41 +1837,41 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
   return (
     <div className="flex" data-resume-two-col-root style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Left 35% sidebar */}
-      <div className="w-[270px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebarBg, minHeight: "100%" }}>
+      <div className="w-[280px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebarBg, minHeight: "100%" }}>
         {/* Avatar + name */}
         <div className="px-6 pt-7 pb-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-          <div className="mb-3">
+          <div className="mb-3.5">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[14px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
-          {roleOf(p) && <p className="text-[8.5px] mt-1 font-medium tracking-wide uppercase" style={{ color }}>{roleOf(p)}</p>}
+          <h1 className="text-[28px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
+          {roleOf(p) && <p className="text-[12px] mt-1.5 font-medium tracking-wide uppercase" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
         {/* Contact */}
-        <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-          <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>Contact</p>
+        <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
-            <p key={i} className="text-[8px] text-gray-600 mb-0.5 break-all leading-relaxed">{v}</p>
+            <p key={i} className="text-[11px] text-gray-600 mb-1 last:mb-0 break-all leading-relaxed">{v}</p>
           ))}
         </div>
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Skills</p>
+          <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
         )}
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-6 py-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Education</p>
+          <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+            <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color }}>Education</p>
             {edu.map((e, i) => (
-              <div key={i} className="mb-2.5">
-                <p className="text-[9px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[8px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[7.5px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+              <div key={i} className="mb-3 last:mb-0">
+                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
           </div>
@@ -1867,52 +1879,54 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {/* Certifications */}
         {certs.length > 0 && (
-          <div className="px-6 py-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>Certifications</p>
+          <div className="px-6 py-4.5">
+            <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3.5" style={{ color }}>Certifications</p>
             {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[8px] text-gray-600 mb-0.5" color={color} />
+              <div key={i} className="mb-1 last:mb-0">
+                <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+              </div>
             ))}
           </div>
         )}
       </div>
 
       {/* Right 65% main */}
-      <div className="resume-template-columns-main flex-1 px-7 py-7">
+      <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
-              <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Profile</p>
+              <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Profile</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
-            <div className="resume-text text-[9.5px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
+            <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
         )}
 
         {exp.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
-              <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Experience</p>
+              <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Experience</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
             <div className="relative border-l-2 border-transparent">
               <div className="absolute w-[2px]" style={{ top: '8px', bottom: '-4px', left: '-1px', transform: 'translateX(-50%)', background: alpha(color, 0.2), zIndex: 0 }} />
-              <div className="space-y-4">
+              <div className="space-y-5">
               {exp.map((e, i) => (
                 <div key={i} className="relative pl-4">
-                  <div className="absolute top-[4px] h-2 w-2 rounded-full" style={{ left: '-1px', transform: 'translateX(-50%)', background: color }} />
-                  <div className="flex justify-between items-start mb-0.5">
+                  <div className="absolute top-[6px] h-2 w-2 rounded-full" style={{ left: '-1px', transform: 'translateX(-50%)', background: color }} />
+                  <div className="flex justify-between items-start mb-1 flex-wrap gap-2">
                     <div>
-                      <p className="text-[10.5px] font-bold text-gray-900">{str(e.title)}</p>
-                      <p className="text-[9px] font-semibold" style={{ color }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
+                      <p className="text-[12.5px] font-bold text-gray-900">{str(e.title)}</p>
+                      <p className="text-[11.5px] font-semibold mt-0.5" style={{ color }}>{str(e.company)}{e.location ? ` · ${str(e.location)}` : ""}</p>
                     </div>
-                    <p className="text-[7.5px] text-gray-400 shrink-0 ml-3 mt-0.5 bg-gray-50 px-1.5 py-0.5 rounded">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
+                    <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 bg-gray-50 px-1.5 py-0.5 rounded">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
                   </div>
                   {items<unknown>(e as SC, "bullets").filter((b) => { const p = bulletParts(b); return p.text || p.label || p.link; }).map((b, j) => (
-                    <div key={j} className="flex gap-1.5 mt-1">
-                      <span className="mt-[5px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
-                      <div className="flex-1 min-w-0 text-[8.5px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
+                    <div key={j} className="flex gap-1.5 mt-1.5">
+                      <span className="mt-[6px] h-1 w-1 rounded-full shrink-0" style={{ background: color }} />
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]"><BulletContent b={b} color={color} /></div>
                     </div>
                   ))}
                 </div>
@@ -1924,19 +1938,19 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {projects.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex items-center gap-2 mb-3.5">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
-              <p className="text-[8px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Projects</p>
+              <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Projects</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-lg p-2.5" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="rounded-lg p-3" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[9px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[7.5px]" />
+                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[8px] text-gray-500 mt-0.5" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
+                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
               ))}
             </div>
@@ -1985,10 +1999,12 @@ export function ResumePreview({
     templateId === "silicon-valley"
       ? { widthPx: 240, color: alpha(color, 0.05) }
       : templateId === "creative-pro"
-        ? { widthPx: 195, color: alpha(color, 0.08) }
+        ? { widthPx: 220, color: alpha(color, 0.08) }
         : templateId === "two-column"
-          ? { widthPx: 270, color: alpha(color, 0.05) }
-          : null;
+          ? { widthPx: 280, color: alpha(color, 0.05) }
+          : templateId === "european"
+            ? { widthPx: 230, color: alpha(color, 0.03) }
+            : null;
 
   const measureKey = useMemo(() => {
     const sectionIds = (resume.sections ?? []).map((s) => s.id).join(",");
