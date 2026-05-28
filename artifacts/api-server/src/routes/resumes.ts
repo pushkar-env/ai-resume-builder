@@ -29,6 +29,20 @@ import { completeResumeAi } from "../lib/resume-ai-chat";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const toJSON = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
+function normalizeSocialUrl(url: string, platform: "github" | "linkedin"): string {
+  let u = url.trim();
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith("@")) u = u.slice(1);
+  
+  if (platform === "github" && !u.toLowerCase().includes("github.com")) {
+    u = `github.com/${u}`;
+  } else if (platform === "linkedin" && !u.toLowerCase().includes("linkedin.com")) {
+    u = `linkedin.com/in/${u}`;
+  }
+  return `https://${u}`;
+}
+
 const router: IRouter = Router();
 
 function requireAuth(req: Request, res: Response, next: any): void {
@@ -260,6 +274,8 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     const prompt = `Parse the following resume text into a structured format.
     
     Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
+    Make sure to locate and extract any LinkedIn profile URL or username, and GitHub profile URL or username from the resume text and populate the 'linkedin' and 'github' fields respectively.
+    
     Return ONLY a valid JSON object with the following structure, populated with the extracted information. Use empty strings or empty arrays if information is missing.
     Do NOT wrap the JSON in quotes or code blocks, return ONLY the raw JSON string.
 
@@ -324,6 +340,27 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
       backgroundColor: "#ffffff",
     }).returning();
 
+    const personalContent = { ...(parsedData.personal || {}) };
+    const socials: { label: string; url: string }[] = [];
+
+    if (personalContent.github) {
+      const normalized = normalizeSocialUrl(personalContent.github, "github");
+      if (normalized) {
+        socials.push({ label: "GitHub", url: normalized });
+      }
+      delete personalContent.github;
+    }
+    if (personalContent.linkedin) {
+      const normalized = normalizeSocialUrl(personalContent.linkedin, "linkedin");
+      if (normalized) {
+        socials.push({ label: "LinkedIn", url: normalized });
+      }
+      delete personalContent.linkedin;
+    }
+    if (socials.length > 0) {
+      personalContent.socials = socials;
+    }
+
     // Map to sections
     const sectionsToInsert = [
       {
@@ -331,7 +368,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         type: "personal",
         title: "Personal Details",
         displayOrder: 0,
-        content: parsedData.personal || {},
+        content: personalContent,
       },
       {
         resumeId: resume.id,
