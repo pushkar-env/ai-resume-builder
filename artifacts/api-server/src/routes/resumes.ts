@@ -360,7 +360,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         type: "skills",
         title: "Skills",
         displayOrder: 4,
-        content: { style: "bars", items: parsedData.skills || [] },
+        content: { style: "bullets", items: parsedData.skills || [] },
       },
       {
         resumeId: resume.id,

@@ -404,7 +404,7 @@ function renderSkills(
               className="h-1 w-1 rounded-full shrink-0"
               style={{ backgroundColor: color }}
             />
-            <span className={`text-[8.5px] font-medium leading-none ${dark ? "text-white/90" : "text-gray-700"}`}>
+            <span className={`text-[8.5px] font-medium leading-normal ${dark ? "text-white/90" : "text-gray-700"}`}>
               {str(s.name)}
             </span>
           </div>
