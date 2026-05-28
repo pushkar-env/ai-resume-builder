@@ -475,7 +475,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+        <div className="resume-export-block px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
           <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
             <p key={i} className="text-[11px] text-gray-600 mb-1 leading-relaxed break-all">{v}</p>
@@ -484,7 +484,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <div className="resume-export-block px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
             <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
@@ -492,25 +492,31 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <div className="resume-export-block px-5 py-5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
             <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Education</p>
-            {edu.map((e, i) => (
-              <div key={i} className="mb-3.5 last:mb-0">
-                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[11px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
-              </div>
-            ))}
+            <div className="space-y-3.5">
+              {edu.map((e, i) => (
+                <div key={i} className="resume-export-block">
+                  <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                  <p className="text-[11px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Certifications */}
         {certs.length > 0 && (
-          <div className="px-5 py-5">
+          <div className="resume-export-block px-5 py-5">
             <p className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5" style={{ color }}>Certifications</p>
-            {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1" color={color} />
-            ))}
+            <div className="space-y-1">
+              {certs.map((c, i) => (
+                <div key={i} className="resume-export-block">
+                  <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1" color={color} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -518,7 +524,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
       {/* Main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-7">
+          <div className="resume-export-block mb-7">
             <div className="flex items-center gap-2 mb-2.5">
               <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
@@ -537,7 +543,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
               <div className="absolute w-[2px] bg-gray-100" style={{ top: '8px', bottom: '-4px', left: '-1px', transform: 'translateX(-50%)', zIndex: 0 }} />
               <div className="space-y-4">
               {exp.map((e, i) => (
-                <div key={i} className="relative">
+                <div key={i} className="resume-export-block relative">
                   <TimelineDot color={color} />
                   <div className="flex justify-between items-start mb-0.5">
                     <div>
@@ -567,7 +573,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
             </div>
             <div className="space-y-4">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-lg p-3" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="resume-export-block rounded-lg p-3" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
                     <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
@@ -1014,7 +1020,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Contact */}
-        <div className="px-5 py-4" style={{ background: alpha(color, 0.04) }}>
+        <div className="resume-export-block px-5 py-4" style={{ background: alpha(color, 0.04) }}>
           <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
             <p key={i} className="text-[11px] text-gray-600 break-all leading-relaxed mb-0.5 last:mb-0">{v}</p>
@@ -1023,7 +1029,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-5 py-4" style={{ background: alpha(color, 0.02) }}>
+          <div className="resume-export-block px-5 py-4" style={{ background: alpha(color, 0.02) }}>
             <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
@@ -1031,24 +1037,30 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-5 py-4">
+          <div className="resume-export-block px-5 py-4">
             <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Education</p>
-            {edu.map((e, i) => (
-              <div key={i} className="mb-3.5 last:mb-0">
-                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
-              </div>
-            ))}
+            <div className="space-y-3.5">
+              {edu.map((e, i) => (
+                <div key={i} className="resume-export-block">
+                  <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                  <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {certs.length > 0 && (
-          <div className="px-5 py-4">
+          <div className="resume-export-block px-5 py-4">
             <p className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5" style={{ color }}>Certifications</p>
-            {certs.map((c, i) => (
-              <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1 last:mb-0" color={color} />
-            ))}
+            <div className="space-y-1">
+              {certs.map((c, i) => (
+                <div key={i} className="resume-export-block">
+                  <CertLine key={i} c={c} className="text-[11px] text-gray-600 mb-1 last:mb-0" color={color} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1056,7 +1068,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
       {/* Main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-6 p-4 rounded-xl" style={{ background: alpha(color, 0.06) }}>
+          <div className="resume-export-block mb-6 p-4 rounded-xl" style={{ background: alpha(color, 0.06) }}>
             <p className="text-[13.5px] font-bold uppercase tracking-[0.15em] mb-2" style={{ color }}>About Me</p>
             <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
           </div>
@@ -1070,7 +1082,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
             </div>
             <div className="space-y-4">
               {exp.map((e, i) => (
-                <div key={i} className="rounded-xl p-3.5" style={{ border: `1px solid ${alpha(color, 0.15)}` }}>
+                <div key={i} className="resume-export-block rounded-xl p-3.5" style={{ border: `1px solid ${alpha(color, 0.15)}` }}>
                   <div className="flex justify-between items-start gap-4 flex-wrap mb-1">
                     <div>
                       <p className="text-[12px] font-black text-gray-900">{str(e.title)}</p>
@@ -1100,7 +1112,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-xl p-3" style={{ background: alpha(color, 0.06) }}>
+                <div key={i} className="resume-export-block rounded-xl p-3" style={{ background: alpha(color, 0.06) }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
                     <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
@@ -1772,7 +1784,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
         {/* Left */}
         <div className="w-[230px] shrink-0 px-5 py-5" data-resume-sidebar style={{ background: alpha(color, 0.03), borderRight: `1px solid ${alpha(color, 0.1)}` }}>
           {skills.length > 0 && (
-            <div className="mb-4">
+            <div className="resume-export-block mb-4">
               <SH label="Skills" />
               {renderSkills(skills, skillsStyle, color, false)}
             </div>
@@ -1781,24 +1793,28 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
           {edu.length > 0 && (
             <div className="mb-4">
               <SH label="Education" />
-              {edu.map((e, i) => (
-                <div key={i} className="mb-3.5 last:mb-0">
-                  <p className="text-[12px] font-semibold text-gray-800">{str(e.school)}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
-                </div>
-              ))}
+              <div className="space-y-3.5">
+                {edu.map((e, i) => (
+                  <div key={i} className="resume-export-block">
+                    <p className="text-[12px] font-semibold text-gray-800">{str(e.school)}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {certs.length > 0 && (
-            <div>
+            <div className="resume-export-block">
               <SH label="Certifications" />
-              {certs.map((c, i) => (
-                <div key={i} className="mb-1 last:mb-0">
-                  <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
-                </div>
-              ))}
+              <div className="space-y-1">
+                {certs.map((c, i) => (
+                  <div key={i} className="resume-export-block">
+                    <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1806,7 +1822,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
         {/* Right */}
         <div className="flex-1 min-w-0 px-7 py-5">
           {str(summary.text) && (
-            <div className="mb-6">
+            <div className="resume-export-block mb-6">
               <SH label="Profile" />
               <div className="resume-text text-[11px] text-gray-600 leading-[1.7]" dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }} />
             </div>
@@ -1817,7 +1833,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
               <SH label="Work Experience" />
               <div className="space-y-4">
                 {exp.map((e, i) => (
-                  <div key={i}>
+                  <div key={i} className="resume-export-block">
                     <div className="flex justify-between items-baseline mb-0.5">
                       <p className="text-[12px] font-bold text-gray-900">{str(e.title)}</p>
                       <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : e.startDate ? " – Present" : ""}</p>
@@ -1838,15 +1854,17 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
           {projects.length > 0 && (
             <div>
               <SH label="Projects" />
-              {projects.map((pr, i) => (
-                <div key={i} className="mb-3.5 last:mb-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
+              <div className="space-y-3.5">
+                {projects.map((pr, i) => (
+                  <div key={i} className="resume-export-block">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
+                      <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
+                    </div>
+                    {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                   </div>
-                  {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1883,7 +1901,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Contact */}
-        <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+        <div className="resume-export-block px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
           <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-2.5" style={{ color }}>Contact</p>
           {contactValues(p, color).map((v, i) => (
             <p key={i} className="text-[11px] text-gray-600 mb-1 last:mb-0 break-all leading-relaxed">{v}</p>
@@ -1892,7 +1910,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {/* Skills */}
         {skills.length > 0 && (
-          <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <div className="resume-export-block px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
             <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color }}>Skills</p>
             {renderSkills(skills, skillsStyle, color, false)}
           </div>
@@ -1900,27 +1918,31 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {/* Education */}
         {edu.length > 0 && (
-          <div className="px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
+          <div className="resume-export-block px-6 py-4.5" style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}>
             <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color }}>Education</p>
-            {edu.map((e, i) => (
-              <div key={i} className="mb-3 last:mb-0">
-                <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
-              </div>
-            ))}
+            <div className="space-y-3">
+              {edu.map((e, i) => (
+                <div key={i} className="resume-export-block">
+                  <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
+                  <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Certifications */}
         {certs.length > 0 && (
-          <div className="px-6 py-4.5">
+          <div className="resume-export-block px-6 py-4.5">
             <p className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3.5" style={{ color }}>Certifications</p>
-            {certs.map((c, i) => (
-              <div key={i} className="mb-1 last:mb-0">
-                <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
-              </div>
-            ))}
+            <div className="space-y-1">
+              {certs.map((c, i) => (
+                <div key={i} className="resume-export-block">
+                  <CertLine key={i} c={c} className="text-[11px] text-gray-600" color={color} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1928,7 +1950,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
       {/* Right 65% main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
-          <div className="mb-6">
+          <div className="resume-export-block mb-6">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
               <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Profile</p>
@@ -1949,7 +1971,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               <div className="absolute w-[2px]" style={{ top: '8px', bottom: '-4px', left: '-1px', transform: 'translateX(-50%)', background: alpha(color, 0.2), zIndex: 0 }} />
               <div className="space-y-5">
               {exp.map((e, i) => (
-                <div key={i} className="relative pl-4">
+                <div key={i} className="resume-export-block relative pl-4">
                   <div className="absolute top-[6px] h-2 w-2 rounded-full" style={{ left: '-1px', transform: 'translateX(-50%)', background: color }} />
                   <div className="flex justify-between items-start mb-1 flex-wrap gap-2">
                     <div>
@@ -1980,7 +2002,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {projects.map((pr, i) => (
-                <div key={i} className="rounded-lg p-3" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="resume-export-block rounded-lg p-3" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
                     <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
