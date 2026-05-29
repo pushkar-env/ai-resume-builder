@@ -49,6 +49,18 @@ function alpha(hex: string, a: number) {
   return hex.startsWith("#") ? hex + v : hex;
 }
 
+function getSidebarNameFontSize(name: string, maxDefaultSize = 28): string {
+  const nameStr = str(name).trim();
+  if (!nameStr) return `${maxDefaultSize}px`;
+  const words = nameStr.split(/\s+/);
+  const maxWordLength = Math.max(...words.map(w => w.length));
+  if (maxWordLength > 8) {
+    const calculated = Math.max(16, Math.round(maxDefaultSize * (8 / maxWordLength)));
+    return `${calculated}px`;
+  }
+  return `${maxDefaultSize}px`;
+}
+
 /** Parse #RGB / #RRGGBB / #RRGGBBAA (alpha stripped for luminance). */
 function parseHexRgb(hex: string): { r: number; g: number; b: number } | null {
   let h = hex.trim();
@@ -467,7 +479,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
       <div className="w-[240px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebar, minHeight: "100%" }}>
         {/* Name block */}
         <div className="p-6 pb-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.08)` }}>
-          <h1 className="text-[28px] font-bold text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          <h1 className="font-bold text-gray-900 tracking-tight" style={{ fontSize: getSidebarNameFontSize(str(p.name), 28), lineHeight: "1.2" }}>{str(p.name) || "Your Name"}</h1>
           {roleOf(p) && <p className="text-[12px] mt-1 font-semibold" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
@@ -1042,7 +1054,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
           <div className="mb-3.5">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[28px] font-black text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
+          <h1 className="font-black text-gray-900 tracking-tight" style={{ fontSize: getSidebarNameFontSize(str(p.name), 28), lineHeight: "1.2" }}>{str(p.name) || "Your Name"}</h1>
           {roleOf(p) && <p className="text-[12px] font-bold mt-1.5 uppercase tracking-wide" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
@@ -1983,7 +1995,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
           <div className="mb-3.5">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
-          <h1 className="text-[28px] font-bold text-gray-900 leading-tight">{str(p.name) || "Your Name"}</h1>
+          <h1 className="font-bold text-gray-900" style={{ fontSize: getSidebarNameFontSize(str(p.name), 28), lineHeight: "1.2" }}>{str(p.name) || "Your Name"}</h1>
           {roleOf(p) && <p className="text-[12px] mt-1.5 font-medium tracking-wide uppercase" style={{ color }}>{roleOf(p)}</p>}
         </div>
 
