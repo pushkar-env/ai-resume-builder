@@ -589,10 +589,10 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
             </div>
             <div className="space-y-4">
               {projects.map((pr, i) => (
-                <div key={i} className="resume-export-block rounded-lg p-3" style={{ background: alpha(color, 0.05), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="resume-export-block">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
+                    <p className="text-[12.5px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10.5px]" />
                   </div>
                   {str(pr.description) && <div className="resume-text text-[11px] text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
@@ -1140,9 +1140,9 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
               <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
               <p className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800" style={{ color }}>Projects</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
               {projects.map((pr, i) => (
-                <div key={i} className="resume-export-block rounded-xl p-3" style={{ background: alpha(color, 0.06) }}>
+                <div key={i} className="resume-export-block rounded-xl p-3.5" style={{ border: `1px solid ${alpha(color, 0.15)}` }}>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
                     <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
@@ -2106,12 +2106,12 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Projects</p>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               {projects.map((pr, i) => (
-                <div key={i} className="resume-export-block rounded-lg p-3" style={{ background: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.12)}` }}>
+                <div key={i} className="resume-export-block">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-bold text-gray-900">{str(pr.name)}</p>
-                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10px]" />
+                    <p className="text-[12.5px] font-bold text-gray-900">{str(pr.name)}</p>
+                    <ProjectLink url={pr.url} label={pr.label} color={color} className="text-[10.5px]" />
                   </div>
                   {str(pr.description) && <div className="resume-text text-[11px] text-gray-500 mt-1" dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }} />}
                 </div>
