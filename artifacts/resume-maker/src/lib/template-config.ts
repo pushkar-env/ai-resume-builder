@@ -1,5 +1,5 @@
 export const TEMPLATE_CONFIG: Record<string, { accent: string; bg: string }> = {
-  "silicon-valley": { accent: "#6366f1", bg: "#0f1117" },
+  "silicon-valley": { accent: "#000000", bg: "#0f1117" },
   "faang":          { accent: "#000000", bg: "#f8fafc" },
   "nova":           { accent: "#64748b", bg: "#f8fafc" },
   "executive-pro":  { accent: "#92400e", bg: "#fffbeb" },
@@ -9,12 +9,12 @@ export const TEMPLATE_CONFIG: Record<string, { accent: string; bg: string }> = {
   "academic":       { accent: "#1e40af", bg: "#eff6ff" },
   "corporate-navy": { accent: "#1e3a5f", bg: "#f0f4f8" },
   "compact":        { accent: "#000000", bg: "#f8fafc" },
-  "european":       { accent: "#7c3aed", bg: "#f5f3ff" },
+  "european":       { accent: "#000000", bg: "#f8fafc" },
   "two-column":     { accent: "#0d9488", bg: "#0f1117" },
 };
 
 export const TEMPLATE_DEFAULT_SKILL_STYLES: Record<string, string> = {
-  "silicon-valley": "radial",
+  "silicon-valley": "bullets",
   "faang":          "chips",
   "nova":           "text",
   "executive-pro":  "bars",
@@ -29,8 +29,8 @@ export const TEMPLATE_DEFAULT_SKILL_STYLES: Record<string, string> = {
 };
 
 export function getDefaultAccentColor(templateId: string | null | undefined): string {
-  if (!templateId) return "#7c3aed";
-  return TEMPLATE_CONFIG[templateId]?.accent ?? "#7c3aed";
+  if (!templateId) return "#000000";
+  return TEMPLATE_CONFIG[templateId]?.accent ?? "#000000";
 }
 
 export function getDefaultSkillStyle(templateId: string | null | undefined): string {

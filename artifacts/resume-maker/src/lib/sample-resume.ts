@@ -5,7 +5,7 @@ export const SAMPLE_RESUME = {
   userId: "sample",
   title: "Sample Resume",
   templateId: "silicon-valley",
-  accentColor: "#7c3aed",
+  accentColor: "#000000",
   fontFamily: "Inter, sans-serif",
   isPublic: false,
   shareToken: null,

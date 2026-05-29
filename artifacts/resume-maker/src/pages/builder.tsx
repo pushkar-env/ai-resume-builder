@@ -79,7 +79,7 @@ import { emptySectionContentForType } from "@/lib/empty-section-content";
 import { RESUME_PDF_EXPORT_CSS } from "@/lib/resume-export-styles";
 
 const ACCENT_COLORS = [
-  { label: "Violet", value: "#7c3aed" },
+  { label: "Black", value: "#000000" },
   { label: "Blue", value: "#2563eb" },
   { label: "Slate", value: "#475569" },
   { label: "Teal", value: "#0d9488" },
@@ -435,7 +435,7 @@ export default function BuilderPage() {
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [localSections, setLocalSections] = useState<Section[]>([]);
-  const [accentColor, setAccentColor] = useState("#7c3aed");
+  const [accentColor, setAccentColor] = useState("#000000");
   const [fontFamily, setFontFamily] = useState("Inter, sans-serif");
   const [fontColor, setFontColor] = useState("#111827");
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");

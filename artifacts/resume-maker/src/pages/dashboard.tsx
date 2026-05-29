@@ -588,9 +588,9 @@ export default function DashboardPage() {
                 placeholder="e.g. Software Engineer Resume"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    const cfg = TEMPLATE_CONFIG["compact"] ?? { accent: "#7c3aed" };
+                    const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? { accent: "#000000" };
                     createResume.mutate({
-                      data: { title: newTitle, templateId: "compact", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
+                      data: { title: newTitle, templateId: "silicon-valley", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
                     });
                   }
                 }}
@@ -620,9 +620,9 @@ export default function DashboardPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
             <Button
               onClick={() => {
-                const cfg = TEMPLATE_CONFIG["compact"] ?? { accent: "#7c3aed" };
+                const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? { accent: "#000000" };
                 createResume.mutate({
-                  data: { title: newTitle, templateId: "compact", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
+                  data: { title: newTitle, templateId: "silicon-valley", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
                 });
               }}
               disabled={createResume.isPending || !newTitle.trim()}

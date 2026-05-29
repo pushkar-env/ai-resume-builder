@@ -86,7 +86,7 @@ export default function TemplatesPage() {
     }
     
     setCreating(true);
-    const cfg = TEMPLATE_CONFIG[templateId] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
+    const cfg = TEMPLATE_CONFIG[templateId] ?? { accent: "#000000", bg: "#f8fafc" };
     createResume.mutate({ data: { title: "My Resume", templateId, accentColor: cfg.accent, startPrefilled: true } });
   };
 
@@ -150,7 +150,7 @@ export default function TemplatesPage() {
         ) : (
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filtered.map((template) => {
-              const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
+              const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#000000", bg: "#f8fafc" };
               const isSelected = selected === template.id;
               const isHovered = hoveredId === template.id;
               const catClass = CATEGORY_COLORS[template.category ?? ""] ?? "bg-gray-100 text-gray-600";

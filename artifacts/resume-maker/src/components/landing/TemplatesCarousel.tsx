@@ -38,7 +38,7 @@ export function TemplatesCarousel() {
       >
         <CarouselContent className="-ml-4">
           {templateList.map((template) => {
-            const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#7c3aed", bg: "#f5f3ff" };
+            const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#000000", bg: "#f8fafc" };
             return (
               <CarouselItem key={template.id} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
                 <div className="relative rounded-2xl border border-border overflow-hidden bg-background flex flex-col h-full">

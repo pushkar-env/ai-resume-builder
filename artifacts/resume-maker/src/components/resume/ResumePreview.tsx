@@ -467,9 +467,6 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
       <div className="w-[240px] shrink-0 flex flex-col" data-resume-sidebar style={{ background: sidebar, minHeight: "100%" }}>
         {/* Name block */}
         <div className="p-6 pb-4" style={{ borderBottom: `1px solid rgba(0,0,0,0.08)` }}>
-          <div className="mb-3">
-            <Avatar p={p} bg={color} />
-          </div>
           <h1 className="text-[28px] font-bold text-gray-900 leading-tight tracking-tight">{str(p.name) || "Your Name"}</h1>
           {roleOf(p) && <p className="text-[12px] mt-1 font-semibold" style={{ color }}>{roleOf(p)}</p>}
         </div>
@@ -1171,7 +1168,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const gold = color === "#7c3aed" ? "#d4a853" : color;
+  const gold = (color === "#7c3aed" || color === "#000000") ? "#d4a853" : color;
   const card = alpha(color, 0.04);
   const border = alpha(color, 0.15);
 
@@ -1556,7 +1553,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const navy = color === "#7c3aed" ? "#1e3a5f" : color;
+  const navy = (color === "#7c3aed" || color === "#000000") ? "#1e3a5f" : color;
   const headerContactLinkColor = readableAccentOnBackground(navy, color);
 
   return (

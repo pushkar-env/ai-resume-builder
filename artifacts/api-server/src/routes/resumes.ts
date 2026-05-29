@@ -201,7 +201,7 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
   }
 
     const defaultColors: Record<string, string> = {
-      "silicon-valley": "#6366f1",
+      "silicon-valley": "#000000",
       "faang": "#000000",
       "nova": "#64748b",
       "executive-pro": "#92400e",
@@ -211,10 +211,10 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
       "academic": "#1e40af",
       "corporate-navy": "#1e3a5f",
       "compact": "#000000",
-      "european": "#7c3aed",
+      "european": "#000000",
       "two-column": "#0d9488",
     };
-    const defaultColor = defaultColors[parsed.data.templateId] ?? "#7c3aed";
+    const defaultColor = defaultColors[parsed.data.templateId] ?? "#000000";
 
     const [resume] = await db.insert(resumesTable).values({
     userId,
@@ -326,7 +326,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     }
 
     // Default template configuration
-    const templateId = "compact";
+    const templateId = "silicon-valley";
     const accentColor = "#000000";
     const title = parsedData.title || file.originalname.replace(/\.[^/.]+$/, "") || "Imported Resume";
 
