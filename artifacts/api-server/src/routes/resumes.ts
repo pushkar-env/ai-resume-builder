@@ -29,16 +29,32 @@ import { completeResumeAi } from "../lib/resume-ai-chat";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const toJSON = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
-function normalizeSocialUrl(url: string, platform: "github" | "linkedin"): string {
+function normalizeUrl(url: unknown): string {
+  const u = String(url || "").trim();
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+  return `https://${u}`;
+}
+
+function normalizeSocialUrl(url: string, platform: string): string {
   let u = url.trim();
   if (!u) return "";
   if (/^https?:\/\//i.test(u)) return u;
   if (u.startsWith("@")) u = u.slice(1);
   
-  if (platform === "github" && !u.toLowerCase().includes("github.com")) {
+  const plat = platform.toLowerCase();
+  if (plat === "github" && !u.toLowerCase().includes("github.com")) {
     u = `github.com/${u}`;
-  } else if (platform === "linkedin" && !u.toLowerCase().includes("linkedin.com")) {
+  } else if (plat === "linkedin" && !u.toLowerCase().includes("linkedin.com")) {
     u = `linkedin.com/in/${u}`;
+  } else if ((plat === "twitter" || plat === "x") && !u.toLowerCase().includes("twitter.com") && !u.toLowerCase().includes("x.com")) {
+    u = `x.com/${u}`;
+  } else if (plat === "leetcode" && !u.toLowerCase().includes("leetcode.com")) {
+    u = `leetcode.com/${u}`;
+  } else if (plat === "behance" && !u.toLowerCase().includes("behance.net")) {
+    u = `behance.net/${u}`;
+  } else if (plat === "dribbble" && !u.toLowerCase().includes("dribbble.com")) {
+    u = `dribbble.com/${u}`;
   }
   return `https://${u}`;
 }
@@ -274,7 +290,11 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     const prompt = `Parse the following resume text into a structured format.
     
     Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
-    Make sure to locate and extract any LinkedIn profile URL or username, and GitHub profile URL or username from the resume text and populate the 'linkedin' and 'github' fields respectively.
+    
+    Guidelines:
+    1. Social & Professional Links: Extract ALL social or professional profile links/usernames found in the resume (such as LinkedIn, GitHub, Twitter, Portfolio, LeetCode, Behance, Dribbble, etc.) into the 'personal.socials' array. Populate the 'label' with the platform name (e.g. "LinkedIn", "GitHub", "Twitter", "LeetCode", "Portfolio") and the 'url' with the full URL or username.
+    2. GPA: Extract the candidate's GPA/Grade from the education items as a clean numeric score (e.g. "3.9" or "9.8" or "8.5"). If the GPA is written with a scale (e.g., "3.9/4.0" or "9.8/10"), strip the scale and extract only the score part (e.g., "3.9" or "9.8").
+    3. Dates: Normalize all work experience and education dates into a clean, consistent format, preferably "Month Year" (e.g. "Jan 2020", "May 2021") or just "Year" (e.g. "2020") if month is missing. If a job or education is ongoing/current, use "Present" for the end date.
     
     Return ONLY a valid JSON object with the following structure, populated with the extracted information. Use empty strings or empty arrays if information is missing.
     Do NOT wrap the JSON in quotes or code blocks, return ONLY the raw JSON string.
@@ -283,7 +303,10 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     {
       "title": "A short suitable title for this resume (e.g. Software Engineer)",
       "personal": {
-        "name": "", "jobTitle": "", "email": "", "phone": "", "location": "", "website": "", "github": "", "linkedin": ""
+        "name": "", "jobTitle": "", "email": "", "phone": "", "location": "", "website": "",
+        "socials": [
+          { "label": "", "url": "" }
+        ]
       },
       "summary": { "text": "" },
       "experience": [
@@ -341,25 +364,107 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     }).returning();
 
     const personalContent = { ...(parsedData.personal || {}) };
-    const socials: { label: string; url: string }[] = [];
+    const rawSocials = Array.isArray(personalContent.socials) ? personalContent.socials : [];
+    const socialMap = new Map<string, string>();
 
+    // Support old schema keys if LLM output still uses them
     if (personalContent.github) {
       const normalized = normalizeSocialUrl(personalContent.github, "github");
-      if (normalized) {
-        socials.push({ label: "GitHub", url: normalized });
-      }
+      if (normalized) socialMap.set("github", normalized);
       delete personalContent.github;
     }
     if (personalContent.linkedin) {
       const normalized = normalizeSocialUrl(personalContent.linkedin, "linkedin");
-      if (normalized) {
-        socials.push({ label: "LinkedIn", url: normalized });
-      }
+      if (normalized) socialMap.set("linkedin", normalized);
       delete personalContent.linkedin;
     }
-    if (socials.length > 0) {
-      personalContent.socials = socials;
+
+    // Merge in socials array
+    for (const item of rawSocials) {
+      if (item && typeof item === "object") {
+        const label = String(item.label || "").trim();
+        const url = String(item.url || "").trim();
+        if (label && url) {
+          const normalized = normalizeSocialUrl(url, label);
+          if (normalized) {
+            socialMap.set(label.toLowerCase(), normalized);
+          }
+        }
+      }
     }
+
+    // Format platform names nicely
+    const socials: { label: string; url: string }[] = [];
+    const formatLabel = (lbl: string): string => {
+      const mapping: Record<string, string> = {
+        github: "GitHub",
+        linkedin: "LinkedIn",
+        twitter: "Twitter",
+        x: "Twitter",
+        leetcode: "LeetCode",
+        behance: "Behance",
+        dribbble: "Dribbble",
+        portfolio: "Portfolio",
+        website: "Website"
+      };
+      return mapping[lbl.toLowerCase()] || lbl;
+    };
+
+    socialMap.forEach((url, labelKey) => {
+      socials.push({ label: formatLabel(labelKey), url });
+    });
+
+    personalContent.socials = socials;
+
+    // Clean up Experience
+    const parsedExp = Array.isArray(parsedData.experience) ? parsedData.experience : [];
+    const experienceItems = parsedExp.map((expItem: any) => {
+      const item = { ...expItem };
+      if (item.startDate) item.startDate = String(item.startDate).trim();
+      if (item.endDate) item.endDate = String(item.endDate).trim();
+      if (!Array.isArray(item.bullets)) {
+        item.bullets = typeof item.bullets === "string" ? [item.bullets] : [];
+      } else {
+        item.bullets = item.bullets.map((b: any) => String(b || "").trim()).filter(Boolean);
+      }
+      return item;
+    });
+
+    // Clean up Education
+    const parsedEdu = Array.isArray(parsedData.education) ? parsedData.education : [];
+    const educationItems = parsedEdu.map((eduItem: any) => {
+      const item = { ...eduItem };
+      if (item.gpa) {
+        let g = String(item.gpa).trim();
+        const slashIndex = g.indexOf("/");
+        if (slashIndex !== -1) {
+          g = g.substring(0, slashIndex).trim();
+        }
+        const numMatch = g.match(/\d+(\.\d+)?/);
+        if (numMatch) {
+          g = numMatch[0];
+        }
+        item.gpa = g;
+      }
+      if (item.startDate) item.startDate = String(item.startDate).trim();
+      if (item.endDate) item.endDate = String(item.endDate).trim();
+      return item;
+    });
+
+    // Clean up Projects & Certifications
+    const parsedProjects = Array.isArray(parsedData.projects) ? parsedData.projects : [];
+    const projectItems = parsedProjects.map((pItem: any) => {
+      const item = { ...pItem };
+      if (item.url) item.url = normalizeUrl(item.url);
+      return item;
+    });
+
+    const parsedCerts = Array.isArray(parsedData.certifications) ? parsedData.certifications : [];
+    const certItems = parsedCerts.map((cItem: any) => {
+      const item = { ...cItem };
+      if (item.credentialUrl) item.credentialUrl = normalizeUrl(item.credentialUrl);
+      return item;
+    });
 
     // Map to sections
     const sectionsToInsert = [
@@ -382,14 +487,14 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         type: "experience",
         title: "Work Experience",
         displayOrder: 2,
-        content: { items: parsedData.experience || [] },
+        content: { items: experienceItems },
       },
       {
         resumeId: resume.id,
         type: "education",
         title: "Education",
         displayOrder: 3,
-        content: { items: parsedData.education || [] },
+        content: { items: educationItems },
       },
       {
         resumeId: resume.id,
@@ -403,14 +508,14 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         type: "projects",
         title: "Projects",
         displayOrder: 5,
-        content: { items: parsedData.projects || [] },
+        content: { items: projectItems },
       },
       {
         resumeId: resume.id,
         type: "certifications",
         title: "Certifications",
         displayOrder: 6,
-        content: { items: parsedData.certifications || [] },
+        content: { items: certItems },
       },
     ];
 
