@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pen, FileText } from "lucide-react";
+import { Pen, File } from "lucide-react";
 
 export function PremiumLoadingScreen({ 
   title = "Loading...", 
@@ -19,28 +19,28 @@ export function PremiumLoadingScreen({
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            {/* Document Background */}
-            <FileText className="w-24 h-28 text-muted-foreground/20 stroke-[1]" />
+            {/* Blank Document Background */}
+            <File className="w-24 h-28 text-muted-foreground/20 stroke-[1]" />
             
             {/* Writing Lines inside the document */}
-            <div className="absolute top-8 left-5 right-5 space-y-2">
+            <div className="absolute top-9 left-6 right-6 space-y-3">
               <motion.div 
-                className="h-1 bg-muted-foreground/30 rounded-full"
+                className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                animate={{ width: "85%" }}
+                transition={{ duration: 1.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
               />
               <motion.div 
-                className="h-1 bg-muted-foreground/30 rounded-full"
+                className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "80%" }}
-                transition={{ duration: 1, delay: 0.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                animate={{ width: "70%" }}
+                transition={{ duration: 1.2, delay: 0.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
               />
               <motion.div 
-                className="h-1 bg-muted-foreground/30 rounded-full"
+                className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "60%" }}
-                transition={{ duration: 1, delay: 0.4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                animate={{ width: "55%" }}
+                transition={{ duration: 1.2, delay: 0.4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
               />
             </div>
 
