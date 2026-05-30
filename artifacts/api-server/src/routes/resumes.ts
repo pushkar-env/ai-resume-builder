@@ -117,8 +117,8 @@ const SEEDED_SECTIONS = [
     type: "education", title: "Education", displayOrder: 3,
     content: {
       items: [
-        { school: "Stanford University", degree: "M.S.", field: "Computer Science", startDate: "2015", endDate: "2017", gpa: "3.9" },
-        { school: "UC Berkeley", degree: "B.S.", field: "Computer Science", startDate: "2011", endDate: "2015", gpa: "3.8" },
+        { school: "Stanford University", degree: "M.S.", field: "Computer Science", startDate: "2015", endDate: "2017", gpa: "9.8" },
+        { school: "UC Berkeley", degree: "B.S.", field: "Computer Science", startDate: "2011", endDate: "2015", gpa: "8.5" },
       ],
     },
   },

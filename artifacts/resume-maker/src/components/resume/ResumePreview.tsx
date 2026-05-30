@@ -33,6 +33,15 @@ function richHtml(v: unknown): string {
   // Replace non-breaking spaces during render to prevent words from being glued together and split abruptly
   return html.replace(/&nbsp;/gi, " ").replace(/\u00A0/g, " ");
 }
+function formatGpa(v: unknown): string {
+  const gpaStr = str(v).trim();
+  if (!gpaStr) return "";
+  const num = Number(gpaStr);
+  if (gpaStr !== "" && !isNaN(num) && Number.isInteger(num)) {
+    return num.toFixed(1);
+  }
+  return gpaStr;
+}
 /** Coerce a skill level to a 0–100 number. Handles legacy string values like "intermediate". */
 function skillPct(v: unknown): number {
   if (typeof v === "number" && Number.isFinite(v)) return Math.min(100, Math.max(0, v));
@@ -507,7 +516,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
               <div>
                 <p className="text-[12px] font-bold text-gray-900">{str(edu[0].school)}</p>
                 <p className="text-[11px] text-gray-600">{str(edu[0].degree)}{edu[0].field ? `, ${str(edu[0].field)}` : ""}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}{edu[0].gpa ? ` · GPA: ${formatGpa(edu[0].gpa)}` : ""}</p>
               </div>
             </div>
             {edu.length > 1 && (
@@ -516,7 +525,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                   <div key={i} className="resume-export-block">
                     <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
                     <p className="text-[11px] text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                   </div>
                 ))}
               </div>
@@ -716,7 +725,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                   <div key={i} className="resume-export-block flex justify-between items-start">
                     <div>
                       <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                      <p className="text-[11px] text-gray-500">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                      <p className="text-[11px] text-gray-500">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                     </div>
                     <p className="text-[10px] text-gray-400 shrink-0 ml-2 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
                   </div>
@@ -831,7 +840,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
                 <div key={i} className="resume-export-block">
                   <p className="text-[12px] font-bold text-gray-800">{str(e.school)}</p>
                   <p className="text-[11px] text-gray-400">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                  <p className="text-[10px] text-gray-300 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <p className="text-[10px] text-gray-300 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -966,7 +975,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
                 <div key={i} className="resume-export-block">
                   <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
                   <p className="text-[11px] italic text-gray-600">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                  <p className="text-[10px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <p className="text-[10px] text-gray-400">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -1083,7 +1092,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
                 <div key={i} className="resume-export-block">
                   <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
                   <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                 </div>
               ))}
             </div>
@@ -1250,7 +1259,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                   <div key={i} className="resume-export-block rounded-lg p-3" style={{ background: card, border: `1px solid ${border}` }}>
                     <p className="text-[12px] font-semibold text-gray-900">{str(e.school)}</p>
                     <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                   </div>
                 ))}
               </div>
@@ -1366,7 +1375,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
           <div className="space-y-2">
             {edu.map((e, i) => (
               <div key={i} className="resume-export-block flex justify-between items-baseline">
-                <p className="text-[11.5px] font-bold text-gray-900">{str(e.school)} — {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[11.5px] font-bold text-gray-900">{str(e.school)} — {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}{e.gpa ? ` (GPA: ${formatGpa(e.gpa)})` : ""}</p>
                 <p className="text-[10px] text-gray-700 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
             ))}
@@ -1469,7 +1478,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                 <div>
                   <p className="text-[12px] font-bold text-gray-900">{str(e.degree)}{e.field ? ` in ${str(e.field)}` : ""}</p>
                   <p className="text-[11px] italic text-gray-600 mt-0.5">{str(e.school)}</p>
-                  {str(e.gpa) && <p className="text-[10px] text-gray-500 mt-0.5">GPA: {str(e.gpa)}</p>}
+                  {e.gpa ? <p className="text-[10px] text-gray-500 mt-0.5">GPA: {formatGpa(e.gpa)}</p> : null}
                 </div>
                 <p className="text-[10px] text-gray-500 shrink-0 ml-3">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
               </div>
@@ -1629,7 +1638,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                     <div key={i} className="resume-export-block p-2 rounded" style={{ background: alpha(navy, 0.04) }}>
                       <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
                       <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                     </div>
                   ))}
                 </div>
@@ -1770,7 +1779,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
             <div key={i} className="resume-export-block flex justify-between items-baseline">
               <div className="flex items-baseline gap-1.5 flex-wrap">
                 <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
-                <p className="text-[11px] text-gray-500">— {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
+                <p className="text-[11px] text-gray-500">— {str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}{e.gpa ? ` (GPA: ${formatGpa(e.gpa)})` : ""}</p>
               </div>
               <p className="text-[10px] text-gray-400 shrink-0 ml-2">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
             </div>
@@ -1880,7 +1889,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
                 <div>
                   <p className="text-[12px] font-semibold text-gray-800">{str(edu[0].school)}</p>
                   <p className="text-[11px] text-gray-500 mt-0.5">{str(edu[0].degree)}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}</p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}{edu[0].gpa ? ` · GPA: ${formatGpa(edu[0].gpa)}` : ""}</p>
                 </div>
               </div>
               {edu.length > 1 && (
@@ -1889,7 +1898,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
                     <div key={i} className="resume-export-block">
                       <p className="text-[12px] font-semibold text-gray-800">{str(e.school)}</p>
                       <p className="text-[11px] text-gray-500 mt-0.5">{str(e.degree)}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                     </div>
                   ))}
                 </div>
@@ -2023,7 +2032,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
               <div>
                 <p className="text-[12px] font-bold text-gray-900">{str(edu[0].school)}</p>
                 <p className="text-[11px] text-gray-600 mt-0.5">{str(edu[0].degree)}{edu[0].field ? `, ${str(edu[0].field)}` : ""}</p>
-                <p className="text-[10px] text-gray-500 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{str(edu[0].startDate)}{edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}{edu[0].gpa ? ` · GPA: ${formatGpa(edu[0].gpa)}` : ""}</p>
               </div>
             </div>
             {edu.length > 1 && (
@@ -2032,7 +2041,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
                   <div key={i} className="resume-export-block">
                     <p className="text-[12px] font-bold text-gray-900">{str(e.school)}</p>
                     <p className="text-[11px] text-gray-600 mt-0.5">{str(e.degree)}{e.field ? `, ${str(e.field)}` : ""}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{str(e.startDate)}{e.endDate ? ` – ${str(e.endDate)}` : ""}{e.gpa ? ` · GPA: ${formatGpa(e.gpa)}` : ""}</p>
                   </div>
                 ))}
               </div>

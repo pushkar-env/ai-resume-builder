@@ -25,6 +25,16 @@ function str(v: unknown): string {
   return (v as string) ?? "";
 }
 
+function formatGpa(v: unknown): string {
+  const gpaStr = str(v).trim();
+  if (!gpaStr) return "";
+  const num = Number(gpaStr);
+  if (gpaStr !== "" && !isNaN(num) && Number.isInteger(num)) {
+    return num.toFixed(1);
+  }
+  return gpaStr;
+}
+
 /** Strips characters illegal in WordprocessingML runs and caps extreme length. */
 function sanitizeWordText(input: string): string {
   let s = input
@@ -380,11 +390,12 @@ export async function buildResumeDocxBlob(
           }),
         );
       }
-      if (str(e.gpa)) {
+      const formattedGpa = formatGpa(e.gpa);
+      if (formattedGpa) {
         body.push(
           new Paragraph({
             spacing: { after: 80 },
-            children: [new TextRun({ text: sanitizeWordText(`GPA: ${str(e.gpa)}`), size: 20, font })],
+            children: [new TextRun({ text: sanitizeWordText(`GPA: ${formattedGpa}`), size: 20, font })],
           }),
         );
       }
