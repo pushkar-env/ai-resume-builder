@@ -1328,7 +1328,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="mt-6 first:mt-0">
+    <div className="mt-6">
       <p className="text-[13.5px] font-black uppercase tracking-wide" style={{ color }}>{label}</p>
       <div className="h-px mt-1 mb-3" style={{ background: color }} />
     </div>
