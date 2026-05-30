@@ -27,7 +27,7 @@ export function PremiumLoadingScreen({
               <motion.div 
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "85%" }}
+                animate={{ width: "55%" }}
                 transition={{ duration: 1.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
               />
               <motion.div 
@@ -39,7 +39,7 @@ export function PremiumLoadingScreen({
               <motion.div 
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "55%" }}
+                animate={{ width: "85%" }}
                 transition={{ duration: 1.2, delay: 0.4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
               />
             </div>
