@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser, useAuth } from "@clerk/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -1238,28 +1238,25 @@ export default function BuilderPage() {
           </div>
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-4">
-              <AnimatePresence mode="wait">
-                {activeSection ? (
-                  <motion.div
-                    key={activeSection.id}
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -8 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <SectionEditor
-                      section={activeSection as { id: number; type: string; title: string; content: SectionContent; isVisible?: boolean }}
-                      onChange={(content) => handleSectionContentChange(activeSection.id, content)}
-                      onVisibilityToggle={() => handleVisibilityToggle(activeSection.id)}
-                      resumeId={resumeId}
-                      allSections={localSections as { id: number; type: string; content: SectionContent }[]}
-                      templateId={templateId}
-                    />
-                  </motion.div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Select a section from the sidebar to edit it.</p>
-                )}
-              </AnimatePresence>
+              {activeSection ? (
+                <motion.div
+                  key={activeSection.id}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                  <SectionEditor
+                    section={activeSection as { id: number; type: string; title: string; content: SectionContent; isVisible?: boolean }}
+                    onChange={(content) => handleSectionContentChange(activeSection.id, content)}
+                    onVisibilityToggle={() => handleVisibilityToggle(activeSection.id)}
+                    resumeId={resumeId}
+                    allSections={localSections as { id: number; type: string; content: SectionContent }[]}
+                    templateId={templateId}
+                  />
+                </motion.div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Select a section from the sidebar to edit it.</p>
+              )}
             </div>
           </ScrollArea>
 
