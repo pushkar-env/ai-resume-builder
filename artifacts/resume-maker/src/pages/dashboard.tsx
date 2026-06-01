@@ -278,11 +278,12 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   return (
     <motion.div
       variants={fadeUp}
-      className="h-full relative select-none"
+      className="h-full relative select-none no-touch-callout"
       style={{
         zIndex: isDraggingThis ? 50 : 1,
         willChange: isDraggingThis ? "transform" : "auto",
       }}
+      onContextMenu={(e) => e.preventDefault()}
     >
       <motion.div
         className="h-full origin-center animate-fill-both"
@@ -753,12 +754,10 @@ export default function DashboardPage() {
               }}
               className="flex items-center justify-center w-16 h-16 rounded-full border bg-gray-950/90 text-white backdrop-blur-md transition-colors pointer-events-auto"
             >
-              <motion.div
-                animate={{
-                  rotate: isOverTrash ? [-6, 6, -6, 6, 0] : 0,
-                  y: isOverTrash ? [0, -3, 0] : 0,
-                }}
-                transition={{ duration: 0.4, repeat: isOverTrash ? Infinity : 0, repeatDelay: 0.15 }}
+              <div
+                className={`transition-transform duration-300 ${
+                  isOverTrash ? "animate-trash-vibrate" : ""
+                }`}
                 style={{
                   willChange: "transform",
                   transform: "translateZ(0)",
@@ -769,7 +768,7 @@ export default function DashboardPage() {
                     isOverTrash ? "text-red-500" : "text-gray-400"
                   }`}
                 />
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
         )}

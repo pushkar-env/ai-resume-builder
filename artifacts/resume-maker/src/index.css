@@ -587,4 +587,26 @@
   min-height: 100% !important;
 }
 
+/* Prevent native long-press callouts, selection and default drag behaviors on active cards */
+.no-touch-callout, .no-touch-callout * {
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* GPU compositor-accelerated vibrating animation for trash can */
+@keyframes trash-vibrate {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  20% { transform: rotate(-6deg) translateY(-2px); }
+  40% { transform: rotate(6deg) translateY(0); }
+  60% { transform: rotate(-6deg) translateY(-2px); }
+  80% { transform: rotate(6deg) translateY(0); }
+}
+
+.animate-trash-vibrate {
+  animation: trash-vibrate 0.4s ease-in-out infinite;
+}
+
 
