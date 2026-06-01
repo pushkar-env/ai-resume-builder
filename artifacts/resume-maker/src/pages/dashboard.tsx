@@ -201,6 +201,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const currentOverTrash = useRef(false);
   const hasDragged = useRef(false);
   const isPointerDownThisCard = useRef(false);
+  const wasDraggableDuringTouch = useRef(false);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only allow left click / standard touch to drag
@@ -216,9 +217,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     hasDragged.current = false;
     currentOverTrash.current = false;
     isPointerDownThisCard.current = true;
+    wasDraggableDuringTouch.current = false;
     
     longPressTimer.current = setTimeout(() => {
       setIsDraggable(true);
+      wasDraggableDuringTouch.current = true;
       if (navigator.vibrate) {
         navigator.vibrate(40);
       }
@@ -246,19 +249,25 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     isPointerDownThisCard.current = false;
 
     if (isDraggable) {
-      if (!hasDragged.current) {
-        setIsDraggable(false);
-        setActiveDragResumeId(null);
-        setIsOverTrash(false);
-        currentOverTrash.current = false;
-      }
-    } else {
-      const target = (window.event?.target || {}) as HTMLElement;
-      if (target.closest && (target.closest("button") || target.closest(".dropdown-menu-trigger") || target.closest("[role='menuitem']"))) {
-        return;
-      }
-      navigate(`/builder/${resume.id}`);
+      setIsDraggable(false);
+      setActiveDragResumeId(null);
+      setIsOverTrash(false);
+      currentOverTrash.current = false;
     }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (wasDraggableDuringTouch.current || hasDragged.current) {
+      wasDraggableDuringTouch.current = false;
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+    if (target.closest && (target.closest("button") || target.closest(".dropdown-menu-trigger") || target.closest("[role='menuitem']"))) {
+      return;
+    }
+
+    navigate(`/builder/${resume.id}`);
   };
 
   const handlePointerCancel = () => {
@@ -341,6 +350,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        onClick={handleClick}
       >
         <Card
           className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
