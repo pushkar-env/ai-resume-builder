@@ -34,6 +34,15 @@ function formatGpa(v: unknown): string {
   }
   return gpaStr;
 }
+function renderGpa(gpa: unknown, mode: unknown): string {
+  const val = str(gpa).trim();
+  if (!val) return "";
+  if (mode === "percentage") {
+    return `${val} %`;
+  }
+  const formattedVal = formatGpa(gpa);
+  return `GPA: ${formattedVal}`;
+}
 
 /** Strips characters illegal in WordprocessingML runs and caps extreme length. */
 function sanitizeWordText(input: string): string {
@@ -390,12 +399,12 @@ export async function buildResumeDocxBlob(
           }),
         );
       }
-      const formattedGpa = formatGpa(e.gpa);
+      const formattedGpa = renderGpa(e.gpa, e.gpaMode);
       if (formattedGpa) {
         body.push(
           new Paragraph({
             spacing: { after: 80 },
-            children: [new TextRun({ text: sanitizeWordText(`GPA: ${formattedGpa}`), size: 20, font })],
+            children: [new TextRun({ text: sanitizeWordText(formattedGpa), size: 20, font })],
           }),
         );
       }

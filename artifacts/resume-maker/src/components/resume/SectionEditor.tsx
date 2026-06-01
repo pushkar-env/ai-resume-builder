@@ -524,22 +524,38 @@ function EducationEditor({ content, onChange }: { content: SectionContent; onCha
               <Input size={1} value={(item.field as string) ?? ""} onChange={(e) => updateItem(i, "field", e.target.value)} placeholder="AI/ML" className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Field label="Start">
               <Input size={1} value={(item.startDate as string) ?? ""} onChange={(e) => updateItem(i, "startDate", e.target.value)} placeholder="2018" className="h-10 lg:h-8 text-sm" />
             </Field>
             <Field label="End">
               <Input size={1} value={(item.endDate as string) ?? ""} onChange={(e) => updateItem(i, "endDate", e.target.value)} placeholder="2022" className="h-10 lg:h-8 text-sm" />
             </Field>
-            <Field label="GPA">
-              <Input size={1} value={(item.gpa as string) ?? ""} onChange={(e) => updateItem(i, "gpa", e.target.value)} placeholder="3.9" className="h-10 lg:h-8 text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="Grade System">
+              <Select
+                value={(item.gpaMode as string) ?? "gpa"}
+                onValueChange={(val) => updateItem(i, "gpaMode", val)}
+              >
+                <SelectTrigger className="h-10 lg:h-8 text-sm">
+                  <SelectValue placeholder="GPA" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpa">GPA</SelectItem>
+                  <SelectItem value="percentage">%</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label={(item.gpaMode as string) === "percentage" ? "%" : "GPA"}>
+              <Input size={1} value={(item.gpa as string) ?? ""} onChange={(e) => updateItem(i, "gpa", e.target.value)} placeholder={(item.gpaMode as string) === "percentage" ? "98.5" : "3.9"} className="h-10 lg:h-8 text-sm" />
             </Field>
           </div>
         </div>
       ))}
       <Button
         variant="outline" size="sm"
-        onClick={() => onChange({ ...content, items: [...items, { school: "", degree: "", field: "", startDate: "", endDate: "", gpa: "" }] })}
+        onClick={() => onChange({ ...content, items: [...items, { school: "", degree: "", field: "", startDate: "", endDate: "", gpa: "", gpaMode: "gpa" }] })}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
