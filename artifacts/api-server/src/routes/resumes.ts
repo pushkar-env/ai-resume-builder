@@ -307,13 +307,13 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
     
     Guidelines:
-    1. Social & Professional Links: Extract ALL social or professional profile links/usernames found in the resume (such as LinkedIn, GitHub, Twitter, Portfolio, LeetCode, Behance, Dribbble, etc.) into the 'personal.socials' array. Populate the 'label' with the platform name (e.g. "LinkedIn", "GitHub", "Twitter", "LeetCode", "Portfolio") and the 'url' with the full URL or username.
-    2. GPA: Extract the candidate's GPA/Grade from the education items as a clean numeric score (e.g. "3.9" or "9.8" or "8.5"). If the GPA is written with a scale (e.g., "3.9/4.0" or "9.8/10"), strip the scale and extract only the score part (e.g., "3.9" or "9.8").
+    1. Social & Professional Links: Extract ALL social or professional profile links/usernames found in the resume (such as LinkedIn, GitHub, Twitter, Portfolio, LeetCode, Behance, Dribbble, etc.) into the 'personal.socials' array. Populate the 'label' with the platform name in camelCase (e.g. "linkedIn", "gitHub", "twitter", "leetCode", "portfolio") and the 'url' with the full URL or username.
+    2. GPA & % Grade System: Extract the candidate's Grade/GPA from the education items. Along with it, identify the score system (mode): if the grade is percentage-based (e.g., has a '%' sign or is written out of 100 like '85%' or '92'), set 'gpaMode' to 'percentage'. If the grade is GPA/CPI-based (e.g. '3.9' or '8.5' or '9.2/10'), set 'gpaMode' to 'gpa'. If unknown, default to 'gpa'. Extract only the clean numeric value (e.g. '3.9' or '92.5') for 'gpa', removing any '%' sign or scale suffix.
     3. Dates: Normalize all work experience and education dates into a clean, consistent format, preferably "Month Year" (e.g. "Jan 2020", "May 2021") or just "Year" (e.g. "2020") if month is missing. If a job or education is ongoing/current, use "Present" for the end date.
     
     Return ONLY a valid JSON object with the following structure, populated with the extracted information. Use empty strings or empty arrays if information is missing.
     Do NOT wrap the JSON in quotes or code blocks, return ONLY the raw JSON string.
-
+ 
     Structure:
     {
       "title": "A short suitable title for this resume (e.g. Software Engineer)",
@@ -328,7 +328,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         { "title": "", "company": "", "location": "", "startDate": "", "endDate": "", "bullets": [""] }
       ],
       "education": [
-        { "school": "", "degree": "", "field": "", "startDate": "", "endDate": "", "gpa": "" }
+        { "school": "", "degree": "", "field": "", "startDate": "", "endDate": "", "gpa": "", "gpaMode": "gpa | percentage" }
       ],
       "skills": [ { "name": "", "level": 90 } ],
       "projects": [
@@ -423,21 +423,29 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
       }
     }
 
-    // Format platform names nicely
+    // Format platform names in camelCase
     const socials: { label: string; url: string }[] = [];
     const formatLabel = (lbl: string): string => {
       const mapping: Record<string, string> = {
-        github: "GitHub",
-        linkedin: "LinkedIn",
-        twitter: "Twitter",
-        x: "Twitter",
-        leetcode: "LeetCode",
-        behance: "Behance",
-        dribbble: "Dribbble",
-        portfolio: "Portfolio",
-        website: "Website"
+        github: "gitHub",
+        linkedin: "linkedIn",
+        twitter: "twitter",
+        x: "twitter",
+        leetcode: "leetCode",
+        behance: "behance",
+        dribbble: "dribbble",
+        portfolio: "portfolio",
+        website: "website"
       };
-      return mapping[lbl.toLowerCase()] || lbl;
+      const key = lbl.toLowerCase();
+      if (mapping[key]) return mapping[key];
+      
+      // Fallback: convert generic labels to camelCase (e.g. "My Website" -> "myWebsite")
+      return lbl
+        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+          return index === 0 ? word.toLowerCase() : word.toUpperCase();
+        })
+        .replace(/\s+/g, "");
     };
 
     socialMap.forEach((url, labelKey) => {
@@ -464,8 +472,12 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     const parsedEdu = Array.isArray(parsedData.education) ? parsedData.education : [];
     const educationItems = parsedEdu.map((eduItem: any) => {
       const item = { ...eduItem };
+      let isPercentage = false;
       if (item.gpa) {
         let g = String(item.gpa).trim();
+        if (g.includes("%")) {
+          isPercentage = true;
+        }
         const slashIndex = g.indexOf("/");
         if (slashIndex !== -1) {
           g = g.substring(0, slashIndex).trim();
@@ -476,6 +488,13 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
         }
         item.gpa = g;
       }
+      
+      if (String(item.gpaMode).toLowerCase() === "percentage" || isPercentage) {
+        item.gpaMode = "percentage";
+      } else {
+        item.gpaMode = "gpa";
+      }
+
       if (item.startDate) item.startDate = String(item.startDate).trim();
       if (item.endDate) item.endDate = String(item.endDate).trim();
       return item;
