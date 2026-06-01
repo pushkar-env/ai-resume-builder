@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
-import { motion, useAnimationControls, type Variants } from "framer-motion";
-import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil, FileUp, Loader2 } from "lucide-react";
+import { motion, useAnimationControls, useDragControls, AnimatePresence, type Variants } from "framer-motion";
+import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil, FileUp, Loader2, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,7 +89,7 @@ function timeAgo(date: string) {
  * Lazy-load the heavy preview DOM until the card is near the viewport.
  * Keeps mobile scroll/main thread responsive when many resumes exist.
  */
-function ResumeThumbnail({ resumeId }: { resumeId: number }) {
+function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDragging?: boolean }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -116,7 +116,7 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
   }, []);
 
   const { data: resume } = useGetResume(resumeId, {
-    query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView },
+    query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView && !isDragging },
   });
 
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
@@ -126,6 +126,15 @@ function ResumeThumbnail({ resumeId }: { resumeId: number }) {
     const n = v ? Number(v) : NaN;
     if (Number.isFinite(n) && n > 0) setFontScale(n);
   }, [resumeId]);
+
+  if (isDragging) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary/60 border-2 border-dashed border-primary/15 transition-all duration-300">
+        <FileText className="h-10 w-10 mb-2 animate-bounce" style={{ animationDuration: "2s" }} />
+        <span className="text-[10px] font-bold tracking-wider uppercase select-none opacity-70">Holding Document</span>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -162,7 +171,11 @@ function DashboardResumeCard({
   setRenameTitle,
   setRenameId,
   setDeleteId,
+  deleteId,
   handleDuplicateRequest,
+  activeDragResumeId,
+  setActiveDragResumeId,
+  setIsOverTrash,
 }: {
   resume: Resume;
   fadeUp: Variants;
@@ -171,167 +184,298 @@ function DashboardResumeCard({
   setRenameTitle: (t: string) => void;
   setRenameId: (id: number | null) => void;
   setDeleteId: (id: number | null) => void;
+  deleteId: number | null;
   handleDuplicateRequest: (id: number) => void;
+  activeDragResumeId: number | null;
+  setActiveDragResumeId: (id: number | null) => void;
+  setIsOverTrash: (over: boolean) => void;
 }) {
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
-  const hoverControls = useAnimationControls();
-  const isHoveringRef = useRef(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDraggable, setIsDraggable] = useState(false);
+  const dragControls = useDragControls();
+  const longPressTimer = useRef<any>(null);
+  const startPoint = useRef({ x: 0, y: 0 });
+  const currentOverTrash = useRef(false);
+  const hasDragged = useRef(false);
+  const isPointerDownThisCard = useRef(false);
 
-  // When the menu closes, settle the card back to rest if the mouse already left
-  useEffect(() => {
-    if (!resumeMenuOpen && !isHoveringRef.current) {
-      hoverControls.start({ y: 0, scale: 1, transition: previewCardHoverTransition });
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only allow left click / standard touch to drag
+    if (e.button !== 0) return;
+    
+    // Ignore if clicking on buttons or menu trigger
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("[role='menuitem']") || target.closest(".dropdown-menu-trigger")) {
+      return;
     }
-  }, [resumeMenuOpen, hoverControls]);
+
+    startPoint.current = { x: e.clientX, y: e.clientY };
+    hasDragged.current = false;
+    currentOverTrash.current = false;
+    isPointerDownThisCard.current = true;
+    
+    longPressTimer.current = setTimeout(() => {
+      setIsDraggable(true);
+      if (navigator.vibrate) {
+        navigator.vibrate(40);
+      }
+      dragControls.start(e);
+      setActiveDragResumeId(resume.id);
+    }, 280);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggable) {
+      const dist = Math.hypot(e.clientX - startPoint.current.x, e.clientY - startPoint.current.y);
+      if (dist > 8) {
+        clearTimeout(longPressTimer.current);
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
+    clearTimeout(longPressTimer.current);
+    if (!isPointerDownThisCard.current) {
+      return;
+    }
+    isPointerDownThisCard.current = false;
+
+    if (isDraggable) {
+      if (!hasDragged.current) {
+        setIsDraggable(false);
+        setActiveDragResumeId(null);
+        setIsOverTrash(false);
+        currentOverTrash.current = false;
+      }
+    } else {
+      const target = (window.event?.target || {}) as HTMLElement;
+      if (target.closest && (target.closest("button") || target.closest(".dropdown-menu-trigger") || target.closest("[role='menuitem']"))) {
+        return;
+      }
+      navigate(`/builder/${resume.id}`);
+    }
+  };
+
+  const handlePointerCancel = () => {
+    clearTimeout(longPressTimer.current);
+    isPointerDownThisCard.current = false;
+    if (isDraggable && !hasDragged.current) {
+      setIsDraggable(false);
+      setActiveDragResumeId(null);
+      setIsOverTrash(false);
+      currentOverTrash.current = false;
+    }
+  };
+
+  const isDeleting = deleteId === resume.id;
+  const isDraggingThis = activeDragResumeId === resume.id;
 
   return (
-    <motion.div variants={fadeUp} className="h-full">
+    <motion.div
+      variants={fadeUp}
+      className="h-full relative select-none"
+      style={{
+        zIndex: isDraggingThis ? 50 : 1,
+        willChange: isDraggingThis ? "transform" : "auto",
+      }}
+    >
       <motion.div
-        className="h-full"
-        animate={hoverControls}
+        className="h-full origin-center animate-fill-both"
+        style={{
+          transformStyle: isDraggingThis ? "preserve-3d" : "flat",
+          backfaceVisibility: isDraggingThis ? "hidden" : "visible",
+        }}
+        drag={isDraggable}
+        dragControls={dragControls}
+        dragListener={false}
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        dragElastic={0.8}
+        dragMomentum={false}
+        onDrag={(event, info) => {
+          hasDragged.current = true;
+          const clientX = info.point.x - window.scrollX;
+          const clientY = info.point.y - window.scrollY;
+          
+          const trashY = window.innerHeight - 130;
+          const trashMinX = window.innerWidth / 2 - 120;
+          const trashMaxX = window.innerWidth / 2 + 120;
+          
+          const over = clientY > trashY && clientX > trashMinX && clientX < trashMaxX;
+          if (over !== currentOverTrash.current) {
+            currentOverTrash.current = over;
+            setIsOverTrash(over);
+          }
+        }}
+        onDragEnd={(event, info) => {
+          setIsDraggable(false);
+          setActiveDragResumeId(null);
+          setIsOverTrash(false);
+          
+          if (currentOverTrash.current) {
+            setDeleteId(resume.id);
+          }
+          currentOverTrash.current = false;
+        }}
+        animate={
+          isDeleting
+            ? { scale: 0, opacity: 0, y: 150, rotate: 0, transition: { duration: 0.3, ease: "easeInOut" } }
+            : isDraggingThis
+            ? { scale: 1.05, rotate: -2, y: 0, boxShadow: "0 20px 35px rgba(0,0,0,0.15)", transition: { type: "spring", stiffness: 300, damping: 20 } }
+            : isHovered && !resumeMenuOpen
+            ? { y: -4, scale: 1.012, rotate: 0, boxShadow: "0 10px 20px rgba(0,0,0,0.08)", transition: previewCardHoverTransition }
+            : { y: 0, scale: 1, rotate: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: previewCardHoverTransition }
+        }
         onHoverStart={() => {
-          if (coarsePointer || resumeMenuOpen) return;
-          isHoveringRef.current = true;
-          hoverControls.start({ ...previewCardWhileHover, transition: previewCardHoverTransition });
+          if (coarsePointer || isDraggingThis) return;
+          setIsHovered(true);
         }}
         onHoverEnd={() => {
-          isHoveringRef.current = false;
-          if (resumeMenuOpen) return;
-          hoverControls.start({ y: 0, scale: 1, transition: previewCardHoverTransition });
+          setIsHovered(false);
         }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
       >
-      <Card
-        className="h-full flex flex-col group cursor-pointer border-border relative overflow-hidden touch-manipulation shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45"
-        onClick={() => navigate(`/builder/${resume.id}`)}
-      >
-        <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate">
-          <ResumeThumbnail resumeId={resume.id} />
-        </div>
+        <Card
+          className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
+            isDraggingThis ? "border-primary bg-primary/5 cursor-grabbing touch-none" : "cursor-grab touch-pan-y"
+          }`}
+        >
+          <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none">
+            <ResumeThumbnail resumeId={resume.id} isDragging={isDraggingThis} />
+          </div>
 
-        <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10">
-          <div className="flex items-start justify-between mb-auto">
-            <div className="flex-1 min-w-0 pr-14 md:pr-6">
-              <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
-              <span
-                className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
-              >
-                {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
-              </span>
-            </div>
-            <DropdownMenu
-              modal={false}
-              open={resumeMenuOpen}
-              onOpenChange={(next: boolean) => {
-                if (coarsePointer && next && menuSlipRef.current) {
-                  menuSlipRef.current = false;
-                  return;
-                }
-                setResumeMenuOpen(next);
-              }}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation"
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => {
-                    e.stopPropagation();
-                    if (!coarsePointer) return;
-                    if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
+            <div className="flex items-start justify-between mb-auto pointer-events-auto">
+              <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
+                <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
+                <span
+                  className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
+                >
+                  {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
+                </span>
+              </div>
+              <DropdownMenu
+                modal={false}
+                open={resumeMenuOpen}
+                onOpenChange={(next: boolean) => {
+                  if (coarsePointer && next && menuSlipRef.current) {
                     menuSlipRef.current = false;
-                    menuStartRef.current = { x: e.clientX, y: e.clientY };
-                    try {
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                    } catch {
-                      /* noop */
-                    }
-                  }}
-                  onPointerMove={(e) => {
-                    if (!coarsePointer) return;
-                    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-                    const s = menuStartRef.current;
-                    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
-                  }}
-                  onPointerUp={(e) => {
-                    if (coarsePointer) {
+                    return;
+                  }
+                  setResumeMenuOpen(next);
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
+                      coarsePointer ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      clearTimeout(longPressTimer.current);
+                      if (!coarsePointer) return;
+                      if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+                      menuSlipRef.current = false;
+                      menuStartRef.current = { x: e.clientX, y: e.clientY };
                       try {
-                        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-                          e.currentTarget.releasePointerCapture(e.pointerId);
-                        }
+                        e.currentTarget.setPointerCapture(e.pointerId);
                       } catch {
                         /* noop */
                       }
-                    }
-                  }}
-                  onPointerCancel={(e) => {
-                    if (coarsePointer) {
-                      try {
-                        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-                          e.currentTarget.releasePointerCapture(e.pointerId);
+                    }}
+                    onPointerMove={(e) => {
+                      if (!coarsePointer) return;
+                      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                      const s = menuStartRef.current;
+                      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
+                    }}
+                    onPointerUp={(e) => {
+                      if (coarsePointer) {
+                        try {
+                          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                            e.currentTarget.releasePointerCapture(e.pointerId);
+                          }
+                        } catch {
+                          /* noop */
                         }
-                      } catch {
-                        /* noop */
                       }
-                    }
-                  }}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/builder/${resume.id}`);
-                  }}
-                >
-                  <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Open Editor
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDuplicateRequest(resume.id);
-                  }}
-                >
-                  <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setRenameTitle(resume.title ?? "");
-                    setRenameId(resume.id);
-                  }}
-                >
-                  <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
-                  Rename
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteId(resume.id);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                    }}
+                    onPointerCancel={(e) => {
+                      if (coarsePointer) {
+                        try {
+                          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                            e.currentTarget.releasePointerCapture(e.pointerId);
+                          }
+                        } catch {
+                          /* noop */
+                        }
+                      }
+                    }}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 z-30">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/builder/${resume.id}`);
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Open Editor
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicateRequest(resume.id);
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Duplicate
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenameTitle(resume.title ?? "");
+                      setRenameId(resume.id);
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteId(resume.id);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-          <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
-            <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
-            Updated {timeAgo(resume.updatedAt)}
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
+              <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
+              Updated {timeAgo(resume.updatedAt)}
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
     </motion.div>
   );
@@ -349,6 +493,8 @@ export default function DashboardPage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(null);
+  const [isOverTrash, setIsOverTrash] = useState(false);
 
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
@@ -557,7 +703,11 @@ export default function DashboardPage() {
                 setRenameTitle={setRenameTitle}
                 setRenameId={setRenameId}
                 setDeleteId={setDeleteId}
+                deleteId={deleteId}
                 handleDuplicateRequest={handleDuplicateRequest}
+                activeDragResumeId={activeDragResumeId}
+                setActiveDragResumeId={setActiveDragResumeId}
+                setIsOverTrash={setIsOverTrash}
               />
             ))}
           </motion.div>
@@ -565,6 +715,44 @@ export default function DashboardPage() {
       </main>
 
       <AppFooter />
+
+      {/* Bottom Trash Zone */}
+      <AnimatePresence>
+        {activeDragResumeId !== null && (
+          <motion.div
+            initial={{ y: 100, x: "-50%", opacity: 0 }}
+            animate={{ y: 0, x: "-50%", opacity: 1 }}
+            exit={{ y: 100, x: "-50%", opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed bottom-6 left-1/2 z-[100] flex flex-col items-center pointer-events-none"
+          >
+            <motion.div
+              animate={{
+                scale: isOverTrash ? 1.15 : 1,
+                backgroundColor: isOverTrash ? "rgba(239, 68, 68, 0.95)" : "rgba(17, 24, 39, 0.95)",
+                borderColor: isOverTrash ? "rgb(248, 113, 113)" : "rgb(55, 65, 81)",
+                boxShadow: isOverTrash
+                  ? "0 0 35px rgba(239, 68, 68, 0.5)"
+                  : "0 10px 30px rgba(0, 0, 0, 0.3)",
+              }}
+              className="flex items-center gap-3 px-6 py-4 rounded-full border bg-gray-900 border-gray-800 text-white font-medium backdrop-blur-md transition-colors pointer-events-auto"
+            >
+              <motion.div
+                animate={{
+                  rotate: isOverTrash ? [-6, 6, -6, 6, 0] : 0,
+                  y: isOverTrash ? [0, -3, 0] : 0,
+                }}
+                transition={{ duration: 0.4, repeat: isOverTrash ? Infinity : 0, repeatDelay: 0.15 }}
+              >
+                <Trash2 className={`h-6 w-6 transition-colors ${isOverTrash ? "text-white" : "text-gray-400"}`} />
+              </motion.div>
+              <span className="text-sm select-none tracking-wide font-semibold">
+                {isOverTrash ? "Release to Delete" : "Drag card here to delete"}
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={(open) => {
