@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { motion, useAnimationControls, useDragControls, AnimatePresence, type Variants } from "framer-motion";
@@ -190,6 +190,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setActiveDragResumeId: (id: number | null) => void;
   setIsOverTrash: (over: boolean) => void;
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
@@ -273,7 +274,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const handlePointerCancel = () => {
     clearTimeout(longPressTimer.current);
     isPointerDownThisCard.current = false;
-    if (isDraggable && !hasDragged.current) {
+    if (isDraggable) {
       setIsDraggable(false);
       setActiveDragResumeId(null);
       setIsOverTrash(false);
@@ -287,7 +288,9 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   return (
     <motion.div
       variants={fadeUp}
-      className="h-full relative select-none no-touch-callout"
+      className={`h-full relative select-none no-touch-callout ${
+        isDraggingThis ? "touch-none" : "touch-pan-y"
+      }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
         willChange: isDraggingThis ? "transform" : "auto",
@@ -295,7 +298,10 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       onContextMenu={(e) => e.preventDefault()}
     >
       <motion.div
-        className="h-full origin-center animate-fill-both"
+        ref={cardRef}
+        className={`h-full origin-center animate-fill-both ${
+          isDraggingThis ? "touch-none" : "touch-pan-y"
+        }`}
         style={{
           transformStyle: isDraggingThis ? "preserve-3d" : "flat",
           backfaceVisibility: isDraggingThis ? "hidden" : "visible",
@@ -308,16 +314,32 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         dragMomentum={false}
         onDrag={(event, info) => {
           hasDragged.current = true;
-          const clientX = info.point.x - window.scrollX;
-          const clientY = info.point.y - window.scrollY;
+          if (!cardRef.current) return;
+          const rect = cardRef.current.getBoundingClientRect();
           
-          const trashCenterX = window.innerWidth / 2;
-          const trashCenterY = window.innerHeight - 56;
-          const distance = Math.hypot(clientX - trashCenterX, clientY - trashCenterY);
-          const over = distance < 75;
-          if (over !== currentOverTrash.current) {
+          // Get bounding box coordinates for collision
+          const trashLeft = window.innerWidth / 2 - 32;
+          const trashRight = window.innerWidth / 2 + 32;
+          const trashTop = window.innerHeight - 88;
+          const trashBottom = window.innerHeight - 24;
+          
+          // Box collision with hysteresis: padding is -10px (contracted box) to activate, +25px (expanded box) to deactivate
+          const currentOver = currentOverTrash.current;
+          const padding = currentOver ? 25 : -10;
+          
+          const over = !(
+            rect.right < trashLeft - padding ||
+            rect.left > trashRight + padding ||
+            rect.bottom < trashTop - padding ||
+            rect.top > trashBottom + padding
+          );
+          
+          if (over !== currentOver) {
             currentOverTrash.current = over;
             setIsOverTrash(over);
+            if (over && navigator.vibrate) {
+              navigator.vibrate(15);
+            }
           }
         }}
         onDragEnd={(event, info) => {
@@ -332,12 +354,12 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         }}
         animate={
           isDeleting
-            ? { scale: 0, opacity: 0, y: 150, rotate: 0, transition: { duration: 0.3, ease: "easeInOut" } }
+            ? { x: 0, scale: 0, opacity: 0, y: 150, rotate: 0, transition: { duration: 0.3, ease: "easeInOut" } }
             : isDraggingThis
             ? { scale: 1.05, rotate: -2, y: 0, boxShadow: "0 20px 35px rgba(0,0,0,0.15)", transition: { type: "spring", stiffness: 300, damping: 20 } }
             : isHovered && !resumeMenuOpen
-            ? { y: -4, scale: 1.012, rotate: 0, boxShadow: "0 10px 20px rgba(0,0,0,0.08)", transition: previewCardHoverTransition }
-            : { y: 0, scale: 1, rotate: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: previewCardHoverTransition }
+            ? { x: 0, y: -4, scale: 1.012, rotate: 0, boxShadow: "0 10px 20px rgba(0,0,0,0.08)", transition: previewCardHoverTransition }
+            : { x: 0, y: 0, scale: 1, rotate: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: previewCardHoverTransition }
         }
         onHoverStart={() => {
           if (coarsePointer || isDraggingThis) return;
@@ -511,11 +533,29 @@ export default function DashboardPage() {
   // Prevent native page scrolling / pointercancel triggers on touch devices when a card is dragging
   useEffect(() => {
     if (activeDragResumeId === null) return;
+
+    // Lock page scroll coordinates to prevent auto-scrolling when dragging near window edges
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const lockScroll = () => {
+      window.scrollTo(scrollX, scrollY);
+    };
+
+    window.addEventListener("scroll", lockScroll, { passive: true });
+
+    // Set overflowY: clip on body during active drag to prevent absolute/relative children 
+    // from expanding the document scrollable height.
+    const originalBodyOverflowY = document.body.style.overflowY;
+    document.body.style.overflowY = "clip";
+
     const preventDefault = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };
     window.addEventListener("touchmove", preventDefault, { passive: false });
+    
     return () => {
+      document.body.style.overflowY = originalBodyOverflowY;
+      window.removeEventListener("scroll", lockScroll);
       window.removeEventListener("touchmove", preventDefault);
     };
   }, [activeDragResumeId]);
@@ -556,13 +596,6 @@ export default function DashboardPage() {
     setCreateOpen(true);
   };
 
-  const handleDuplicateRequest = (id: number) => {
-    if (!isPremiumUser && resumeList.length >= 1) {
-      setShowPaywall(true);
-      return;
-    }
-    duplicateResume.mutate({ id });
-  };
 
   const importResume = useImportResume({
     mutation: {
@@ -629,6 +662,14 @@ export default function DashboardPage() {
     },
   });
 
+  const handleDuplicateRequest = useCallback((id: number) => {
+    if (!isPremiumUser && resumeList.length >= 1) {
+      setShowPaywall(true);
+      return;
+    }
+    duplicateResume.mutate({ id });
+  }, [isPremiumUser, resumeList.length, duplicateResume]);
+
   const updateResume = useUpdateResume({
     mutation: {
       onSuccess: () => {
@@ -640,15 +681,18 @@ export default function DashboardPage() {
     },
   });
 
-  const stagger = coarsePointer
+  const stagger = useMemo(() => coarsePointer
     ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
-    : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } };
-  const fadeUp = coarsePointer
+    : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }
+  , [coarsePointer]);
+
+  const fadeUp = useMemo(() => coarsePointer
     ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
-    : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+    : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
+  , [coarsePointer]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
       <SEO 
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
@@ -744,30 +788,30 @@ export default function DashboardPage() {
       <AnimatePresence>
         {activeDragResumeId !== null && (
           <motion.div
-            initial={{ y: 100, x: "-50%", opacity: 0 }}
-            animate={{ y: 0, x: "-50%", opacity: 1 }}
-            exit={{ y: 100, x: "-50%", opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-6 left-1/2 z-[100] pointer-events-none"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 w-24 h-24 z-[100] pointer-events-none flex items-center justify-center"
           >
             <motion.div
               animate={{
                 scale: isOverTrash ? 1.25 : 1,
-                borderColor: isOverTrash ? "rgb(239, 68, 68)" : "rgb(55, 65, 81)",
+                borderColor: isOverTrash ? "rgba(244, 63, 94, 0.6)" : "rgba(71, 85, 105, 0.4)",
+                backgroundColor: isOverTrash ? "rgba(76, 5, 25, 0.95)" : "rgba(15, 23, 42, 0.85)",
                 boxShadow: isOverTrash
-                  ? "0 0 35px rgba(239, 68, 68, 0.45)"
-                  : "0 10px 30px rgba(0, 0, 0, 0.3)",
+                  ? "0 0 30px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.2)"
+                  : "0 10px 30px rgba(0, 0, 0, 0.25)",
               }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
               style={{
                 willChange: "transform",
                 transform: "translateZ(0)",
               }}
-              className="flex items-center justify-center w-16 h-16 rounded-full border bg-gray-950/90 text-white backdrop-blur-md transition-colors pointer-events-auto"
+              className="flex items-center justify-center w-16 h-16 rounded-full border backdrop-blur-md pointer-events-none"
             >
               <div
-                className={`transition-transform duration-300 ${
-                  isOverTrash ? "animate-trash-vibrate" : ""
-                }`}
+                className={isOverTrash ? "animate-trash-vibrate" : ""}
                 style={{
                   willChange: "transform",
                   transform: "translateZ(0)",
@@ -775,7 +819,7 @@ export default function DashboardPage() {
               >
                 <Trash2
                   className={`h-6 w-6 transition-colors duration-300 ${
-                    isOverTrash ? "text-red-500" : "text-gray-400"
+                    isOverTrash ? "text-rose-400" : "text-slate-400"
                   }`}
                 />
               </div>
