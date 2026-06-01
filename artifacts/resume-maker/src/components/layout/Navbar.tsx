@@ -271,15 +271,9 @@ export function LandingNavbar() {
               Resume<span className="text-primary font-black">sensei</span>
             </span>
           </Link>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-3">
-            <Button variant="ghost" size="sm" asChild className="h-9 px-2.5 text-xs sm:h-10 sm:px-4 sm:text-sm">
+          <div className="flex shrink-0 items-center justify-end">
+            <Button size="sm" asChild className="h-9 px-3.5 text-xs sm:h-10 sm:px-5 sm:text-sm">
               <Link href="/sign-in">Sign in</Link>
-            </Button>
-            <Button size="sm" asChild className="h-9 px-2.5 text-xs sm:h-10 sm:px-4 sm:text-sm">
-              <Link href="/sign-up">
-                <span className="sm:hidden">Get started</span>
-                <span className="hidden sm:inline">Get started free</span>
-              </Link>
             </Button>
           </div>
         </div>
