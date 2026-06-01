@@ -29,11 +29,33 @@ export const RESUME_EXPORT_CSS = `
   }
 `;
 
-/** Extra rules for the standalone PDF export document */
 export const RESUME_PDF_EXPORT_CSS = `
-  @page { size: A4; margin: 0; }
-  html, body { margin: 0; padding: 0; background: white; }
-  body { display: block; }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white;
+    width: 210mm;
+    overflow: visible;
+  }
+  body {
+    display: block;
+  }
+  [data-resume-export-target],
+  .resume-paged-view {
+    display: block !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
   .a4-page {
     box-shadow: none !important;
     width: 210mm !important;
@@ -42,12 +64,14 @@ export const RESUME_PDF_EXPORT_CSS = `
     margin: 0 auto !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     page-break-after: always;
     break-after: page;
   }
   .a4-page:last-child {
-    page-break-after: auto;
-    break-after: auto;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
   ${RESUME_RICH_TEXT_CSS}
 `;

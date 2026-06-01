@@ -183,9 +183,7 @@ function buildExportHtml(resumeTitle: string): string | null {
     }
   </style>
 </head>
-<body>
-  ${previewEl.outerHTML}
-</body>
+<body>${previewEl.outerHTML.trim()}</body>
 </html>`;
 }
 
