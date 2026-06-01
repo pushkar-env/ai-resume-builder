@@ -36,12 +36,14 @@ app.use(
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
 app.use(cors({ credentials: true, origin: true }));
-app.use(express.json({ 
-  limit: "50mb",
-  verify: (req, res, buf) => {
-    (req as any).rawBody = buf;
-  }
-}));
+app.use(
+  express.json({
+    limit: "50mb",
+    verify: (req, res, buf) => {
+      (req as any).rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.use(

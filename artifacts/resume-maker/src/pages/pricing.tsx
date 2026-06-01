@@ -23,7 +23,9 @@ export default function PricingPage() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly",
+  );
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
@@ -60,8 +62,15 @@ export default function PricingPage() {
       });
     } catch (error: unknown) {
       console.error(error);
-      const msg = error instanceof Error ? error.message : "Something went wrong during checkout.";
-      toast({ title: "Checkout Error", description: msg, variant: "destructive" });
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong during checkout.";
+      toast({
+        title: "Checkout Error",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -75,23 +84,35 @@ export default function PricingPage() {
       const apiUrl = import.meta.env.VITE_API_URL || "/api";
       const res = await fetch(`${apiUrl}/payments/dev-upgrade`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
         const errText = await res.text();
         throw new Error(errText || "Failed to upgrade");
       }
-      const gt = getToken as (opts?: { skipCache?: boolean }) => Promise<unknown>;
+      const gt = getToken as (opts?: {
+        skipCache?: boolean;
+      }) => Promise<unknown>;
       await gt({ skipCache: true }).catch(() => {});
       await user?.reload();
-      await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
-      await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
-      await queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+      await queryClient.invalidateQueries({
+        queryKey: ["billing-page-subscription"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["subscription-details"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: getListResumesQueryKey(),
+      });
       setSubscriptionSuccessOpen(true);
     } catch (e: unknown) {
       console.error(e);
       const msg = e instanceof Error ? e.message : "Failed to upgrade";
-      toast({ title: "Upgrade Error", description: msg, variant: "destructive" });
+      toast({
+        title: "Upgrade Error",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -99,7 +120,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO 
+      <SEO
         title="Pricing | Resumesensei Pro"
         description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
         canonicalUrl={`${SITE_URL}/pricing`}
@@ -111,9 +132,13 @@ export default function PricingPage() {
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-yellow-500/10 mb-4">
             <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">Upgrade to Premium</h1>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4">
+            Upgrade to Premium
+          </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Unlock the full potential of Resumesensei. Pro removes export watermarks, unlocks every template, unlimited AI, premium colors & fonts, and ATS score tracking.
+            Unlock the full potential of Resumesensei. Pro removes export
+            watermarks, unlocks every template, unlimited AI, premium colors &
+            fonts, and ATS score tracking.
           </p>
         </div>
       </div>
@@ -124,8 +149,13 @@ export default function PricingPage() {
             <Sparkles className="h-5 w-5 text-primary" aria-hidden />
           </div>
           <div className="min-w-0 flex-1 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
-            <span className="font-semibold text-foreground">Own your career narrative.</span>{" "}
-            While our free plan includes all essential features with a subtle brand watermark, upgrading to Pro removes all branding—ensuring your resume is 100% yours, ATS-optimized, and fully ready to impress recruiters.
+            <span className="font-semibold text-foreground">
+              Own your career narrative.
+            </span>{" "}
+            While our free plan includes all essential features with a subtle
+            brand watermark, upgrading to Pro removes all branding—ensuring your
+            resume is 100% yours, ATS-optimized, and fully ready to impress
+            recruiters.
           </div>
         </div>
 
@@ -135,7 +165,9 @@ export default function PricingPage() {
             <button
               onClick={() => setBillingCycle("monthly")}
               className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors ${
-                billingCycle === "monthly" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                billingCycle === "monthly"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Monthly
@@ -143,14 +175,18 @@ export default function PricingPage() {
             <button
               onClick={() => setBillingCycle("yearly")}
               className={`relative z-10 px-6 py-2 text-sm font-semibold rounded-full transition-colors ${
-                billingCycle === "yearly" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                billingCycle === "yearly"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Yearly
             </button>
             <div
               className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background rounded-full shadow transition-transform duration-300 ease-in-out ${
-                billingCycle === "yearly" ? "translate-x-[calc(100%+4px)]" : "translate-x-1"
+                billingCycle === "yearly"
+                  ? "translate-x-[calc(100%+4px)]"
+                  : "translate-x-1"
               }`}
             />
           </div>
@@ -161,7 +197,9 @@ export default function PricingPage() {
           <div className="rounded-3xl border border-border bg-card p-8 shadow-sm flex flex-col h-full justify-between">
             <div className="flex flex-col flex-grow">
               <h3 className="text-xl font-bold mb-2">Free Plan</h3>
-              <p className="text-muted-foreground text-sm mb-6">Perfect for getting started</p>
+              <p className="text-muted-foreground text-sm mb-6">
+                Perfect for getting started
+              </p>
               <div className="mb-6">
                 <span className="text-4xl font-black">₹0</span>
                 <span className="text-muted-foreground"> / forever</span>
@@ -180,12 +218,20 @@ export default function PricingPage() {
 
             <div>
               {isPremium ? (
-                <Button variant="outline" className="w-full h-11 text-base" disabled>
+                <Button
+                  variant="outline"
+                  className="w-full h-11 text-base"
+                  disabled
+                >
                   Free Plan
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <Button variant="outline" className="w-full h-11 text-base shadow-sm" asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 text-base shadow-sm"
+                    asChild
+                  >
                     <Link href="/dashboard">Continue with Free</Link>
                   </Button>
                   <p className="text-center text-sm font-medium text-muted-foreground mt-2">
@@ -208,7 +254,9 @@ export default function PricingPage() {
               <div className="mb-2">
                 <ProBadge size="lg" />
               </div>
-              <p className="text-muted-foreground text-sm mb-6">For serious job seekers</p>
+              <p className="text-muted-foreground text-sm mb-6">
+                For serious job seekers
+              </p>
               <div className="mb-6">
                 <span className="text-4xl font-black text-foreground">
                   {billingCycle === "yearly" ? "₹999" : "₹99"}
@@ -228,27 +276,34 @@ export default function PricingPage() {
                 ))}
               </ul>
             </div>
-            
+
             <div>
               {isPremium ? (
-                <Button className="w-full h-11 text-base bg-green-600 hover:bg-green-700 text-white gap-2" disabled>
+                <Button
+                  className="w-full h-11 text-base bg-green-600 hover:bg-green-700 text-white gap-2"
+                  disabled
+                >
                   <Check className="h-4 w-4" />
                   You are on Pro!
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <ProButton 
+                  <ProButton
                     effect="sleek"
-                    className="w-full h-11 text-base shadow-lg" 
+                    className="w-full h-11 text-base shadow-lg"
                     onClick={handleUpgrade}
                     disabled={isProcessing}
                     text={isProcessing ? "Processing..." : "Upgrade to Pro"}
                     showIcon={!isProcessing}
                   />
-                  
+
                   {/* Safe fallback for testing without keys */}
                   {import.meta.env.DEV && (
-                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={handleDevUpgrade}>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-xs text-muted-foreground"
+                      onClick={handleDevUpgrade}
+                    >
                       [Dev] Bypass Payment
                     </Button>
                   )}
@@ -258,15 +313,18 @@ export default function PricingPage() {
                 </div>
               )}
               <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
-                <Shield className="h-3 w-3" /> Secure checkout via Razorpay (UPI, Cards, Netbanking)
+                <Shield className="h-3 w-3" /> Secure checkout via Razorpay
+                (UPI, Cards, Netbanking)
               </p>
             </div>
           </div>
-
         </div>
       </main>
 
-      <SubscriptionSuccessDialog open={subscriptionSuccessOpen} onOpenChange={setSubscriptionSuccessOpen} />
+      <SubscriptionSuccessDialog
+        open={subscriptionSuccessOpen}
+        onOpenChange={setSubscriptionSuccessOpen}
+      />
     </div>
   );
 }

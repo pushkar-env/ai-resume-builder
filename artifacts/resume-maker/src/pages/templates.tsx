@@ -8,7 +8,12 @@ import { ProBadge } from "@/components/shared/ProBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
-import { useListTemplates, useCreateResume, getListResumesQueryKey, useListResumes } from "@workspace/api-client-react";
+import {
+  useListTemplates,
+  useCreateResume,
+  getListResumesQueryKey,
+  useListResumes,
+} from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
@@ -51,8 +56,10 @@ export default function TemplatesPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallTitle, setPaywallTitle] = useState("Premium Feature");
-  const [paywallDescription, setPaywallDescription] = useState("This feature is reserved for Pro users.");
-  
+  const [paywallDescription, setPaywallDescription] = useState(
+    "This feature is reserved for Pro users.",
+  );
+
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
 
   const { data: templates, isLoading } = useListTemplates();
@@ -65,45 +72,73 @@ export default function TemplatesPage() {
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         navigate(`/builder/${data.id}`);
       },
-      onError: (error: any) => toast({ title: "Failed to create resume", description: error?.message || "Unknown error occurred", variant: "destructive" }),
+      onError: (error: any) =>
+        toast({
+          title: "Failed to create resume",
+          description: error?.message || "Unknown error occurred",
+          variant: "destructive",
+        }),
     },
   });
 
   const handleUseTemplate = (templateId: string) => {
     if (!isPremiumUser && resumeList.length >= 1) {
       setPaywallTitle("Resume Limit Reached");
-      setPaywallDescription("Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates.");
+      setPaywallDescription(
+        "Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates.",
+      );
       setShowPaywall(true);
       return;
     }
 
-    const template = templateList.find(t => t.id === templateId);
+    const template = templateList.find((t) => t.id === templateId);
     if (template?.isPremium && !isPremiumUser) {
       setPaywallTitle("Premium Template");
-      setPaywallDescription("This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.");
+      setPaywallDescription(
+        "This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.",
+      );
       setShowPaywall(true);
       return;
     }
-    
+
     setCreating(true);
-    const cfg = TEMPLATE_CONFIG[templateId] ?? { accent: "#000000", bg: "#f8fafc" };
-    createResume.mutate({ data: { title: "My Resume", templateId, accentColor: cfg.accent, startPrefilled: true } });
+    const cfg = TEMPLATE_CONFIG[templateId] ?? {
+      accent: "#000000",
+      bg: "#f8fafc",
+    };
+    createResume.mutate({
+      data: {
+        title: "My Resume",
+        templateId,
+        accentColor: cfg.accent,
+        startPrefilled: true,
+      },
+    });
   };
 
   const templateList = Array.isArray(templates) ? templates : [];
-  const categories = ["All", ...Array.from(new Set(templateList.map(t => t.category).filter(Boolean)))];
-  const filtered = activeCategory === "All" ? templateList : templateList.filter(t => t.category === activeCategory);
+  const categories = [
+    "All",
+    ...Array.from(new Set(templateList.map((t) => t.category).filter(Boolean))),
+  ];
+  const filtered =
+    activeCategory === "All"
+      ? templateList
+      : templateList.filter((t) => t.category === activeCategory);
 
   const stagger = coarsePointer
     ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
     : { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } };
   const fadeUp = coarsePointer
     ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
-    : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
+    : {
+        hidden: { opacity: 0, y: 12 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+      };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO 
+      <SEO
         title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."
         canonicalUrl={`${SITE_URL}/templates`}
@@ -116,12 +151,16 @@ export default function TemplatesPage() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-3">
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Premium Templates</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Premium Templates
+              </span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight">Resume templates that get you hired</h1>
+            <h1 className="text-3xl font-black tracking-tight">
+              Resume templates that get you hired
+            </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              12 professionally designed templates — preview the actual layout with sample content,
-              then customize with your own details.
+              12 professionally designed templates — preview the actual layout
+              with sample content, then customize with your own details.
             </p>
           </div>
         </div>
@@ -130,7 +169,7 @@ export default function TemplatesPage() {
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Category filter */}
         <div className="flex gap-2 mb-7 flex-wrap">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
@@ -146,14 +185,27 @@ export default function TemplatesPage() {
         </div>
 
         {isLoading ? (
-          <PremiumLoadingScreen title="Loading templates" subtitle="Fetching premium designs" />
+          <PremiumLoadingScreen
+            title="Loading templates"
+            subtitle="Fetching premium designs"
+          />
         ) : (
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+          >
             {filtered.map((template) => {
-              const cfg = TEMPLATE_CONFIG[template.id] ?? { accent: "#000000", bg: "#f8fafc" };
+              const cfg = TEMPLATE_CONFIG[template.id] ?? {
+                accent: "#000000",
+                bg: "#f8fafc",
+              };
               const isSelected = selected === template.id;
               const isHovered = hoveredId === template.id;
-              const catClass = CATEGORY_COLORS[template.category ?? ""] ?? "bg-gray-100 text-gray-600";
+              const catClass =
+                CATEGORY_COLORS[template.category ?? ""] ??
+                "bg-gray-100 text-gray-600";
 
               return (
                 <motion.div
@@ -163,7 +215,10 @@ export default function TemplatesPage() {
                   whileHover={
                     coarsePointer
                       ? undefined
-                      : { ...previewCardWhileHover, transition: previewCardHoverTransition }
+                      : {
+                          ...previewCardWhileHover,
+                          transition: previewCardHoverTransition,
+                        }
                   }
                   whileTap={previewCardWhileTap}
                   className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-[box-shadow,border-color] duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
@@ -177,7 +232,10 @@ export default function TemplatesPage() {
                 >
                   {/* Premium badge */}
                   {template.isPremium && !isPremiumUser && (
-                    <ProBadge size="sm" className="absolute top-2.5 right-2.5 z-20" />
+                    <ProBadge
+                      size="sm"
+                      className="absolute top-2.5 right-2.5 z-20"
+                    />
                   )}
 
                   {/* Selected checkmark */}
@@ -188,7 +246,10 @@ export default function TemplatesPage() {
                   )}
 
                   {/* Real resume preview as thumbnail */}
-                  <div className="relative overflow-hidden" style={{ aspectRatio: "3/4", background: cfg.bg }}>
+                  <div
+                    className="relative overflow-hidden"
+                    style={{ aspectRatio: "3/4", background: cfg.bg }}
+                  >
                     <TemplateThumbnail
                       templateId={template.id}
                       accent={cfg.accent}
@@ -225,12 +286,18 @@ export default function TemplatesPage() {
                   <div className="p-3.5 bg-background">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="font-bold text-sm text-foreground truncate">{template.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{template.description}</p>
+                        <h3 className="font-bold text-sm text-foreground truncate">
+                          {template.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                          {template.description}
+                        </p>
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-1.5">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${catClass}`}>
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${catClass}`}
+                      >
                         {template.category}
                       </span>
                     </div>
@@ -262,8 +329,12 @@ export default function TemplatesPage() {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 bg-background border border-border rounded-2xl shadow-2xl px-4 sm:px-6 py-3.5">
               <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               <div>
-                <p className="text-sm font-bold">{templateList.find(t => t.id === selected)?.name}</p>
-                <p className="text-xs text-muted-foreground">Ready to use this template</p>
+                <p className="text-sm font-bold">
+                  {templateList.find((t) => t.id === selected)?.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Ready to use this template
+                </p>
               </div>
               <Button
                 onClick={() => handleUseTemplate(selected)}
@@ -284,8 +355,8 @@ export default function TemplatesPage() {
         )}
       </AnimatePresence>
 
-      <PaywallDialog 
-        open={showPaywall} 
+      <PaywallDialog
+        open={showPaywall}
         onOpenChange={setShowPaywall}
         title={paywallTitle}
         description={paywallDescription}

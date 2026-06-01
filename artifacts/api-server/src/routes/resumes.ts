@@ -26,7 +26,10 @@ import puppeteer from "puppeteer";
 
 import { completeResumeAi } from "../lib/resume-ai-chat";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 const toJSON = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
 
 function normalizeUrl(url: unknown): string {
@@ -41,13 +44,17 @@ function normalizeSocialUrl(url: string, platform: string): string {
   if (!u) return "";
   if (/^https?:\/\//i.test(u)) return u;
   if (u.startsWith("@")) u = u.slice(1);
-  
+
   const plat = platform.toLowerCase();
   if (plat === "github" && !u.toLowerCase().includes("github.com")) {
     u = `github.com/${u}`;
   } else if (plat === "linkedin" && !u.toLowerCase().includes("linkedin.com")) {
     u = `linkedin.com/in/${u}`;
-  } else if ((plat === "twitter" || plat === "x") && !u.toLowerCase().includes("twitter.com") && !u.toLowerCase().includes("x.com")) {
+  } else if (
+    (plat === "twitter" || plat === "x") &&
+    !u.toLowerCase().includes("twitter.com") &&
+    !u.toLowerCase().includes("x.com")
+  ) {
     u = `x.com/${u}`;
   } else if (plat === "leetcode" && !u.toLowerCase().includes("leetcode.com")) {
     u = `leetcode.com/${u}`;
@@ -76,7 +83,9 @@ function requireAuth(req: Request, res: Response, next: any): void {
 // Users can edit fields or remove items they don't need.
 const SEEDED_SECTIONS = [
   {
-    type: "personal", title: "Personal Details", displayOrder: 0,
+    type: "personal",
+    title: "Personal Details",
+    displayOrder: 0,
     content: {
       name: "Alex Morgan",
       jobTitle: "Senior Software Engineer",
@@ -95,18 +104,25 @@ const SEEDED_SECTIONS = [
     },
   },
   {
-    type: "summary", title: "Professional Summary", displayOrder: 1,
+    type: "summary",
+    title: "Professional Summary",
+    displayOrder: 1,
     content: {
       text: "Senior engineer with 8+ years building scalable distributed systems. Led teams of 10+ at high-growth startups and Fortune 500 companies. Passionate about elegant code, mentorship, and shipping products that delight users.",
     },
   },
   {
-    type: "experience", title: "Work Experience", displayOrder: 2,
+    type: "experience",
+    title: "Work Experience",
+    displayOrder: 2,
     content: {
       items: [
         {
-          title: "Staff Engineer", company: "Stripe", location: "San Francisco, CA",
-          startDate: "2022", endDate: "Present",
+          title: "Staff Engineer",
+          company: "Stripe",
+          location: "San Francisco, CA",
+          startDate: "2022",
+          endDate: "Present",
           bullets: [
             "Led migration of payments infrastructure to Kubernetes serving 100B+ requests/year",
             "Mentored 8 engineers and grew team velocity 3x through pairing program",
@@ -114,32 +130,58 @@ const SEEDED_SECTIONS = [
           ],
         },
         {
-          title: "Senior Engineer", company: "Airbnb", location: "San Francisco, CA",
-          startDate: "2019", endDate: "2022",
+          title: "Senior Engineer",
+          company: "Airbnb",
+          location: "San Francisco, CA",
+          startDate: "2019",
+          endDate: "2022",
           bullets: [
             "Built core booking platform handling $50B+ annual transactions",
             "Reduced page load time by 40% through React performance optimization",
           ],
         },
         {
-          title: "Software Engineer", company: "Uber", location: "San Francisco, CA",
-          startDate: "2017", endDate: "2019",
-          bullets: ["Developed real-time pricing algorithms for ride matching service"],
+          title: "Software Engineer",
+          company: "Uber",
+          location: "San Francisco, CA",
+          startDate: "2017",
+          endDate: "2019",
+          bullets: [
+            "Developed real-time pricing algorithms for ride matching service",
+          ],
         },
       ],
     },
   },
   {
-    type: "education", title: "Education", displayOrder: 3,
+    type: "education",
+    title: "Education",
+    displayOrder: 3,
     content: {
       items: [
-        { school: "Stanford University", degree: "M.S.", field: "Computer Science", startDate: "2015", endDate: "2017", gpa: "9.8" },
-        { school: "UC Berkeley", degree: "B.S.", field: "Computer Science", startDate: "2011", endDate: "2015", gpa: "8.5" },
+        {
+          school: "Stanford University",
+          degree: "M.S.",
+          field: "Computer Science",
+          startDate: "2015",
+          endDate: "2017",
+          gpa: "9.8",
+        },
+        {
+          school: "UC Berkeley",
+          degree: "B.S.",
+          field: "Computer Science",
+          startDate: "2011",
+          endDate: "2015",
+          gpa: "8.5",
+        },
       ],
     },
   },
   {
-    type: "skills", title: "Skills", displayOrder: 4,
+    type: "skills",
+    title: "Skills",
+    displayOrder: 4,
     content: {
       items: [
         { name: "TypeScript", level: 95 },
@@ -154,20 +196,42 @@ const SEEDED_SECTIONS = [
     },
   },
   {
-    type: "projects", title: "Projects", displayOrder: 5,
+    type: "projects",
+    title: "Projects",
+    displayOrder: 5,
     content: {
       items: [
-        { name: "OpenSource SDK", description: "TypeScript SDK with 50k+ monthly downloads", url: "github.com/alex/sdk" },
-        { name: "ML Trading Bot", description: "Reinforcement learning algorithmic trading platform", url: "" },
+        {
+          name: "OpenSource SDK",
+          description: "TypeScript SDK with 50k+ monthly downloads",
+          url: "github.com/alex/sdk",
+        },
+        {
+          name: "ML Trading Bot",
+          description: "Reinforcement learning algorithmic trading platform",
+          url: "",
+        },
       ],
     },
   },
   {
-    type: "certifications", title: "Certifications", displayOrder: 6,
+    type: "certifications",
+    title: "Certifications",
+    displayOrder: 6,
     content: {
       items: [
-        { name: "AWS Solutions Architect", issuer: "Amazon Web Services", date: "2023", credentialUrl: "" },
-        { name: "Kubernetes CKA", issuer: "CNCF", date: "2022", credentialUrl: "" },
+        {
+          name: "AWS Solutions Architect",
+          issuer: "Amazon Web Services",
+          date: "2023",
+          credentialUrl: "",
+        },
+        {
+          name: "Kubernetes CKA",
+          issuer: "CNCF",
+          date: "2022",
+          credentialUrl: "",
+        },
       ],
     },
   },
@@ -190,119 +254,173 @@ const EMPTY_SECTIONS = [
       socials: [],
     },
   },
-  { type: "summary", title: "Professional Summary", displayOrder: 1, content: { text: "" } },
-  { type: "experience", title: "Work Experience", displayOrder: 2, content: { items: [] } },
-  { type: "education", title: "Education", displayOrder: 3, content: { items: [] } },
+  {
+    type: "summary",
+    title: "Professional Summary",
+    displayOrder: 1,
+    content: { text: "" },
+  },
+  {
+    type: "experience",
+    title: "Work Experience",
+    displayOrder: 2,
+    content: { items: [] },
+  },
+  {
+    type: "education",
+    title: "Education",
+    displayOrder: 3,
+    content: { items: [] },
+  },
   { type: "skills", title: "Skills", displayOrder: 4, content: { items: [] } },
-  { type: "projects", title: "Projects", displayOrder: 5, content: { items: [] } },
-  { type: "certifications", title: "Certifications", displayOrder: 6, content: { items: [] } },
+  {
+    type: "projects",
+    title: "Projects",
+    displayOrder: 5,
+    content: { items: [] },
+  },
+  {
+    type: "certifications",
+    title: "Certifications",
+    displayOrder: 6,
+    content: { items: [] },
+  },
 ];
 
-router.get("/resumes", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const resumes = await db
-    .select()
-    .from(resumesTable)
-    .where(eq(resumesTable.userId, userId))
-    .orderBy(desc(resumesTable.updatedAt));
-  res.json(ListResumesResponse.parse(toJSON(resumes)));
-});
+router.get(
+  "/resumes",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const resumes = await db
+      .select()
+      .from(resumesTable)
+      .where(eq(resumesTable.userId, userId))
+      .orderBy(desc(resumesTable.updatedAt));
+    res.json(ListResumesResponse.parse(toJSON(resumes)));
+  },
+);
 
-router.post("/resumes", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const parsed = CreateResumeBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+router.post(
+  "/resumes",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const parsed = CreateResumeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
 
     const defaultColors: Record<string, string> = {
       "silicon-valley": "#000000",
-      "faang": "#000000",
-      "nova": "#64748b",
+      faang: "#000000",
+      nova: "#64748b",
       "executive-pro": "#92400e",
       "creative-pro": "#0d9488",
-      "midnight": "#d4a853",
+      midnight: "#d4a853",
       "ats-clean": "#1f2937",
-      "academic": "#1e40af",
+      academic: "#1e40af",
       "corporate-navy": "#1e3a5f",
-      "compact": "#000000",
-      "european": "#000000",
+      compact: "#000000",
+      european: "#000000",
       "two-column": "#0d9488",
     };
     const defaultFonts: Record<string, string> = {
       "silicon-valley": "Merriweather, serif",
-      "faang": "Manrope, sans-serif",
-      "nova": "Poppins, sans-serif",
+      faang: "Manrope, sans-serif",
+      nova: "Poppins, sans-serif",
       "executive-pro": "Merriweather, serif",
       "creative-pro": "Poppins, sans-serif",
-      "midnight": "Manrope, sans-serif",
+      midnight: "Manrope, sans-serif",
       "ats-clean": "Merriweather, serif",
-      "academic": "Merriweather, serif",
+      academic: "Merriweather, serif",
       "corporate-navy": "Inter, sans-serif",
-      "compact": "Merriweather, serif",
-      "european": "Inter, sans-serif",
+      compact: "Merriweather, serif",
+      european: "Inter, sans-serif",
       "two-column": "Manrope, sans-serif",
     };
     const defaultColor = defaultColors[parsed.data.templateId] ?? "#000000";
-    const defaultFont = defaultFonts[parsed.data.templateId] ?? "Inter, sans-serif";
+    const defaultFont =
+      defaultFonts[parsed.data.templateId] ?? "Inter, sans-serif";
 
-    const [resume] = await db.insert(resumesTable).values({
-    userId,
-    title: parsed.data.title,
-    templateId: parsed.data.templateId,
-    accentColor: parsed.data.accentColor ?? defaultColor,
-    fontFamily: parsed.data.fontFamily ?? defaultFont,
-    fontColor: parsed.data.fontColor ?? "#111827",
-    backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
-  }).returning();
+    const [resume] = await db
+      .insert(resumesTable)
+      .values({
+        userId,
+        title: parsed.data.title,
+        templateId: parsed.data.templateId,
+        accentColor: parsed.data.accentColor ?? defaultColor,
+        fontFamily: parsed.data.fontFamily ?? defaultFont,
+        fontColor: parsed.data.fontColor ?? "#111827",
+        backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
+      })
+      .returning();
 
-  const startPrefilled = parsed.data.startPrefilled !== false;
-  const sectionBlueprint = startPrefilled ? SEEDED_SECTIONS : EMPTY_SECTIONS;
+    const startPrefilled = parsed.data.startPrefilled !== false;
+    const sectionBlueprint = startPrefilled ? SEEDED_SECTIONS : EMPTY_SECTIONS;
 
-  const sectionsToInsert = sectionBlueprint.map((s) => ({
-    ...s,
-    resumeId: resume.id,
-  }));
-  const sections = await db.insert(resumeSectionsTable).values(sectionsToInsert).returning();
+    const sectionsToInsert = sectionBlueprint.map((s) => ({
+      ...s,
+      resumeId: resume.id,
+    }));
+    const sections = await db
+      .insert(resumeSectionsTable)
+      .values(sectionsToInsert)
+      .returning();
 
-  res.status(201).json(toJSON({ ...resume, sections }));
-});
+    res.status(201).json(toJSON({ ...resume, sections }));
+  },
+);
 
-router.post("/resumes/import", requireAuth, upload.single("file"), async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const file = req.file;
+router.post(
+  "/resumes/import",
+  requireAuth,
+  upload.single("file"),
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const file = req.file;
 
-  if (!file) {
-    res.status(400).json({ error: "No file provided" });
-    return;
-  }
-
-  try {
-    let extractedText = "";
-    
-    if (file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf")) {
-      const parser = new PDFParse({ data: file.buffer });
-      const pdfData = await parser.getText();
-      extractedText = pdfData.text;
-    } else if (
-      file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.originalname.toLowerCase().endsWith(".docx")
-    ) {
-      const docxData = await mammoth.extractRawText({ buffer: file.buffer });
-      extractedText = docxData.value;
-    } else {
-      res.status(400).json({ error: "Unsupported file type. Please upload a PDF or DOCX file." });
+    if (!file) {
+      res.status(400).json({ error: "No file provided" });
       return;
     }
 
-    if (!extractedText || extractedText.trim().length === 0) {
-      res.status(400).json({ error: "Could not extract text from the file." });
-      return;
-    }
+    try {
+      let extractedText = "";
 
-    // Prepare prompt
-    const prompt = `Parse the following resume text into a structured format.
+      if (
+        file.mimetype === "application/pdf" ||
+        file.originalname.toLowerCase().endsWith(".pdf")
+      ) {
+        const parser = new PDFParse({ data: file.buffer });
+        const pdfData = await parser.getText();
+        extractedText = pdfData.text;
+      } else if (
+        file.mimetype ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.originalname.toLowerCase().endsWith(".docx")
+      ) {
+        const docxData = await mammoth.extractRawText({ buffer: file.buffer });
+        extractedText = docxData.value;
+      } else {
+        res
+          .status(400)
+          .json({
+            error: "Unsupported file type. Please upload a PDF or DOCX file.",
+          });
+        return;
+      }
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        res
+          .status(400)
+          .json({ error: "Could not extract text from the file." });
+        return;
+      }
+
+      // Prepare prompt
+      const prompt = `Parse the following resume text into a structured format.
     
     Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
     
@@ -343,571 +461,729 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     """${extractedText.substring(0, 15000)}"""
     `;
 
-    const aiResultText = await completeResumeAi(prompt, 2500, "import-resume");
-    if (!aiResultText) {
-      throw new Error("AI returned empty content");
-    }
-
-    let parsedData;
-    try {
-      const jsonMatch = aiResultText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("Could not parse JSON from AI response");
+      const aiResultText = await completeResumeAi(
+        prompt,
+        2500,
+        "import-resume",
+      );
+      if (!aiResultText) {
+        throw new Error("AI returned empty content");
       }
-    } catch (e: any) {
-      logger.error({ error: e, aiResultText }, "Failed to parse AI output for resume import");
-      import("fs").then(fs => fs.writeFileSync("import-json-error.txt", String(e?.stack || e)));
-      res.status(500).json({ error: "Failed to parse the imported resume." });
-      return;
-    }
 
-    // Default template configuration
-    const templateId = "silicon-valley";
-    const accentColor = "#000000";
-    const defaultFonts: Record<string, string> = {
-      "silicon-valley": "Merriweather, serif",
-      "faang": "Manrope, sans-serif",
-      "nova": "Poppins, sans-serif",
-      "executive-pro": "Merriweather, serif",
-      "creative-pro": "Poppins, sans-serif",
-      "midnight": "Manrope, sans-serif",
-      "ats-clean": "Merriweather, serif",
-      "academic": "Merriweather, serif",
-      "corporate-navy": "Inter, sans-serif",
-      "compact": "Merriweather, serif",
-      "european": "Inter, sans-serif",
-      "two-column": "Manrope, sans-serif",
-    };
-    const defaultFont = defaultFonts[templateId] ?? "Inter, sans-serif";
-    const title = parsedData.title || file.originalname.replace(/\.[^/.]+$/, "") || "Imported Resume";
+      let parsedData;
+      try {
+        const jsonMatch = aiResultText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("Could not parse JSON from AI response");
+        }
+      } catch (e: any) {
+        logger.error(
+          { error: e, aiResultText },
+          "Failed to parse AI output for resume import",
+        );
+        import("fs").then((fs) =>
+          fs.writeFileSync("import-json-error.txt", String(e?.stack || e)),
+        );
+        res.status(500).json({ error: "Failed to parse the imported resume." });
+        return;
+      }
 
-    const [resume] = await db.insert(resumesTable).values({
-      userId,
-      title,
-      templateId,
-      accentColor,
-      fontFamily: defaultFont,
-      fontColor: "#111827",
-      backgroundColor: "#ffffff",
-    }).returning();
+      // Default template configuration
+      const templateId = "silicon-valley";
+      const accentColor = "#000000";
+      const defaultFonts: Record<string, string> = {
+        "silicon-valley": "Merriweather, serif",
+        faang: "Manrope, sans-serif",
+        nova: "Poppins, sans-serif",
+        "executive-pro": "Merriweather, serif",
+        "creative-pro": "Poppins, sans-serif",
+        midnight: "Manrope, sans-serif",
+        "ats-clean": "Merriweather, serif",
+        academic: "Merriweather, serif",
+        "corporate-navy": "Inter, sans-serif",
+        compact: "Merriweather, serif",
+        european: "Inter, sans-serif",
+        "two-column": "Manrope, sans-serif",
+      };
+      const defaultFont = defaultFonts[templateId] ?? "Inter, sans-serif";
+      const title =
+        parsedData.title ||
+        file.originalname.replace(/\.[^/.]+$/, "") ||
+        "Imported Resume";
 
-    const personalContent = { ...(parsedData.personal || {}) };
-    const rawSocials = Array.isArray(personalContent.socials) ? personalContent.socials : [];
-    const socialMap = new Map<string, string>();
+      const [resume] = await db
+        .insert(resumesTable)
+        .values({
+          userId,
+          title,
+          templateId,
+          accentColor,
+          fontFamily: defaultFont,
+          fontColor: "#111827",
+          backgroundColor: "#ffffff",
+        })
+        .returning();
 
-    // Support old schema keys if LLM output still uses them
-    if (personalContent.github) {
-      const normalized = normalizeSocialUrl(personalContent.github, "github");
-      if (normalized) socialMap.set("github", normalized);
-      delete personalContent.github;
-    }
-    if (personalContent.linkedin) {
-      const normalized = normalizeSocialUrl(personalContent.linkedin, "linkedin");
-      if (normalized) socialMap.set("linkedin", normalized);
-      delete personalContent.linkedin;
-    }
+      const personalContent = { ...(parsedData.personal || {}) };
+      const rawSocials = Array.isArray(personalContent.socials)
+        ? personalContent.socials
+        : [];
+      const socialMap = new Map<string, string>();
 
-    // Merge in socials array
-    for (const item of rawSocials) {
-      if (item && typeof item === "object") {
-        const label = String(item.label || "").trim();
-        const url = String(item.url || "").trim();
-        if (label && url) {
-          const normalized = normalizeSocialUrl(url, label);
-          if (normalized) {
-            socialMap.set(label.toLowerCase(), normalized);
+      // Support old schema keys if LLM output still uses them
+      if (personalContent.github) {
+        const normalized = normalizeSocialUrl(personalContent.github, "github");
+        if (normalized) socialMap.set("github", normalized);
+        delete personalContent.github;
+      }
+      if (personalContent.linkedin) {
+        const normalized = normalizeSocialUrl(
+          personalContent.linkedin,
+          "linkedin",
+        );
+        if (normalized) socialMap.set("linkedin", normalized);
+        delete personalContent.linkedin;
+      }
+
+      // Merge in socials array
+      for (const item of rawSocials) {
+        if (item && typeof item === "object") {
+          const label = String(item.label || "").trim();
+          const url = String(item.url || "").trim();
+          if (label && url) {
+            const normalized = normalizeSocialUrl(url, label);
+            if (normalized) {
+              socialMap.set(label.toLowerCase(), normalized);
+            }
           }
         }
       }
-    }
 
-    // Format platform names nicely
-    const socials: { label: string; url: string }[] = [];
-    const formatLabel = (lbl: string): string => {
-      const mapping: Record<string, string> = {
-        github: "GitHub",
-        linkedin: "LinkedIn",
-        twitter: "Twitter",
-        x: "Twitter",
-        leetcode: "LeetCode",
-        behance: "Behance",
-        dribbble: "Dribbble",
-        portfolio: "Portfolio",
-        website: "Website"
+      // Format platform names nicely
+      const socials: { label: string; url: string }[] = [];
+      const formatLabel = (lbl: string): string => {
+        const mapping: Record<string, string> = {
+          github: "GitHub",
+          linkedin: "LinkedIn",
+          twitter: "Twitter",
+          x: "Twitter",
+          leetcode: "LeetCode",
+          behance: "Behance",
+          dribbble: "Dribbble",
+          portfolio: "Portfolio",
+          website: "Website",
+        };
+        const mapped = mapping[lbl.toLowerCase()];
+        if (mapped) return mapped;
+
+        const cleaned = lbl.trim();
+        if (!cleaned) return "";
+        return cleaned
+          .split(/[\s_-]+/)
+          .map(
+            (word) =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+          )
+          .join("");
       };
-      const mapped = mapping[lbl.toLowerCase()];
-      if (mapped) return mapped;
-      
-      const cleaned = lbl.trim();
-      if (!cleaned) return "";
-      return cleaned
-        .split(/[\s_-]+/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join("");
-    };
 
-    socialMap.forEach((url, labelKey) => {
-      socials.push({ label: formatLabel(labelKey), url });
-    });
+      socialMap.forEach((url, labelKey) => {
+        socials.push({ label: formatLabel(labelKey), url });
+      });
 
-    personalContent.socials = socials;
+      personalContent.socials = socials;
 
-    // Clean up Experience
-    const parsedExp = Array.isArray(parsedData.experience) ? parsedData.experience : [];
-    const experienceItems = parsedExp.map((expItem: any) => {
-      const item = { ...expItem };
-      if (item.startDate) item.startDate = String(item.startDate).trim();
-      if (item.endDate) item.endDate = String(item.endDate).trim();
-      if (!Array.isArray(item.bullets)) {
-        item.bullets = typeof item.bullets === "string" ? [item.bullets] : [];
-      } else {
-        item.bullets = item.bullets.map((b: any) => String(b || "").trim()).filter(Boolean);
-      }
-      return item;
-    });
-
-    // Clean up Education
-    const parsedEdu = Array.isArray(parsedData.education) ? parsedData.education : [];
-    const educationItems = parsedEdu.map((eduItem: any) => {
-      const item = { ...eduItem };
-      let gpaMode = "gpa";
-      if (typeof eduItem.gpaMode === "string" && eduItem.gpaMode.toLowerCase() === "percentage") {
-        gpaMode = "percentage";
-      } else if (eduItem.gpa && String(eduItem.gpa).includes("%")) {
-        gpaMode = "percentage";
-      }
-
-      if (item.gpa) {
-        let g = String(item.gpa).trim();
-        if (g.includes("%")) {
-          g = g.replace("%", "").trim();
+      // Clean up Experience
+      const parsedExp = Array.isArray(parsedData.experience)
+        ? parsedData.experience
+        : [];
+      const experienceItems = parsedExp.map((expItem: any) => {
+        const item = { ...expItem };
+        if (item.startDate) item.startDate = String(item.startDate).trim();
+        if (item.endDate) item.endDate = String(item.endDate).trim();
+        if (!Array.isArray(item.bullets)) {
+          item.bullets = typeof item.bullets === "string" ? [item.bullets] : [];
+        } else {
+          item.bullets = item.bullets
+            .map((b: any) => String(b || "").trim())
+            .filter(Boolean);
         }
-        const slashIndex = g.indexOf("/");
-        if (slashIndex !== -1) {
-          g = g.substring(0, slashIndex).trim();
-        }
-        const numMatch = g.match(/\d+(\.\d+)?/);
-        if (numMatch) {
-          g = numMatch[0];
-        }
-        const numVal = parseFloat(g);
-        if (!isNaN(numVal) && numVal > 10.0) {
+        return item;
+      });
+
+      // Clean up Education
+      const parsedEdu = Array.isArray(parsedData.education)
+        ? parsedData.education
+        : [];
+      const educationItems = parsedEdu.map((eduItem: any) => {
+        const item = { ...eduItem };
+        let gpaMode = "gpa";
+        if (
+          typeof eduItem.gpaMode === "string" &&
+          eduItem.gpaMode.toLowerCase() === "percentage"
+        ) {
+          gpaMode = "percentage";
+        } else if (eduItem.gpa && String(eduItem.gpa).includes("%")) {
           gpaMode = "percentage";
         }
-        item.gpa = g;
-      }
-      item.gpaMode = gpaMode;
-      if (item.startDate) item.startDate = String(item.startDate).trim();
-      if (item.endDate) item.endDate = String(item.endDate).trim();
-      return item;
-    });
 
-    // Clean up Projects & Certifications
-    const parsedProjects = Array.isArray(parsedData.projects) ? parsedData.projects : [];
-    const projectItems = parsedProjects.map((pItem: any) => {
-      const item = { ...pItem };
-      if (item.url) item.url = normalizeUrl(item.url);
-      return item;
-    });
+        if (item.gpa) {
+          let g = String(item.gpa).trim();
+          if (g.includes("%")) {
+            g = g.replace("%", "").trim();
+          }
+          const slashIndex = g.indexOf("/");
+          if (slashIndex !== -1) {
+            g = g.substring(0, slashIndex).trim();
+          }
+          const numMatch = g.match(/\d+(\.\d+)?/);
+          if (numMatch) {
+            g = numMatch[0];
+          }
+          const numVal = parseFloat(g);
+          if (!isNaN(numVal) && numVal > 10.0) {
+            gpaMode = "percentage";
+          }
+          item.gpa = g;
+        }
+        item.gpaMode = gpaMode;
+        if (item.startDate) item.startDate = String(item.startDate).trim();
+        if (item.endDate) item.endDate = String(item.endDate).trim();
+        return item;
+      });
 
-    const parsedCerts = Array.isArray(parsedData.certifications) ? parsedData.certifications : [];
-    const certItems = parsedCerts.map((cItem: any) => {
-      const item = { ...cItem };
-      if (item.credentialUrl) item.credentialUrl = normalizeUrl(item.credentialUrl);
-      return item;
-    });
+      // Clean up Projects & Certifications
+      const parsedProjects = Array.isArray(parsedData.projects)
+        ? parsedData.projects
+        : [];
+      const projectItems = parsedProjects.map((pItem: any) => {
+        const item = { ...pItem };
+        if (item.url) item.url = normalizeUrl(item.url);
+        return item;
+      });
 
-    // Map to sections
-    const sectionsToInsert = [
-      {
-        resumeId: resume.id,
-        type: "personal",
-        title: "Personal Details",
-        displayOrder: 0,
-        content: personalContent,
-      },
-      {
-        resumeId: resume.id,
-        type: "summary",
-        title: "Professional Summary",
-        displayOrder: 1,
-        content: parsedData.summary || { text: "" },
-      },
-      {
-        resumeId: resume.id,
-        type: "experience",
-        title: "Work Experience",
-        displayOrder: 2,
-        content: { items: experienceItems },
-      },
-      {
-        resumeId: resume.id,
-        type: "education",
-        title: "Education",
-        displayOrder: 3,
-        content: { items: educationItems },
-      },
-      {
-        resumeId: resume.id,
-        type: "skills",
-        title: "Skills",
-        displayOrder: 4,
-        content: { style: "bullets", items: parsedData.skills || [] },
-      },
-      {
-        resumeId: resume.id,
-        type: "projects",
-        title: "Projects",
-        displayOrder: 5,
-        content: { items: projectItems },
-      },
-      {
-        resumeId: resume.id,
-        type: "certifications",
-        title: "Certifications",
-        displayOrder: 6,
-        content: { items: certItems },
-      },
-    ];
+      const parsedCerts = Array.isArray(parsedData.certifications)
+        ? parsedData.certifications
+        : [];
+      const certItems = parsedCerts.map((cItem: any) => {
+        const item = { ...cItem };
+        if (item.credentialUrl)
+          item.credentialUrl = normalizeUrl(item.credentialUrl);
+        return item;
+      });
 
-    const sections = await db.insert(resumeSectionsTable).values(sectionsToInsert).returning();
+      // Map to sections
+      const sectionsToInsert = [
+        {
+          resumeId: resume.id,
+          type: "personal",
+          title: "Personal Details",
+          displayOrder: 0,
+          content: personalContent,
+        },
+        {
+          resumeId: resume.id,
+          type: "summary",
+          title: "Professional Summary",
+          displayOrder: 1,
+          content: parsedData.summary || { text: "" },
+        },
+        {
+          resumeId: resume.id,
+          type: "experience",
+          title: "Work Experience",
+          displayOrder: 2,
+          content: { items: experienceItems },
+        },
+        {
+          resumeId: resume.id,
+          type: "education",
+          title: "Education",
+          displayOrder: 3,
+          content: { items: educationItems },
+        },
+        {
+          resumeId: resume.id,
+          type: "skills",
+          title: "Skills",
+          displayOrder: 4,
+          content: { style: "bullets", items: parsedData.skills || [] },
+        },
+        {
+          resumeId: resume.id,
+          type: "projects",
+          title: "Projects",
+          displayOrder: 5,
+          content: { items: projectItems },
+        },
+        {
+          resumeId: resume.id,
+          type: "certifications",
+          title: "Certifications",
+          displayOrder: 6,
+          content: { items: certItems },
+        },
+      ];
 
-    res.status(201).json(toJSON({ ...resume, sections }));
+      const sections = await db
+        .insert(resumeSectionsTable)
+        .values(sectionsToInsert)
+        .returning();
 
-  } catch (error: any) {
-    logger.error({ error }, "Error importing resume");
-    import("fs").then(fs => fs.writeFileSync("import-error.txt", String(error?.stack || error)));
-    res.status(500).json({ error: "An error occurred while importing the resume." });
-  }
-});
+      res.status(201).json(toJSON({ ...resume, sections }));
+    } catch (error: any) {
+      logger.error({ error }, "Error importing resume");
+      import("fs").then((fs) =>
+        fs.writeFileSync("import-error.txt", String(error?.stack || error)),
+      );
+      res
+        .status(500)
+        .json({ error: "An error occurred while importing the resume." });
+    }
+  },
+);
 
-router.get("/resumes/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = GetResumeParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+router.get(
+  "/resumes/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = GetResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
 
-  const [resume] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
+    const [resume] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
 
-  if (!resume) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
+    if (!resume) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
 
-  const sections = await db.select().from(resumeSectionsTable)
-    .where(eq(resumeSectionsTable.resumeId, resume.id))
-    .orderBy(resumeSectionsTable.displayOrder);
+    const sections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, resume.id))
+      .orderBy(resumeSectionsTable.displayOrder);
 
-  res.json(GetResumeResponse.parse(toJSON({ ...resume, sections })));
-});
+    res.json(GetResumeResponse.parse(toJSON({ ...resume, sections })));
+  },
+);
 
-router.patch("/resumes/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = UpdateResumeParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
+router.patch(
+  "/resumes/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = UpdateResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
 
-  const parsed = UpdateResumeBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+    const parsed = UpdateResumeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
 
-  const [existing] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
+    const [existing] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
 
-  if (!existing) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
+    if (!existing) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
 
-  const { sections, ...resumeFields } = parsed.data;
+    const { sections, ...resumeFields } = parsed.data;
 
-  const updateData: Partial<typeof resumesTable.$inferInsert> = {};
-  if (resumeFields.title != null) updateData.title = resumeFields.title;
-  if (resumeFields.templateId != null) updateData.templateId = resumeFields.templateId;
-  if (resumeFields.accentColor != null) updateData.accentColor = resumeFields.accentColor;
-  if (resumeFields.fontFamily != null) updateData.fontFamily = resumeFields.fontFamily;
-  if (resumeFields.fontColor != null) updateData.fontColor = resumeFields.fontColor;
-  if (resumeFields.backgroundColor != null) updateData.backgroundColor = resumeFields.backgroundColor;
-  if (resumeFields.isPublic != null) updateData.isPublic = resumeFields.isPublic;
+    const updateData: Partial<typeof resumesTable.$inferInsert> = {};
+    if (resumeFields.title != null) updateData.title = resumeFields.title;
+    if (resumeFields.templateId != null)
+      updateData.templateId = resumeFields.templateId;
+    if (resumeFields.accentColor != null)
+      updateData.accentColor = resumeFields.accentColor;
+    if (resumeFields.fontFamily != null)
+      updateData.fontFamily = resumeFields.fontFamily;
+    if (resumeFields.fontColor != null)
+      updateData.fontColor = resumeFields.fontColor;
+    if (resumeFields.backgroundColor != null)
+      updateData.backgroundColor = resumeFields.backgroundColor;
+    if (resumeFields.isPublic != null)
+      updateData.isPublic = resumeFields.isPublic;
 
-  const hasResumeFieldUpdates = Object.keys(updateData).length > 0;
-  const hasSectionPayload = !!(sections && sections.length > 0);
+    const hasResumeFieldUpdates = Object.keys(updateData).length > 0;
+    const hasSectionPayload = !!(sections && sections.length > 0);
 
-  let updatedResume = existing;
-  if (hasResumeFieldUpdates) {
-    const [r] = await db
-      .update(resumesTable)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(resumesTable.id, params.data.id))
-      .returning();
-    updatedResume = r;
-  } else if (hasSectionPayload) {
-    // Section-only PATCH: still bump parent row so list ordering / "last updated" stay correct.
-    const [r] = await db
-      .update(resumesTable)
-      .set({ updatedAt: new Date() })
-      .where(eq(resumesTable.id, params.data.id))
-      .returning();
-    updatedResume = r;
-  }
+    let updatedResume = existing;
+    if (hasResumeFieldUpdates) {
+      const [r] = await db
+        .update(resumesTable)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(resumesTable.id, params.data.id))
+        .returning();
+      updatedResume = r;
+    } else if (hasSectionPayload) {
+      // Section-only PATCH: still bump parent row so list ordering / "last updated" stay correct.
+      const [r] = await db
+        .update(resumesTable)
+        .set({ updatedAt: new Date() })
+        .where(eq(resumesTable.id, params.data.id))
+        .returning();
+      updatedResume = r;
+    }
 
-  if (sections && sections.length > 0) {
-    for (const section of sections) {
-      const sectionUpdate: Partial<typeof resumeSectionsTable.$inferInsert> = {};
-      if (section.type != null) sectionUpdate.type = section.type;
-      if (section.title != null) sectionUpdate.title = section.title;
-      if (section.content != null) sectionUpdate.content = section.content as Record<string, unknown>;
-      if (section.displayOrder != null) sectionUpdate.displayOrder = section.displayOrder;
-      if (section.isVisible != null) sectionUpdate.isVisible = section.isVisible;
+    if (sections && sections.length > 0) {
+      for (const section of sections) {
+        const sectionUpdate: Partial<typeof resumeSectionsTable.$inferInsert> =
+          {};
+        if (section.type != null) sectionUpdate.type = section.type;
+        if (section.title != null) sectionUpdate.title = section.title;
+        if (section.content != null)
+          sectionUpdate.content = section.content as Record<string, unknown>;
+        if (section.displayOrder != null)
+          sectionUpdate.displayOrder = section.displayOrder;
+        if (section.isVisible != null)
+          sectionUpdate.isVisible = section.isVisible;
 
-      if (Object.keys(sectionUpdate).length > 0) {
-        await db.update(resumeSectionsTable).set(sectionUpdate)
-          .where(and(eq(resumeSectionsTable.id, section.id), eq(resumeSectionsTable.resumeId, params.data.id)));
+        if (Object.keys(sectionUpdate).length > 0) {
+          await db
+            .update(resumeSectionsTable)
+            .set(sectionUpdate)
+            .where(
+              and(
+                eq(resumeSectionsTable.id, section.id),
+                eq(resumeSectionsTable.resumeId, params.data.id),
+              ),
+            );
+        }
       }
     }
-  }
 
-  const updatedSections = await db.select().from(resumeSectionsTable)
-    .where(eq(resumeSectionsTable.resumeId, params.data.id))
-    .orderBy(resumeSectionsTable.displayOrder);
+    const updatedSections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, params.data.id))
+      .orderBy(resumeSectionsTable.displayOrder);
 
-  res.json(UpdateResumeResponse.parse(toJSON({ ...updatedResume, sections: updatedSections })));
-});
-
-router.delete("/resumes/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = DeleteResumeParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-
-  const [existing] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
-
-  if (!existing) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
-
-  await db.delete(resumesTable).where(eq(resumesTable.id, params.data.id));
-  res.sendStatus(204);
-});
-
-router.post("/resumes/:id/duplicate", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = DuplicateResumeParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-
-  const [existing] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
-
-  if (!existing) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
-
-  const [duplicate] = await db.insert(resumesTable).values({
-    userId,
-    title: `${existing.title} (Copy)`,
-    templateId: existing.templateId,
-    accentColor: existing.accentColor,
-    fontFamily: existing.fontFamily,
-    fontColor: existing.fontColor,
-    backgroundColor: existing.backgroundColor,
-    isPublic: false,
-  }).returning();
-
-  const originalSections = await db.select().from(resumeSectionsTable)
-    .where(eq(resumeSectionsTable.resumeId, existing.id));
-
-  if (originalSections.length > 0) {
-    const sectionsToInsert = originalSections.map(({ id, resumeId, createdAt, updatedAt, ...rest }) => ({
-      ...rest,
-      resumeId: duplicate.id,
-    }));
-    await db.insert(resumeSectionsTable).values(sectionsToInsert);
-  }
-
-  res.status(201).json(toJSON(duplicate));
-});
-
-router.post("/resumes/:id/export", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = ExportResumeParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-
-  const body = ExportResumeBody.safeParse(req.body);
-  if (!body.success) {
-    res.status(400).json({ error: body.error.message });
-    return;
-  }
-
-  const [existing] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
-
-  if (!existing) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
-
-  await db.update(resumesTable)
-    .set({ downloadCount: sql`${resumesTable.downloadCount} + 1` })
-    .where(eq(resumesTable.id, params.data.id));
-
-  const exportUrl = `/api/resumes/${params.data.id}/download?format=${body.data.format}`;
-  res.json(ExportResumeResponse.parse({ url: exportUrl, format: body.data.format }));
-});
-
-router.get("/resumes/:id/ats-score", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const userId = (req as any).userId;
-  const params = GetAtsScoreParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
-    return;
-  }
-
-  const [resume] = await db.select().from(resumesTable).where(
-    and(eq(resumesTable.id, params.data.id), eq(resumesTable.userId, userId))
-  );
-
-  if (!resume) {
-    res.status(404).json({ error: "Resume not found" });
-    return;
-  }
-
-  const clerkUser = await clerkClient.users.getUser(userId);
-  if (clerkUser.publicMetadata?.isPremium !== true) {
-    res.status(403).json({ error: "ATS score is available for Pro subscribers only." });
-    return;
-  }
-
-  const sections = await db.select().from(resumeSectionsTable)
-    .where(eq(resumeSectionsTable.resumeId, resume.id));
-
-  const passedChecks: string[] = [];
-  const failedChecks: string[] = [];
-  const feedback: string[] = [];
-
-  const personalSection = sections.find(s => s.type === "personal");
-  const personalContent = personalSection?.content as any;
-  if (personalContent?.email) passedChecks.push("Contact email present");
-  else failedChecks.push("Missing contact email");
-
-  if (personalContent?.phone) passedChecks.push("Phone number present");
-  else failedChecks.push("Missing phone number");
-
-  const summarySection = sections.find(s => s.type === "summary");
-  const summaryContent = summarySection?.content as any;
-  if (summaryContent?.text && summaryContent.text.length > 50) {
-    passedChecks.push("Professional summary present");
-  } else {
-    failedChecks.push("Missing or too short professional summary");
-    feedback.push("Add a compelling professional summary of at least 3-4 sentences");
-  }
-
-  const expSection = sections.find(s => s.type === "experience");
-  const expContent = expSection?.content as any;
-  if (expContent?.items && expContent.items.length > 0) {
-    passedChecks.push("Work experience included");
-    const hasQuantified = expContent.items.some((item: any) =>
-      item.bullets?.some((b: string) => /\d/.test(b))
+    res.json(
+      UpdateResumeResponse.parse(
+        toJSON({ ...updatedResume, sections: updatedSections }),
+      ),
     );
-    if (hasQuantified) passedChecks.push("Quantified achievements present");
-    else {
-      failedChecks.push("No quantified achievements");
-      feedback.push("Add numbers and metrics to your bullet points (e.g., 'Increased sales by 30%')");
+  },
+);
+
+router.delete(
+  "/resumes/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = DeleteResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
     }
-  } else {
-    failedChecks.push("Missing work experience");
-  }
 
-  const skillsSection = sections.find(s => s.type === "skills");
-  const skillsContent = skillsSection?.content as any;
-  if (skillsContent?.items && skillsContent.items.length >= 5) {
-    passedChecks.push("Adequate skills listed");
-  } else {
-    failedChecks.push("Too few skills listed");
-    feedback.push("List at least 5-10 relevant skills for better ATS matching");
-  }
+    const [existing] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
 
-  if (resume.title && resume.title.length > 2) passedChecks.push("Resume has a title");
+    if (!existing) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
 
-  const score = Math.round((passedChecks.length / (passedChecks.length + failedChecks.length)) * 100);
+    await db.delete(resumesTable).where(eq(resumesTable.id, params.data.id));
+    res.sendStatus(204);
+  },
+);
 
-  res.json(GetAtsScoreResponse.parse({
-    score,
-    maxScore: 100,
-    feedback,
-    passedChecks,
-    failedChecks,
-  }));
-});
+router.post(
+  "/resumes/:id/duplicate",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = DuplicateResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
 
-router.post("/resumes/export-pdf", requireAuth, async (req: Request, res: Response): Promise<void> => {
-  const { html } = req.body;
-  if (!html) {
-    res.status(400).json({ error: "No HTML provided" });
-    return;
-  }
+    const [existing] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
 
-  try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      args: [
-        "--no-sandbox", 
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-      ],
-    });
-    
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "load" });
-    
-    // Some fonts might need a bit more time to render perfectly, waiting a small fixed amount can help
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!existing) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: 0, bottom: 0, left: 0, right: 0 }
-    });
-    
-    await browser.close();
-    
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
-    res.send(Buffer.from(pdfBuffer));
-  } catch (error: any) {
-    logger.error({ error: error.message || error }, "Error generating PDF");
-    res.status(500).json({ 
-      error: "Failed to generate PDF", 
-      details: error.message || String(error) 
-    });
-  }
-});
+    const [duplicate] = await db
+      .insert(resumesTable)
+      .values({
+        userId,
+        title: `${existing.title} (Copy)`,
+        templateId: existing.templateId,
+        accentColor: existing.accentColor,
+        fontFamily: existing.fontFamily,
+        fontColor: existing.fontColor,
+        backgroundColor: existing.backgroundColor,
+        isPublic: false,
+      })
+      .returning();
+
+    const originalSections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, existing.id));
+
+    if (originalSections.length > 0) {
+      const sectionsToInsert = originalSections.map(
+        ({ id, resumeId, createdAt, updatedAt, ...rest }) => ({
+          ...rest,
+          resumeId: duplicate.id,
+        }),
+      );
+      await db.insert(resumeSectionsTable).values(sectionsToInsert);
+    }
+
+    res.status(201).json(toJSON(duplicate));
+  },
+);
+
+router.post(
+  "/resumes/:id/export",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = ExportResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+
+    const body = ExportResumeBody.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: body.error.message });
+      return;
+    }
+
+    const [existing] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
+
+    if (!existing) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
+
+    await db
+      .update(resumesTable)
+      .set({ downloadCount: sql`${resumesTable.downloadCount} + 1` })
+      .where(eq(resumesTable.id, params.data.id));
+
+    const exportUrl = `/api/resumes/${params.data.id}/download?format=${body.data.format}`;
+    res.json(
+      ExportResumeResponse.parse({ url: exportUrl, format: body.data.format }),
+    );
+  },
+);
+
+router.get(
+  "/resumes/:id/ats-score",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = GetAtsScoreParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+
+    const [resume] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
+
+    if (!resume) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (clerkUser.publicMetadata?.isPremium !== true) {
+      res
+        .status(403)
+        .json({ error: "ATS score is available for Pro subscribers only." });
+      return;
+    }
+
+    const sections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, resume.id));
+
+    const passedChecks: string[] = [];
+    const failedChecks: string[] = [];
+    const feedback: string[] = [];
+
+    const personalSection = sections.find((s) => s.type === "personal");
+    const personalContent = personalSection?.content as any;
+    if (personalContent?.email) passedChecks.push("Contact email present");
+    else failedChecks.push("Missing contact email");
+
+    if (personalContent?.phone) passedChecks.push("Phone number present");
+    else failedChecks.push("Missing phone number");
+
+    const summarySection = sections.find((s) => s.type === "summary");
+    const summaryContent = summarySection?.content as any;
+    if (summaryContent?.text && summaryContent.text.length > 50) {
+      passedChecks.push("Professional summary present");
+    } else {
+      failedChecks.push("Missing or too short professional summary");
+      feedback.push(
+        "Add a compelling professional summary of at least 3-4 sentences",
+      );
+    }
+
+    const expSection = sections.find((s) => s.type === "experience");
+    const expContent = expSection?.content as any;
+    if (expContent?.items && expContent.items.length > 0) {
+      passedChecks.push("Work experience included");
+      const hasQuantified = expContent.items.some((item: any) =>
+        item.bullets?.some((b: string) => /\d/.test(b)),
+      );
+      if (hasQuantified) passedChecks.push("Quantified achievements present");
+      else {
+        failedChecks.push("No quantified achievements");
+        feedback.push(
+          "Add numbers and metrics to your bullet points (e.g., 'Increased sales by 30%')",
+        );
+      }
+    } else {
+      failedChecks.push("Missing work experience");
+    }
+
+    const skillsSection = sections.find((s) => s.type === "skills");
+    const skillsContent = skillsSection?.content as any;
+    if (skillsContent?.items && skillsContent.items.length >= 5) {
+      passedChecks.push("Adequate skills listed");
+    } else {
+      failedChecks.push("Too few skills listed");
+      feedback.push(
+        "List at least 5-10 relevant skills for better ATS matching",
+      );
+    }
+
+    if (resume.title && resume.title.length > 2)
+      passedChecks.push("Resume has a title");
+
+    const score = Math.round(
+      (passedChecks.length / (passedChecks.length + failedChecks.length)) * 100,
+    );
+
+    res.json(
+      GetAtsScoreResponse.parse({
+        score,
+        maxScore: 100,
+        feedback,
+        passedChecks,
+        failedChecks,
+      }),
+    );
+  },
+);
+
+router.post(
+  "/resumes/export-pdf",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const { html } = req.body;
+    if (!html) {
+      res.status(400).json({ error: "No HTML provided" });
+      return;
+    }
+
+    try {
+      const browser = await puppeteer.launch({
+        headless: true,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+        ],
+      });
+
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "load" });
+
+      // Some fonts might need a bit more time to render perfectly, waiting a small fixed amount can help
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        preferCSSPageSize: true,
+        margin: { top: 0, bottom: 0, left: 0, right: 0 },
+      });
+
+      await browser.close();
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
+      res.send(Buffer.from(pdfBuffer));
+    } catch (error: any) {
+      logger.error({ error: error.message || error }, "Error generating PDF");
+      res.status(500).json({
+        error: "Failed to generate PDF",
+        details: error.message || String(error),
+      });
+    }
+  },
+);
 
 export default router;

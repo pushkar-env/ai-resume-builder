@@ -10,8 +10,17 @@ interface ProButtonProps extends Omit<ButtonProps, "asChild"> {
 }
 
 export const ProButton = React.forwardRef<HTMLButtonElement, ProButtonProps>(
-  ({ className, showIcon = true, text = "Go Pro", effect = "shimmer", children, ...props }, ref) => {
-    
+  (
+    {
+      className,
+      showIcon = true,
+      text = "Go Pro",
+      effect = "shimmer",
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const isSleek = effect === "sleek";
 
     return (
@@ -20,13 +29,20 @@ export const ProButton = React.forwardRef<HTMLButtonElement, ProButtonProps>(
         className={cn(
           "relative overflow-hidden font-semibold transition-all shadow-md hover:shadow-lg border-0 text-white",
           "hover:-translate-y-[1px] active:translate-y-[1px] active:scale-[0.98]",
-          isSleek ? "bg-gradient-to-r from-violet-500 via-pink-500 to-blue-500 hover:from-violet-400 hover:via-pink-400 hover:to-blue-400" : "bg-gradient-to-r from-violet-600 via-pink-500 to-blue-600 hover:from-violet-500 hover:via-pink-400 hover:to-blue-500",
-          className
+          isSleek
+            ? "bg-gradient-to-r from-violet-500 via-pink-500 to-blue-500 hover:from-violet-400 hover:via-pink-400 hover:to-blue-400"
+            : "bg-gradient-to-r from-violet-600 via-pink-500 to-blue-600 hover:from-violet-500 hover:via-pink-400 hover:to-blue-500",
+          className,
         )}
-        style={!isSleek ? {
-          backgroundImage: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #2563eb 100%)",
-          backgroundSize: "200% 100%",
-        } : undefined}
+        style={
+          !isSleek
+            ? {
+                backgroundImage:
+                  "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #2563eb 100%)",
+                backgroundSize: "200% 100%",
+              }
+            : undefined
+        }
         {...props}
       >
         {!isSleek && (
@@ -38,7 +54,7 @@ export const ProButton = React.forwardRef<HTMLButtonElement, ProButtonProps>(
         </div>
       </Button>
     );
-  }
+  },
 );
 
 ProButton.displayName = "ProButton";

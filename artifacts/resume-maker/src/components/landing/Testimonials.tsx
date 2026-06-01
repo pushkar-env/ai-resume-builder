@@ -5,59 +5,69 @@ const testimonials = [
   {
     name: "Sarah Jenkins",
     role: "Senior Software Engineer",
-    content: "The AI suggestions were incredibly context-aware. I imported my old PDF resume and within 10 minutes I had a perfectly formatted, ATS-friendly version.",
+    content:
+      "The AI suggestions were incredibly context-aware. I imported my old PDF resume and within 10 minutes I had a perfectly formatted, ATS-friendly version.",
   },
   {
     name: "David Chen",
     role: "Product Manager",
-    content: "The 'Highly Customizable' templates are a game changer. I tweaked the exact colors and fonts to match my personal brand without breaking the layout.",
+    content:
+      "The 'Highly Customizable' templates are a game changer. I tweaked the exact colors and fonts to match my personal brand without breaking the layout.",
   },
   {
     name: "Emily Rodriguez",
     role: "Recent Graduate",
-    content: "I was struggling with how to word my limited experience. The AI-powered writing turned my basic bullets into impactful achievements. Landed 3 interviews in a week!",
+    content:
+      "I was struggling with how to word my limited experience. The AI-powered writing turned my basic bullets into impactful achievements. Landed 3 interviews in a week!",
   },
   {
     name: "Michael Chang",
     role: "UX Designer",
-    content: "As a designer, I'm picky about layouts. Resumesensei is the first builder where the live preview perfectly matches the exported PDF. Truly a premium feel.",
+    content:
+      "As a designer, I'm picky about layouts. Resumesensei is the first builder where the live preview perfectly matches the exported PDF. Truly a premium feel.",
   },
   {
     name: "Aisha Patel",
     role: "Marketing Director",
-    content: "The ATS score tracking is brilliant. It highlighted exactly which keywords I was missing for the role I wanted. Best investment for my career.",
+    content:
+      "The ATS score tracking is brilliant. It highlighted exactly which keywords I was missing for the role I wanted. Best investment for my career.",
   },
   {
     name: "James Wilson",
     role: "Data Scientist",
-    content: "Importing my chaotic DOCX file worked flawlessly. The system mapped everything correctly and the new template made it look 10x more professional.",
-  }
+    content:
+      "Importing my chaotic DOCX file worked flawlessly. The system mapped everything correctly and the new template made it look 10x more professional.",
+  },
 ];
 
 export function Testimonials() {
   return (
-    <section className="py-20 sm:py-32 overflow-hidden bg-muted/10 border-t border-border/50 relative" aria-labelledby="testimonials-heading">
+    <section
+      className="py-20 sm:py-32 overflow-hidden bg-muted/10 border-t border-border/50 relative"
+      aria-labelledby="testimonials-heading"
+    >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-background to-background"></div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            id="testimonials-heading" 
+            id="testimonials-heading"
             className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl mb-4"
           >
             Loved by professionals
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg text-muted-foreground"
           >
-            See how our AI-powered features and highly customizable templates have helped thousands land their dream roles.
+            See how our AI-powered features and highly customizable templates
+            have helped thousands land their dream roles.
           </motion.p>
         </div>
 
@@ -74,10 +84,15 @@ export function Testimonials() {
               <div>
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-4 w-4 fill-primary/80 text-primary/80" />
+                    <Star
+                      key={j}
+                      className="h-4 w-4 fill-primary/80 text-primary/80"
+                    />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed text-foreground/90">"{t.content}"</p>
+                <p className="text-sm leading-relaxed text-foreground/90">
+                  "{t.content}"
+                </p>
               </div>
               <div className="mt-6 flex items-center gap-3 border-t border-border/50 pt-4">
                 <div className="h-10 w-10 flex items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">

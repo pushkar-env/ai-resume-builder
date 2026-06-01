@@ -3,7 +3,14 @@ import { Navbar } from "@/components/layout/Navbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { SEO } from "@/components/shared/SEO";
 import { SITE_URL } from "@/lib/brand";
-import { Mail, MapPin, MessageSquare, Clock, Send, CheckCircle2 } from "lucide-react";
+import {
+  Mail,
+  MapPin,
+  MessageSquare,
+  Clock,
+  Send,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,7 +107,8 @@ export default function ContactPage() {
             Get in touch
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg text-pretty px-1 break-words">
-            Have questions about Resumesensei or need support? We're here to help you land your dream job.
+            Have questions about Resumesensei or need support? We're here to
+            help you land your dream job.
           </p>
         </div>
       </div>
@@ -115,9 +123,16 @@ export default function ContactPage() {
             className="lg:col-span-3 min-w-0 w-full max-w-full bg-card border border-border rounded-2xl p-5 sm:p-8 shadow-sm"
           >
             <h2 className="text-2xl font-bold mb-6">Send us a message</h2>
-            <form onSubmit={handleSubmit} className="relative space-y-5 min-w-0" noValidate>
+            <form
+              onSubmit={handleSubmit}
+              className="relative space-y-5 min-w-0"
+              noValidate
+            >
               {/* Honeypot — leave empty (bots often fill hidden fields) */}
-              <div className="pointer-events-none absolute left-0 top-0 -z-10 h-px w-px overflow-hidden opacity-0" aria-hidden="true">
+              <div
+                className="pointer-events-none absolute left-0 top-0 -z-10 h-px w-px overflow-hidden opacity-0"
+                aria-hidden="true"
+              >
                 <label htmlFor="contact-company">Company</label>
                 <input
                   id="contact-company"
@@ -125,7 +140,9 @@ export default function ContactPage() {
                   tabIndex={-1}
                   autoComplete="off"
                   value={form.company}
-                  onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, company: e.target.value }))
+                  }
                 />
               </div>
 
@@ -142,7 +159,9 @@ export default function ContactPage() {
                     placeholder="Your Name"
                     className="h-11 min-w-0 max-w-full"
                     value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, name: e.target.value }))
+                    }
                   />
                 </div>
                 <div className="min-w-0 space-y-2">
@@ -158,7 +177,9 @@ export default function ContactPage() {
                     placeholder="yourname@example.com"
                     className="h-11 min-w-0 max-w-full"
                     value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, email: e.target.value }))
+                    }
                   />
                 </div>
               </div>
@@ -173,7 +194,9 @@ export default function ContactPage() {
                   placeholder="How can we help?"
                   className="h-11 min-w-0 max-w-full"
                   value={form.subject}
-                  onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, subject: e.target.value }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -187,7 +210,9 @@ export default function ContactPage() {
                   placeholder="Please describe your issue or question in detail..."
                   className="min-h-[150px] min-w-0 max-w-full resize-y"
                   value={form.message}
-                  onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, message: e.target.value }))
+                  }
                 />
               </div>
               <Button
@@ -224,14 +249,18 @@ export default function ContactPage() {
             className="lg:col-span-2 min-w-0 w-full max-w-full space-y-6"
           >
             <div className="bg-primary/5 border border-primary/10 rounded-2xl p-5 sm:p-6 min-w-0">
-              <h3 className="font-semibold text-lg mb-4 text-foreground">Contact Information</h3>
+              <h3 className="font-semibold text-lg mb-4 text-foreground">
+                Contact Information
+              </h3>
               <div className="space-y-6">
                 <div className="flex min-w-0 gap-3 sm:gap-4">
                   <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
                     <Mail className="h-5 w-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm text-foreground">Email Support</p>
+                    <p className="font-medium text-sm text-foreground">
+                      Email Support
+                    </p>
                     <a
                       href={`mailto:${SUPPORT_EMAIL}`}
                       className="text-muted-foreground text-sm hover:text-primary transition-colors mt-1 block break-words [overflow-wrap:anywhere]"
@@ -246,7 +275,9 @@ export default function ContactPage() {
                     <MapPin className="h-5 w-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm text-foreground">Office Location</p>
+                    <p className="font-medium text-sm text-foreground">
+                      Office Location
+                    </p>
                     <p className="text-muted-foreground text-sm mt-1 break-words">
                       123 Innovation Drive
                       <br />
@@ -260,7 +291,9 @@ export default function ContactPage() {
                     <Clock className="h-5 w-5 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm text-foreground">Working Hours</p>
+                    <p className="font-medium text-sm text-foreground">
+                      Working Hours
+                    </p>
                     <p className="text-muted-foreground text-sm mt-1 break-words">
                       Monday - Friday
                       <br />
@@ -272,9 +305,12 @@ export default function ContactPage() {
             </div>
 
             <div className="bg-muted/50 border border-border rounded-2xl p-5 sm:p-6 min-w-0">
-              <h3 className="font-semibold text-sm mb-2 text-foreground">Looking for enterprise solutions?</h3>
+              <h3 className="font-semibold text-sm mb-2 text-foreground">
+                Looking for enterprise solutions?
+              </h3>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                We offer custom ATS integrations and team billing for recruitment agencies and large organizations.
+                We offer custom ATS integrations and team billing for
+                recruitment agencies and large organizations.
               </p>
               <Button variant="outline" className="w-full" asChild>
                 <a href={SALES_MAILTO}>Contact Sales</a>

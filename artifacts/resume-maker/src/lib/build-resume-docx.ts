@@ -12,7 +12,6 @@ import {
 } from "docx";
 import { TEMPLATE_DEFAULT_SKILL_STYLES } from "./template-config";
 
-
 type SC = Record<string, unknown>;
 type Item = Record<string, unknown>;
 
@@ -46,9 +45,7 @@ function renderGpa(gpa: unknown, mode: unknown): string {
 
 /** Strips characters illegal in WordprocessingML runs and caps extreme length. */
 function sanitizeWordText(input: string): string {
-  let s = input
-    .replace(XML_TEXT_CONTROL, "")
-    .replace(/\u00ad/g, "");
+  let s = input.replace(XML_TEXT_CONTROL, "").replace(/\u00ad/g, "");
   if (s.length > MAX_RUN_CHARS) s = `${s.slice(0, MAX_RUN_CHARS)}…`;
   return s;
 }
@@ -57,7 +54,11 @@ function hexToWordColor(hex: string): string {
   let h = hex.replace("#", "").trim();
   if (h.length === 8) h = h.slice(0, 6);
   if (h.length === 6) return h.toUpperCase();
-  if (h.length === 3) return [...h].map((c) => c + c).join("").toUpperCase();
+  if (h.length === 3)
+    return [...h]
+      .map((c) => c + c)
+      .join("")
+      .toUpperCase();
   return "4472C4";
 }
 
@@ -74,11 +75,11 @@ function contentByType(ordered: ResumeSection[], type: string): SC | undefined {
 
 function skillsStyleFromOrdered(ordered: ResumeSection[]): string | undefined {
   const sec = ordered.find((s) => s.type === "skills");
-  return ((sec?.content as SC | undefined)?.style as string | undefined);
+  return (sec?.content as SC | undefined)?.style as string | undefined;
 }
 
 function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
-  return ((sc?.[key] ?? []) as T[]);
+  return (sc?.[key] ?? []) as T[];
 }
 
 function roleOf(p: SC): string {
@@ -86,17 +87,27 @@ function roleOf(p: SC): string {
 }
 
 function skillPct(v: unknown): number {
-  if (typeof v === "number" && Number.isFinite(v)) return Math.min(100, Math.max(0, v));
+  if (typeof v === "number" && Number.isFinite(v))
+    return Math.min(100, Math.max(0, v));
   if (typeof v === "string") {
     const n = Number(v);
     if (Number.isFinite(n)) return Math.min(100, Math.max(0, n));
-    const map: Record<string, number> = { beginner: 35, intermediate: 65, advanced: 85, expert: 95 };
+    const map: Record<string, number> = {
+      beginner: 35,
+      intermediate: 65,
+      advanced: 85,
+      expert: 95,
+    };
     return map[v.toLowerCase()] ?? 75;
   }
   return 75;
 }
 
-function htmlToPlainParagraphs(html: string, runSize: number, font: string): Paragraph[] {
+function htmlToPlainParagraphs(
+  html: string,
+  runSize: number,
+  font: string,
+): Paragraph[] {
   const raw = html.trim();
   if (!raw) return [];
   const normalized = raw
@@ -107,9 +118,14 @@ function htmlToPlainParagraphs(html: string, runSize: number, font: string): Par
   let text = "";
   if (typeof DOMParser !== "undefined") {
     try {
-      const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
+      const parsed = new DOMParser().parseFromString(
+        `<div>${normalized}</div>`,
+        "text/html",
+      );
       const docErr = parsed.querySelector("parsererror");
-      text = docErr ? normalized.replace(/<[^>]+>/g, " ") : (parsed.body.textContent ?? "");
+      text = docErr
+        ? normalized.replace(/<[^>]+>/g, " ")
+        : (parsed.body.textContent ?? "");
     } catch {
       text = normalized.replace(/<[^>]+>/g, " ");
     }
@@ -135,9 +151,14 @@ function htmlToPlainText(html: string): string {
   let plain = "";
   if (typeof DOMParser !== "undefined") {
     try {
-      const parsed = new DOMParser().parseFromString(`<div>${normalized}</div>`, "text/html");
+      const parsed = new DOMParser().parseFromString(
+        `<div>${normalized}</div>`,
+        "text/html",
+      );
       const docErr = parsed.querySelector("parsererror");
-      plain = docErr ? normalized.replace(/<[^>]+>/g, " ") : (parsed.body.textContent ?? "");
+      plain = docErr
+        ? normalized.replace(/<[^>]+>/g, " ")
+        : (parsed.body.textContent ?? "");
     } catch {
       plain = normalized.replace(/<[^>]+>/g, " ");
     }
@@ -147,7 +168,11 @@ function htmlToPlainText(html: string): string {
   return sanitizeWordText(plain.replace(/\s+/g, " ").trim());
 }
 
-function bulletParts(b: unknown): { text: string; label: string; link: string } {
+function bulletParts(b: unknown): {
+  text: string;
+  label: string;
+  link: string;
+} {
   if (typeof b === "string") return { text: b, label: "", link: "" };
   if (b && typeof b === "object") {
     const o = b as Record<string, unknown>;
@@ -164,7 +189,9 @@ function bulletParts(b: unknown): { text: string; label: string; link: string } 
 function safeExternalHref(raw: string): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
-  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const candidate = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
   try {
     const u = new URL(candidate);
     if (u.protocol !== "http:" && u.protocol !== "https:") return null;
@@ -183,7 +210,10 @@ function linkParagraph(opts: {
 }): Paragraph {
   const { display, rawUrl, font, spacingAfter, indentInches } = opts;
   const safe = safeExternalHref(rawUrl);
-  const indent = indentInches !== undefined ? { left: convertInchesToTwip(indentInches) } : undefined;
+  const indent =
+    indentInches !== undefined
+      ? { left: convertInchesToTwip(indentInches) }
+      : undefined;
   const label = sanitizeWordText(display || safe || rawUrl);
   if (safe) {
     return new Paragraph({
@@ -191,7 +221,14 @@ function linkParagraph(opts: {
       indent,
       children: [
         new ExternalHyperlink({
-          children: [new TextRun({ text: label || safe, style: "Hyperlink", size: 20, font })],
+          children: [
+            new TextRun({
+              text: label || safe,
+              style: "Hyperlink",
+              size: 20,
+              font,
+            }),
+          ],
           link: safe,
         }),
       ],
@@ -200,7 +237,9 @@ function linkParagraph(opts: {
   return new Paragraph({
     spacing: { after: spacingAfter },
     indent,
-    children: [new TextRun({ text: label || sanitizeWordText(rawUrl), size: 20, font })],
+    children: [
+      new TextRun({ text: label || sanitizeWordText(rawUrl), size: 20, font }),
+    ],
   });
 }
 
@@ -215,14 +254,18 @@ function socialsList(p: SC): Social[] {
       .filter((s) => s.label.length > 0);
   }
   const legacy: Social[] = [];
-  if (str(p.github).trim()) legacy.push({ label: "GitHub", url: str(p.github).trim() });
-  if (str(p.linkedin).trim()) legacy.push({ label: "LinkedIn", url: str(p.linkedin).trim() });
-  if (str(p.twitter).trim()) legacy.push({ label: "Twitter", url: str(p.twitter).trim() });
+  if (str(p.github).trim())
+    legacy.push({ label: "GitHub", url: str(p.github).trim() });
+  if (str(p.linkedin).trim())
+    legacy.push({ label: "LinkedIn", url: str(p.linkedin).trim() });
+  if (str(p.twitter).trim())
+    legacy.push({ label: "Twitter", url: str(p.twitter).trim() });
   return legacy;
 }
 
 function wordPrimaryFont(fontStack: string): string {
-  const first = fontStack.split(",")[0]?.replace(/['"]/g, "").trim() || "Calibri";
+  const first =
+    fontStack.split(",")[0]?.replace(/['"]/g, "").trim() || "Calibri";
   const lower = first.toLowerCase();
   if (lower.includes("mono")) return "Consolas";
   if (
@@ -245,7 +288,16 @@ function sectionHeading(text: string, accent: string, font: string): Paragraph {
     border: {
       bottom: { color: "CCCCCC", style: BorderStyle.SINGLE, size: 6, space: 1 },
     },
-    children: [new TextRun({ text: sanitizeWordText(text), bold: true, size: 24, color, font, allCaps: true })],
+    children: [
+      new TextRun({
+        text: sanitizeWordText(text),
+        bold: true,
+        size: 24,
+        color,
+        font,
+        allCaps: true,
+      }),
+    ],
   });
 }
 
@@ -277,7 +329,14 @@ export async function buildResumeDocxBlob(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 120 },
-      children: [new TextRun({ text: sanitizeWordText(str(personal.name) || "Resume"), bold: true, size: 52, font })],
+      children: [
+        new TextRun({
+          text: sanitizeWordText(str(personal.name) || "Resume"),
+          bold: true,
+          size: 52,
+          font,
+        }),
+      ],
     }),
   );
 
@@ -287,15 +346,25 @@ export async function buildResumeDocxBlob(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 160 },
-        children: [new TextRun({ text: sanitizeWordText(role), size: 28, color: accentHex, font })],
+        children: [
+          new TextRun({
+            text: sanitizeWordText(role),
+            size: 28,
+            color: accentHex,
+            font,
+          }),
+        ],
       }),
     );
   }
 
   const contactParts: string[] = [];
-  if (str(personal.email).trim()) contactParts.push(sanitizeWordText(str(personal.email).trim()));
-  if (str(personal.phone).trim()) contactParts.push(sanitizeWordText(str(personal.phone).trim()));
-  if (str(personal.location).trim()) contactParts.push(sanitizeWordText(str(personal.location).trim()));
+  if (str(personal.email).trim())
+    contactParts.push(sanitizeWordText(str(personal.email).trim()));
+  if (str(personal.phone).trim())
+    contactParts.push(sanitizeWordText(str(personal.phone).trim()));
+  if (str(personal.location).trim())
+    contactParts.push(sanitizeWordText(str(personal.location).trim()));
   for (const s of socialsList(personal)) {
     const bit = s.url ? `${s.label}: ${s.url}` : s.label;
     contactParts.push(sanitizeWordText(bit));
@@ -305,7 +374,9 @@ export async function buildResumeDocxBlob(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 240 },
-        children: [new TextRun({ text: contactParts.join("  |  "), size: 20, font })],
+        children: [
+          new TextRun({ text: contactParts.join("  |  "), size: 20, font }),
+        ],
       }),
     );
   }
@@ -322,15 +393,30 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 200, after: 40 },
-          children: [new TextRun({ text: sanitizeWordText(str(e.title)), bold: true, size: 24, font })],
+          children: [
+            new TextRun({
+              text: sanitizeWordText(str(e.title)),
+              bold: true,
+              size: 24,
+              font,
+            }),
+          ],
         }),
       );
       const companyLine = `${str(e.company)}${e.location ? ` · ${str(e.location)}` : ""}`;
-      const companyAndDates = dates ? `${companyLine}  (${dates})` : companyLine;
+      const companyAndDates = dates
+        ? `${companyLine}  (${dates})`
+        : companyLine;
       body.push(
         new Paragraph({
           spacing: { after: 100 },
-          children: [new TextRun({ text: sanitizeWordText(companyAndDates), size: 22, font })],
+          children: [
+            new TextRun({
+              text: sanitizeWordText(companyAndDates),
+              size: 22,
+              font,
+            }),
+          ],
         }),
       );
 
@@ -363,7 +449,13 @@ export async function buildResumeDocxBlob(
               indent: { left: convertInchesToTwip(0.35) },
               spacing: { after: 60 },
               children: [
-                new TextRun({ text: sanitizeWordText(`— ${label}`), italics: true, size: 20, color: accentHex, font }),
+                new TextRun({
+                  text: sanitizeWordText(`— ${label}`),
+                  italics: true,
+                  size: 20,
+                  color: accentHex,
+                  font,
+                }),
               ],
             }),
           );
@@ -378,7 +470,14 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 80, after: 40 },
-          children: [new TextRun({ text: sanitizeWordText(str(e.school)), bold: true, size: 24, font })],
+          children: [
+            new TextRun({
+              text: sanitizeWordText(str(e.school)),
+              bold: true,
+              size: 24,
+              font,
+            }),
+          ],
         }),
       );
       const parts = [str(e.degree), str(e.field)].filter(Boolean);
@@ -386,16 +485,30 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 40 },
-            children: [new TextRun({ text: sanitizeWordText(parts.join(", ")), size: 22, font })],
+            children: [
+              new TextRun({
+                text: sanitizeWordText(parts.join(", ")),
+                size: 22,
+                font,
+              }),
+            ],
           }),
         );
       }
-      const dates = `${str(e.startDate)}${e.endDate ? ` – ${str(e.endDate)}` : ""}`.trim();
+      const dates =
+        `${str(e.startDate)}${e.endDate ? ` – ${str(e.endDate)}` : ""}`.trim();
       if (dates) {
         body.push(
           new Paragraph({
             spacing: { after: 100 },
-            children: [new TextRun({ text: sanitizeWordText(dates), size: 20, color: "666666", font })],
+            children: [
+              new TextRun({
+                text: sanitizeWordText(dates),
+                size: 20,
+                color: "666666",
+                font,
+              }),
+            ],
           }),
         );
       }
@@ -404,7 +517,13 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 80 },
-            children: [new TextRun({ text: sanitizeWordText(formattedGpa), size: 20, font })],
+            children: [
+              new TextRun({
+                text: sanitizeWordText(formattedGpa),
+                size: 20,
+                font,
+              }),
+            ],
           }),
         );
       }
@@ -412,14 +531,26 @@ export async function buildResumeDocxBlob(
   }
 
   if (skills.length > 0) {
-    const defaultStyle = resume.templateId ? (TEMPLATE_DEFAULT_SKILL_STYLES[resume.templateId] ?? "chips") : "chips";
+    const defaultStyle = resume.templateId
+      ? (TEMPLATE_DEFAULT_SKILL_STYLES[resume.templateId] ?? "chips")
+      : "chips";
     const style = skillsStyleFromOrdered(ordered) ?? defaultStyle;
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {
       body.push(sectionHeading("Skills", accent, font));
       if (style === "text" || (style !== "bars" && style !== "radial")) {
-        const line = sanitizeWordText(skills.map((s) => str(s.name)).filter(Boolean).join(", "));
-        if (line) body.push(new Paragraph({ children: [new TextRun({ text: line, size: 22, font })] }));
+        const line = sanitizeWordText(
+          skills
+            .map((s) => str(s.name))
+            .filter(Boolean)
+            .join(", "),
+        );
+        if (line)
+          body.push(
+            new Paragraph({
+              children: [new TextRun({ text: line, size: 22, font })],
+            }),
+          );
       } else {
         for (const s of skills) {
           const nm = str(s.name).trim();
@@ -428,7 +559,13 @@ export async function buildResumeDocxBlob(
           body.push(
             new Paragraph({
               spacing: { after: 80 },
-              children: [new TextRun({ text: sanitizeWordText(`${nm} — ${pct}%`), size: 22, font })],
+              children: [
+                new TextRun({
+                  text: sanitizeWordText(`${nm} — ${pct}%`),
+                  size: 22,
+                  font,
+                }),
+              ],
             }),
           );
         }
@@ -442,7 +579,14 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 120, after: 60 },
-          children: [new TextRun({ text: sanitizeWordText(str(pr.name)), bold: true, size: 24, font })],
+          children: [
+            new TextRun({
+              text: sanitizeWordText(str(pr.name)),
+              bold: true,
+              size: 24,
+              font,
+            }),
+          ],
         }),
       );
       const url = str(pr.url).trim();
@@ -470,7 +614,9 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { after: 60 },
-          children: [new TextRun({ text: sanitizeWordText(line), size: 22, font })],
+          children: [
+            new TextRun({ text: sanitizeWordText(line), size: 22, font }),
+          ],
         }),
       );
       const credUrl = (str(c.credentialUrl) || str(c.url)).trim();
@@ -526,7 +672,10 @@ export async function buildResumeDocxBlob(
               alignment: AlignmentType.LEFT,
               style: {
                 paragraph: {
-                  indent: { left: convertInchesToTwip(0.35), hanging: convertInchesToTwip(0.2) },
+                  indent: {
+                    left: convertInchesToTwip(0.35),
+                    hanging: convertInchesToTwip(0.2),
+                  },
                 },
               },
             },

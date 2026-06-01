@@ -87,16 +87,19 @@ export function ResumePagedView({
   const measureZoomRef = useRef<HTMLDivElement>(null);
   const [pageStarts, setPageStarts] = useState<number[]>([0]);
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
-  
+
   const [testAutoFitScale, setTestAutoFitScale] = useState<number>(1);
   const [finalAutoFitScale, setFinalAutoFitScale] = useState<number>(1);
   const testAutoFitScaleRef = useRef(testAutoFitScale);
   testAutoFitScaleRef.current = testAutoFitScale;
-  
+
   const prevMeasureKey = useRef(measureKey);
   const prevAutoFit = useRef(autoFit);
 
-  if (prevMeasureKey.current !== measureKey || prevAutoFit.current !== autoFit) {
+  if (
+    prevMeasureKey.current !== measureKey ||
+    prevAutoFit.current !== autoFit
+  ) {
     prevMeasureKey.current = measureKey;
     prevAutoFit.current = autoFit;
     setTestAutoFitScale(1);
@@ -104,7 +107,8 @@ export function ResumePagedView({
   }
 
   const baseFs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
-  const viewHeight = PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
+  const viewHeight =
+    PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
 
   useLayoutEffect(() => {
     const el = measureZoomRef.current;
@@ -130,13 +134,22 @@ export function ResumePagedView({
       }
 
       // Auto-Fit Logic using progressive compression variables
-      if (autoFit && totalHeight > viewHeight && testAutoFitScaleRef.current > 0.82) {
+      if (
+        autoFit &&
+        totalHeight > viewHeight &&
+        testAutoFitScaleRef.current > 0.82
+      ) {
         const overflowRatio = totalHeight / viewHeight;
         if (overflowRatio > 1.005) {
-          const idealDrop = testAutoFitScaleRef.current - (testAutoFitScaleRef.current / overflowRatio);
+          const idealDrop =
+            testAutoFitScaleRef.current -
+            testAutoFitScaleRef.current / overflowRatio;
           const safeDrop = Math.min(0.03, Math.max(0.005, idealDrop));
-          const targetScale = Math.max(0.82, testAutoFitScaleRef.current - safeDrop);
-          
+          const targetScale = Math.max(
+            0.82,
+            testAutoFitScaleRef.current - safeDrop,
+          );
+
           setTestAutoFitScale(targetScale);
           return; // Wait for next render cycle with new scale
         }
@@ -163,15 +176,19 @@ export function ResumePagedView({
         .map((node) => {
           const r = node.getBoundingClientRect();
           const top = Math.max(0, Math.floor(r.top - rootRect.top));
-          const bottom = Math.min(totalHeight, Math.ceil(r.bottom - rootRect.top));
+          const bottom = Math.min(
+            totalHeight,
+            Math.ceil(r.bottom - rootRect.top),
+          );
           return { top, bottom, height: bottom - top };
         })
         .filter((b) => b.height > 0)
         .sort((a, b) => a.top - b.top);
 
-      const maxContentBottom = keepBlocks.length > 0
-        ? Math.max(...keepBlocks.map((b) => b.bottom))
-        : totalHeight;
+      const maxContentBottom =
+        keepBlocks.length > 0
+          ? Math.max(...keepBlocks.map((b) => b.bottom))
+          : totalHeight;
 
       const starts: number[] = [0];
       const minStep = 48;
@@ -181,15 +198,20 @@ export function ResumePagedView({
         const current = starts[starts.length - 1]!;
         const currentPageIndex = starts.length - 1;
         const currentPageCapacity =
-          currentPageIndex === 0 ? viewHeight : Math.max(1, viewHeight - CONTINUED_PAGE_TOP_PAD_PX);
+          currentPageIndex === 0
+            ? viewHeight
+            : Math.max(1, viewHeight - CONTINUED_PAGE_TOP_PAD_PX);
         const idealNext = current + currentPageCapacity;
-        
+
         // If the current page can fit all remaining visible content, we are done.
         if (idealNext >= maxContentBottom || idealNext >= totalHeight) break;
 
         let next = idealNext;
         const crossing = keepBlocks.find(
-          (b) => b.top < idealNext && b.bottom > idealNext && b.height <= keepThreshold,
+          (b) =>
+            b.top < idealNext &&
+            b.bottom > idealNext &&
+            b.height <= keepThreshold,
         );
 
         if (crossing) {
@@ -205,7 +227,7 @@ export function ResumePagedView({
         }
 
         // If the only content left to put on the new page is extremely tiny (< 15px),
-        // it's likely just bottom padding, border, or a tiny spacer. 
+        // it's likely just bottom padding, border, or a tiny spacer.
         // Discard it to prevent a blank extra page.
         if (maxContentBottom - next < 15) {
           break;
@@ -248,31 +270,37 @@ export function ResumePagedView({
         const maxSpan = Math.max(1, viewHeight - topPad);
         // Until measurement runs (measuredHeight === 0), assume a full viewport of content — avoids clipped/blank thumbnails and preview shells.
         const naturalEnd =
-          nextStart ??
-          (measuredHeight > 0 ? measuredHeight : start + maxSpan);
+          nextStart ?? (measuredHeight > 0 ? measuredHeight : start + maxSpan);
         const span = Math.max(0, Math.min(maxSpan, naturalEnd - start));
         return { start, span, topPad };
       }),
     [pageStarts, measuredHeight, viewHeight],
   );
 
-  const pageShell = (pageIndex: number, start: number, span: number, topPad: number) => {
+  const pageShell = (
+    pageIndex: number,
+    start: number,
+    span: number,
+    topPad: number,
+  ) => {
     const comp = calculateCompression(finalAutoFitScale);
     return (
       <div
         key={pageIndex}
         className="a4-page relative mb-6 overflow-hidden bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)] print:mb-0 print:shadow-none"
         data-font-color={dataFontColor || undefined}
-        style={{
-          width: PAGE_WIDTH_PX,
-          height: PAGE_HEIGHT_PX,
-          maxHeight: PAGE_HEIGHT_PX,
-          backgroundColor,
-          "--resume-margin-scale": comp.marginScale,
-          "--resume-spacing-scale": comp.spacingScale,
-          "--resume-header-scale": comp.headerScale,
-          "--resume-desc-scale": comp.descScale,
-        } as any}
+        style={
+          {
+            width: PAGE_WIDTH_PX,
+            height: PAGE_HEIGHT_PX,
+            maxHeight: PAGE_HEIGHT_PX,
+            backgroundColor,
+            "--resume-margin-scale": comp.marginScale,
+            "--resume-spacing-scale": comp.spacingScale,
+            "--resume-header-scale": comp.headerScale,
+            "--resume-desc-scale": comp.descScale,
+          } as any
+        }
       >
         {sidebarFill ? (
           <div
@@ -303,18 +331,23 @@ export function ResumePagedView({
               style={{
                 height: viewHeight - (topPad + span),
                 backgroundColor,
-                left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * baseFs)) : 0,
+                left: sidebarFill
+                  ? Math.max(0, Math.round(sidebarFill.widthPx * baseFs))
+                  : 0,
                 right: 0,
               }}
-            >
-            </div>
+            ></div>
           ) : null}
-          <div style={{ transform: topPad ? `translateY(${topPad}px)` : undefined }}>
-          <div style={{ height: span, overflow: "hidden" }}>
-            <div style={{ transform: `translateY(-${start}px)` }}>
-              <div style={{ zoom: baseFs, width: "100%" }}>{children}</div>
+          <div
+            style={{
+              transform: topPad ? `translateY(${topPad}px)` : undefined,
+            }}
+          >
+            <div style={{ height: span, overflow: "hidden" }}>
+              <div style={{ transform: `translateY(-${start}px)` }}>
+                <div style={{ zoom: baseFs, width: "100%" }}>{children}</div>
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
@@ -340,14 +373,16 @@ export function ResumePagedView({
           >
             <div
               ref={measureZoomRef}
-              style={{
-                zoom: baseFs,
-                width: "100%",
-                "--resume-margin-scale": measureComp.marginScale,
-                "--resume-spacing-scale": measureComp.spacingScale,
-                "--resume-header-scale": measureComp.headerScale,
-                "--resume-desc-scale": measureComp.descScale,
-              } as any}
+              style={
+                {
+                  zoom: baseFs,
+                  width: "100%",
+                  "--resume-margin-scale": measureComp.marginScale,
+                  "--resume-spacing-scale": measureComp.spacingScale,
+                  "--resume-header-scale": measureComp.headerScale,
+                  "--resume-desc-scale": measureComp.descScale,
+                } as any
+              }
             >
               {children}
             </div>

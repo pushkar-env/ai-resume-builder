@@ -5,12 +5,15 @@ const LIST_RESUMES_QUERY_KEY = ["/api/resumes"] as const;
 
 /** Minimal Clerk user surface used after Razorpay checkout. */
 export type CheckoutUser = {
-  reload: () => Promise<{ publicMetadata?: Record<string, unknown> } | null | undefined>;
+  reload: () => Promise<
+    { publicMetadata?: Record<string, unknown> } | null | undefined
+  >;
 };
 
 export function loadRazorpayScript(): Promise<boolean> {
   if (typeof window === "undefined") return Promise.resolve(false);
-  if ((window as unknown as { Razorpay?: unknown }).Razorpay) return Promise.resolve(true);
+  if ((window as unknown as { Razorpay?: unknown }).Razorpay)
+    return Promise.resolve(true);
   return new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -68,26 +71,38 @@ async function confirmSubscriptionOnServer(params: {
   razorpay_subscription_id: string;
   razorpay_signature: string;
 }): Promise<boolean> {
-  const { apiUrl, getToken, razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = params;
+  const {
+    apiUrl,
+    getToken,
+    razorpay_payment_id,
+    razorpay_subscription_id,
+    razorpay_signature,
+  } = params;
   const maxAttempts = 6;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const token = await getToken();
     if (!token) return false;
-    const res = await fetch(`${apiUrl}/payments/confirm-subscription-checkout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const res = await fetch(
+      `${apiUrl}/payments/confirm-subscription-checkout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          razorpay_payment_id,
+          razorpay_subscription_id,
+          razorpay_signature,
+        }),
       },
-      body: JSON.stringify({
-        razorpay_payment_id,
-        razorpay_subscription_id,
-        razorpay_signature,
-      }),
-    });
+    );
     if (res.ok) return true;
     const retryable =
-      res.status === 502 || res.status === 503 || res.status === 504 || res.status === 429;
+      res.status === 502 ||
+      res.status === 503 ||
+      res.status === 504 ||
+      res.status === 429;
     if (!retryable || attempt === maxAttempts - 1) return false;
     await sleep(400 * (attempt + 1));
   }
@@ -161,7 +176,9 @@ function attachVisibilityPremiumRecovery(params: {
 }
 
 async function invalidatePostPremiumQueries(queryClient: QueryClient) {
-  await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
+  await queryClient.invalidateQueries({
+    queryKey: ["billing-page-subscription"],
+  });
   await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
   await queryClient.invalidateQueries({ queryKey: LIST_RESUMES_QUERY_KEY });
 }
@@ -199,7 +216,9 @@ export type OpenSubscriptionCheckoutParams = {
  * Creates a Razorpay subscription checkout. On success, confirms with the backend (signature + ownership),
  * polls server membership (fresh Clerk) + reloads the client user for UPI / mobile handoff, then invalidates caches.
  */
-export async function openSubscriptionCheckout(params: OpenSubscriptionCheckoutParams): Promise<void> {
+export async function openSubscriptionCheckout(
+  params: OpenSubscriptionCheckoutParams,
+): Promise<void> {
   const {
     billingCycle,
     getToken,
@@ -217,7 +236,10 @@ export async function openSubscriptionCheckout(params: OpenSubscriptionCheckoutP
 
   const ready = await loadRazorpayScript();
   if (!ready) {
-    toastError("Could not load checkout", "Please check your connection and try again.");
+    toastError(
+      "Could not load checkout",
+      "Please check your connection and try again.",
+    );
     return;
   }
 
@@ -247,14 +269,21 @@ export async function openSubscriptionCheckout(params: OpenSubscriptionCheckoutP
   if (!subRes.ok || !subscriptionData?.id) {
     toastError(
       "Could not start checkout",
-      raw && raw.length < 280 ? raw : subRes.statusText || "Please try again in a moment.",
+      raw && raw.length < 280
+        ? raw
+        : subRes.statusText || "Please try again in a moment.",
     );
     return;
   }
 
-  const RazorpayCtor = (window as unknown as {
-    Razorpay: new (opts: Record<string, unknown>) => { open: () => void; on: (ev: string, fn: (a: unknown) => void) => void };
-  }).Razorpay;
+  const RazorpayCtor = (
+    window as unknown as {
+      Razorpay: new (opts: Record<string, unknown>) => {
+        open: () => void;
+        on: (ev: string, fn: (a: unknown) => void) => void;
+      };
+    }
+  ).Razorpay;
   if (typeof RazorpayCtor !== "function") {
     toastError("Checkout unavailable", "Payment SDK did not load correctly.");
     return;
@@ -392,17 +421,24 @@ export async function openSubscriptionCheckout(params: OpenSubscriptionCheckoutP
   try {
     const paymentObject = new RazorpayCtor(options);
     paymentObject.on("payment.failed", (payload: unknown) => {
-      const p = payload as { error?: { description?: string; reason?: string; code?: string } };
+      const p = payload as {
+        error?: { description?: string; reason?: string; code?: string };
+      };
       const msg =
         p?.error?.description ||
         p?.error?.reason ||
-        (typeof p?.error?.code === "string" ? `Error code: ${p.error.code}` : null) ||
+        (typeof p?.error?.code === "string"
+          ? `Error code: ${p.error.code}`
+          : null) ||
         "Payment could not be completed.";
       toastError("Payment did not go through", msg);
     });
     paymentObject.open();
   } catch (e) {
     console.error("[subscription-checkout] Razorpay open", e);
-    toastError("Could not open checkout", "Please try again or use a different network.");
+    toastError(
+      "Could not open checkout",
+      "Please try again or use a different network.",
+    );
   }
 }

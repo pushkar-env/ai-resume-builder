@@ -26,7 +26,8 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto sm:mx-0">
-              An AI resume coach with ATS insights, modern templates, and exports that match your live preview.
+              An AI resume coach with ATS insights, modern templates, and
+              exports that match your live preview.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <a
@@ -72,28 +73,43 @@ export function SiteFooter() {
             <p className="text-sm font-semibold">Product</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/pricing" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/pricing"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/sign-up" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/sign-up"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Get started
                 </Link>
               </li>
               <li>
-                <Link href="/sign-in" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/sign-in"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Sign in
                 </Link>
               </li>
 
               <li>
-                <Link href="/privacy" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/privacy"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/terms"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Terms &amp; Conditions
                 </Link>
               </li>
@@ -115,7 +131,8 @@ export function SiteFooter() {
               </li>
               <li>
                 <span className="inline-flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                  <Smartphone className="h-4 w-4 shrink-0" /> Mobile-first editor
+                  <Smartphone className="h-4 w-4 shrink-0" /> Mobile-first
+                  editor
                 </span>
               </li>
             </ul>
@@ -125,7 +142,10 @@ export function SiteFooter() {
             <p className="text-sm font-semibold">Contact</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/contact" className="hover:text-foreground transition-colors inline-block">
+                <Link
+                  href="/contact"
+                  className="hover:text-foreground transition-colors inline-block"
+                >
                   Contact us
                 </Link>
               </li>
@@ -138,10 +158,16 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Resumesensei. All rights reserved.
           </p>
           <div className="flex w-full max-w-md flex-wrap items-center justify-center gap-x-5 gap-y-2 sm:w-auto sm:max-w-none sm:justify-end">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-foreground transition-colors"
+            >
               Terms &amp; Conditions
             </Link>
           </div>

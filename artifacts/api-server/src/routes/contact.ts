@@ -3,7 +3,8 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
-const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL || "support@resumesensei.com";
+const CONTACT_TO_EMAIL =
+  process.env.CONTACT_TO_EMAIL || "support@resumesensei.com";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 /** Verified sender in Resend (e.g. ResumeSensei <hello@resumesensei.com>). */
 const CONTACT_FROM_EMAIL = process.env.CONTACT_FROM_EMAIL;
@@ -22,7 +23,8 @@ function clientIp(req: Request): string {
   if (typeof xf === "string" && xf.length > 0) {
     return xf.split(",")[0]?.trim() || "unknown";
   }
-  if (Array.isArray(xf) && xf[0]) return xf[0].split(",")[0]?.trim() || "unknown";
+  if (Array.isArray(xf) && xf[0])
+    return xf[0].split(",")[0]?.trim() || "unknown";
   return req.socket.remoteAddress || "unknown";
 }
 
@@ -66,7 +68,9 @@ type ContactBody = {
 router.post("/contact", async (req: Request, res: Response): Promise<void> => {
   const ip = clientIp(req);
   if (!allowRate(ip)) {
-    res.status(429).json({ error: "Too many requests. Please try again later." });
+    res
+      .status(429)
+      .json({ error: "Too many requests. Please try again later." });
     return;
   }
 
@@ -104,7 +108,8 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
       "contact: missing RESEND_API_KEY or CONTACT_FROM_EMAIL",
     );
     res.status(503).json({
-      error: "Contact delivery is not configured. Please email us directly at support@resumesensei.com.",
+      error:
+        "Contact delivery is not configured. Please email us directly at support@resumesensei.com.",
     });
     return;
   }
@@ -141,8 +146,16 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
 
     if (!resendRes.ok) {
       const errText = await resendRes.text().catch(() => "");
-      logger.error({ status: resendRes.status, errText: errText.slice(0, 500) }, "contact: Resend API error");
-      res.status(502).json({ error: "Could not send your message. Please try again or email support@resumesensei.com." });
+      logger.error(
+        { status: resendRes.status, errText: errText.slice(0, 500) },
+        "contact: Resend API error",
+      );
+      res
+        .status(502)
+        .json({
+          error:
+            "Could not send your message. Please try again or email support@resumesensei.com.",
+        });
       return;
     }
 
@@ -150,7 +163,9 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
   } catch (e) {
     clearTimeout(t);
     logger.error({ err: e }, "contact: send failed");
-    res.status(502).json({ error: "Could not send your message. Please try again later." });
+    res
+      .status(502)
+      .json({ error: "Could not send your message. Please try again later." });
   }
 });
 

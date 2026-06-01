@@ -54,12 +54,17 @@ export function ResumeRenewalFlow({
         return;
       }
       await user?.reload();
-      await queryClient.invalidateQueries({ queryKey: ["billing-page-subscription"] });
-      await queryClient.invalidateQueries({ queryKey: ["subscription-details"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["billing-page-subscription"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["subscription-details"],
+      });
       setOpen(false);
       toast({
         title: "Auto-renewal is back on",
-        description: "Your Pro plan will renew at the end of each billing period unless you cancel again.",
+        description:
+          "Your Pro plan will renew at the end of each billing period unless you cancel again.",
       });
     } finally {
       setBusy(false);
@@ -77,7 +82,9 @@ export function ResumeRenewalFlow({
         onClick={() => setOpen(true)}
       >
         <Undo2 className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="whitespace-normal text-center sm:whitespace-nowrap">Keep Pro — resume renewal</span>
+        <span className="whitespace-normal text-center sm:whitespace-nowrap">
+          Keep Pro — resume renewal
+        </span>
       </Button>
 
       <AlertDialog
@@ -92,18 +99,23 @@ export function ResumeRenewalFlow({
             <AlertDialogDescription asChild>
               <div className="text-sm text-muted-foreground text-left space-y-2">
                 <p>
-                  Your Pro access stays the same until the end of this billing period. We will turn auto-renewal back
-                  on with your payment provider so the plan continues after that date.
+                  Your Pro access stays the same until the end of this billing
+                  period. We will turn auto-renewal back on with your payment
+                  provider so the plan continues after that date.
                 </p>
                 <p className="text-xs sm:text-sm">
-                  If renewal cannot be completed (for example the billing period already ended), you can subscribe
-                  again from the pricing section.
+                  If renewal cannot be completed (for example the billing period
+                  already ended), you can subscribe again from the pricing
+                  section.
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <AlertDialogCancel disabled={busy} className="mt-0 w-full sm:w-auto">
+            <AlertDialogCancel
+              disabled={busy}
+              className="mt-0 w-full sm:w-auto"
+            >
               Not now
             </AlertDialogCancel>
             <Button

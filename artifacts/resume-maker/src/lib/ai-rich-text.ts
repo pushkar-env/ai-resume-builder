@@ -13,13 +13,19 @@ export function richHtmlToPlainText(html: string): string {
   const trimmed = html.trim();
   if (!trimmed) return "";
   if (typeof DOMParser === "undefined") {
-    return trimmed.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return trimmed
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
   try {
     const doc = new DOMParser().parseFromString(trimmed, "text/html");
     return (doc.body.textContent ?? "").replace(/\s+/g, " ").trim();
   } catch {
-    return trimmed.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return trimmed
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 }
 

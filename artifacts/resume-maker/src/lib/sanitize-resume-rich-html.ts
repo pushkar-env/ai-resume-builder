@@ -38,7 +38,9 @@ function cleanStyleAttribute(raw: string): string | null {
     .filter(Boolean);
   const kept = parts.filter((part) => {
     const key = part.split(":")[0]?.trim().toLowerCase() ?? "";
-    return !STRIP_STYLE_PREFIXES.some((p) => key === p || key.startsWith(`${p}-`));
+    return !STRIP_STYLE_PREFIXES.some(
+      (p) => key === p || key.startsWith(`${p}-`),
+    );
   });
   if (kept.length === 0) return null;
   return kept.join("; ");
@@ -68,13 +70,13 @@ function stripBreakingCharsFromTextNodes(root: Element) {
   let cur: Node | null;
   while ((cur = walker.nextNode())) {
     const t = (cur as Text).nodeValue;
-      if (!t) continue;
-      let next = t;
-      next = next.replace(/[\u200b\u200c\u200d\ufeff]/g, "");
+    if (!t) continue;
+    let next = t;
+    next = next.replace(/[\u200b\u200c\u200d\ufeff]/g, "");
 
-      if (next !== t) {
-        (cur as Text).nodeValue = next;
-      }
+    if (next !== t) {
+      (cur as Text).nodeValue = next;
+    }
   }
 }
 
@@ -108,7 +110,9 @@ function stripEmptyRichBlocks(html: string): string {
 }
 
 export function sanitizeResumeRichHtml(html: string): string {
-  let s = stripEmptyRichBlocks(stripWbrTags(stripSoftHyphensFromHtml(html))).replace(ZW_SPACE, "");
+  let s = stripEmptyRichBlocks(
+    stripWbrTags(stripSoftHyphensFromHtml(html)),
+  ).replace(ZW_SPACE, "");
   if (typeof DOMParser === "undefined") return s;
   try {
     const wrapped = `<div class="resume-sanitize-root">${s}</div>`;

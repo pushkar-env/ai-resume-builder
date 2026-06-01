@@ -19,7 +19,12 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { brandJsonLdCore, SEO } from "@/components/shared/SEO";
 import { HOME_TITLE, SITE_NAME, SITE_URL } from "@/lib/brand";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { TemplatesCarousel } from "@/components/landing/TemplatesCarousel";
 import { Testimonials } from "@/components/landing/Testimonials";
 
@@ -89,32 +94,38 @@ const capabilities = [
   {
     icon: Upload,
     title: "Import existing resume",
-    description: "Upload your old PDF or DOCX and let our parser structure it into your new layout instantly.",
+    description:
+      "Upload your old PDF or DOCX and let our parser structure it into your new layout instantly.",
   },
   {
     icon: Sparkles,
     title: "AI-powered writing",
-    description: "Refine summaries and experience bullets with context-aware, highly impactful suggestions.",
+    description:
+      "Refine summaries and experience bullets with context-aware, highly impactful suggestions.",
   },
   {
     icon: LayoutTemplate,
     title: "Highly customizable templates",
-    description: "Distinct, premium layouts with customizable fonts, spacing, and colors to match your brand.",
+    description:
+      "Distinct, premium layouts with customizable fonts, spacing, and colors to match your brand.",
   },
   {
     icon: Monitor,
     title: "Live A4 preview",
-    description: "Edit alongside a faithful preview so layout exactly matches what you export.",
+    description:
+      "Edit alongside a faithful preview so layout exactly matches what you export.",
   },
   {
     icon: Gauge,
     title: "ATS score tracking",
-    description: "Pro shows how your resume reads to automated screeners so you can iterate before applying.",
+    description:
+      "Pro shows how your resume reads to automated screeners so you can iterate before applying.",
   },
   {
     icon: Download,
     title: "PDF, DOCX & JSON export",
-    description: "Free and Pro both export from your live preview. Free adds a minimal footer; Pro removes it.",
+    description:
+      "Free and Pro both export from your live preview. Free adds a minimal footer; Pro removes it.",
   },
 ] as const;
 
@@ -138,7 +149,11 @@ const pillars = [
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: "easeOut" as const },
+  },
 };
 
 export default function LandingPage() {
@@ -155,7 +170,10 @@ export default function LandingPage() {
 
       <main id="main-content">
         {/* Hero */}
-        <section className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 overflow-hidden" aria-labelledby="hero-heading">
+        <section
+          className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 overflow-hidden"
+          aria-labelledby="hero-heading"
+        >
           <div className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center">
             <div className="absolute top-[-10%] left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/10 blur-[100px]" />
             <div className="absolute top-[20%] left-[20%] h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[80px]" />
@@ -194,8 +212,8 @@ export default function LandingPage() {
               <span className="font-extrabold text-foreground">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>{" "}
-              combines structured editing, AI suggestions, ATS score feedback, and exports that match your
-              live preview — without clutter.
+              combines structured editing, AI suggestions, ATS score feedback,
+              and exports that match your live preview — without clutter.
             </motion.p>
             <motion.div
               initial="hidden"
@@ -204,7 +222,11 @@ export default function LandingPage() {
               transition={{ delay: 0.15 }}
               className="mt-9 flex flex-col items-center justify-center sm:flex-row"
             >
-              <Button size="lg" className="h-12 rounded-xl px-8 text-base shadow-sm w-full sm:w-auto" asChild>
+              <Button
+                size="lg"
+                className="h-12 rounded-xl px-8 text-base shadow-sm w-full sm:w-auto"
+                asChild
+              >
                 <Link href="/sign-up" className="gap-2">
                   Start free
                   <ArrowRight className="h-4 w-4" aria-hidden />
@@ -224,7 +246,10 @@ export default function LandingPage() {
         </section>
 
         {/* Product strip */}
-        <section className="border-y border-border/70 bg-muted/15 py-12 sm:py-14" aria-labelledby="product-strip-heading">
+        <section
+          className="border-y border-border/70 bg-muted/15 py-12 sm:py-14"
+          aria-labelledby="product-strip-heading"
+        >
           <h2 id="product-strip-heading" className="sr-only">
             Product highlights
           </h2>
@@ -232,14 +257,21 @@ export default function LandingPage() {
             {[
               { label: "Editor", sub: "Sections, rich text, undo-friendly" },
               { label: "Preview", sub: "A4 layout you can trust" },
-              { label: "Export", sub: "Preview-accurate PDF & Word — Pro is watermark-free" },
+              {
+                label: "Export",
+                sub: "Preview-accurate PDF & Word — Pro is watermark-free",
+              },
             ].map((cell) => (
               <div
                 key={cell.label}
                 className="rounded-2xl border border-border/80 bg-background/80 px-5 py-6 text-center shadow-sm backdrop-blur-sm"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{cell.label}</p>
-                <p className="mt-2 text-sm font-medium text-foreground">{cell.sub}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {cell.label}
+                </p>
+                <p className="mt-2 text-sm font-medium text-foreground">
+                  {cell.sub}
+                </p>
               </div>
             ))}
           </div>
@@ -249,11 +281,15 @@ export default function LandingPage() {
         <section className="py-16 sm:py-20" aria-labelledby="features-heading">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="max-w-2xl">
-              <h2 id="features-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <h2
+                id="features-heading"
+                className="text-2xl font-bold tracking-tight sm:text-3xl"
+              >
                 Everything you need, nothing you don&apos;t
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                A single workspace for drafting, scoring, and exporting — tuned for serious job seekers.
+                A single workspace for drafting, scoring, and exporting — tuned
+                for serious job seekers.
               </p>
             </div>
             <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -265,8 +301,12 @@ export default function LandingPage() {
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                     <item.icon className="h-5 w-5 text-primary" aria-hidden />
                   </div>
-                  <h3 className="text-sm font-semibold tracking-tight">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                  <h3 className="text-sm font-semibold tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -274,19 +314,30 @@ export default function LandingPage() {
         </section>
 
         {/* Pillars */}
-        <section className="border-t border-border/60 bg-muted/20 py-16 sm:py-20" aria-labelledby="pillars-heading">
+        <section
+          className="border-t border-border/60 bg-muted/20 py-16 sm:py-20"
+          aria-labelledby="pillars-heading"
+        >
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h2 id="pillars-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2
+              id="pillars-heading"
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
+            >
               Built for real applications
             </h2>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               {pillars.map((p) => (
-                <div key={p.title} className="rounded-2xl border border-border/60 bg-background p-6">
+                <div
+                  key={p.title}
+                  className="rounded-2xl border border-border/60 bg-background p-6"
+                >
                   <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted/40">
                     <p.icon className="h-5 w-5 text-primary" aria-hidden />
                   </div>
                   <h3 className="text-sm font-semibold">{p.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {p.body}
+                  </p>
                 </div>
               ))}
             </div>
@@ -294,13 +345,21 @@ export default function LandingPage() {
         </section>
 
         {/* Templates */}
-        <section className="py-16 sm:py-24 overflow-hidden" aria-labelledby="templates-heading">
+        <section
+          className="py-16 sm:py-24 overflow-hidden"
+          aria-labelledby="templates-heading"
+        >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-10 text-center">
-            <h2 id="templates-heading" className="text-3xl font-black tracking-tight sm:text-4xl mb-4">
+            <h2
+              id="templates-heading"
+              className="text-3xl font-black tracking-tight sm:text-4xl mb-4"
+            >
               Premium Templates
             </h2>
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Browse our collection of beautifully designed templates. Start with our free essential designs, or upgrade to Pro to unlock the entire premium library.
+              Browse our collection of beautifully designed templates. Start
+              with our free essential designs, or upgrade to Pro to unlock the
+              entire premium library.
             </p>
           </div>
           <div className="mx-auto max-w-7xl">
@@ -312,14 +371,28 @@ export default function LandingPage() {
         <Testimonials />
 
         {/* FAQ */}
-        <section className="border-t border-border/60 py-16 sm:py-20" aria-labelledby="faq-heading">
+        <section
+          className="border-t border-border/60 py-16 sm:py-20"
+          aria-labelledby="faq-heading"
+        >
           <div className="mx-auto max-w-2xl px-4 sm:px-6">
-            <h2 id="faq-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2
+              id="faq-heading"
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
+            >
               Common questions
             </h2>
-            <Accordion type="single" collapsible className="mt-8 w-full rounded-2xl border border-border/80 px-1 sm:px-2">
+            <Accordion
+              type="single"
+              collapsible
+              className="mt-8 w-full rounded-2xl border border-border/80 px-1 sm:px-2"
+            >
               {faqs.map((item) => (
-                <AccordionItem key={item.q} value={item.q} className="border-border px-3 sm:px-4">
+                <AccordionItem
+                  key={item.q}
+                  value={item.q}
+                  className="border-border px-3 sm:px-4"
+                >
                   <AccordionTrigger className="text-left text-sm font-medium hover:no-underline py-5">
                     {item.q}
                   </AccordionTrigger>
@@ -333,33 +406,54 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing */}
-        <section className="border-t border-border/60 bg-muted/15 py-16 sm:py-20" aria-labelledby="pricing-heading">
+        <section
+          className="border-t border-border/60 bg-muted/15 py-16 sm:py-20"
+          aria-labelledby="pricing-heading"
+        >
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <div className="text-center">
-              <h2 id="pricing-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <h2
+                id="pricing-heading"
+                className="text-2xl font-bold tracking-tight sm:text-3xl"
+              >
                 Simple pricing
               </h2>
               <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-                Start free. Move to Pro when you want unlimited resumes, every template, premium colors & fonts, and full AI.
+                Start free. Move to Pro when you want unlimited resumes, every
+                template, premium colors & fonts, and full AI.
               </p>
             </div>
             <div className="mt-10 grid gap-5 sm:grid-cols-2">
               <div className="flex flex-col rounded-2xl border border-border bg-background p-6 sm:p-8">
                 <h3 className="text-lg font-semibold">Free</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Try the full workflow</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Try the full workflow
+                </p>
                 <p className="mt-6 flex items-baseline gap-1">
                   <span className="text-4xl font-black tracking-tight">₹0</span>
-                  <span className="text-sm text-muted-foreground">/ forever</span>
+                  <span className="text-sm text-muted-foreground">
+                    / forever
+                  </span>
                 </p>
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {FREE_PLAN_FEATURES.map((f) => (
-                    <li key={f} className="flex gap-2 text-sm text-muted-foreground">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <li
+                      key={f}
+                      className="flex gap-2 text-sm text-muted-foreground"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                        aria-hidden
+                      />
                       <span>{f}</span>
                     </li>
                   ))}
                 </ul>
-                <Button className="mt-8 w-full rounded-xl" variant="outline" asChild>
+                <Button
+                  className="mt-8 w-full rounded-xl"
+                  variant="outline"
+                  asChild
+                >
                   <Link href="/sign-up">Create free account</Link>
                 </Button>
               </div>
@@ -367,18 +461,32 @@ export default function LandingPage() {
                 <span className="absolute left-6 top-0 inline-block -translate-y-1/2 rounded-full bg-primary px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground">
                   Pro
                 </span>
-                <h3 className="text-lg font-semibold pt-2">Everything unlocked</h3>
-                <p className="mt-1 text-sm text-muted-foreground">For active job searches</p>
+                <h3 className="text-lg font-semibold pt-2">
+                  Everything unlocked
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  For active job searches
+                </p>
                 <p className="mt-6 text-sm text-muted-foreground">From</p>
                 <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <span className="text-4xl font-black tracking-tight">₹99</span>
+                  <span className="text-4xl font-black tracking-tight">
+                    ₹99
+                  </span>
                   <span className="text-sm text-muted-foreground">/ month</span>
-                  <span className="w-full text-xs text-muted-foreground sm:inline sm:w-auto sm:pl-2">or ₹999 / year</span>
+                  <span className="w-full text-xs text-muted-foreground sm:inline sm:w-auto sm:pl-2">
+                    or ₹999 / year
+                  </span>
                 </p>
                 <ul className="mt-6 flex-1 space-y-2.5">
                   {PRO_PLAN_FEATURES.map((f) => (
-                    <li key={f} className="flex gap-2 text-sm text-muted-foreground">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <li
+                      key={f}
+                      className="flex gap-2 text-sm text-muted-foreground"
+                    >
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                        aria-hidden
+                      />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -392,16 +500,27 @@ export default function LandingPage() {
         </section>
 
         {/* Closing */}
-        <section className="border-t border-border/60 bg-zinc-950 py-16 text-zinc-50 sm:py-20" aria-labelledby="cta-heading">
+        <section
+          className="border-t border-border/60 bg-zinc-950 py-16 text-zinc-50 sm:py-20"
+          aria-labelledby="cta-heading"
+        >
           <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-            <h2 id="cta-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2
+              id="cta-heading"
+              className="text-2xl font-bold tracking-tight sm:text-3xl"
+            >
               Ready when you are
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-zinc-400">
-              Create an account in seconds. Build your first resume on the free plan, then upgrade if you need more.
+              Create an account in seconds. Build your first resume on the free
+              plan, then upgrade if you need more.
             </p>
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:justify-center">
-              <Button size="lg" className="h-12 rounded-xl bg-white text-zinc-950 hover:bg-zinc-100" asChild>
+              <Button
+                size="lg"
+                className="h-12 rounded-xl bg-white text-zinc-950 hover:bg-zinc-100"
+                asChild
+              >
                 <Link href="/sign-up" className="gap-2">
                   Get started
                   <ArrowRight className="h-4 w-4" aria-hidden />
@@ -417,15 +536,24 @@ export default function LandingPage() {
               </Button>
             </div>
             <p className="mt-8 text-xs text-zinc-500">
-              <Link href="/contact" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+              <Link
+                href="/contact"
+                className="underline-offset-4 hover:text-zinc-300 hover:underline"
+              >
                 Contact
               </Link>
               <span className="mx-2 text-zinc-600">·</span>
-              <Link href="/privacy" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+              <Link
+                href="/privacy"
+                className="underline-offset-4 hover:text-zinc-300 hover:underline"
+              >
                 Privacy
               </Link>
               <span className="mx-2 text-zinc-600">·</span>
-              <Link href="/terms" className="underline-offset-4 hover:text-zinc-300 hover:underline">
+              <Link
+                href="/terms"
+                className="underline-offset-4 hover:text-zinc-300 hover:underline"
+              >
                 Terms
               </Link>
             </p>

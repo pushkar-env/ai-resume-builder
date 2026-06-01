@@ -64,7 +64,7 @@ export const RichTextEditor = memo(function RichTextEditor({
       }
       onChangeRef.current(sanitizeResumeRichHtml(html));
     },
-    []
+    [],
   );
 
   return (

@@ -10,7 +10,10 @@ export async function resumeSubscriptionRenewal(
 ): Promise<ResumeSubscriptionResult> {
   const token = await getToken();
   if (!token) {
-    return { ok: false, message: "You need to be signed in to resume your subscription." };
+    return {
+      ok: false,
+      message: "You need to be signed in to resume your subscription.",
+    };
   }
 
   const apiUrl = import.meta.env.VITE_API_URL || "/api";

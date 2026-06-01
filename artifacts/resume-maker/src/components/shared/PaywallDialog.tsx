@@ -22,7 +22,7 @@ export function PaywallDialog({
   open,
   onOpenChange,
   title = "Premium Feature",
-  description = "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, premium colors & custom fonts, and more."
+  description = "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, premium colors & custom fonts, and more.",
 }: PaywallDialogProps) {
   const [, navigate] = useLocation();
 
@@ -34,14 +34,20 @@ export function PaywallDialog({
           <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
             <Star className="h-6 w-6 text-primary fill-primary" />
           </div>
-          <DialogTitle className="text-center text-xl font-bold">{title}</DialogTitle>
+          <DialogTitle className="text-center text-xl font-bold">
+            {title}
+          </DialogTitle>
           <DialogDescription className="text-center text-base">
             {description}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col sm:flex-col gap-2 mt-4">
           <ProButton className="w-full" onClick={() => navigate("/pricing")} />
-          <Button variant="ghost" className="w-full" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="ghost"
+            className="w-full"
+            onClick={() => onOpenChange(false)}
+          >
             Maybe later
           </Button>
         </DialogFooter>

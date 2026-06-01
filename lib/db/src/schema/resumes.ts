@@ -1,4 +1,12 @@
-import { pgTable, text, serial, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  timestamp,
+  boolean,
+  integer,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -15,20 +23,32 @@ export const resumesTable = pgTable("resumes", {
   shareToken: text("share_token"),
   viewCount: integer("view_count").notNull().default(0),
   downloadCount: integer("download_count").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const resumeSectionsTable = pgTable("resume_sections", {
   id: serial("id").primaryKey(),
-  resumeId: integer("resume_id").notNull().references(() => resumesTable.id, { onDelete: "cascade" }),
+  resumeId: integer("resume_id")
+    .notNull()
+    .references(() => resumesTable.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // personal, summary, experience, education, skills, projects, certifications, achievements, social, custom
   title: text("title").notNull(),
   content: jsonb("content").notNull().default({}),
   displayOrder: integer("display_order").notNull().default(0),
   isVisible: boolean("is_visible").notNull().default(true),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const insertResumeSchema = createInsertSchema(resumesTable).omit({
@@ -42,7 +62,9 @@ export const insertResumeSchema = createInsertSchema(resumesTable).omit({
 export type InsertResume = z.infer<typeof insertResumeSchema>;
 export type Resume = typeof resumesTable.$inferSelect;
 
-export const insertResumeSectionSchema = createInsertSchema(resumeSectionsTable).omit({
+export const insertResumeSectionSchema = createInsertSchema(
+  resumeSectionsTable,
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

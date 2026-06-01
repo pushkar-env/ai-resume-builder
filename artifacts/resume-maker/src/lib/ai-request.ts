@@ -2,7 +2,9 @@
 export const AI_REQUEST_TIMEOUT_MS = 75_000;
 
 /** Shared `RequestInit` for Orval AI mutations — aborts hung requests instead of freezing the UI. */
-export function createAiRequestOptions(timeoutMs = AI_REQUEST_TIMEOUT_MS): RequestInit {
+export function createAiRequestOptions(
+  timeoutMs = AI_REQUEST_TIMEOUT_MS,
+): RequestInit {
   if (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal) {
     return { signal: AbortSignal.timeout(timeoutMs) };
   }

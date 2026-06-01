@@ -1,4 +1,10 @@
-import { useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
+import {
+  useRef,
+  useState,
+  useCallback,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   computeGalleryViewportHeight,
   computeTemplateGalleryScale,

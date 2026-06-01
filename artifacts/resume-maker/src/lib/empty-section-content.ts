@@ -2,7 +2,9 @@
  * Empty section payloads — keep in sync with `EMPTY_SECTIONS` in
  * `artifacts/api-server/src/routes/resumes.ts` (POST /resumes when startPrefilled is false).
  */
-export function emptySectionContentForType(type: string): Record<string, unknown> {
+export function emptySectionContentForType(
+  type: string,
+): Record<string, unknown> {
   switch (type) {
     case "personal":
       return {

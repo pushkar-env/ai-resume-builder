@@ -1,4 +1,11 @@
-import { useState, useCallback, useEffect, useMemo, useRef, useDeferredValue } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useDeferredValue,
+} from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser, useAuth } from "@clerk/react";
 import { motion } from "framer-motion";
@@ -19,7 +26,24 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ChevronDown, ChevronRight, Palette, LayoutTemplate, ArrowLeft, Loader2, FileDown, Star, Zap, FileText, ZoomIn, ZoomOut, Maximize, Eraser, Sparkles } from "lucide-react";
+import {
+  GripVertical,
+  ChevronDown,
+  ChevronRight,
+  Palette,
+  LayoutTemplate,
+  ArrowLeft,
+  Loader2,
+  FileDown,
+  Star,
+  Zap,
+  FileText,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Eraser,
+  Sparkles,
+} from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -59,7 +83,10 @@ import { BuilderNavbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
-import { getDefaultAccentColor, getDefaultFontFamily } from "@/lib/template-config";
+import {
+  getDefaultAccentColor,
+  getDefaultFontFamily,
+} from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
@@ -101,7 +128,9 @@ function clampPreviewZoom(n: number) {
 
 function initialPreviewZoomForViewport(): number {
   if (typeof window === "undefined") return 1;
-  return window.innerWidth < 1024 ? clampPreviewZoom(MOBILE_DEFAULT_PREVIEW_ZOOM) : 1;
+  return window.innerWidth < 1024
+    ? clampPreviewZoom(MOBILE_DEFAULT_PREVIEW_ZOOM)
+    : 1;
 }
 
 const FONT_OPTIONS = [
@@ -109,10 +138,22 @@ const FONT_OPTIONS = [
   { label: "Poppins", value: "Poppins, sans-serif" },
   { label: "Manrope", value: "Manrope, sans-serif" },
   { label: "Merriweather", value: "Merriweather, serif" },
-  { label: "Plus Jakarta Sans", value: "'Plus Jakarta Sans', sans-serif", isPremium: true },
-  { label: "IBM Plex Sans", value: "'IBM Plex Sans', sans-serif", isPremium: true },
+  {
+    label: "Plus Jakarta Sans",
+    value: "'Plus Jakarta Sans', sans-serif",
+    isPremium: true,
+  },
+  {
+    label: "IBM Plex Sans",
+    value: "'IBM Plex Sans', sans-serif",
+    isPremium: true,
+  },
   { label: "Sora", value: "Sora, sans-serif", isPremium: true },
-  { label: "General Sans", value: "'General Sans', sans-serif", isPremium: true },
+  {
+    label: "General Sans",
+    value: "'General Sans', sans-serif",
+    isPremium: true,
+  },
 ];
 
 type Section = NonNullable<ResumeDetail["sections"]>[number];
@@ -150,25 +191,30 @@ function downloadFileBlob(blob: Blob, filename: string) {
  * to what the user sees in the preview pane.
  */
 function buildExportHtml(resumeTitle: string): string | null {
-  const previewEl = document.querySelector<HTMLElement>("[data-resume-export-target]");
+  const previewEl = document.querySelector<HTMLElement>(
+    "[data-resume-export-target]",
+  );
   if (!previewEl) return null;
 
   // Collect all <style> tags and stylesheet <link>s from document head
   const headEls = Array.from(document.head.children).filter((el) => {
     if (el.tagName === "STYLE") return true;
-    if (el.tagName === "LINK" && (el as HTMLLinkElement).rel === "stylesheet") return true;
+    if (el.tagName === "LINK" && (el as HTMLLinkElement).rel === "stylesheet")
+      return true;
     return false;
   });
 
   // For <link>, convert to absolute URLs so the new window can fetch them
-  const headHtml = headEls.map((el) => {
-    if (el.tagName === "LINK") {
-      const link = el as HTMLLinkElement;
-      const absHref = new URL(link.href, document.baseURI).href;
-      return `<link rel="stylesheet" href="${absHref}" />`;
-    }
-    return el.outerHTML;
-  }).join("\n");
+  const headHtml = headEls
+    .map((el) => {
+      if (el.tagName === "LINK") {
+        const link = el as HTMLLinkElement;
+        const absHref = new URL(link.href, document.baseURI).href;
+        return `<link rel="stylesheet" href="${absHref}" />`;
+      }
+      return el.outerHTML;
+    })
+    .join("\n");
 
   return `<!DOCTYPE html>
 <html>
@@ -198,7 +244,14 @@ function SortableSectionItem({
   isActive: boolean;
   onSelect: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -211,7 +264,9 @@ function SortableSectionItem({
       ref={setNodeRef}
       style={style}
       className={`flex items-center gap-1.5 rounded-lg px-2.5 py-3 lg:py-2 cursor-pointer transition-colors group ${
-        isActive ? "bg-primary/10 text-primary" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "hover:bg-muted text-muted-foreground hover:text-foreground"
       }`}
       onClick={onSelect}
     >
@@ -223,11 +278,17 @@ function SortableSectionItem({
       >
         <GripVertical className="h-3.5 w-3.5" />
       </span>
-      <span className="flex-1 text-xs font-medium truncate">{section.title}</span>
+      <span className="flex-1 text-xs font-medium truncate">
+        {section.title}
+      </span>
       {section.isVisible === false && (
         <span className="text-[10px] text-muted-foreground">hidden</span>
       )}
-      {isActive ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100" />}
+      {isActive ? (
+        <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+      ) : (
+        <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100" />
+      )}
     </div>
   );
 }
@@ -262,15 +323,22 @@ function ExportDialog({
     try {
       const base = safeFileBaseName(resume.title ?? "");
       if (format === "json") {
-        downloadBlob(JSON.stringify(resume, null, 2), `${base}.json`, "application/json");
+        downloadBlob(
+          JSON.stringify(resume, null, 2),
+          `${base}.json`,
+          "application/json",
+        );
         toast({ title: "JSON downloaded" });
       } else if (format === "pdf") {
         const html = buildExportHtml(resume.title || "Resume");
         if (!html) {
-          toast({ title: "Could not capture resume preview", variant: "destructive" });
+          toast({
+            title: "Could not capture resume preview",
+            variant: "destructive",
+          });
           return;
         }
-        
+
         try {
           const token = await getToken();
           const apiUrl = import.meta.env.VITE_API_URL || "/api";
@@ -285,7 +353,9 @@ function ExportDialog({
 
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            throw new Error(`Server PDF Generation Failed: ${errData.details || errData.error || res.statusText}`);
+            throw new Error(
+              `Server PDF Generation Failed: ${errData.details || errData.error || res.statusText}`,
+            );
           }
 
           const blob = await res.blob();
@@ -295,24 +365,27 @@ function ExportDialog({
           console.error(error);
           toast({ title: "Failed to download PDF", variant: "destructive" });
         }
-
-
       } else {
         try {
-          const { buildResumeDocxBlob } = await import("@/lib/build-resume-docx");
+          const { buildResumeDocxBlob } =
+            await import("@/lib/build-resume-docx");
           const docxBlob = await buildResumeDocxBlob(resume, {
             includeWatermark: !isPremiumUser,
           });
           downloadFileBlob(docxBlob, `${base}.docx`);
           toast({
             title: "Word document downloaded",
-            description: "Opens in Microsoft Word, Google Docs, Pages, and other compatible apps.",
+            description:
+              "Opens in Microsoft Word, Google Docs, Pages, and other compatible apps.",
           });
         } catch (err) {
           console.error("DOCX export failed", err);
           toast({
             title: "Could not create Word document",
-            description: err instanceof Error ? err.message : "Please try again in a moment.",
+            description:
+              err instanceof Error
+                ? err.message
+                : "Please try again in a moment.",
             variant: "destructive",
           });
           return;
@@ -325,9 +398,21 @@ function ExportDialog({
   };
 
   const formats = [
-    { id: "pdf" as const, label: "PDF Document", description: "Print dialog — save as PDF for ATS-friendly vector output" },
-    { id: "docx" as const, label: "Word (.docx)", description: "Editable Office Open XML with stable layout in Word" },
-    { id: "json" as const, label: "JSON Data", description: "Raw resume data (no visual watermark)" },
+    {
+      id: "pdf" as const,
+      label: "PDF Document",
+      description: "Print dialog — save as PDF for ATS-friendly vector output",
+    },
+    {
+      id: "docx" as const,
+      label: "Word (.docx)",
+      description: "Editable Office Open XML with stable layout in Word",
+    },
+    {
+      id: "json" as const,
+      label: "JSON Data",
+      description: "Raw resume data (no visual watermark)",
+    },
   ];
 
   const showFormats = isPremiumUser || freeStep === "formats";
@@ -336,7 +421,9 @@ function ExportDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[min(90vh,640px)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{showFormats ? "Choose export format" : "Export & watermark"}</DialogTitle>
+          <DialogTitle>
+            {showFormats ? "Choose export format" : "Export & watermark"}
+          </DialogTitle>
           {showFormats ? (
             <DialogDescription>
               {isPremiumUser
@@ -345,8 +432,9 @@ function ExportDialog({
             </DialogDescription>
           ) : (
             <DialogDescription className="text-left text-sm leading-relaxed">
-              On the Free plan, exports include a minimal Resumesensei line at the bottom of the page (same as in preview).
-              Upgrade to Pro for clean, watermark-free PDF and Word files.
+              On the Free plan, exports include a minimal Resumesensei line at
+              the bottom of the page (same as in preview). Upgrade to Pro for
+              clean, watermark-free PDF and Word files.
             </DialogDescription>
           )}
         </DialogHeader>
@@ -359,10 +447,15 @@ function ExportDialog({
               onClick={() => setFreeStep("formats")}
               disabled={loading !== null}
             >
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Free</span>
-              <span className="text-sm font-semibold text-foreground">Keep watermark</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Free
+              </span>
+              <span className="text-sm font-semibold text-foreground">
+                Keep watermark
+              </span>
               <span className="text-xs text-muted-foreground leading-snug">
-                Continue to PDF, Word, or JSON — footer appears on PDF and Word like your preview.
+                Continue to PDF, Word, or JSON — footer appears on PDF and Word
+                like your preview.
               </span>
             </button>
             <button
@@ -374,9 +467,12 @@ function ExportDialog({
               <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
                 <ProBadge size="sm" />
               </span>
-              <span className="text-sm font-semibold text-foreground">Remove watermark</span>
+              <span className="text-sm font-semibold text-foreground">
+                Remove watermark
+              </span>
               <span className="text-xs text-muted-foreground leading-snug">
-                Clean exports plus all templates, unlimited AI, and ATS score tracking.
+                Clean exports plus all templates, unlimited AI, and ATS score
+                tracking.
               </span>
             </button>
           </div>
@@ -407,9 +503,13 @@ function ExportDialog({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-sm">{f.label}</p>
-                    <p className="text-xs text-muted-foreground">{f.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {f.description}
+                    </p>
                   </div>
-                  {loading === f.id ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" /> : null}
+                  {loading === f.id ? (
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
+                  ) : null}
                 </div>
               </button>
             ))}
@@ -428,7 +528,7 @@ export default function BuilderPage() {
   const { toast } = useToast();
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
-  
+
   const resumeId = parseInt(id ?? "0");
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
@@ -451,16 +551,22 @@ export default function BuilderPage() {
   const [templateId, setTemplateId] = useState("modern");
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallTitle, setPaywallTitle] = useState("Premium Feature");
-  const [paywallDescription, setPaywallDescription] = useState("This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization.");
+  const [paywallDescription, setPaywallDescription] = useState(
+    "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization.",
+  );
   const [exportOpen, setExportOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">("sections");
+  const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">(
+    "sections",
+  );
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   /** Page preview zoom (not font size). Desktop opens at 100%; mobile opens ~40%. */
-  const [previewScale, setPreviewScale] = useState(() => initialPreviewZoomForViewport());
+  const [previewScale, setPreviewScale] = useState(() =>
+    initialPreviewZoomForViewport(),
+  );
   const previewScaleRef = useRef(previewScale);
   const [contentHeight, setContentHeight] = useState(1123);
   /** Bumped on section/content changes — avoids JSON.stringify on every edit for preview pagination. */
@@ -516,7 +622,14 @@ export default function BuilderPage() {
       cancelAnimationFrame(raf2);
       cancelAnimationFrame(raf3);
     };
-  }, [resumeId, previewRevision, templateId, fontScale, mobileTab, isPremiumUser]);
+  }, [
+    resumeId,
+    previewRevision,
+    templateId,
+    fontScale,
+    mobileTab,
+    isPremiumUser,
+  ]);
 
   /** Mobile: fit whole page in viewport. Desktop / wide: snap back to 100%. */
   const handleFitPreview = useCallback(() => {
@@ -610,13 +723,18 @@ export default function BuilderPage() {
 
   const { data: templates } = useListTemplates();
 
-  const templateList = useMemo(() => (Array.isArray(templates) ? templates : []), [templates]);
+  const templateList = useMemo(
+    () => (Array.isArray(templates) ? templates : []),
+    [templates],
+  );
 
   const updateResume = useUpdateResume({
     mutation: {
       onSuccess: (data) => {
         queryClient.setQueryData(getGetResumeQueryKey(resumeId), data);
-        void queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+        void queryClient.invalidateQueries({
+          queryKey: getListResumesQueryKey(),
+        });
       },
       // Handle errors per-save attempt to avoid stale failures showing toasts.
     },
@@ -632,14 +750,21 @@ export default function BuilderPage() {
       initializedResumeIdRef.current = resume.id;
       const nextSections = (resume.sections ?? []).map((s) => ({ ...s }));
       setLocalSections(nextSections);
-      setAccentColor(resume.accentColor ?? getDefaultAccentColor(resume.templateId));
-      setFontFamily(resume.fontFamily ?? getDefaultFontFamily(resume.templateId));
+      setAccentColor(
+        resume.accentColor ?? getDefaultAccentColor(resume.templateId),
+      );
+      setFontFamily(
+        resume.fontFamily ?? getDefaultFontFamily(resume.templateId),
+      );
       setFontColor(resume.fontColor ?? "#111827");
       setBackgroundColor(resume.backgroundColor ?? "#ffffff");
       setTemplateId(resume.templateId ?? "modern");
       setActiveSectionId((prevActiveId) => {
         if (nextSections.length === 0) return null;
-        if (prevActiveId != null && nextSections.some((s) => s.id === prevActiveId)) {
+        if (
+          prevActiveId != null &&
+          nextSections.some((s) => s.id === prevActiveId)
+        ) {
           return prevActiveId;
         }
         return nextSections[0].id;
@@ -656,7 +781,7 @@ export default function BuilderPage() {
     setFontScale(Number.isFinite(n) && n > 0 ? n : 1.2);
     const autoFitVal = window.localStorage.getItem(`resumeAutoFit:${id}`);
     setAutoFit(autoFitVal !== "false");
-    
+
     fontScaleHydratedFor.current = id;
   }, [id]);
 
@@ -674,7 +799,14 @@ export default function BuilderPage() {
   }, [resumeId]);
 
   const scheduleSave = useCallback(
-    (sections: Section[], accent: string, font: string, template: string, fColor: string, bColor: string) => {
+    (
+      sections: Section[],
+      accent: string,
+      font: string,
+      template: string,
+      fColor: string,
+      bColor: string,
+    ) => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       const seq = ++saveSeqRef.current;
       latestSaveSeqRef.current = seq;
@@ -703,41 +835,77 @@ export default function BuilderPage() {
               const msg = (err as { message?: string })?.message ?? "";
               // Ignore common "request cancelled" style errors.
               if (/aborted|cancelled|canceled|AbortError/i.test(msg)) return;
-              toast({ title: "Failed to save", description: msg || undefined, variant: "destructive" });
+              toast({
+                title: "Failed to save",
+                description: msg || undefined,
+                variant: "destructive",
+              });
             },
           },
         );
       }, 800);
     },
-    [resumeId, updateResume]
+    [resumeId, updateResume],
   );
 
   const handleSectionContentChange = useCallback(
     (sectionId: number, content: SectionContent) => {
       setLocalSections((prev) => {
         const updated = prev.map((s) =>
-          s.id === sectionId ? { ...s, content } : s
+          s.id === sectionId ? { ...s, content } : s,
         );
-        scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
+        scheduleSave(
+          updated,
+          accentColor,
+          fontFamily,
+          templateId,
+          fontColor,
+          backgroundColor,
+        );
         return updated;
       });
       bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
+    [
+      accentColor,
+      fontFamily,
+      templateId,
+      fontColor,
+      backgroundColor,
+      scheduleSave,
+      bumpPreviewRevision,
+    ],
   );
 
   const handleVisibilityToggle = useCallback(
     (sectionId: number) => {
       setLocalSections((prev) => {
         const updated = prev.map((s) =>
-          s.id === sectionId ? { ...s, isVisible: s.isVisible !== false ? false : true } : s
+          s.id === sectionId
+            ? { ...s, isVisible: s.isVisible !== false ? false : true }
+            : s,
         );
-        scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
+        scheduleSave(
+          updated,
+          accentColor,
+          fontFamily,
+          templateId,
+          fontColor,
+          backgroundColor,
+        );
         return updated;
       });
       bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
+    [
+      accentColor,
+      fontFamily,
+      templateId,
+      fontColor,
+      backgroundColor,
+      scheduleSave,
+      bumpPreviewRevision,
+    ],
   );
 
   const handleDragEnd = useCallback(
@@ -752,24 +920,48 @@ export default function BuilderPage() {
         const [moved] = reordered.splice(oldIndex, 1);
         reordered.splice(newIndex, 0, moved);
         const withOrder = reordered.map((s, i) => ({ ...s, displayOrder: i }));
-        scheduleSave(withOrder, accentColor, fontFamily, templateId, fontColor, backgroundColor);
+        scheduleSave(
+          withOrder,
+          accentColor,
+          fontFamily,
+          templateId,
+          fontColor,
+          backgroundColor,
+        );
         return withOrder;
       });
       bumpPreviewRevision();
     },
-    [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision]
+    [
+      accentColor,
+      fontFamily,
+      templateId,
+      fontColor,
+      backgroundColor,
+      scheduleSave,
+      bumpPreviewRevision,
+    ],
   );
 
   const handleAccentChange = (color: string) => {
     const isPreset = ACCENT_COLORS.find((c) => c.value === color);
     if (!isPremiumUser && !isPreset) {
       setPaywallTitle("Premium Color Picker");
-      setPaywallDescription("Custom colors and premium palettes are reserved for Pro users. Upgrade to unlock all customization options.");
+      setPaywallDescription(
+        "Custom colors and premium palettes are reserved for Pro users. Upgrade to unlock all customization options.",
+      );
       setShowPaywall(true);
       return;
     }
     setAccentColor(color);
-    scheduleSave(localSections, color, fontFamily, templateId, fontColor, backgroundColor);
+    scheduleSave(
+      localSections,
+      color,
+      fontFamily,
+      templateId,
+      fontColor,
+      backgroundColor,
+    );
     bumpPreviewRevision();
   };
 
@@ -777,12 +969,21 @@ export default function BuilderPage() {
     const fontObj = FONT_OPTIONS.find((f) => f.value === font);
     if (!isPremiumUser && fontObj?.isPremium) {
       setPaywallTitle("Premium Font");
-      setPaywallDescription(`The ${fontObj.label} font is reserved for Pro users. Upgrade to unlock all premium typography options.`);
+      setPaywallDescription(
+        `The ${fontObj.label} font is reserved for Pro users. Upgrade to unlock all premium typography options.`,
+      );
       setShowPaywall(true);
       return;
     }
     setFontFamily(font);
-    scheduleSave(localSections, accentColor, font, templateId, fontColor, backgroundColor);
+    scheduleSave(
+      localSections,
+      accentColor,
+      font,
+      templateId,
+      fontColor,
+      backgroundColor,
+    );
     bumpPreviewRevision();
   };
 
@@ -790,14 +991,23 @@ export default function BuilderPage() {
     const template = templateList.find((temp) => temp.id === t) ?? null;
     if (template?.isPremium && !isPremiumUser) {
       setPaywallTitle("Premium Template");
-      setPaywallDescription("This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.");
+      setPaywallDescription(
+        "This template is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and ATS optimization.",
+      );
       setShowPaywall(true);
       return;
     }
     setTemplateId(t);
     const newFont = getDefaultFontFamily(t);
     setFontFamily(newFont);
-    scheduleSave(localSections, accentColor, newFont, t, fontColor, backgroundColor);
+    scheduleSave(
+      localSections,
+      accentColor,
+      newFont,
+      t,
+      fontColor,
+      backgroundColor,
+    );
     bumpPreviewRevision();
   };
 
@@ -831,7 +1041,14 @@ export default function BuilderPage() {
       return;
     }
     setFontColor(color);
-    scheduleSave(localSections, accentColor, fontFamily, templateId, color, backgroundColor);
+    scheduleSave(
+      localSections,
+      accentColor,
+      fontFamily,
+      templateId,
+      color,
+      backgroundColor,
+    );
     bumpPreviewRevision();
   };
 
@@ -841,7 +1058,14 @@ export default function BuilderPage() {
       return;
     }
     setBackgroundColor(color);
-    scheduleSave(localSections, accentColor, fontFamily, templateId, fontColor, color);
+    scheduleSave(
+      localSections,
+      accentColor,
+      fontFamily,
+      templateId,
+      fontColor,
+      color,
+    );
     bumpPreviewRevision();
   };
 
@@ -851,25 +1075,56 @@ export default function BuilderPage() {
         ...s,
         content: emptySectionContentForType(s.type) as SectionContent,
       }));
-      scheduleSave(updated, accentColor, fontFamily, templateId, fontColor, backgroundColor);
+      scheduleSave(
+        updated,
+        accentColor,
+        fontFamily,
+        templateId,
+        fontColor,
+        backgroundColor,
+      );
       return updated;
     });
     setClearAllOpen(false);
     bumpPreviewRevision();
-    toast({ title: "Resume content cleared", description: "All sections are now empty." });
-  }, [accentColor, fontFamily, templateId, fontColor, backgroundColor, scheduleSave, bumpPreviewRevision, toast]);
+    toast({
+      title: "Resume content cleared",
+      description: "All sections are now empty.",
+    });
+  }, [
+    accentColor,
+    fontFamily,
+    templateId,
+    fontColor,
+    backgroundColor,
+    scheduleSave,
+    bumpPreviewRevision,
+    toast,
+  ]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     /* Long-press to drag on touch — avoids fighting vertical scroll in the sections list. */
-    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 220, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const activeSection = localSections.find((s) => s.id === activeSectionId);
 
   const previewResume: ResumeDetail = resume
-    ? { ...resume, sections: localSections, accentColor, fontFamily, fontColor, backgroundColor, templateId }
+    ? {
+        ...resume,
+        sections: localSections,
+        accentColor,
+        fontFamily,
+        fontColor,
+        backgroundColor,
+        templateId,
+      }
     : {
         id: resumeId,
         title: "",
@@ -899,8 +1154,8 @@ export default function BuilderPage() {
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden">
-      <SEO 
-        title={`${resume?.title || 'Untitled Resume'} - Editor | Resumesensei`}
+      <SEO
+        title={`${resume?.title || "Untitled Resume"} - Editor | Resumesensei`}
         description="Edit your professional resume with real-time AI suggestions."
       />
       <BuilderNavbar
@@ -910,7 +1165,7 @@ export default function BuilderPage() {
         onAtsPremiumClick={() => {
           setPaywallTitle("ATS score is a Pro feature");
           setPaywallDescription(
-            "Upgrade to Resumesensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit."
+            "Upgrade to Resumesensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit.",
           );
           setShowPaywall(true);
         }}
@@ -918,13 +1173,20 @@ export default function BuilderPage() {
         onRename={(newTitle) => {
           // Optimistically update the title in the cache before the request fires.
           // onMutate is not supported in per-call mutate() options (only onSuccess/onError/onSettled are).
-          void queryClient.cancelQueries({ queryKey: getGetResumeQueryKey(resumeId) });
-          const previous = queryClient.getQueryData<ResumeDetail>(getGetResumeQueryKey(resumeId));
+          void queryClient.cancelQueries({
+            queryKey: getGetResumeQueryKey(resumeId),
+          });
+          const previous = queryClient.getQueryData<ResumeDetail>(
+            getGetResumeQueryKey(resumeId),
+          );
           if (previous) {
-            queryClient.setQueryData<ResumeDetail>(getGetResumeQueryKey(resumeId), {
-              ...previous,
-              title: newTitle,
-            });
+            queryClient.setQueryData<ResumeDetail>(
+              getGetResumeQueryKey(resumeId),
+              {
+                ...previous,
+                title: newTitle,
+              },
+            );
           }
           updateResume.mutate(
             { id: resumeId, data: { title: newTitle } },
@@ -932,7 +1194,10 @@ export default function BuilderPage() {
               onError: () => {
                 // Roll back to the previous cache value on failure.
                 if (previous) {
-                  queryClient.setQueryData(getGetResumeQueryKey(resumeId), previous);
+                  queryClient.setQueryData(
+                    getGetResumeQueryKey(resumeId),
+                    previous,
+                  );
                 }
               },
             },
@@ -942,14 +1207,25 @@ export default function BuilderPage() {
 
       <div className="flex flex-1 overflow-hidden relative pb-14 lg:pb-0">
         {/* Left sidebar — sections */}
-        <aside className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden min-h-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}>
+        <aside
+          className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden min-h-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}
+        >
           <div className="px-3 pt-3 pb-2 shrink-0 min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Sections</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Sections
+            </p>
           </div>
           <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!block">
             <div className="px-3 pb-3 overflow-hidden min-w-0">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={localSections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={localSections.map((s) => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
                   <div className="space-y-1.5 lg:space-y-0.5">
                     {localSections.map((s) => (
                       <SortableSectionItem
@@ -970,8 +1246,13 @@ export default function BuilderPage() {
               <div className="mt-4 border-t border-border pt-4 space-y-4 lg:space-y-2">
                 {/* Template selector */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Template</p>
-                  <Select value={templateId} onValueChange={handleTemplateChange}>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Template
+                  </p>
+                  <Select
+                    value={templateId}
+                    onValueChange={handleTemplateChange}
+                  >
                     <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5 overflow-hidden">
                       <LayoutTemplate className="h-3 w-3 shrink-0" />
                       <span className="min-w-0 flex-1 truncate text-left">
@@ -998,17 +1279,25 @@ export default function BuilderPage() {
 
                 {/* Font selector */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Font
+                  </p>
                   <Select value={fontFamily} onValueChange={handleFontChange}>
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {FONT_OPTIONS.map((f) => (
-                        <SelectItem key={f.value} value={f.value} className="text-xs">
+                        <SelectItem
+                          key={f.value}
+                          value={f.value}
+                          className="text-xs"
+                        >
                           <div className="flex items-center justify-between w-full">
                             <span>{f.label}</span>
-                            {f.isPremium && !isPremiumUser && <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />}
+                            {f.isPremium && !isPremiumUser && (
+                              <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />
+                            )}
                           </div>
                         </SelectItem>
                       ))}
@@ -1018,7 +1307,9 @@ export default function BuilderPage() {
 
                 {/* Font size */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Font Size</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Font Size
+                  </p>
                   <Select
                     value={String(fontScale)}
                     onValueChange={(v) => {
@@ -1030,15 +1321,28 @@ export default function BuilderPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
-                      <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
-                      <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
-                      <SelectItem value="1.35" className="text-xs">Huge (135%)</SelectItem>
-                      <SelectItem value="1.5" className="text-xs">Massive (150%)</SelectItem>
+                      <SelectItem value="1" className="text-xs">
+                        Normal (100%)
+                      </SelectItem>
+                      <SelectItem value="1.1" className="text-xs">
+                        Large (110%)
+                      </SelectItem>
+                      <SelectItem value="1.2" className="text-xs">
+                        Extra Large (120%)
+                      </SelectItem>
+                      <SelectItem value="1.35" className="text-xs">
+                        Huge (135%)
+                      </SelectItem>
+                      <SelectItem value="1.5" className="text-xs">
+                        Massive (150%)
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <div className="flex items-center justify-between mt-4 px-1 gap-4">
-                    <Label htmlFor="auto-fit" className="text-xs font-medium text-foreground cursor-pointer">
+                    <Label
+                      htmlFor="auto-fit"
+                      className="text-xs font-medium text-foreground cursor-pointer"
+                    >
                       Auto-Fit Page
                     </Label>
                     <Switch
@@ -1054,7 +1358,9 @@ export default function BuilderPage() {
 
                 {/* Font Color */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Text Color</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Text Color
+                  </p>
                   {isPremiumUser ? (
                     <label
                       className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
@@ -1090,7 +1396,10 @@ export default function BuilderPage() {
                         className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
                         style={{ background: fontColor }}
                       />
-                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" aria-hidden>
+                      <span
+                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
+                        aria-hidden
+                      >
                         <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                       </span>
                     </button>
@@ -1099,7 +1408,9 @@ export default function BuilderPage() {
 
                 {/* Background Color */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Background Color</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Background Color
+                  </p>
                   {isPremiumUser ? (
                     <label
                       className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
@@ -1116,7 +1427,9 @@ export default function BuilderPage() {
                         id={`resume-bg-color-${resumeId}`}
                         type="color"
                         value={backgroundColor}
-                        onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                        onChange={(e) =>
+                          handleBackgroundColorChange(e.target.value)
+                        }
                         className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                         aria-label="Pick background color"
                       />
@@ -1135,7 +1448,10 @@ export default function BuilderPage() {
                         className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
                         style={{ background: backgroundColor }}
                       />
-                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" aria-hidden>
+                      <span
+                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
+                        aria-hidden
+                      >
                         <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                       </span>
                     </button>
@@ -1144,13 +1460,25 @@ export default function BuilderPage() {
 
                 {/* Accent color */}
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">Accent Color</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Accent Color
+                  </p>
                   <div className="flex items-center gap-1.5">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex-1 h-8 gap-2 text-xs justify-start px-2 overflow-hidden">
-                          <div className="h-3.5 w-3.5 rounded-full shrink-0" style={{ background: accentColor }} />
-                          <span className="truncate">{ACCENT_COLORS.find((c) => c.value === accentColor)?.label ?? "Custom"}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-8 gap-2 text-xs justify-start px-2 overflow-hidden"
+                        >
+                          <div
+                            className="h-3.5 w-3.5 rounded-full shrink-0"
+                            style={{ background: accentColor }}
+                          />
+                          <span className="truncate">
+                            {ACCENT_COLORS.find((c) => c.value === accentColor)
+                              ?.label ?? "Custom"}
+                          </span>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent side="top" className="w-40 p-2">
@@ -1191,7 +1519,10 @@ export default function BuilderPage() {
                           onClick={showAccentCustomPaywall}
                           aria-label="Custom accent color is a Pro feature. Tap to learn more."
                         >
-                          <Star className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
+                          <Star
+                            className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500"
+                            aria-hidden
+                          />
                           <Palette className="pointer-events-none h-4 w-4 text-muted-foreground" />
                         </button>
                       )}
@@ -1246,16 +1577,36 @@ export default function BuilderPage() {
                   transition={{ duration: 0.15, ease: "easeOut" }}
                 >
                   <SectionEditor
-                    section={activeSection as { id: number; type: string; title: string; content: SectionContent; isVisible?: boolean }}
-                    onChange={(content) => handleSectionContentChange(activeSection.id, content)}
-                    onVisibilityToggle={() => handleVisibilityToggle(activeSection.id)}
+                    section={
+                      activeSection as {
+                        id: number;
+                        type: string;
+                        title: string;
+                        content: SectionContent;
+                        isVisible?: boolean;
+                      }
+                    }
+                    onChange={(content) =>
+                      handleSectionContentChange(activeSection.id, content)
+                    }
+                    onVisibilityToggle={() =>
+                      handleVisibilityToggle(activeSection.id)
+                    }
                     resumeId={resumeId}
-                    allSections={localSections as { id: number; type: string; content: SectionContent }[]}
+                    allSections={
+                      localSections as {
+                        id: number;
+                        type: string;
+                        content: SectionContent;
+                      }[]
+                    }
                     templateId={templateId}
                   />
                 </motion.div>
               ) : (
-                <p className="text-sm text-muted-foreground">Select a section from the sidebar to edit it.</p>
+                <p className="text-sm text-muted-foreground">
+                  Select a section from the sidebar to edit it.
+                </p>
               )}
             </div>
           </ScrollArea>
@@ -1265,10 +1616,14 @@ export default function BuilderPage() {
             {updateResume.isPending ? (
               <>
                 <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground">Saving...</span>
+                <span className="text-[10px] text-muted-foreground">
+                  Saving...
+                </span>
               </>
             ) : (
-              <span className="text-[10px] text-muted-foreground">Changes saved automatically</span>
+              <span className="text-[10px] text-muted-foreground">
+                Changes saved automatically
+              </span>
             )}
           </div>
         </div>
@@ -1286,7 +1641,9 @@ export default function BuilderPage() {
           {/* min-w-max + w-max lets content exceed viewport width so horizontal scroll works on touch (touch-pan-y alone blocked sideways panning). */}
           <div className="min-w-max w-max max-w-none flex flex-col items-center pb-20 relative px-4 mx-auto">
             <div className="mb-4 flex flex-col items-center justify-center gap-3">
-              <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">Live Preview — A4</span>
+              <span className="text-xs text-muted-foreground bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+                Live Preview — A4
+              </span>
 
               {/* Zoom Controls */}
               <div className="sticky top-4 z-10 flex items-center gap-1 bg-background/80 backdrop-blur-md border border-border p-1 rounded-full shadow-sm">
@@ -1294,16 +1651,26 @@ export default function BuilderPage() {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 rounded-full"
-                  onClick={() => setPreviewScale((s) => clampPreviewZoom(s - PREVIEW_ZOOM_STEP))}
+                  onClick={() =>
+                    setPreviewScale((s) =>
+                      clampPreviewZoom(s - PREVIEW_ZOOM_STEP),
+                    )
+                  }
                 >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <span className="text-[10px] font-medium w-14 text-center tabular-nums">{(Math.round(previewScale * 1000) / 10).toFixed(1)}%</span>
+                <span className="text-[10px] font-medium w-14 text-center tabular-nums">
+                  {(Math.round(previewScale * 1000) / 10).toFixed(1)}%
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 rounded-full"
-                  onClick={() => setPreviewScale((s) => clampPreviewZoom(s + PREVIEW_ZOOM_STEP))}
+                  onClick={() =>
+                    setPreviewScale((s) =>
+                      clampPreviewZoom(s + PREVIEW_ZOOM_STEP),
+                    )
+                  }
                 >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
@@ -1319,7 +1686,7 @@ export default function BuilderPage() {
                 </Button>
               </div>
             </div>
-            
+
             {/* Dynamic Scaling Wrapper */}
             <div
               className="relative mx-auto"
@@ -1328,17 +1695,21 @@ export default function BuilderPage() {
                 minHeight: `${contentHeight * previewScale}px`,
               }}
             >
-              <div 
-                className="absolute top-0 left-0 will-change-transform" 
-                style={{ 
-                  width: "794px", 
-                  transform: `scale(${previewScale}) translateZ(0)`, 
+              <div
+                className="absolute top-0 left-0 will-change-transform"
+                style={{
+                  width: "794px",
+                  transform: `scale(${previewScale}) translateZ(0)`,
                   transformOrigin: "top left",
                   backfaceVisibility: "hidden",
                   WebkitFontSmoothing: "antialiased",
                 }}
               >
-                <div ref={contentRef} data-resume-export-target className="shadow-2xl">
+                <div
+                  ref={contentRef}
+                  data-resume-export-target
+                  className="shadow-2xl"
+                >
                   <ResumePreview
                     key={templateId}
                     resume={deferredPreview.resume}
@@ -1358,22 +1729,22 @@ export default function BuilderPage() {
 
         {/* Mobile Bottom Navigation */}
         <div className="lg:hidden absolute bottom-0 left-0 right-0 h-14 bg-background border-t border-border flex items-center justify-around z-50">
-          <button 
-            onClick={() => setMobileTab("sections")} 
+          <button
+            onClick={() => setMobileTab("sections")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${mobileTab === "sections" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <LayoutTemplate className="h-4 w-4 mb-0.5" />
             Sections
           </button>
-          <button 
-            onClick={() => setMobileTab("edit")} 
+          <button
+            onClick={() => setMobileTab("edit")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium border-l border-r border-border transition-colors ${mobileTab === "edit" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <FileText className="h-4 w-4 mb-0.5" />
             Edit
           </button>
-          <button 
-            onClick={() => setMobileTab("preview")} 
+          <button
+            onClick={() => setMobileTab("preview")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${mobileTab === "preview" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <Zap className="h-4 w-4 mb-0.5" />
@@ -1402,7 +1773,11 @@ export default function BuilderPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Clear all resume content?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes text and entries from every section (personal details, summary, experience, education, skills, projects, and certifications). Your section order and visibility are kept. This cannot be undone from here except by retyping or reloading if not yet saved.
+              This removes text and entries from every section (personal
+              details, summary, experience, education, skills, projects, and
+              certifications). Your section order and visibility are kept. This
+              cannot be undone from here except by retyping or reloading if not
+              yet saved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1417,8 +1792,8 @@ export default function BuilderPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <PaywallDialog 
-        open={showPaywall} 
+      <PaywallDialog
+        open={showPaywall}
         onOpenChange={setShowPaywall}
         title={paywallTitle}
         description={paywallDescription}

@@ -7,7 +7,8 @@ const TEMPLATES = [
   {
     id: "silicon-valley",
     name: "Silicon Valley",
-    description: "Two-column with dark sidebar — built for engineers at top tech companies",
+    description:
+      "Two-column with dark sidebar — built for engineers at top tech companies",
     category: "Technical",
     previewImageUrl: "",
     isPremium: false,
@@ -15,7 +16,8 @@ const TEMPLATES = [
   {
     id: "faang",
     name: "FAANG Engineer",
-    description: "Precision layout with skill indicators — stand out at Google, Meta, Apple",
+    description:
+      "Precision layout with skill indicators — stand out at Google, Meta, Apple",
     category: "Technical",
     previewImageUrl: "",
     isPremium: false,
@@ -23,7 +25,8 @@ const TEMPLATES = [
   {
     id: "nova",
     name: "Nova Minimal",
-    description: "Ultra-clean with extreme whitespace — the design that gets callbacks",
+    description:
+      "Ultra-clean with extreme whitespace — the design that gets callbacks",
     category: "Minimal",
     previewImageUrl: "",
     isPremium: false,
@@ -39,7 +42,8 @@ const TEMPLATES = [
   {
     id: "creative-pro",
     name: "Creative Pro",
-    description: "Bold asymmetric layout for designers, marketers, and creative directors",
+    description:
+      "Bold asymmetric layout for designers, marketers, and creative directors",
     category: "Creative",
     previewImageUrl: "",
     isPremium: true,
@@ -47,7 +51,8 @@ const TEMPLATES = [
   {
     id: "midnight",
     name: "Midnight Luxe",
-    description: "Dark background with gold accents — a premium statement for elite roles",
+    description:
+      "Dark background with gold accents — a premium statement for elite roles",
     category: "Premium",
     previewImageUrl: "",
     isPremium: true,
@@ -55,7 +60,8 @@ const TEMPLATES = [
   {
     id: "ats-clean",
     name: "ATS Clean",
-    description: "Maximum ATS compatibility — every word counts, nothing is filtered out",
+    description:
+      "Maximum ATS compatibility — every word counts, nothing is filtered out",
     category: "ATS",
     previewImageUrl: "",
     isPremium: false,
@@ -63,7 +69,8 @@ const TEMPLATES = [
   {
     id: "academic",
     name: "Academic CV",
-    description: "Traditional scholarly format for research, academia, and PhD applications",
+    description:
+      "Traditional scholarly format for research, academia, and PhD applications",
     category: "Academic",
     previewImageUrl: "",
     isPremium: false,
@@ -71,7 +78,8 @@ const TEMPLATES = [
   {
     id: "corporate-navy",
     name: "Corporate Navy",
-    description: "Navy header authority — ideal for finance, law, and consulting firms",
+    description:
+      "Navy header authority — ideal for finance, law, and consulting firms",
     category: "Professional",
     previewImageUrl: "",
     isPremium: false,
@@ -79,7 +87,8 @@ const TEMPLATES = [
   {
     id: "compact",
     name: "Compact One-Page",
-    description: "Dense, pixel-perfect layout that fits everything in a single page",
+    description:
+      "Dense, pixel-perfect layout that fits everything in a single page",
     category: "ATS",
     previewImageUrl: "",
     isPremium: false,
@@ -87,7 +96,8 @@ const TEMPLATES = [
   {
     id: "european",
     name: "European Style",
-    description: "EU Europass-inspired with photo slot and personal details section",
+    description:
+      "EU Europass-inspired with photo slot and personal details section",
     category: "International",
     previewImageUrl: "",
     isPremium: true,
@@ -95,15 +105,19 @@ const TEMPLATES = [
   {
     id: "two-column",
     name: "Two Column Premium",
-    description: "Sophisticated 35/65 split layout — the gold standard for senior roles",
+    description:
+      "Sophisticated 35/65 split layout — the gold standard for senior roles",
     category: "Premium",
     previewImageUrl: "",
     isPremium: true,
   },
 ];
 
-router.get("/templates", async (_req: Request, res: Response): Promise<void> => {
-  res.json(ListTemplatesResponse.parse(TEMPLATES));
-});
+router.get(
+  "/templates",
+  async (_req: Request, res: Response): Promise<void> => {
+    res.json(ListTemplatesResponse.parse(TEMPLATES));
+  },
+);
 
 export default router;

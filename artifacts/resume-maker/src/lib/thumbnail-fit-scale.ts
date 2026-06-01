@@ -24,4 +24,3 @@ export function computeGalleryViewportHeight(
   if (hostHeight <= 0 || scale <= 0) return THUMBNAIL_DEFAULT_VIEWPORT_H_PX;
   return Math.ceil(hostHeight / scale);
 }
-

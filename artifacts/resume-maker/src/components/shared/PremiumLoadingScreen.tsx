@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { Pen, File } from "lucide-react";
 
-export function PremiumLoadingScreen({ 
-  title = "Loading...", 
-  subtitle 
-}: { 
-  title?: string,
-  subtitle?: string 
+export function PremiumLoadingScreen({
+  title = "Loading...",
+  subtitle,
+}: {
+  title?: string;
+  subtitle?: string;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
@@ -21,26 +21,43 @@ export function PremiumLoadingScreen({
           >
             {/* Blank Document Background */}
             <File className="w-24 h-28 text-muted-foreground/20 stroke-[1]" />
-            
+
             {/* Writing Lines inside the document */}
             <div className="absolute top-9 left-6 right-6 space-y-3">
-              <motion.div 
+              <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: "55%" }}
-                transition={{ duration: 1.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut",
+                }}
               />
-              <motion.div 
+              <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: "70%" }}
-                transition={{ duration: 1.2, delay: 0.2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                transition={{
+                  duration: 1.2,
+                  delay: 0.2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut",
+                }}
               />
-              <motion.div 
+              <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: "85%" }}
-                transition={{ duration: 1.2, delay: 0.4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                transition={{
+                  duration: 1.2,
+                  delay: 0.4,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut",
+                }}
               />
             </div>
 
@@ -50,12 +67,12 @@ export function PremiumLoadingScreen({
               animate={{
                 x: [0, 15, -5, 10, 0],
                 y: [0, -8, 4, -4, 0],
-                rotate: [-10, 10, -5, 8, -10]
+                rotate: [-10, 10, -5, 8, -10],
               }}
               transition={{
                 duration: 1.5,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             >
               <Pen className="w-12 h-12 drop-shadow-xl" />
@@ -80,9 +97,18 @@ export function PremiumLoadingScreen({
           )}
           {!subtitle && (
             <div className="flex items-center justify-center gap-1.5 mt-4">
-              <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-2 h-2 rounded-full bg-primary/80 animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+              <span
+                className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              />
+              <span
+                className="w-2 h-2 rounded-full bg-primary/80 animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              />
+              <span
+                className="w-2 h-2 rounded-full bg-primary animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              />
             </div>
           )}
         </motion.div>

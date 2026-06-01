@@ -1,7 +1,7 @@
 @layer theme, base, clerk, components, utilities;
-@import 'tailwindcss';
-@import '@clerk/themes/shadcn.css';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "@clerk/themes/shadcn.css";
+@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -68,7 +68,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --animate-shimmer: shimmer 2.5s linear infinite;
-  
+
   @keyframes shimmer {
     from {
       background-position: 200% 0;
@@ -81,11 +81,11 @@
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, 0.1);
+  --badge-outline: rgba(0, 0, 0, 0.05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.08);
 
   --background: 0 0% 100%;
   --foreground: 224 71% 4%;
@@ -124,43 +124,70 @@
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
 
-  --app-font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
-  --app-font-serif: Georgia, 'Times New Roman', serif;
-  --app-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, monospace;
-  --radius: .5rem;
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.04);
-  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.06);
-  --shadow-sm: 0px 1px 3px 0px rgba(0,0,0,0.07), 0px 1px 2px -1px rgba(0,0,0,0.07);
-  --shadow: 0px 2px 4px 0px rgba(0,0,0,0.07), 0px 1px 2px -1px rgba(0,0,0,0.07);
-  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.08), 0px 2px 4px -2px rgba(0,0,0,0.08);
-  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.08), 0px 4px 6px -4px rgba(0,0,0,0.08);
-  --shadow-xl: 0px 20px 25px -5px rgba(0,0,0,0.08), 0px 8px 10px -6px rgba(0,0,0,0.08);
-  --shadow-2xl: 0px 25px 50px -12px rgba(0,0,0,0.12);
+  --app-font-sans: "Poppins", system-ui, -apple-system, sans-serif;
+  --app-font-serif: Georgia, "Times New Roman", serif;
+  --app-font-mono: "JetBrains Mono", "Fira Code", Menlo, monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.06);
+  --shadow-sm:
+    0px 1px 3px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px -1px rgba(0, 0, 0, 0.07);
+  --shadow:
+    0px 2px 4px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px -1px rgba(0, 0, 0, 0.07);
+  --shadow-md:
+    0px 4px 6px -1px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.08);
+  --shadow-lg:
+    0px 10px 15px -3px rgba(0, 0, 0, 0.08), 0px 4px 6px -4px rgba(0, 0, 0, 0.08);
+  --shadow-xl:
+    0px 20px 25px -5px rgba(0, 0, 0, 0.08),
+    0px 8px 10px -6px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.12);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-primary-border: hsl(
+    from hsl(var(--sidebar-primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
   --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(
+    from hsl(var(--sidebar-accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
   --primary-border: hsl(var(--primary));
-  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(
+    from hsl(var(--primary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
   --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(
+    from hsl(var(--secondary)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
   --muted-border: hsl(var(--muted));
-  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(
+    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) /
+      alpha
+  );
   --accent-border: hsl(var(--accent));
-  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(
+    from hsl(var(--accent)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
   --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(
+    from hsl(var(--destructive)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
+  );
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
 
   --background: 224 14% 9%;
   --foreground: 210 20% 98%;
@@ -197,14 +224,20 @@
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
 
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.3);
-  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.35);
-  --shadow-sm: 0px 1px 3px 0px rgba(0,0,0,0.4), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow: 0px 2px 4px 0px rgba(0,0,0,0.4), 0px 1px 2px -1px rgba(0,0,0,0.4);
-  --shadow-md: 0px 4px 6px -1px rgba(0,0,0,0.45), 0px 2px 4px -2px rgba(0,0,0,0.45);
-  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.45), 0px 4px 6px -4px rgba(0,0,0,0.45);
-  --shadow-xl: 0px 20px 25px -5px rgba(0,0,0,0.45), 0px 8px 10px -6px rgba(0,0,0,0.45);
-  --shadow-2xl: 0px 25px 50px -12px rgba(0,0,0,0.6);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.35);
+  --shadow-sm:
+    0px 1px 3px 0px rgba(0, 0, 0, 0.4), 0px 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow:
+    0px 2px 4px 0px rgba(0, 0, 0, 0.4), 0px 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md:
+    0px 4px 6px -1px rgba(0, 0, 0, 0.45), 0px 2px 4px -2px rgba(0, 0, 0, 0.45);
+  --shadow-lg:
+    0px 10px 15px -3px rgba(0, 0, 0, 0.45), 0px 4px 6px -4px rgba(0, 0, 0, 0.45);
+  --shadow-xl:
+    0px 20px 25px -5px rgba(0, 0, 0, 0.45),
+    0px 8px 10px -6px rgba(0, 0, 0, 0.45);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
@@ -269,7 +302,8 @@
     margin: 0;
     size: A4;
   }
-  html, body {
+  html,
+  body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -349,18 +383,57 @@
     font-style: normal !important;
     font-size: 0.875rem;
   }
-  .ql-snow.ql-toolbar button:hover, .ql-snow .ql-toolbar button:hover, .ql-snow.ql-toolbar button:focus, .ql-snow .ql-toolbar button:focus, .ql-snow.ql-toolbar button.ql-active, .ql-snow .ql-toolbar button.ql-active, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item {
+  .ql-snow.ql-toolbar button:hover,
+  .ql-snow .ql-toolbar button:hover,
+  .ql-snow.ql-toolbar button:focus,
+  .ql-snow .ql-toolbar button:focus,
+  .ql-snow.ql-toolbar button.ql-active,
+  .ql-snow .ql-toolbar button.ql-active,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item {
     color: hsl(var(--primary)) !important;
   }
-  .ql-snow.ql-toolbar button:hover .ql-stroke, .ql-snow .ql-toolbar button:hover .ql-stroke, .ql-snow.ql-toolbar button:focus .ql-stroke, .ql-snow .ql-toolbar button:focus .ql-stroke, .ql-snow.ql-toolbar button.ql-active .ql-stroke, .ql-snow .ql-toolbar button.ql-active .ql-stroke, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke, .ql-snow.ql-toolbar button:hover .ql-stroke-miter, .ql-snow .ql-toolbar button:hover .ql-stroke-miter, .ql-snow.ql-toolbar button:focus .ql-stroke-miter, .ql-snow .ql-toolbar button:focus .ql-stroke-miter, .ql-snow.ql-toolbar button.ql-active .ql-stroke-miter, .ql-snow .ql-toolbar button.ql-active .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke-miter {
+  .ql-snow.ql-toolbar button:hover .ql-stroke,
+  .ql-snow .ql-toolbar button:hover .ql-stroke,
+  .ql-snow.ql-toolbar button:focus .ql-stroke,
+  .ql-snow .ql-toolbar button:focus .ql-stroke,
+  .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+  .ql-snow .ql-toolbar button.ql-active .ql-stroke,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke,
+  .ql-snow.ql-toolbar button:hover .ql-stroke-miter,
+  .ql-snow .ql-toolbar button:hover .ql-stroke-miter,
+  .ql-snow.ql-toolbar button:focus .ql-stroke-miter,
+  .ql-snow .ql-toolbar button:focus .ql-stroke-miter,
+  .ql-snow.ql-toolbar button.ql-active .ql-stroke-miter,
+  .ql-snow .ql-toolbar button.ql-active .ql-stroke-miter,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-stroke-miter,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke-miter,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-stroke-miter {
     stroke: hsl(var(--primary)) !important;
   }
-  .ql-snow.ql-toolbar button:hover .ql-fill, .ql-snow .ql-toolbar button:hover .ql-fill, .ql-snow.ql-toolbar button:focus .ql-fill, .ql-snow .ql-toolbar button:focus .ql-fill, .ql-snow.ql-toolbar button.ql-active .ql-fill, .ql-snow .ql-toolbar button.ql-active .ql-fill, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-fill, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-fill, .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-fill, .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-fill {
+  .ql-snow.ql-toolbar button:hover .ql-fill,
+  .ql-snow .ql-toolbar button:hover .ql-fill,
+  .ql-snow.ql-toolbar button:focus .ql-fill,
+  .ql-snow .ql-toolbar button:focus .ql-fill,
+  .ql-snow.ql-toolbar button.ql-active .ql-fill,
+  .ql-snow .ql-toolbar button.ql-active .ql-fill,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-fill,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-label .ql-fill,
+  .ql-snow.ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-fill,
+  .ql-snow .ql-toolbar .ql-picker.ql-expanded .ql-picker-item .ql-fill {
     fill: hsl(var(--primary)) !important;
   }
 
-  .no-default-hover-elevate {}
-  .no-default-active-elevate {}
+  .no-default-hover-elevate {
+  }
+  .no-default-active-elevate {
+  }
 
   .toggle-elevate::before,
   .toggle-elevate-2::before {
@@ -427,7 +500,7 @@
   max-height: none;
   overflow: visible;
   background: white;
-  box-shadow: 0 4px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.12);
 }
 
 /* Clerk placeholder fix for dark backgrounds */
@@ -527,15 +600,33 @@
 }
 
 /* Section margin bottom default override & scaling */
-.resume-paged-view .mb-8 { margin-bottom: calc(var(--resume-spacing-scale) * 1.5rem) !important; }
-.resume-paged-view .mb-7 { margin-bottom: calc(var(--resume-spacing-scale) * 1.25rem) !important; }
-.resume-paged-view .mb-6 { margin-bottom: calc(var(--resume-spacing-scale) * 1.125rem) !important; }
-.resume-paged-view .mb-5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.875rem) !important; }
-.resume-paged-view .mb-4 { margin-bottom: calc(var(--resume-spacing-scale) * 0.75rem) !important; }
-.resume-paged-view .mb-3\.5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.625rem) !important; }
-.resume-paged-view .mb-3 { margin-bottom: calc(var(--resume-spacing-scale) * 0.5rem) !important; }
-.resume-paged-view .mb-2\.5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.4rem) !important; }
-.resume-paged-view .mb-2 { margin-bottom: calc(var(--resume-spacing-scale) * 0.3rem) !important; }
+.resume-paged-view .mb-8 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 1.5rem) !important;
+}
+.resume-paged-view .mb-7 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 1.25rem) !important;
+}
+.resume-paged-view .mb-6 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 1.125rem) !important;
+}
+.resume-paged-view .mb-5 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.875rem) !important;
+}
+.resume-paged-view .mb-4 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.75rem) !important;
+}
+.resume-paged-view .mb-3\.5 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.625rem) !important;
+}
+.resume-paged-view .mb-3 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.5rem) !important;
+}
+.resume-paged-view .mb-2\.5 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.4rem) !important;
+}
+.resume-paged-view .mb-2 {
+  margin-bottom: calc(var(--resume-spacing-scale) * 0.3rem) !important;
+}
 
 /* Vertically stacked items spacing overrides */
 .resume-paged-view .space-y-4 > :not([hidden]) ~ :not([hidden]) {
@@ -588,7 +679,8 @@
 }
 
 /* Prevent native long-press callouts, selection and default drag behaviors on active cards */
-.no-touch-callout, .no-touch-callout * {
+.no-touch-callout,
+.no-touch-callout * {
   -webkit-touch-callout: none !important;
   -webkit-user-drag: none !important;
   user-drag: none !important;
@@ -598,15 +690,24 @@
 
 /* GPU compositor-accelerated vibrating animation for trash can */
 @keyframes trash-vibrate {
-  0%, 100% { transform: rotate(0deg) translateY(0); }
-  20% { transform: rotate(-6deg) translateY(-2px); }
-  40% { transform: rotate(6deg) translateY(0); }
-  60% { transform: rotate(-6deg) translateY(-2px); }
-  80% { transform: rotate(6deg) translateY(0); }
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  20% {
+    transform: rotate(-6deg) translateY(-2px);
+  }
+  40% {
+    transform: rotate(6deg) translateY(0);
+  }
+  60% {
+    transform: rotate(-6deg) translateY(-2px);
+  }
+  80% {
+    transform: rotate(6deg) translateY(0);
+  }
 }
 
 .animate-trash-vibrate {
   animation: trash-vibrate 0.4s ease-in-out infinite;
 }
-
-

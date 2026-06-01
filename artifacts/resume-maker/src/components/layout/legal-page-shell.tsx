@@ -50,7 +50,11 @@ export function LegalPageShell({
 
   return (
     <div className="min-h-screen min-w-0 w-full max-w-[100vw] bg-background flex flex-col overflow-x-clip">
-      <SEO title={title} description={description} canonicalUrl={canonicalUrl} />
+      <SEO
+        title={title}
+        description={description}
+        canonicalUrl={canonicalUrl}
+      />
       <TopNav />
 
       <div className="border-b border-border/60 bg-gradient-to-b from-primary/5 to-transparent">
@@ -61,7 +65,9 @@ export function LegalPageShell({
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-balance px-1 break-words">
             {heading}
           </h1>
-          <p className="mt-3 text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Last updated: {lastUpdated}
+          </p>
         </div>
       </div>
 

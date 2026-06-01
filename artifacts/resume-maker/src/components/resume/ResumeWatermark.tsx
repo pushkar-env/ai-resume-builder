@@ -3,7 +3,11 @@ import { isDarkBackgroundColor } from "@/lib/color-luminance";
 /**
  * Minimal footer for Free-plan previews and PDF (print) export — plain text + site link only.
  */
-export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }) {
+export function ResumeWatermark({
+  backgroundColor,
+}: {
+  backgroundColor: string;
+}) {
   const dark = isDarkBackgroundColor(backgroundColor);
 
   return (
@@ -17,7 +21,9 @@ export function ResumeWatermark({ backgroundColor }: { backgroundColor: string }
           dark ? "text-white/40" : "text-muted-foreground/75"
         }`}
       >
-        <span className={dark ? "text-white/35" : "text-muted-foreground/70"}>Created at </span>
+        <span className={dark ? "text-white/35" : "text-muted-foreground/70"}>
+          Created at{" "}
+        </span>
         <a
           href="https://resumesensei.com"
           target="_blank"

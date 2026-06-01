@@ -12,5 +12,5 @@ if (import.meta.env.VITE_API_URL) {
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
     <App />
-  </HelmetProvider>
+  </HelmetProvider>,
 );

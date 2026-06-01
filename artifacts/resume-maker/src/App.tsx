@@ -1,9 +1,22 @@
 import { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk, useAuth } from "@clerk/react";
+import {
+  ClerkProvider,
+  SignIn,
+  SignUp,
+  Show,
+  useClerk,
+  useAuth,
+} from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
-import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
+import {
+  Switch,
+  Route,
+  useLocation,
+  Router as WouterRouter,
+  Redirect,
+} from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -64,7 +77,8 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-gray-100",
+    cardBox:
+      "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-gray-100",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
     headerTitle: "text-gray-900 font-semibold",
@@ -80,8 +94,10 @@ const clerkAppearance = {
     logoBox: "flex justify-center mb-1",
     logoImage: "h-16 w-auto",
     socialButtonsBlockButton: "border border-gray-200 hover:bg-gray-50",
-    formButtonPrimary: "bg-violet-600 hover:bg-violet-700 text-white font-medium",
-    formFieldInput: "border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white text-gray-900",
+    formButtonPrimary:
+      "bg-violet-600 hover:bg-violet-700 text-white font-medium",
+    formFieldInput:
+      "border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white text-gray-900",
     footerAction: "bg-gray-50",
     dividerLine: "bg-gray-200",
     alert: "border border-red-100 bg-red-50",
@@ -94,7 +110,11 @@ const clerkAppearance = {
 function SignInPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <SignIn
+        routing="path"
+        path={`${basePath}/sign-in`}
+        signUpUrl={`${basePath}/sign-up`}
+      />
     </div>
   );
 }
@@ -102,7 +122,11 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <SignUp
+        routing="path"
+        path={`${basePath}/sign-up`}
+        signInUrl={`${basePath}/sign-in`}
+      />
     </div>
   );
 }
@@ -120,7 +144,11 @@ function HomeRedirect() {
   );
 }
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function ProtectedRoute({
+  component: Component,
+}: {
+  component: React.ComponentType;
+}) {
   return (
     <>
       <Show when="signed-in">
@@ -208,14 +236,29 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={HomeRedirect} />
-      <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardPage} />} />
-      <Route path="/builder/:id" component={() => <ProtectedRoute component={BuilderPage} />} />
-      <Route path="/templates" component={() => <ProtectedRoute component={TemplatesPage} />} />
-      <Route path="/billing" component={() => <ProtectedRoute component={BillingPage} />} />
+      <Route
+        path="/dashboard"
+        component={() => <ProtectedRoute component={DashboardPage} />}
+      />
+      <Route
+        path="/builder/:id"
+        component={() => <ProtectedRoute component={BuilderPage} />}
+      />
+      <Route
+        path="/templates"
+        component={() => <ProtectedRoute component={TemplatesPage} />}
+      />
+      <Route
+        path="/billing"
+        component={() => <ProtectedRoute component={BillingPage} />}
+      />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
-      <Route path="/settings/*?" component={() => <ProtectedRoute component={SettingsPage} />} />
+      <Route
+        path="/settings/*?"
+        component={() => <ProtectedRoute component={SettingsPage} />}
+      />
       <Route path="/contact" component={ContactPage} />
       <Route path="/sign-in/*?" component={SignInPage} />
       <Route path="/sign-up/*?" component={SignUpPage} />
@@ -276,22 +319,32 @@ function App() {
           <Route path="/privacy" component={PrivacyPage} />
           <Route path="/terms" component={TermsPage} />
           <Route path="/contact" component={ContactPage} />
-          <Route path="/sign-in/*?" component={() => (
-            <div className="flex min-h-[100dvh] items-center justify-center px-4">
-              <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
-                <h1 className="text-lg font-semibold">Sign in</h1>
-                <p className="text-sm text-muted-foreground mt-1">E2E placeholder (Clerk disabled).</p>
+          <Route
+            path="/sign-in/*?"
+            component={() => (
+              <div className="flex min-h-[100dvh] items-center justify-center px-4">
+                <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
+                  <h1 className="text-lg font-semibold">Sign in</h1>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    E2E placeholder (Clerk disabled).
+                  </p>
+                </div>
               </div>
-            </div>
-          )} />
-          <Route path="/sign-up/*?" component={() => (
-            <div className="flex min-h-[100dvh] items-center justify-center px-4">
-              <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
-                <h1 className="text-lg font-semibold">Sign up</h1>
-                <p className="text-sm text-muted-foreground mt-1">E2E placeholder (Clerk disabled).</p>
+            )}
+          />
+          <Route
+            path="/sign-up/*?"
+            component={() => (
+              <div className="flex min-h-[100dvh] items-center justify-center px-4">
+                <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6">
+                  <h1 className="text-lg font-semibold">Sign up</h1>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    E2E placeholder (Clerk disabled).
+                  </p>
+                </div>
               </div>
-            </div>
-          )} />
+            )}
+          />
           {/* Protected routes redirect to home in E2E mode */}
           <Route path="/dashboard" component={() => <Redirect to="/" />} />
           <Route path="/builder/:id" component={() => <Redirect to="/" />} />

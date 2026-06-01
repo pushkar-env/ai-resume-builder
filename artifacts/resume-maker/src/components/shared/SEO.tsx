@@ -1,5 +1,10 @@
 import { Helmet } from "react-helmet-async";
-import { BRAND_LOGO_PNG, DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/brand";
+import {
+  BRAND_LOGO_PNG,
+  DEFAULT_OG_IMAGE,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/brand";
 
 export interface SEOProps {
   title: string;
@@ -16,9 +21,24 @@ export interface SEOProps {
 
 const FAVICON_LINKS = [
   { rel: "icon", href: "/favicon.ico", sizes: "any" },
-  { rel: "icon", type: "image/png", href: "/favicon-32x32.png", sizes: "32x32" },
-  { rel: "icon", type: "image/png", href: "/favicon-16x16.png", sizes: "16x16" },
-  { rel: "icon", type: "image/png", href: "/android-chrome-192x192.png", sizes: "192x192" },
+  {
+    rel: "icon",
+    type: "image/png",
+    href: "/favicon-32x32.png",
+    sizes: "32x32",
+  },
+  {
+    rel: "icon",
+    type: "image/png",
+    href: "/favicon-16x16.png",
+    sizes: "16x16",
+  },
+  {
+    rel: "icon",
+    type: "image/png",
+    href: "/android-chrome-192x192.png",
+    sizes: "192x192",
+  },
   { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
 ] as const;
 
@@ -34,11 +54,7 @@ export function SEO({
   const resolvedOgImage = ogImage || DEFAULT_OG_IMAGE;
 
   const graph =
-    jsonLd == null
-      ? null
-      : Array.isArray(jsonLd)
-        ? jsonLd
-        : [jsonLd];
+    jsonLd == null ? null : Array.isArray(jsonLd) ? jsonLd : [jsonLd];
 
   const jsonLdString =
     graph && graph.length > 0

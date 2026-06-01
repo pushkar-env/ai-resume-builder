@@ -1,8 +1,25 @@
 import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
-import { motion, useAnimationControls, useDragControls, AnimatePresence, type Variants } from "framer-motion";
-import { Plus, FileText, Copy, Trash2, MoreHorizontal, Clock, Pencil, FileUp, Loader2, GripVertical } from "lucide-react";
+import {
+  motion,
+  useAnimationControls,
+  useDragControls,
+  AnimatePresence,
+  type Variants,
+} from "framer-motion";
+import {
+  Plus,
+  FileText,
+  Copy,
+  Trash2,
+  MoreHorizontal,
+  Clock,
+  Pencil,
+  FileUp,
+  Loader2,
+  GripVertical,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,7 +79,6 @@ import {
   previewCardWhileHover,
 } from "@/lib/preview-card-hover";
 
-
 const templateColors: Record<string, string> = {
   modern: "bg-violet-100 text-violet-700",
   minimal: "bg-slate-100 text-slate-700",
@@ -89,7 +105,13 @@ function timeAgo(date: string) {
  * Lazy-load the heavy preview DOM until the card is near the viewport.
  * Keeps mobile scroll/main thread responsive when many resumes exist.
  */
-function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDragging?: boolean }) {
+function ResumeThumbnail({
+  resumeId,
+  isDragging,
+}: {
+  resumeId: number;
+  isDragging?: boolean;
+}) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -116,7 +138,10 @@ function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDraggin
   }, []);
 
   const { data: resume } = useGetResume(resumeId, {
-    query: { queryKey: getGetResumeQueryKey(resumeId), enabled: inView && !isDragging },
+    query: {
+      queryKey: getGetResumeQueryKey(resumeId),
+      enabled: inView && !isDragging,
+    },
   });
 
   // Preview zoom is persisted per resume in the builder; font/color come from the API on `resume`.
@@ -130,8 +155,13 @@ function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDraggin
   if (isDragging) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary/60 border-2 border-dashed border-primary/15 transition-all duration-300">
-        <FileText className="h-10 w-10 mb-2 animate-bounce" style={{ animationDuration: "2s" }} />
-        <span className="text-[10px] font-bold tracking-wider uppercase select-none opacity-70">Holding Document</span>
+        <FileText
+          className="h-10 w-10 mb-2 animate-bounce"
+          style={{ animationDuration: "2s" }}
+        />
+        <span className="text-[10px] font-bold tracking-wider uppercase select-none opacity-70">
+          Holding Document
+        </span>
       </div>
     );
   }
@@ -146,12 +176,20 @@ function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDraggin
       ) : (
         <ScaledResumeThumbnailShell
           hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
-          measureDeps={[resume.id, resume.templateId, resume.updatedAt, fontScale, showWatermark]}
+          measureDeps={[
+            resume.id,
+            resume.templateId,
+            resume.updatedAt,
+            fontScale,
+            showWatermark,
+          ]}
         >
           <ResumePreview
             layout="continuous"
             resume={resume}
-            accentColor={resume.accentColor ?? getDefaultAccentColor(resume.templateId)}
+            accentColor={
+              resume.accentColor ?? getDefaultAccentColor(resume.templateId)
+            }
             fontScale={fontScale}
             fontColor={resume.fontColor ?? "#111827"}
             backgroundColor={resume.backgroundColor ?? "#ffffff"}
@@ -207,10 +245,14 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only allow left click / standard touch to drag
     if (e.button !== 0) return;
-    
+
     // Ignore if clicking on buttons or menu trigger
     const target = e.target as HTMLElement;
-    if (target.closest("button") || target.closest("[role='menuitem']") || target.closest(".dropdown-menu-trigger")) {
+    if (
+      target.closest("button") ||
+      target.closest("[role='menuitem']") ||
+      target.closest(".dropdown-menu-trigger")
+    ) {
       return;
     }
 
@@ -219,7 +261,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     currentOverTrash.current = false;
     isPointerDownThisCard.current = true;
     wasDraggableDuringTouch.current = false;
-    
+
     longPressTimer.current = setTimeout(() => {
       setIsDraggable(true);
       wasDraggableDuringTouch.current = true;
@@ -235,7 +277,10 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     if (!isDraggable) {
       const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
       const threshold = isTouch ? 24 : 8;
-      const dist = Math.hypot(e.clientX - startPoint.current.x, e.clientY - startPoint.current.y);
+      const dist = Math.hypot(
+        e.clientX - startPoint.current.x,
+        e.clientY - startPoint.current.y,
+      );
       if (dist > threshold) {
         clearTimeout(longPressTimer.current);
       }
@@ -264,7 +309,12 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     }
 
     const target = e.target as HTMLElement;
-    if (target.closest && (target.closest("button") || target.closest(".dropdown-menu-trigger") || target.closest("[role='menuitem']"))) {
+    if (
+      target.closest &&
+      (target.closest("button") ||
+        target.closest(".dropdown-menu-trigger") ||
+        target.closest("[role='menuitem']"))
+    ) {
       return;
     }
 
@@ -316,24 +366,24 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           hasDragged.current = true;
           if (!cardRef.current) return;
           const rect = cardRef.current.getBoundingClientRect();
-          
+
           // Get bounding box coordinates for collision
           const trashLeft = window.innerWidth / 2 - 32;
           const trashRight = window.innerWidth / 2 + 32;
           const trashTop = window.innerHeight - 88;
           const trashBottom = window.innerHeight - 24;
-          
+
           // Box collision with hysteresis: padding is -10px (contracted box) to activate, +25px (expanded box) to deactivate
           const currentOver = currentOverTrash.current;
           const padding = currentOver ? 25 : -10;
-          
+
           const over = !(
             rect.right < trashLeft - padding ||
             rect.left > trashRight + padding ||
             rect.bottom < trashTop - padding ||
             rect.top > trashBottom + padding
           );
-          
+
           if (over !== currentOver) {
             currentOverTrash.current = over;
             setIsOverTrash(over);
@@ -346,7 +396,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           setIsDraggable(false);
           setActiveDragResumeId(null);
           setIsOverTrash(false);
-          
+
           if (currentOverTrash.current) {
             setDeleteId(resume.id);
           }
@@ -354,12 +404,39 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         }}
         animate={
           isDeleting
-            ? { x: 0, scale: 0, opacity: 0, y: 150, rotate: 0, transition: { duration: 0.3, ease: "easeInOut" } }
+            ? {
+                x: 0,
+                scale: 0,
+                opacity: 0,
+                y: 150,
+                rotate: 0,
+                transition: { duration: 0.3, ease: "easeInOut" },
+              }
             : isDraggingThis
-            ? { scale: 1.05, rotate: -2, y: 0, boxShadow: "0 20px 35px rgba(0,0,0,0.15)", transition: { type: "spring", stiffness: 300, damping: 20 } }
-            : isHovered && !resumeMenuOpen
-            ? { x: 0, y: -4, scale: 1.012, rotate: 0, boxShadow: "0 10px 20px rgba(0,0,0,0.08)", transition: previewCardHoverTransition }
-            : { x: 0, y: 0, scale: 1, rotate: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", transition: previewCardHoverTransition }
+              ? {
+                  scale: 1.05,
+                  rotate: -2,
+                  y: 0,
+                  boxShadow: "0 20px 35px rgba(0,0,0,0.15)",
+                  transition: { type: "spring", stiffness: 300, damping: 20 },
+                }
+              : isHovered && !resumeMenuOpen
+                ? {
+                    x: 0,
+                    y: -4,
+                    scale: 1.012,
+                    rotate: 0,
+                    boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                    transition: previewCardHoverTransition,
+                  }
+                : {
+                    x: 0,
+                    y: 0,
+                    scale: 1,
+                    rotate: 0,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                    transition: previewCardHoverTransition,
+                  }
         }
         onHoverStart={() => {
           if (coarsePointer || isDraggingThis) return;
@@ -376,7 +453,9 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       >
         <Card
           className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
-            isDraggingThis ? "border-primary bg-primary/5 cursor-grabbing touch-none" : "cursor-grab touch-pan-y"
+            isDraggingThis
+              ? "border-primary bg-primary/5 cursor-grabbing touch-none"
+              : "cursor-grab touch-pan-y"
           }`}
         >
           <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none">
@@ -386,11 +465,15 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
             <div className="flex items-start justify-between mb-auto pointer-events-auto">
               <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
-                <h3 className="font-semibold text-base truncate mb-1">{resume.title}</h3>
+                <h3 className="font-semibold text-base truncate mb-1">
+                  {resume.title}
+                </h3>
                 <span
                   className={`inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium ${templateColors[resume.templateId] ?? "bg-muted text-muted-foreground"}`}
                 >
-                  {resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} Template
+                  {resume.templateId.charAt(0).toUpperCase() +
+                    resume.templateId.slice(1)}{" "}
+                  Template
                 </span>
               </div>
               <DropdownMenu
@@ -410,7 +493,9 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                     variant="ghost"
                     size="sm"
                     className={`h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
-                      coarsePointer ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      coarsePointer
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -419,7 +504,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                       e.stopPropagation();
                       clearTimeout(longPressTimer.current);
                       if (!coarsePointer) return;
-                      if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+                      if (e.pointerType !== "touch" && e.pointerType !== "pen")
+                        return;
                       menuSlipRef.current = false;
                       menuStartRef.current = { x: e.clientX, y: e.clientY };
                       try {
@@ -430,9 +516,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                     }}
                     onPointerMove={(e) => {
                       if (!coarsePointer) return;
-                      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                      if (!e.currentTarget.hasPointerCapture(e.pointerId))
+                        return;
                       const s = menuStartRef.current;
-                      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12) menuSlipRef.current = true;
+                      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12)
+                        menuSlipRef.current = true;
                     }}
                     onPointerUp={(e) => {
                       if (coarsePointer) {
@@ -527,7 +615,9 @@ export default function DashboardPage() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(null);
+  const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(
+    null,
+  );
   const [isOverTrash, setIsOverTrash] = useState(false);
 
   // Prevent native page scrolling / pointercancel triggers on touch devices when a card is dragging
@@ -543,7 +633,7 @@ export default function DashboardPage() {
 
     window.addEventListener("scroll", lockScroll, { passive: true });
 
-    // Set overflowY: clip on body during active drag to prevent absolute/relative children 
+    // Set overflowY: clip on body during active drag to prevent absolute/relative children
     // from expanding the document scrollable height.
     const originalBodyOverflowY = document.body.style.overflowY;
     document.body.style.overflowY = "clip";
@@ -552,7 +642,7 @@ export default function DashboardPage() {
       if (e.cancelable) e.preventDefault();
     };
     window.addEventListener("touchmove", preventDefault, { passive: false });
-    
+
     return () => {
       document.body.style.overflowY = originalBodyOverflowY;
       window.removeEventListener("scroll", lockScroll);
@@ -567,7 +657,8 @@ export default function DashboardPage() {
   const resumeList = useMemo(() => {
     const list = Array.isArray(resumes) ? resumes : [];
     return [...list].sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   }, [resumes]);
 
@@ -596,7 +687,6 @@ export default function DashboardPage() {
     setCreateOpen(true);
   };
 
-
   const importResume = useImportResume({
     mutation: {
       onSuccess: (data: Resume) => {
@@ -605,10 +695,11 @@ export default function DashboardPage() {
         navigate(`/builder/${data.id}`);
       },
       onError: (error: any) => {
-        toast({ 
-          title: "Failed to import resume", 
-          description: error?.message || "Ensure the file is a valid PDF or DOCX.", 
-          variant: "destructive" 
+        toast({
+          title: "Failed to import resume",
+          description:
+            error?.message || "Ensure the file is a valid PDF or DOCX.",
+          variant: "destructive",
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
       },
@@ -626,7 +717,7 @@ export default function DashboardPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Pass the file to the mutation
     importResume.mutate({ data: { file } });
   };
@@ -638,7 +729,12 @@ export default function DashboardPage() {
         setCreateOpen(false);
         navigate(`/builder/${data.id}`);
       },
-      onError: (error: any) => toast({ title: "Failed to create resume", description: error?.message || "Unknown error occurred", variant: "destructive" }),
+      onError: (error: any) =>
+        toast({
+          title: "Failed to create resume",
+          description: error?.message || "Unknown error occurred",
+          variant: "destructive",
+        }),
     },
   });
 
@@ -649,7 +745,8 @@ export default function DashboardPage() {
         setDeleteId(null);
         toast({ title: "Resume deleted" });
       },
-      onError: () => toast({ title: "Failed to delete resume", variant: "destructive" }),
+      onError: () =>
+        toast({ title: "Failed to delete resume", variant: "destructive" }),
     },
   });
 
@@ -662,13 +759,16 @@ export default function DashboardPage() {
     },
   });
 
-  const handleDuplicateRequest = useCallback((id: number) => {
-    if (!isPremiumUser && resumeList.length >= 1) {
-      setShowPaywall(true);
-      return;
-    }
-    duplicateResume.mutate({ id });
-  }, [isPremiumUser, resumeList.length, duplicateResume]);
+  const handleDuplicateRequest = useCallback(
+    (id: number) => {
+      if (!isPremiumUser && resumeList.length >= 1) {
+        setShowPaywall(true);
+        return;
+      }
+      duplicateResume.mutate({ id });
+    },
+    [isPremiumUser, resumeList.length, duplicateResume],
+  );
 
   const updateResume = useUpdateResume({
     mutation: {
@@ -677,40 +777,59 @@ export default function DashboardPage() {
         setRenameId(null);
         toast({ title: "Resume renamed" });
       },
-      onError: () => toast({ title: "Failed to rename resume", variant: "destructive" }),
+      onError: () =>
+        toast({ title: "Failed to rename resume", variant: "destructive" }),
     },
   });
 
-  const stagger = useMemo(() => coarsePointer
-    ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
-    : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }
-  , [coarsePointer]);
+  const stagger = useMemo(
+    () =>
+      coarsePointer
+        ? { hidden: {}, visible: { transition: { staggerChildren: 0 } } }
+        : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } },
+    [coarsePointer],
+  );
 
-  const fadeUp = useMemo(() => coarsePointer
-    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
-    : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
-  , [coarsePointer]);
+  const fadeUp = useMemo(
+    () =>
+      coarsePointer
+        ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
+        : {
+            hidden: { opacity: 0, y: 16 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+          },
+    [coarsePointer],
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO 
+      <SEO
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
       />
       <Navbar />
       <main className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">My Resumes</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage and build your professional resumes</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage and build your professional resumes
+            </p>
           </div>
         </div>
 
         {resumesLoading ? (
-          <PremiumLoadingScreen title="Fetching your resumes" subtitle="Preparing your dashboard" />
+          <PremiumLoadingScreen
+            title="Fetching your resumes"
+            subtitle="Preparing your dashboard"
+          />
         ) : (
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
+          >
             {/* Create New Card */}
             <motion.div variants={fadeUp}>
               <div
@@ -721,16 +840,18 @@ export default function DashboardPage() {
                   <Plus className="h-5 w-5 text-primary" />
                 </div>
                 <h3 className="font-medium text-sm">Create New Resume</h3>
-                <p className="text-xs text-muted-foreground mt-1">Start from a blank template</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Start from a blank template
+                </p>
               </div>
             </motion.div>
 
             {/* Import Card */}
             <motion.div variants={fadeUp}>
-              <input 
-                type="file" 
+              <input
+                type="file"
                 ref={fileInputRef}
-                className="hidden" 
+                className="hidden"
                 accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleFileChange}
               />
@@ -746,7 +867,9 @@ export default function DashboardPage() {
                       <Loader2 className="h-5 w-5 text-primary animate-spin" />
                     </div>
                     <h3 className="font-medium text-sm">Importing...</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Extracting with AI</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Extracting with AI
+                    </p>
                   </>
                 ) : (
                   <>
@@ -754,7 +877,9 @@ export default function DashboardPage() {
                       <FileUp className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="font-medium text-sm">Import Resume</h3>
-                    <p className="text-xs text-muted-foreground mt-1">Upload PDF or DOCX</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload PDF or DOCX
+                    </p>
                   </>
                 )}
               </div>
@@ -797,8 +922,12 @@ export default function DashboardPage() {
             <motion.div
               animate={{
                 scale: isOverTrash ? 1.25 : 1,
-                borderColor: isOverTrash ? "rgba(244, 63, 94, 0.6)" : "rgba(71, 85, 105, 0.4)",
-                backgroundColor: isOverTrash ? "rgba(76, 5, 25, 0.95)" : "rgba(15, 23, 42, 0.85)",
+                borderColor: isOverTrash
+                  ? "rgba(244, 63, 94, 0.6)"
+                  : "rgba(71, 85, 105, 0.4)",
+                backgroundColor: isOverTrash
+                  ? "rgba(76, 5, 25, 0.95)"
+                  : "rgba(15, 23, 42, 0.85)",
                 boxShadow: isOverTrash
                   ? "0 0 30px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.2)"
                   : "0 10px 30px rgba(0, 0, 0, 0.25)",
@@ -829,15 +958,19 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       {/* Create dialog */}
-      <Dialog open={createOpen} onOpenChange={(open) => {
-        setCreateOpen(open);
-        if (open) setStartWithSampleContent(true);
-      }}>
+      <Dialog
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (open) setStartWithSampleContent(true);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create new resume</DialogTitle>
             <DialogDescription>
-              Choose a title and whether to start from sample content or empty sections.
+              Choose a title and whether to start from sample content or empty
+              sections.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -850,9 +983,16 @@ export default function DashboardPage() {
                 placeholder="e.g. Software Engineer Resume"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? { accent: "#000000" };
+                    const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? {
+                      accent: "#000000",
+                    };
                     createResume.mutate({
-                      data: { title: newTitle, templateId: "silicon-valley", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
+                      data: {
+                        title: newTitle,
+                        templateId: "silicon-valley",
+                        accentColor: cfg.accent,
+                        startPrefilled: startWithSampleContent,
+                      },
                     });
                   }
                 }}
@@ -863,12 +1003,19 @@ export default function DashboardPage() {
                 <Label htmlFor="start-sample" className="text-sm font-medium">
                   Sample starter content
                 </Label>
-                <p id="start-sample-hint" className="text-xs text-muted-foreground leading-snug">
-                  When on, your new resume includes example text so layouts look filled. Turn off to start with empty fields for each template section.
+                <p
+                  id="start-sample-hint"
+                  className="text-xs text-muted-foreground leading-snug"
+                >
+                  When on, your new resume includes example text so layouts look
+                  filled. Turn off to start with empty fields for each template
+                  section.
                 </p>
               </div>
               <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
-                <span className="text-xs text-muted-foreground sm:hidden">Sample content</span>
+                <span className="text-xs text-muted-foreground sm:hidden">
+                  Sample content
+                </span>
                 <Switch
                   id="start-sample"
                   checked={startWithSampleContent}
@@ -879,12 +1026,21 @@ export default function DashboardPage() {
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
             <Button
               onClick={() => {
-                const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? { accent: "#000000" };
+                const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? {
+                  accent: "#000000",
+                };
                 createResume.mutate({
-                  data: { title: newTitle, templateId: "silicon-valley", accentColor: cfg.accent, startPrefilled: startWithSampleContent },
+                  data: {
+                    title: newTitle,
+                    templateId: "silicon-valley",
+                    accentColor: cfg.accent,
+                    startPrefilled: startWithSampleContent,
+                  },
                 });
               }}
               disabled={createResume.isPending || !newTitle.trim()}
@@ -896,7 +1052,10 @@ export default function DashboardPage() {
       </Dialog>
 
       {/* Rename dialog */}
-      <Dialog open={renameId !== null} onOpenChange={(o) => !o && setRenameId(null)}>
+      <Dialog
+        open={renameId !== null}
+        onOpenChange={(o) => !o && setRenameId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rename resume</DialogTitle>
@@ -911,16 +1070,27 @@ export default function DashboardPage() {
                 placeholder="e.g. Software Engineer Resume"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && renameId !== null) {
-                    updateResume.mutate({ id: renameId, data: { title: renameTitle } });
+                    updateResume.mutate({
+                      id: renameId,
+                      data: { title: renameTitle },
+                    });
                   }
                 }}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameId(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRenameId(null)}>
+              Cancel
+            </Button>
             <Button
-              onClick={() => renameId !== null && updateResume.mutate({ id: renameId, data: { title: renameTitle } })}
+              onClick={() =>
+                renameId !== null &&
+                updateResume.mutate({
+                  id: renameId,
+                  data: { title: renameTitle },
+                })
+              }
               disabled={updateResume.isPending || !renameTitle.trim()}
             >
               {updateResume.isPending ? "Renaming..." : "Save changes"}
@@ -930,17 +1100,25 @@ export default function DashboardPage() {
       </Dialog>
 
       {/* Delete confirm */}
-      <AlertDialog open={deleteId !== null} onOpenChange={(o) => !o && setDeleteId(null)}>
+      <AlertDialog
+        open={deleteId !== null}
+        onOpenChange={(o) => !o && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete resume?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. Your resume and all its content will be permanently deleted.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This action cannot be undone. Your resume and all its content will
+              be permanently deleted.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
-              onClick={() => deleteId !== null && deleteResume.mutate({ id: deleteId })}
+              onClick={() =>
+                deleteId !== null && deleteResume.mutate({ id: deleteId })
+              }
             >
               Delete
             </AlertDialogAction>
@@ -948,8 +1126,8 @@ export default function DashboardPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <PaywallDialog 
-        open={showPaywall} 
+      <PaywallDialog
+        open={showPaywall}
         onOpenChange={setShowPaywall}
         title="Resume Limit Reached"
         description="Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates."

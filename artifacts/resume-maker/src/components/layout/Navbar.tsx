@@ -1,6 +1,22 @@
 import { useUser, useClerk, useAuth } from "@clerk/react";
 import { Link, useLocation } from "wouter";
-import { FileText, LayoutDashboard, LayoutTemplate, LogOut, ChevronDown, Settings, Mail, Star, Zap, Menu, Shield, ScrollText, CreditCard, Lock, Tags } from "lucide-react";
+import {
+  FileText,
+  LayoutDashboard,
+  LayoutTemplate,
+  LogOut,
+  ChevronDown,
+  Settings,
+  Mail,
+  Star,
+  Zap,
+  Menu,
+  Shield,
+  ScrollText,
+  CreditCard,
+  Lock,
+  Tags,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -47,13 +63,23 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href={brandHref} className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-90">
-              <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-10 w-10 object-contain shrink-0" />
+            <Link
+              href={brandHref}
+              className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-90"
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}bluemascot.svg`}
+                alt="Resumesensei mascot"
+                className="h-10 w-10 object-contain shrink-0"
+              />
               <span className="text-xl font-extrabold tracking-tight sm:text-2xl">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
+            <nav
+              className="hidden md:flex items-center gap-1"
+              aria-label={showAppNav ? "App navigation" : "Site navigation"}
+            >
               {navLinks.map(({ href, label }) => (
                 <Link
                   key={href}
@@ -81,10 +107,18 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                  <Link href={brandHref} className="flex items-center gap-2 text-foreground mb-4 mt-2 transition-opacity hover:opacity-90">
-                    <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-9 w-9 object-contain shrink-0" />
+                  <Link
+                    href={brandHref}
+                    className="flex items-center gap-2 text-foreground mb-4 mt-2 transition-opacity hover:opacity-90"
+                  >
+                    <img
+                      src={`${import.meta.env.BASE_URL}bluemascot.svg`}
+                      alt="Resumesensei mascot"
+                      className="h-9 w-9 object-contain shrink-0"
+                    />
                     <span className="text-xl font-extrabold tracking-tight">
-                      Resume<span className="text-primary font-black">sensei</span>
+                      Resume
+                      <span className="text-primary font-black">sensei</span>
                     </span>
                   </Link>
                   {user && !user.publicMetadata?.isPremium ? (
@@ -94,10 +128,19 @@ export function Navbar() {
                         Upgrade to Pro
                       </p>
                       <p className="text-[11px] leading-snug text-muted-foreground relative z-10">
-                        Unlock unlimited AI resume builds, templates, and exports.
+                        Unlock unlimited AI resume builds, templates, and
+                        exports.
                       </p>
-                      <Link href="/pricing" className="w-full relative z-10 mt-1">
-                        <ProButton size="sm" className="w-full h-8" text="Upgrade to Pro" showIcon />
+                      <Link
+                        href="/pricing"
+                        className="w-full relative z-10 mt-1"
+                      >
+                        <ProButton
+                          size="sm"
+                          className="w-full h-8"
+                          text="Upgrade to Pro"
+                          showIcon
+                        />
                       </Link>
                     </div>
                   ) : user?.publicMetadata?.isPremium ? (
@@ -111,7 +154,12 @@ export function Navbar() {
                       </p>
                     </div>
                   ) : null}
-                  <nav className="flex flex-col gap-2" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
+                  <nav
+                    className="flex flex-col gap-2"
+                    aria-label={
+                      showAppNav ? "App navigation" : "Site navigation"
+                    }
+                  >
                     {navLinks.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
@@ -129,10 +177,19 @@ export function Navbar() {
                   </nav>
                   {!showAppNav && isLoaded ? (
                     <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-                      <Button variant="outline" size="sm" className="w-full justify-center" asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-center"
+                        asChild
+                      >
                         <Link href="/sign-in">Sign in</Link>
                       </Button>
-                      <Button size="sm" className="w-full justify-center" asChild>
+                      <Button
+                        size="sm"
+                        className="w-full justify-center"
+                        asChild
+                      >
                         <Link href="/sign-up">Get started free</Link>
                       </Button>
                     </div>
@@ -186,71 +243,88 @@ export function Navbar() {
                     <div className="hidden sm:flex items-center">
                       <ProBadge size="sm" />
                     </div>
-                    <div className="flex sm:hidden items-center" title="Resumesensei Pro" aria-label="You are on the Pro plan">
+                    <div
+                      className="flex sm:hidden items-center"
+                      title="Resumesensei Pro"
+                      aria-label="You are on the Pro plan"
+                    >
                       <ProBadge size="sm" />
                     </div>
                   </>
                 ) : (
                   <Link href="/pricing" className="flex items-center">
-                    <ProButton size="sm" className="h-8 px-2.5 sm:px-3 text-xs sm:text-sm" text="Go Pro" showIcon />
+                    <ProButton
+                      size="sm"
+                      className="h-8 px-2.5 sm:px-3 text-xs sm:text-sm"
+                      text="Go Pro"
+                      showIcon
+                    />
                   </Link>
                 )}
                 <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1 sm:gap-2 h-8 px-1 sm:px-2 rounded-full sm:rounded-md">
-                    <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                      {user.firstName?.[0] ?? user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
-                    </div>
-                    <span className="hidden sm:block text-sm max-w-[120px] truncate">
-                      {user.firstName ?? user.emailAddresses[0]?.emailAddress}
-                    </span>
-                    <ChevronDown className="hidden sm:block h-3.5 w-3.5 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <div className="px-2 py-1.5">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <p className="text-sm font-medium">
-                        {user.firstName} {user.lastName}
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1 sm:gap-2 h-8 px-1 sm:px-2 rounded-full sm:rounded-md"
+                    >
+                      <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                        {user.firstName?.[0] ??
+                          user.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ??
+                          "?"}
+                      </div>
+                      <span className="hidden sm:block text-sm max-w-[120px] truncate">
+                        {user.firstName ?? user.emailAddresses[0]?.emailAddress}
+                      </span>
+                      <ChevronDown className="hidden sm:block h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <div className="px-2 py-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="text-sm font-medium">
+                          {user.firstName} {user.lastName}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.emailAddresses[0]?.emailAddress}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{user.emailAddresses[0]?.emailAddress}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/templates" className="cursor-pointer">
-                      <LayoutTemplate className="mr-2 h-4 w-4" />
-                      Templates
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/billing" className="cursor-pointer">
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Billing
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/templates" className="cursor-pointer">
+                        <LayoutTemplate className="mr-2 h-4 w-4" />
+                        Templates
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/billing" className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Billing
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      onClick={() => signOut()}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>
@@ -265,14 +339,25 @@ export function LandingNavbar() {
     <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/40 bg-background/80 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         <div className="flex min-h-14 items-center justify-between gap-2 py-2 sm:py-0">
-          <Link href="/" className="flex min-w-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90">
-            <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-9 w-9 object-contain shrink-0 sm:h-10 sm:w-10" />
+          <Link
+            href="/"
+            className="flex min-w-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90"
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}bluemascot.svg`}
+              alt="Resumesensei mascot"
+              className="h-9 w-9 object-contain shrink-0 sm:h-10 sm:w-10"
+            />
             <span className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">
               Resume<span className="text-primary font-black">sensei</span>
             </span>
           </Link>
           <div className="flex shrink-0 items-center justify-end">
-            <Button size="sm" asChild className="h-9 px-3.5 text-xs sm:h-10 sm:px-5 sm:text-sm">
+            <Button
+              size="sm"
+              asChild
+              className="h-9 px-3.5 text-xs sm:h-10 sm:px-5 sm:text-sm"
+            >
               <Link href="/sign-in">Sign in</Link>
             </Button>
           </div>
@@ -302,7 +387,7 @@ export function BuilderNavbar({
 }) {
   const { user } = useUser();
   const { signOut } = useClerk();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title || "Untitled Resume");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -332,17 +417,26 @@ export function BuilderNavbar({
         "flex shrink-0 border-b border-border/60 bg-background px-4",
         isEditing
           ? "min-h-12 flex-col items-stretch gap-2 py-2 sm:h-12 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:py-0"
-          : "h-12 items-center justify-between"
+          : "h-12 items-center justify-between",
       )}
     >
       <div
         className={cn(
           "flex min-w-0 items-center gap-3",
-          isEditing ? "w-full sm:w-auto sm:min-w-[12rem] sm:flex-1" : "min-w-0 flex-1"
+          isEditing
+            ? "w-full sm:w-auto sm:min-w-[12rem] sm:flex-1"
+            : "min-w-0 flex-1",
         )}
       >
-        <Link href="/dashboard" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0">
-          <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-8 w-8 object-contain shrink-0" />
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}bluemascot.svg`}
+            alt="Resumesensei mascot"
+            className="h-8 w-8 object-contain shrink-0"
+          />
           <FileText className="h-3.5 w-3.5" />
         </Link>
         <span className="text-muted-foreground shrink-0">/</span>
@@ -373,16 +467,31 @@ export function BuilderNavbar({
       <div
         className={cn(
           "flex shrink-0 items-center gap-1.5 sm:gap-3",
-          isEditing ? "w-full justify-end sm:w-auto sm:justify-start sm:ml-2" : "ml-2"
+          isEditing
+            ? "w-full justify-end sm:w-auto sm:justify-start sm:ml-2"
+            : "ml-2",
         )}
       >
         <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground mr-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-primary/70">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
-            <path d="M12 12v3"/>
-            <path d="m10 13 2-2 2 2"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3 w-3 text-primary/70"
+          >
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+            <path d="M12 12v3" />
+            <path d="m10 13 2-2 2 2" />
           </svg>
-          <span className="text-[10px] font-medium tracking-wide">Saved to browser</span>
+          <span className="text-[10px] font-medium tracking-wide">
+            Saved to browser
+          </span>
         </div>
         {atsPremiumLocked && onAtsPremiumClick && (
           <button
@@ -391,7 +500,10 @@ export function BuilderNavbar({
             className="flex items-center gap-1 shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border border-dashed border-amber-500/50 bg-amber-500/10 text-amber-900 dark:text-amber-100 hover:bg-amber-500/15 transition-colors max-w-[min(100%,9rem)]"
             title="ATS score — Pro feature"
           >
-            <Lock className="h-3 w-3 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden />
+            <Lock
+              className="h-3 w-3 shrink-0 text-amber-700 dark:text-amber-300"
+              aria-hidden
+            />
             <span className="truncate">ATS Pro</span>
           </button>
         )}
@@ -399,22 +511,33 @@ export function BuilderNavbar({
           <div className="flex items-center gap-1.5 shrink-0 min-w-0">
             <div
               className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                atsScore >= 80 ? "bg-green-100 text-green-700" :
-                atsScore >= 60 ? "bg-yellow-100 text-yellow-700" :
-                "bg-red-100 text-red-700"
+                atsScore >= 80
+                  ? "bg-green-100 text-green-700"
+                  : atsScore >= 60
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
               }`}
             >
               ATS {atsScore}
             </div>
           </div>
         )}
-        <Button size="sm" variant="outline" onClick={onExport} className="h-7 text-xs">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onExport}
+          className="h-7 text-xs"
+        >
           Export
         </Button>
         {user && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 rounded-full"
+              >
                 <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                   {user.firstName?.[0] ?? "?"}
                 </div>
@@ -422,10 +545,15 @@ export function BuilderNavbar({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href="/dashboard" className="cursor-pointer">Dashboard</Link>
+                <Link href="/dashboard" className="cursor-pointer">
+                  Dashboard
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => signOut()}>
+              <DropdownMenuItem
+                className="text-destructive cursor-pointer"
+                onClick={() => signOut()}
+              >
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>

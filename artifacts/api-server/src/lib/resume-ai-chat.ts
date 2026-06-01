@@ -1,10 +1,12 @@
 import { openai } from "@workspace/integrations-openai-ai-server";
 
 /** Fast chat model for short resume copy (avoid reasoning models — they are slow and burn token budget). */
-export const RESUME_AI_MODEL = process.env.RESUME_AI_MODEL?.trim() || "gpt-4o-mini";
+export const RESUME_AI_MODEL =
+  process.env.RESUME_AI_MODEL?.trim() || "gpt-4o-mini";
 
 /** Wall-clock cap per OpenAI call (ms). */
-export const RESUME_AI_CALL_TIMEOUT_MS = Number(process.env.RESUME_AI_CALL_TIMEOUT_MS) || 60_000;
+export const RESUME_AI_CALL_TIMEOUT_MS =
+  Number(process.env.RESUME_AI_CALL_TIMEOUT_MS) || 60_000;
 
 type ChatCompletionResult = {
   choices: Array<{
@@ -19,14 +21,22 @@ export function clipAiInput(text: string, maxChars: number): string {
   return `${t.slice(0, maxChars)}…`;
 }
 
-async function withCallTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+async function withCallTimeout<T>(
+  promise: Promise<T>,
+  label: string,
+): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) => {
         timer = setTimeout(
-          () => reject(new Error(`${label} timed out after ${RESUME_AI_CALL_TIMEOUT_MS}ms`)),
+          () =>
+            reject(
+              new Error(
+                `${label} timed out after ${RESUME_AI_CALL_TIMEOUT_MS}ms`,
+              ),
+            ),
           RESUME_AI_CALL_TIMEOUT_MS,
         );
       }),
