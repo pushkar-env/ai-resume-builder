@@ -559,7 +559,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
       <div className="resume-template-columns-main flex-1 px-8 py-7">
         {str(summary.text) && (
           <div className="resume-export-block mb-7">
-            <div className="flex items-center gap-2 mb-2.5">
+            <div className="flex items-center gap-2 mb-2.5 resume-section-header">
               <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>About</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
@@ -569,7 +569,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
 
         {exp.length > 0 && (
           <div className="mb-7">
-            <div className="flex items-center gap-2 mb-3.5">
+            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
               <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Experience</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
@@ -601,7 +601,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
 
         {projects.length > 0 && (
           <div className="mb-7">
-            <div className="flex items-center gap-2 mb-3.5">
+            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
               <p className="text-[14px] font-bold uppercase tracking-[0.13em]" style={{ color }}>Projects</p>
               <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
             </div>
@@ -1328,7 +1328,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="mt-6">
+    <div className="mt-6 resume-section-header">
       <p className="text-[13.5px] font-black uppercase tracking-wide" style={{ color }}>{label}</p>
       <div className="h-px mt-1 mb-3" style={{ background: color }} />
     </div>
@@ -1444,7 +1444,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mt-6 first:mt-0 mb-3">
+    <div className="flex items-center gap-2 mt-6 first:mt-0 mb-3 resume-section-header">
       <h2 className="text-[13.5px] font-bold uppercase tracking-[0.1em]" style={{ color }}>{label}</h2>
       <div className="flex-1 h-px bg-gray-300" />
     </div>
@@ -1844,7 +1844,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   const photo = (p.photo as string) ?? "";
 
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mb-3 mt-4 first:mt-0">
+    <div className="flex items-center gap-2 mb-3 mt-4 first:mt-0 resume-section-header">
       <div className="h-3 w-[3px] rounded-full" style={{ background: color }} />
       <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</p>
       <div className="flex-1 h-px bg-gray-100" />
@@ -2086,7 +2086,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {exp.length > 0 && (
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 resume-section-header">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
               <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Experience</p>
               <div className="flex-1 h-px bg-gray-100" />
@@ -2119,7 +2119,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 
         {projects.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-3.5">
+            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
               <div className="h-0.5 w-5 rounded" style={{ background: color }} />
               <p className="text-[13.5px] font-bold uppercase tracking-[0.14em]" style={{ color }}>Projects</p>
               <div className="flex-1 h-px bg-gray-100" />
@@ -2289,6 +2289,13 @@ export function ResumePreview({
             .resume-continuous-canvas .resume-export-grid > div {
               break-inside: avoid;
               page-break-inside: avoid;
+            }
+            .a4-page .resume-section-header,
+            .resume-continuous-canvas .resume-section-header {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+              break-after: avoid !important;
+              page-break-after: avoid !important;
             }
             /*
              * Two-column sidebars should visually fill their column height per page window.

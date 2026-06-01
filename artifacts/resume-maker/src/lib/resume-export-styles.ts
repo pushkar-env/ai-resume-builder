@@ -9,9 +9,19 @@ export const RESUME_RICH_TEXT_CSS = `
   }
 `;
 
+export const RESUME_SECTION_HEADER_CSS = `
+  .resume-section-header {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+`;
+
 /** Screen + print: page geometry, rich text, multi-page PDF breaks */
 export const RESUME_EXPORT_CSS = `
   ${RESUME_RICH_TEXT_CSS}
+  ${RESUME_SECTION_HEADER_CSS}
 
   .a4-page {
     box-sizing: border-box;
@@ -74,4 +84,5 @@ export const RESUME_PDF_EXPORT_CSS = `
     break-after: avoid !important;
   }
   ${RESUME_RICH_TEXT_CSS}
+  ${RESUME_SECTION_HEADER_CSS}
 `;
