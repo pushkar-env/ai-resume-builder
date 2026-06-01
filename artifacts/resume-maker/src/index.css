@@ -587,15 +587,4 @@
   min-height: 100% !important;
 }
 
-/* Prevent layout shifting / jerking on drag actions */
-html, body {
-  overflow-x: hidden !important;
-  width: 100vw !important;
-  max-width: 100% !important;
-  position: relative !important;
-}
-html {
-  scrollbar-gutter: stable !important;
-}
-
 
