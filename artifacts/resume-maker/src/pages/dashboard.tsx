@@ -229,6 +229,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setIsOverTrash: (over: boolean) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const cardInitialRectRef = useRef<DOMRect | null>(null);
   const [resumeMenuOpen, setResumeMenuOpen] = useState(false);
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
@@ -363,7 +364,9 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         dragElastic={0.8}
         dragMomentum={false}
         onDragStart={() => {
-          // No-op: bounds are calculated mathematically from viewport dimensions
+          if (cardRef.current) {
+            cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
+          }
         }}
         onDrag={(event, info) => {
           hasDragged.current = true;
@@ -393,15 +396,36 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           const trashBottom = window.innerHeight - 24;
 
           const currentOver = currentOverTrash.current;
-          // Box collision with hysteresis: padding is 10px to activate, 25px to deactivate
-          const padding = currentOver ? 25 : 10;
 
-          const over = (
-            pointerX >= trashLeft - padding &&
-            pointerX <= trashRight + padding &&
-            pointerY >= trashTop - padding &&
-            pointerY <= trashBottom + padding
+          // Check if the card itself overlaps the trash bin (reflow-free using initial rect + offset)
+          let cardOver = false;
+          if (cardInitialRectRef.current) {
+            const cardLeft = cardInitialRectRef.current.left + info.offset.x;
+            const cardRight = cardInitialRectRef.current.right + info.offset.x;
+            const cardTop = cardInitialRectRef.current.top + info.offset.y;
+            const cardBottom = cardInitialRectRef.current.bottom + info.offset.y;
+
+            // Hysteresis padding: card must penetrate 20px to activate, 0px to deactivate
+            const cardPadding = currentOver ? 0 : -20;
+            cardOver = !(
+              cardRight < trashLeft - cardPadding ||
+              cardLeft > trashRight + cardPadding ||
+              cardBottom < trashTop - cardPadding ||
+              cardTop > trashBottom + cardPadding
+            );
+          }
+
+          // Check if the pointer is within a generous box of the trash bin
+          const pointerPadding = currentOver ? 48 : 24;
+          const pointerOver = (
+            pointerX >= trashLeft - pointerPadding &&
+            pointerX <= trashRight + pointerPadding &&
+            pointerY >= trashTop - pointerPadding &&
+            pointerY <= trashBottom + pointerPadding
           );
+
+          // Over is true if either the card intersects or the pointer hovers over the bin area
+          const over = cardOver || pointerOver;
 
           if (over !== currentOver) {
             currentOverTrash.current = over;
