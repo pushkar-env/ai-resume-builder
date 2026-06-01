@@ -35,6 +35,45 @@ export interface ResumePagedViewProps {
  * Uses one continuous layout measurement + vertical windowing (`translateY`)
  * so all templates paginate consistently without duplicating template markup logic.
  */
+function calculateCompression(f: number) {
+  // f ranges from 0.82 to 1.0. Clamp it.
+  const clampedF = Math.max(0.82, Math.min(1.0, f));
+  const p = (1.0 - clampedF) / 0.18; // progress from 0 to 1
+
+  let marginScale = 1.0;
+  let spacingScale = 1.0;
+  let headerScale = 1.0;
+  let descScale = 1.0;
+
+  // Phase 1: Page margins reduction (p: 0 -> 0.3)
+  if (p <= 0.3) {
+    marginScale = 1.0 - (p / 0.3) * 0.5; // down to 0.5
+  } else {
+    marginScale = 0.5;
+  }
+
+  // Phase 2: Section spacing reduction (p: 0.3 -> 0.6)
+  if (p > 0.3 && p <= 0.6) {
+    spacingScale = 1.0 - ((p - 0.3) / 0.3) * 0.55; // down to 0.45
+  } else if (p > 0.6) {
+    spacingScale = 0.45;
+  }
+
+  // Phase 3: Header font size reduction (p: 0.6 -> 0.85)
+  if (p > 0.6 && p <= 0.85) {
+    headerScale = 1.0 - ((p - 0.6) / 0.25) * 0.22; // down to 0.78
+  } else if (p > 0.85) {
+    headerScale = 0.78;
+  }
+
+  // Phase 4: Description font size reduction (p: 0.85 -> 1.0)
+  if (p > 0.85) {
+    descScale = 1.0 - ((p - 0.85) / 0.15) * 0.15; // down to 0.85
+  }
+
+  return { marginScale, spacingScale, headerScale, descScale };
+}
+
 export function ResumePagedView({
   children,
   fontScale = 1,
@@ -65,8 +104,6 @@ export function ResumePagedView({
   }
 
   const baseFs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
-  const measureFs = baseFs * testAutoFitScale;
-  const displayFs = baseFs * finalAutoFitScale;
   const viewHeight = PAGE_HEIGHT_PX - (showWatermark ? WATERMARK_RESERVE_PX : 0);
 
   useLayoutEffect(() => {
@@ -92,16 +129,13 @@ export function ResumePagedView({
         return;
       }
 
-      // Auto-Fit Logic
-      if (autoFit && totalHeight > viewHeight && testAutoFitScaleRef.current > 0.85) {
+      // Auto-Fit Logic using progressive compression variables
+      if (autoFit && totalHeight > viewHeight && testAutoFitScaleRef.current > 0.82) {
         const overflowRatio = totalHeight / viewHeight;
         if (overflowRatio > 1.005) {
-          // Height grows non-linearly when text wraps due to zooming.
-          // A purely linear scale drop (current / overflow) often overshoots, making the font smaller than necessary.
-          // We cap the drop to 3% per iteration to glide down smoothly and stop exactly when it fits.
           const idealDrop = testAutoFitScaleRef.current - (testAutoFitScaleRef.current / overflowRatio);
           const safeDrop = Math.min(0.03, Math.max(0.005, idealDrop));
-          const targetScale = Math.max(0.85, testAutoFitScaleRef.current - safeDrop);
+          const targetScale = Math.max(0.82, testAutoFitScaleRef.current - safeDrop);
           
           setTestAutoFitScale(targetScale);
           return; // Wait for next render cycle with new scale
@@ -221,70 +255,78 @@ export function ResumePagedView({
     [pageStarts, measuredHeight, viewHeight],
   );
 
-  const pageShell = (pageIndex: number, start: number, span: number, topPad: number) => (
-    <div
-      key={pageIndex}
-      className="a4-page relative mb-6 overflow-hidden bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)] print:mb-0 print:shadow-none"
-      data-font-color={dataFontColor || undefined}
-      style={{
-        width: PAGE_WIDTH_PX,
-        height: PAGE_HEIGHT_PX,
-        maxHeight: PAGE_HEIGHT_PX,
-        backgroundColor,
-      }}
-    >
-      {sidebarFill ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 z-0"
-          style={{
-            width: Math.max(0, Math.round(sidebarFill.widthPx * displayFs)),
-            backgroundColor: sidebarFill.color,
-          }}
-        />
-      ) : null}
-      {showWatermark ? (
-        <div
-          className="resume-page-watermark pointer-events-none absolute inset-x-0 bottom-0 z-0 flex justify-center"
-          aria-hidden
-        >
-          <ResumeWatermark backgroundColor={backgroundColor} />
-        </div>
-      ) : null}
+  const pageShell = (pageIndex: number, start: number, span: number, topPad: number) => {
+    const comp = calculateCompression(finalAutoFitScale);
+    return (
       <div
-        className="resume-page-body relative z-[1] box-border w-full overflow-hidden"
-        style={{ height: viewHeight }}
+        key={pageIndex}
+        className="a4-page relative mb-6 overflow-hidden bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)] print:mb-0 print:shadow-none"
+        data-font-color={dataFontColor || undefined}
+        style={{
+          width: PAGE_WIDTH_PX,
+          height: PAGE_HEIGHT_PX,
+          maxHeight: PAGE_HEIGHT_PX,
+          backgroundColor,
+          "--resume-margin-scale": comp.marginScale,
+          "--resume-spacing-scale": comp.spacingScale,
+          "--resume-header-scale": comp.headerScale,
+          "--resume-desc-scale": comp.descScale,
+        } as any}
       >
-        {topPad + span < viewHeight ? (
+        {sidebarFill ? (
           <div
             aria-hidden
-            className="absolute bottom-0 z-0"
+            className="pointer-events-none absolute inset-y-0 left-0 z-0"
             style={{
-              height: viewHeight - (topPad + span),
-              backgroundColor,
-              left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * displayFs)) : 0,
-              right: 0,
+              width: Math.max(0, Math.round(sidebarFill.widthPx * baseFs)),
+              backgroundColor: sidebarFill.color,
             }}
+          />
+        ) : null}
+        {showWatermark ? (
+          <div
+            className="resume-page-watermark pointer-events-none absolute inset-x-0 bottom-0 z-0 flex justify-center"
+            aria-hidden
           >
+            <ResumeWatermark backgroundColor={backgroundColor} />
           </div>
         ) : null}
-        <div style={{ transform: topPad ? `translateY(${topPad}px)` : undefined }}>
-        <div style={{ height: span, overflow: "hidden" }}>
-          <div style={{ transform: `translateY(-${start}px)` }}>
-            <div style={{ zoom: displayFs, width: "100%" }}>{children}</div>
+        <div
+          className="resume-page-body relative z-[1] box-border w-full overflow-hidden"
+          style={{ height: viewHeight }}
+        >
+          {topPad + span < viewHeight ? (
+            <div
+              aria-hidden
+              className="absolute bottom-0 z-0"
+              style={{
+                height: viewHeight - (topPad + span),
+                backgroundColor,
+                left: sidebarFill ? Math.max(0, Math.round(sidebarFill.widthPx * baseFs)) : 0,
+                right: 0,
+              }}
+            >
+            </div>
+          ) : null}
+          <div style={{ transform: topPad ? `translateY(${topPad}px)` : undefined }}>
+          <div style={{ height: span, overflow: "hidden" }}>
+            <div style={{ transform: `translateY(-${start}px)` }}>
+              <div style={{ zoom: baseFs, width: "100%" }}>{children}</div>
+            </div>
+          </div>
           </div>
         </div>
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
+  const measureComp = calculateCompression(testAutoFitScale);
   const measureMount =
     typeof document !== "undefined"
       ? createPortal(
           <div
             aria-hidden
-            className="resume-measure-mount pointer-events-none"
+            className="resume-measure-mount resume-paged-view pointer-events-none"
             style={{
               position: "fixed",
               left: "-100vw",
@@ -295,7 +337,17 @@ export function ResumePagedView({
               overflow: "visible",
             }}
           >
-            <div ref={measureZoomRef} style={{ zoom: measureFs, width: "100%" }}>
+            <div
+              ref={measureZoomRef}
+              style={{
+                zoom: baseFs,
+                width: "100%",
+                "--resume-margin-scale": measureComp.marginScale,
+                "--resume-spacing-scale": measureComp.spacingScale,
+                "--resume-header-scale": measureComp.headerScale,
+                "--resume-desc-scale": measureComp.descScale,
+              } as any}
+            >
               {children}
             </div>
           </div>,

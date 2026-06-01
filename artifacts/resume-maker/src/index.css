@@ -451,3 +451,140 @@
   max-width: 100%;
   width: 100%;
 }
+
+/* ==========================================================================
+   Intelligent Sizing & Spacing Optimization for Resume Templates
+   ========================================================================== */
+
+/* Define base fallback variables on the page view */
+.resume-paged-view {
+  --resume-margin-scale: 1;
+  --resume-spacing-scale: 1;
+  --resume-header-scale: 1;
+  --resume-desc-scale: 1;
+}
+
+/* Page container padding/margins default override & scaling */
+.resume-paged-view .py-12 {
+  padding-top: calc(var(--resume-margin-scale) * 2.25rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 2.25rem) !important;
+}
+.resume-paged-view .py-10 {
+  padding-top: calc(var(--resume-margin-scale) * 1.875rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 1.875rem) !important;
+}
+.resume-paged-view .py-8 {
+  padding-top: calc(var(--resume-margin-scale) * 1.5rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 1.5rem) !important;
+}
+.resume-paged-view .py-7 {
+  padding-top: calc(var(--resume-margin-scale) * 1.25rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 1.25rem) !important;
+}
+.resume-paged-view .py-6 {
+  padding-top: calc(var(--resume-margin-scale) * 1.125rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 1.125rem) !important;
+}
+.resume-paged-view .py-5 {
+  padding-top: calc(var(--resume-margin-scale) * 0.875rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 0.875rem) !important;
+}
+.resume-paged-view .py-4 {
+  padding-top: calc(var(--resume-margin-scale) * 0.75rem) !important;
+  padding-bottom: calc(var(--resume-margin-scale) * 0.75rem) !important;
+}
+.resume-paged-view .pt-7 {
+  padding-top: calc(var(--resume-margin-scale) * 1.25rem) !important;
+}
+.resume-paged-view .pb-5 {
+  padding-bottom: calc(var(--resume-margin-scale) * 0.875rem) !important;
+}
+
+/* Horizontal Padding scaling to match page margins */
+.resume-paged-view .px-12 {
+  padding-left: calc(var(--resume-margin-scale) * 2.5rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 2.5rem) !important;
+}
+.resume-paged-view .px-10 {
+  padding-left: calc(var(--resume-margin-scale) * 2rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 2rem) !important;
+}
+.resume-paged-view .px-9 {
+  padding-left: calc(var(--resume-margin-scale) * 1.875rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 1.875rem) !important;
+}
+.resume-paged-view .px-8 {
+  padding-left: calc(var(--resume-margin-scale) * 1.625rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 1.625rem) !important;
+}
+.resume-paged-view .px-6 {
+  padding-left: calc(var(--resume-margin-scale) * 1.25rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 1.25rem) !important;
+}
+.resume-paged-view .px-5 {
+  padding-left: calc(var(--resume-margin-scale) * 1rem) !important;
+  padding-right: calc(var(--resume-margin-scale) * 1rem) !important;
+}
+
+/* Section margin bottom default override & scaling */
+.resume-paged-view .mb-8 { margin-bottom: calc(var(--resume-spacing-scale) * 1.5rem) !important; }
+.resume-paged-view .mb-7 { margin-bottom: calc(var(--resume-spacing-scale) * 1.25rem) !important; }
+.resume-paged-view .mb-6 { margin-bottom: calc(var(--resume-spacing-scale) * 1.125rem) !important; }
+.resume-paged-view .mb-5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.875rem) !important; }
+.resume-paged-view .mb-4 { margin-bottom: calc(var(--resume-spacing-scale) * 0.75rem) !important; }
+.resume-paged-view .mb-3\.5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.625rem) !important; }
+.resume-paged-view .mb-3 { margin-bottom: calc(var(--resume-spacing-scale) * 0.5rem) !important; }
+.resume-paged-view .mb-2\.5 { margin-bottom: calc(var(--resume-spacing-scale) * 0.4rem) !important; }
+.resume-paged-view .mb-2 { margin-bottom: calc(var(--resume-spacing-scale) * 0.3rem) !important; }
+
+/* Vertically stacked items spacing overrides */
+.resume-paged-view .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: calc(var(--resume-spacing-scale) * 0.875rem) !important;
+}
+.resume-paged-view .space-y-3\.5 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: calc(var(--resume-spacing-scale) * 0.75rem) !important;
+}
+.resume-paged-view .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: calc(var(--resume-spacing-scale) * 0.625rem) !important;
+}
+
+/* Name heading scale and reduction */
+.resume-paged-view h1 {
+  font-size: calc(var(--resume-header-scale) * 22px) !important;
+}
+.resume-paged-view h1 + p {
+  font-size: calc(var(--resume-header-scale) * 11px) !important;
+}
+
+/* Section Title overrides (matches uppercase and bold/semibold/black headers) */
+.resume-paged-view .font-bold.uppercase,
+.resume-paged-view .font-semibold.uppercase,
+.resume-paged-view .font-black.uppercase,
+.resume-paged-view .font-extrabold.uppercase {
+  font-size: calc(var(--resume-header-scale) * 12.5px) !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Enhanced body/description/bullet text sizes & line-height */
+.resume-paged-view .text-\[11px\] {
+  font-size: calc(var(--resume-desc-scale) * 11.5px) !important;
+  line-height: 1.55 !important;
+}
+.resume-paged-view .text-\[10px\] {
+  font-size: calc(var(--resume-desc-scale) * 10.5px) !important;
+}
+.resume-paged-view .text-\[12px\] {
+  font-size: calc(var(--resume-desc-scale) * 12px) !important;
+}
+.resume-paged-view .text-\[12\.5px\] {
+  font-size: calc(var(--resume-desc-scale) * 12.5px) !important;
+}
+
+/* Ensure templates are allowed to grow vertically for pagination and measurement */
+.resume-paged-view div[style*="zoom"] > div,
+.resume-paged-view [data-resume-two-col-root] {
+  height: auto !important;
+  min-height: 100% !important;
+}
+
+
