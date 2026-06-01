@@ -28,6 +28,21 @@ export const TEMPLATE_DEFAULT_SKILL_STYLES: Record<string, string> = {
   "two-column":     "bullets",
 };
 
+export const TEMPLATE_DEFAULT_FONTS: Record<string, string> = {
+  "silicon-valley": "Merriweather, serif",
+  "faang":          "Manrope, sans-serif",
+  "nova":           "Poppins, sans-serif",
+  "executive-pro":  "Merriweather, serif",
+  "creative-pro":   "Poppins, sans-serif",
+  "midnight":       "Manrope, sans-serif",
+  "ats-clean":      "Merriweather, serif",
+  "academic":       "Merriweather, serif",
+  "corporate-navy": "Inter, sans-serif",
+  "compact":        "Merriweather, serif",
+  "european":       "Inter, sans-serif",
+  "two-column":     "Manrope, sans-serif",
+};
+
 export function getDefaultAccentColor(templateId: string | null | undefined): string {
   if (!templateId) return "#000000";
   return TEMPLATE_CONFIG[templateId]?.accent ?? "#000000";
@@ -36,4 +51,9 @@ export function getDefaultAccentColor(templateId: string | null | undefined): st
 export function getDefaultSkillStyle(templateId: string | null | undefined): string {
   if (!templateId) return "chips";
   return TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips";
+}
+
+export function getDefaultFontFamily(templateId: string | null | undefined): string {
+  if (!templateId) return "Inter, sans-serif";
+  return TEMPLATE_DEFAULT_FONTS[templateId] ?? "Inter, sans-serif";
 }

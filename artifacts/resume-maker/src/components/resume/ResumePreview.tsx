@@ -6,7 +6,7 @@ import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
 import { RESUME_GALLERY_THUMB_CSS } from "@/lib/resume-gallery-thumb-styles";
 import { ResumePagedView } from "@/components/resume/ResumePagedView";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
-import { getDefaultAccentColor, TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
+import { getDefaultAccentColor, TEMPLATE_DEFAULT_SKILL_STYLES, getDefaultFontFamily } from "@/lib/template-config";
 
 /* ─── Types ─── */
 type SC = Record<string, unknown>;
@@ -2171,7 +2171,7 @@ export function ResumePreview({
 }) {
   const templateId = resume.templateId ?? "silicon-valley";
   const color = accentColor ?? resume.accentColor ?? getDefaultAccentColor(templateId);
-  const font = resume.fontFamily ?? "Inter, sans-serif";
+  const font = resume.fontFamily ?? getDefaultFontFamily(templateId);
   const fColor = fontColor ?? resume.fontColor ?? "#111827";
   const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;

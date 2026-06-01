@@ -59,7 +59,7 @@ import { BuilderNavbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
-import { getDefaultAccentColor } from "@/lib/template-config";
+import { getDefaultAccentColor, getDefaultFontFamily } from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
@@ -635,7 +635,7 @@ export default function BuilderPage() {
       const nextSections = (resume.sections ?? []).map((s) => ({ ...s }));
       setLocalSections(nextSections);
       setAccentColor(resume.accentColor ?? getDefaultAccentColor(resume.templateId));
-      setFontFamily(resume.fontFamily ?? "Inter, sans-serif");
+      setFontFamily(resume.fontFamily ?? getDefaultFontFamily(resume.templateId));
       setFontColor(resume.fontColor ?? "#111827");
       setBackgroundColor(resume.backgroundColor ?? "#ffffff");
       setTemplateId(resume.templateId ?? "modern");
@@ -797,7 +797,9 @@ export default function BuilderPage() {
       return;
     }
     setTemplateId(t);
-    scheduleSave(localSections, accentColor, fontFamily, t, fontColor, backgroundColor);
+    const newFont = getDefaultFontFamily(t);
+    setFontFamily(newFont);
+    scheduleSave(localSections, accentColor, newFont, t, fontColor, backgroundColor);
     bumpPreviewRevision();
   };
 

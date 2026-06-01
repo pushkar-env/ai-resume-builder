@@ -6,7 +6,6 @@ export const SAMPLE_RESUME = {
   title: "Sample Resume",
   templateId: "silicon-valley",
   accentColor: "#000000",
-  fontFamily: "Inter, sans-serif",
   isPublic: false,
   shareToken: null,
   viewCount: 0,

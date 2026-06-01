@@ -230,14 +230,29 @@ router.post("/resumes", requireAuth, async (req: Request, res: Response): Promis
       "european": "#000000",
       "two-column": "#0d9488",
     };
+    const defaultFonts: Record<string, string> = {
+      "silicon-valley": "Merriweather, serif",
+      "faang": "Manrope, sans-serif",
+      "nova": "Poppins, sans-serif",
+      "executive-pro": "Merriweather, serif",
+      "creative-pro": "Poppins, sans-serif",
+      "midnight": "Manrope, sans-serif",
+      "ats-clean": "Merriweather, serif",
+      "academic": "Merriweather, serif",
+      "corporate-navy": "Inter, sans-serif",
+      "compact": "Merriweather, serif",
+      "european": "Inter, sans-serif",
+      "two-column": "Manrope, sans-serif",
+    };
     const defaultColor = defaultColors[parsed.data.templateId] ?? "#000000";
+    const defaultFont = defaultFonts[parsed.data.templateId] ?? "Inter, sans-serif";
 
     const [resume] = await db.insert(resumesTable).values({
     userId,
     title: parsed.data.title,
     templateId: parsed.data.templateId,
     accentColor: parsed.data.accentColor ?? defaultColor,
-    fontFamily: parsed.data.fontFamily ?? "Inter, sans-serif",
+    fontFamily: parsed.data.fontFamily ?? defaultFont,
     fontColor: parsed.data.fontColor ?? "#111827",
     backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
   }).returning();
@@ -351,6 +366,21 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
     // Default template configuration
     const templateId = "silicon-valley";
     const accentColor = "#000000";
+    const defaultFonts: Record<string, string> = {
+      "silicon-valley": "Merriweather, serif",
+      "faang": "Manrope, sans-serif",
+      "nova": "Poppins, sans-serif",
+      "executive-pro": "Merriweather, serif",
+      "creative-pro": "Poppins, sans-serif",
+      "midnight": "Manrope, sans-serif",
+      "ats-clean": "Merriweather, serif",
+      "academic": "Merriweather, serif",
+      "corporate-navy": "Inter, sans-serif",
+      "compact": "Merriweather, serif",
+      "european": "Inter, sans-serif",
+      "two-column": "Manrope, sans-serif",
+    };
+    const defaultFont = defaultFonts[templateId] ?? "Inter, sans-serif";
     const title = parsedData.title || file.originalname.replace(/\.[^/.]+$/, "") || "Imported Resume";
 
     const [resume] = await db.insert(resumesTable).values({
@@ -358,7 +388,7 @@ router.post("/resumes/import", requireAuth, upload.single("file"), async (req: R
       title,
       templateId,
       accentColor,
-      fontFamily: "Inter, sans-serif",
+      fontFamily: defaultFont,
       fontColor: "#111827",
       backgroundColor: "#ffffff",
     }).returning();
