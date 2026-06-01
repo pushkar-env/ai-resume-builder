@@ -211,7 +211,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setDeleteId,
   deleteId,
   handleDuplicateRequest,
-  activeDragResumeId,
+  isDraggingThis,
   setActiveDragResumeId,
   setIsOverTrash,
 }: {
@@ -224,7 +224,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setDeleteId: (id: number | null) => void;
   deleteId: number | null;
   handleDuplicateRequest: (id: number) => void;
-  activeDragResumeId: number | null;
+  isDraggingThis: boolean;
   setActiveDragResumeId: (id: number | null) => void;
   setIsOverTrash: (over: boolean) => void;
 }) {
@@ -233,7 +233,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const menuSlipRef = useRef(false);
   const menuStartRef = useRef({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
-  const [isDraggable, setIsDraggable] = useState(false);
+  const isDragging = useRef(false);
   const dragControls = useDragControls();
   const longPressTimer = useRef<any>(null);
   const startPoint = useRef({ x: 0, y: 0 });
@@ -262,19 +262,20 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     isPointerDownThisCard.current = true;
     wasDraggableDuringTouch.current = false;
 
+    const nativeEvent = e.nativeEvent;
     longPressTimer.current = setTimeout(() => {
-      setIsDraggable(true);
+      isDragging.current = true;
       wasDraggableDuringTouch.current = true;
       if (navigator.vibrate) {
         navigator.vibrate(40);
       }
-      dragControls.start(e);
+      dragControls.start(nativeEvent);
       setActiveDragResumeId(resume.id);
     }, 280);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggable) {
+    if (!isDragging.current) {
       const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
       const threshold = isTouch ? 24 : 8;
       const dist = Math.hypot(
@@ -294,8 +295,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     }
     isPointerDownThisCard.current = false;
 
-    if (isDraggable) {
-      setIsDraggable(false);
+    if (isDragging.current) {
+      isDragging.current = false;
       setActiveDragResumeId(null);
       setIsOverTrash(false);
       currentOverTrash.current = false;
@@ -324,8 +325,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const handlePointerCancel = () => {
     clearTimeout(longPressTimer.current);
     isPointerDownThisCard.current = false;
-    if (isDraggable) {
-      setIsDraggable(false);
+    if (isDragging.current) {
+      isDragging.current = false;
       setActiveDragResumeId(null);
       setIsOverTrash(false);
       currentOverTrash.current = false;
@@ -333,7 +334,6 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   };
 
   const isDeleting = deleteId === resume.id;
-  const isDraggingThis = activeDragResumeId === resume.id;
 
   return (
     <motion.div
@@ -356,32 +356,51 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           transformStyle: isDraggingThis ? "preserve-3d" : "flat",
           backfaceVisibility: isDraggingThis ? "hidden" : "visible",
         }}
-        drag={isDraggable}
+        drag={true}
         dragControls={dragControls}
         dragListener={false}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
         dragElastic={0.8}
         dragMomentum={false}
+        onDragStart={() => {
+          // No-op: bounds are calculated mathematically from viewport dimensions
+        }}
         onDrag={(event, info) => {
           hasDragged.current = true;
-          if (!cardRef.current) return;
-          const rect = cardRef.current.getBoundingClientRect();
 
-          // Get bounding box coordinates for collision
+          // Get viewport-relative pointer coordinates from raw event or fallback
+          let pointerX = (event as any).clientX;
+          let pointerY = (event as any).clientY;
+
+          if (pointerX === undefined || pointerY === undefined) {
+            if ((event as any).touches && (event as any).touches.length > 0) {
+              pointerX = (event as any).touches[0].clientX;
+              pointerY = (event as any).touches[0].clientY;
+            } else if ((event as any).changedTouches && (event as any).changedTouches.length > 0) {
+              pointerX = (event as any).changedTouches[0].clientX;
+              pointerY = (event as any).changedTouches[0].clientY;
+            } else {
+              // Fallback to Framer Motion point relative to viewport by subtracting document scroll
+              pointerX = info.point.x - window.scrollX;
+              pointerY = info.point.y - window.scrollY;
+            }
+          }
+
+          // Calculate viewport-relative trash bin bounds mathematically
           const trashLeft = window.innerWidth / 2 - 32;
           const trashRight = window.innerWidth / 2 + 32;
           const trashTop = window.innerHeight - 88;
           const trashBottom = window.innerHeight - 24;
 
-          // Box collision with hysteresis: padding is -10px (contracted box) to activate, +25px (expanded box) to deactivate
           const currentOver = currentOverTrash.current;
-          const padding = currentOver ? 25 : -10;
+          // Box collision with hysteresis: padding is 10px to activate, 25px to deactivate
+          const padding = currentOver ? 25 : 10;
 
-          const over = !(
-            rect.right < trashLeft - padding ||
-            rect.left > trashRight + padding ||
-            rect.bottom < trashTop - padding ||
-            rect.top > trashBottom + padding
+          const over = (
+            pointerX >= trashLeft - padding &&
+            pointerX <= trashRight + padding &&
+            pointerY >= trashTop - padding &&
+            pointerY <= trashBottom + padding
           );
 
           if (over !== currentOver) {
@@ -393,7 +412,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           }
         }}
         onDragEnd={(event, info) => {
-          setIsDraggable(false);
+          isDragging.current = false;
           setActiveDragResumeId(null);
           setIsOverTrash(false);
 
@@ -767,7 +786,7 @@ export default function DashboardPage() {
       }
       duplicateResume.mutate({ id });
     },
-    [isPremiumUser, resumeList.length, duplicateResume],
+    [isPremiumUser, resumeList.length, duplicateResume.mutate],
   );
 
   const updateResume = useUpdateResume({
@@ -898,7 +917,7 @@ export default function DashboardPage() {
                 setDeleteId={setDeleteId}
                 deleteId={deleteId}
                 handleDuplicateRequest={handleDuplicateRequest}
-                activeDragResumeId={activeDragResumeId}
+                isDraggingThis={activeDragResumeId === resume.id}
                 setActiveDragResumeId={setActiveDragResumeId}
                 setIsOverTrash={setIsOverTrash}
               />
@@ -947,7 +966,7 @@ export default function DashboardPage() {
                 }}
               >
                 <Trash2
-                  className={`h-6 w-6 transition-colors duration-300 ${
+                  className={`h-6 w-6 transition-colors duration-150 ${
                     isOverTrash ? "text-rose-400" : "text-slate-400"
                   }`}
                 />
