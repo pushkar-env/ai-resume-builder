@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { useUser } from "@clerk/react";
 import { useLocation } from "wouter";
 import { motion, useAnimationControls, useDragControls, AnimatePresence, type Variants } from "framer-motion";
@@ -163,7 +163,7 @@ function ResumeThumbnail({ resumeId, isDragging }: { resumeId: number; isDraggin
   );
 }
 
-function DashboardResumeCard({
+const DashboardResumeCard = memo(function DashboardResumeCard({
   resume,
   fadeUp,
   coarsePointer,
@@ -229,8 +229,10 @@ function DashboardResumeCard({
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDraggable) {
+      const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
+      const threshold = isTouch ? 24 : 8;
       const dist = Math.hypot(e.clientX - startPoint.current.x, e.clientY - startPoint.current.y);
-      if (dist > 8) {
+      if (dist > threshold) {
         clearTimeout(longPressTimer.current);
       }
     }
@@ -299,11 +301,10 @@ function DashboardResumeCard({
           const clientX = info.point.x - window.scrollX;
           const clientY = info.point.y - window.scrollY;
           
-          const trashY = window.innerHeight - 130;
-          const trashMinX = window.innerWidth / 2 - 120;
-          const trashMaxX = window.innerWidth / 2 + 120;
-          
-          const over = clientY > trashY && clientX > trashMinX && clientX < trashMaxX;
+          const trashCenterX = window.innerWidth / 2;
+          const trashCenterY = window.innerHeight - 56;
+          const distance = Math.hypot(clientX - trashCenterX, clientY - trashCenterY);
+          const over = distance < 75;
           if (over !== currentOverTrash.current) {
             currentOverTrash.current = over;
             setIsOverTrash(over);
@@ -479,7 +480,7 @@ function DashboardResumeCard({
       </motion.div>
     </motion.div>
   );
-}
+});
 
 export default function DashboardPage() {
   const [, navigate] = useLocation();
@@ -495,6 +496,18 @@ export default function DashboardPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
+
+  // Prevent native page scrolling / pointercancel triggers on touch devices when a card is dragging
+  useEffect(() => {
+    if (activeDragResumeId === null) return;
+    const preventDefault = (e: TouchEvent) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    window.addEventListener("touchmove", preventDefault, { passive: false });
+    return () => {
+      window.removeEventListener("touchmove", preventDefault);
+    };
+  }, [activeDragResumeId]);
 
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
@@ -724,18 +737,21 @@ export default function DashboardPage() {
             animate={{ y: 0, x: "-50%", opacity: 1 }}
             exit={{ y: 100, x: "-50%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="fixed bottom-6 left-1/2 z-[100] flex flex-col items-center pointer-events-none"
+            className="fixed bottom-6 left-1/2 z-[100] pointer-events-none"
           >
             <motion.div
               animate={{
-                scale: isOverTrash ? 1.15 : 1,
-                backgroundColor: isOverTrash ? "rgba(239, 68, 68, 0.95)" : "rgba(17, 24, 39, 0.95)",
-                borderColor: isOverTrash ? "rgb(248, 113, 113)" : "rgb(55, 65, 81)",
+                scale: isOverTrash ? 1.25 : 1,
+                borderColor: isOverTrash ? "rgb(239, 68, 68)" : "rgb(55, 65, 81)",
                 boxShadow: isOverTrash
-                  ? "0 0 35px rgba(239, 68, 68, 0.5)"
+                  ? "0 0 35px rgba(239, 68, 68, 0.45)"
                   : "0 10px 30px rgba(0, 0, 0, 0.3)",
               }}
-              className="flex items-center gap-3 px-6 py-4 rounded-full border bg-gray-900 border-gray-800 text-white font-medium backdrop-blur-md transition-colors pointer-events-auto"
+              style={{
+                willChange: "transform",
+                transform: "translateZ(0)",
+              }}
+              className="flex items-center justify-center w-16 h-16 rounded-full border bg-gray-950/90 text-white backdrop-blur-md transition-colors pointer-events-auto"
             >
               <motion.div
                 animate={{
@@ -743,12 +759,17 @@ export default function DashboardPage() {
                   y: isOverTrash ? [0, -3, 0] : 0,
                 }}
                 transition={{ duration: 0.4, repeat: isOverTrash ? Infinity : 0, repeatDelay: 0.15 }}
+                style={{
+                  willChange: "transform",
+                  transform: "translateZ(0)",
+                }}
               >
-                <Trash2 className={`h-6 w-6 transition-colors ${isOverTrash ? "text-white" : "text-gray-400"}`} />
+                <Trash2
+                  className={`h-6 w-6 transition-colors duration-300 ${
+                    isOverTrash ? "text-red-500" : "text-gray-400"
+                  }`}
+                />
               </motion.div>
-              <span className="text-sm select-none tracking-wide font-semibold">
-                {isOverTrash ? "Release to Delete" : "Drag card here to delete"}
-              </span>
             </motion.div>
           </motion.div>
         )}
