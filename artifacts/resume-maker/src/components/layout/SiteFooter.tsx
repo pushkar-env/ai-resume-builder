@@ -15,13 +15,15 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-8 lg:gap-10">
           <div className="text-center sm:text-left">
-            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-2 font-semibold text-foreground">
+            <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-2 text-foreground">
               <img
                 src={`${import.meta.env.BASE_URL}bluemascot.svg`}
                 alt="Resumesensei mascot"
                 className="h-10 w-10 object-contain shrink-0"
               />
-              <span className="text-base font-bold tracking-tight">Resumesensei</span>
+              <span className="text-xl font-extrabold tracking-tight">
+                Resume<span className="text-primary font-black">sensei</span>
+              </span>
             </div>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto sm:mx-0">
               An AI resume coach with ATS insights, modern templates, and exports that match your live preview.

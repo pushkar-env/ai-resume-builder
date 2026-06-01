@@ -47,9 +47,11 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href={brandHref} className="flex items-center gap-2 font-semibold text-foreground">
+            <Link href={brandHref} className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-90">
               <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-10 w-10 object-contain shrink-0" />
-              <span className="text-sm font-bold tracking-tight">Resumesensei</span>
+              <span className="text-xl font-extrabold tracking-tight sm:text-2xl">
+                Resume<span className="text-primary font-black">sensei</span>
+              </span>
             </Link>
             <nav className="hidden md:flex items-center gap-1" aria-label={showAppNav ? "App navigation" : "Site navigation"}>
               {navLinks.map(({ href, label }) => (
@@ -79,9 +81,11 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                  <Link href={brandHref} className="flex items-center gap-2 font-semibold text-foreground mb-4 mt-2">
+                  <Link href={brandHref} className="flex items-center gap-2 text-foreground mb-4 mt-2 transition-opacity hover:opacity-90">
                     <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-9 w-9 object-contain shrink-0" />
-                    <span className="text-sm font-bold tracking-tight">Resumesensei</span>
+                    <span className="text-xl font-extrabold tracking-tight">
+                      Resume<span className="text-primary font-black">sensei</span>
+                    </span>
                   </Link>
                   {user && !user.publicMetadata?.isPremium ? (
                     <div className="mb-6 flex flex-col gap-2.5 rounded-xl border border-primary/20 bg-primary/5 p-4 shadow-sm relative overflow-hidden">
@@ -261,9 +265,11 @@ export function LandingNavbar() {
     <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/40 bg-background/80 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
         <div className="flex min-h-14 items-center justify-between gap-2 py-2 sm:py-0">
-          <Link href="/" className="flex min-w-0 items-center gap-2 font-semibold text-foreground">
+          <Link href="/" className="flex min-w-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90">
             <img src={`${import.meta.env.BASE_URL}bluemascot.svg`} alt="Resumesensei mascot" className="h-9 w-9 object-contain shrink-0 sm:h-10 sm:w-10" />
-            <span className="truncate text-sm font-bold tracking-tight">Resumesensei</span>
+            <span className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">
+              Resume<span className="text-primary font-black">sensei</span>
+            </span>
           </Link>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 sm:gap-3">
             <Button variant="ghost" size="sm" asChild className="h-9 px-2.5 text-xs sm:h-10 sm:px-4 sm:text-sm">

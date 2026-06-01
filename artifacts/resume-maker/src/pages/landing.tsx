@@ -191,7 +191,10 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             >
-              <span className="font-bold text-foreground">Resumesensei</span> combines structured editing, AI suggestions, ATS score feedback, and exports that match your
+              <span className="font-extrabold text-foreground">
+                Resume<span className="text-primary font-black">sensei</span>
+              </span>{" "}
+              combines structured editing, AI suggestions, ATS score feedback, and exports that match your
               live preview — without clutter.
             </motion.p>
             <motion.div

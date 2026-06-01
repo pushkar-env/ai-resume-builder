@@ -19,7 +19,9 @@ export function AppFooter() {
               className="h-9 w-9 object-contain sm:h-10 sm:w-10"
               aria-hidden
             />
-            <span className="text-sm font-bold tracking-tight sm:text-base">Resumesensei</span>
+            <span className="text-lg font-extrabold tracking-tight sm:text-xl">
+              Resume<span className="text-primary font-black">sensei</span>
+            </span>
           </Link>
 
           <nav
