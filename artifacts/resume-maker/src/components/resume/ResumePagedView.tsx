@@ -150,6 +150,7 @@ export function ResumePagedView({
           [
             "[data-resume-keep]",
             ".resume-export-block",
+            ".resume-section-header",
             ".resume-export-grid > div",
             ".grid > div",
             "[class*='space-y-'] > div",
