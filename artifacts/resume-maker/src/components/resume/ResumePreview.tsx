@@ -1189,7 +1189,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const gold = (color === "#7c3aed" || color === "#000000") ? "#d4a853" : color;
+  const gold = color;
   const card = alpha(color, 0.04);
   const border = alpha(color, 0.15);
 
@@ -1574,7 +1574,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const navy = (color === "#7c3aed" || color === "#000000") ? "#1e3a5f" : color;
+  const navy = color;
   const headerContactLinkColor = readableAccentOnBackground(navy, color);
 
   return (
