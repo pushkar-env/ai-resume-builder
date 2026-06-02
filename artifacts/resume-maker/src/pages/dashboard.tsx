@@ -243,6 +243,20 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const isPointerDownThisCard = useRef(false);
   const wasDraggableDuringTouch = useRef(false);
 
+  // Close options menu when scrolling anywhere on mobile or desktop
+  useEffect(() => {
+    if (!resumeMenuOpen) return;
+
+    const handleScroll = () => {
+      setResumeMenuOpen(false);
+    };
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, [resumeMenuOpen]);
+
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only allow left click / standard touch to drag
     if (e.button !== 0 || resumeMenuOpen) return;
