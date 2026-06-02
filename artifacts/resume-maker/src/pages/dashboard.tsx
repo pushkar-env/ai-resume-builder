@@ -245,7 +245,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     // Only allow left click / standard touch to drag
-    if (e.button !== 0) return;
+    if (e.button !== 0 || resumeMenuOpen) return;
 
     // Ignore if clicking on buttons or menu trigger
     const target = e.target as HTMLElement;
@@ -256,6 +256,9 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     ) {
       return;
     }
+
+    // Close options menu if open
+    setResumeMenuOpen(false);
 
     startPoint.current = { x: e.clientX, y: e.clientY };
     hasDragged.current = false;
@@ -320,6 +323,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       return;
     }
 
+    if (resumeMenuOpen) {
+      setResumeMenuOpen(false);
+      return;
+    }
+
     navigate(`/builder/${resume.id}`);
   };
 
@@ -357,7 +365,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           transformStyle: isDraggingThis ? "preserve-3d" : "flat",
           backfaceVisibility: isDraggingThis ? "hidden" : "visible",
         }}
-        drag={true}
+        drag={!resumeMenuOpen}
         dragControls={dragControls}
         dragListener={false}
         dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
@@ -535,7 +543,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className={`h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
+                    className={`dropdown-menu-trigger h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
                       coarsePointer
                         ? "opacity-100"
                         : "opacity-0 group-hover:opacity-100"
@@ -586,6 +594,18 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                           /* noop */
                         }
                       }
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchMove={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
                     }}
                   >
                     <MoreHorizontal className="h-4 w-4" />
