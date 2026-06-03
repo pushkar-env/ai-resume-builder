@@ -2245,6 +2245,11 @@ export default function BuilderPage() {
                             jobDescription: scannedJobDescription || undefined,
                           },
                         });
+                        setAtsPanelOpen(false);
+                        toast({
+                          title: "AI Optimization Started",
+                          description: "AI is analyzing and refining your resume content in the background...",
+                        });
                       }}
                       disabled={optimizeResumeMutation.isPending}
                       className="w-full text-xs h-9 gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-semibold"
