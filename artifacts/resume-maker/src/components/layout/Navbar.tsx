@@ -16,6 +16,7 @@ import {
   CreditCard,
   Lock,
   Tags,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -373,15 +374,19 @@ export function BuilderNavbar({
   title,
   atsScore,
   atsPremiumLocked,
+  isAtsFetching,
   onAtsPremiumClick,
+  onAtsScoreClick,
   onExport,
   onRename,
 }: {
   title: string;
   atsScore?: number;
+  isAtsFetching?: boolean;
   /** When true, show a locked ATS entry point instead of the numeric score (free users). */
   atsPremiumLocked?: boolean;
   onAtsPremiumClick?: () => void;
+  onAtsScoreClick?: () => void;
   onExport: () => void;
   onRename?: (title: string) => void;
 }) {
@@ -507,20 +512,32 @@ export function BuilderNavbar({
             <span className="truncate">ATS Pro</span>
           </button>
         )}
-        {!atsPremiumLocked && atsScore !== undefined && (
-          <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+        {!atsPremiumLocked && isAtsFetching && (
+          <div className="flex items-center gap-1 shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border border-border bg-muted text-muted-foreground animate-pulse">
+            <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+            <span>Scanning...</span>
+          </div>
+        )}
+        {!atsPremiumLocked && !isAtsFetching && atsScore !== undefined && (
+          <button
+            type="button"
+            onClick={onAtsScoreClick}
+            className="flex items-center gap-1.5 shrink-0 min-w-0 transition-transform hover:scale-105 active:scale-95"
+            title="Click to view detailed ATS feedback"
+          >
             <div
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 ${
                 atsScore >= 80
-                  ? "bg-green-100 text-green-700"
+                  ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400"
                   : atsScore >= 60
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400"
+                    : "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400"
               }`}
             >
-              ATS {atsScore}
+              <Zap className="h-3 w-3 fill-current" />
+              <span>ATS {atsScore}</span>
             </div>
-          </div>
+          </button>
         )}
         <Button
           size="sm"

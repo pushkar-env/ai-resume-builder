@@ -267,6 +267,16 @@ paths:
           required: true
           schema:
             type: integer
+        - name: jobDescription
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: forceScan
+          in: query
+          required: false
+          schema:
+            type: boolean
       responses:
         "200":
           description: ATS score result
@@ -276,6 +286,43 @@ paths:
                 $ref: "#/components/schemas/AtsScore"
         "403":
           description: Pro subscription required for ATS score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /resumes/{id}/optimize:
+    post:
+      operationId: optimizeResume
+      tags: [resumes]
+      summary: Optimize resume content with AI based on a job description
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptimizeResumeBody"
+      responses:
+        "200":
+          description: Optimized resume details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizeResumeResponse"
+        "403":
+          description: Pro subscription required
           content:
             application/json:
               schema:
@@ -470,6 +517,31 @@ components:
           type: string
         updatedAt:
           type: string
+        atsScore:
+          type: integer
+          nullable: true
+        atsPassedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFailedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFeedback:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        atsJobDescription:
+          type: string
+          nullable: true
       required:
         - id
         - userId
@@ -517,6 +589,31 @@ components:
           type: string
         updatedAt:
           type: string
+        atsScore:
+          type: integer
+          nullable: true
+        atsPassedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFailedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFeedback:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        atsJobDescription:
+          type: string
+          nullable: true
         sections:
           type: array
           items:
@@ -617,6 +714,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UpdateSectionItem"
+        atsScore:
+          type: integer
+          nullable: true
+        atsPassedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFailedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFeedback:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        atsJobDescription:
+          type: string
+          nullable: true
 
     UpdateSectionItem:
       type: object
@@ -656,6 +778,23 @@ components:
         - url
         - format
 
+    OptimizeResumeBody:
+      type: object
+      properties:
+        jobDescription:
+          type: string
+
+    OptimizeResumeResponse:
+      type: object
+      properties:
+        resume:
+          $ref: "#/components/schemas/ResumeDetail"
+        summary:
+          type: string
+      required:
+        - resume
+        - summary
+
     AtsScore:
       type: object
       properties:
@@ -675,6 +814,10 @@ components:
           type: array
           items:
             type: string
+        atsUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
       required:
         - score
         - maxScore

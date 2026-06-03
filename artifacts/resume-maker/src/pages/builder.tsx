@@ -43,12 +43,25 @@ import {
   Maximize,
   Eraser,
   Sparkles,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  Target,
+  Undo,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -95,6 +108,7 @@ import {
   useGetResume,
   useUpdateResume,
   useGetAtsScore,
+  useOptimizeResume,
   useListTemplates,
   getGetResumeQueryKey,
   getListResumesQueryKey,
@@ -555,6 +569,7 @@ export default function BuilderPage() {
     "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization.",
   );
   const [exportOpen, setExportOpen] = useState(false);
+  const [atsPanelOpen, setAtsPanelOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">(
     "sections",
   );
@@ -714,10 +729,116 @@ export default function BuilderPage() {
     };
   }, [isLoading, mobileTab]);
 
-  const { data: atsScoreData } = useGetAtsScore(resumeId, {
-    query: {
-      queryKey: ["/api/resumes", resumeId, "ats"],
-      enabled: !!resumeId && isPremiumUser,
+  const [jobDescriptionText, setJobDescriptionText] = useState("");
+  const [scannedJobDescription, setScannedJobDescription] = useState("");
+  const [scanTimestamp, setScanTimestamp] = useState<number>(0);
+
+  const hasAtsScoreInDb = scannedJobDescription
+    ? resume?.atsScore !== null && resume?.atsScore !== undefined && resume?.atsJobDescription === scannedJobDescription
+    : resume?.atsScore !== null && resume?.atsScore !== undefined && !resume?.atsJobDescription;
+
+  // Initialize job description from resume details
+  useEffect(() => {
+    if (resume?.atsJobDescription && !jobDescriptionText && !scannedJobDescription) {
+      setJobDescriptionText(resume.atsJobDescription);
+      setScannedJobDescription(resume.atsJobDescription);
+    }
+  }, [resume?.atsJobDescription, resumeId]);
+
+  const { data: atsScoreData, isFetching: isAtsFetching } = useGetAtsScore(
+    resumeId,
+    {
+      jobDescription: scannedJobDescription || undefined,
+      forceScan: scanTimestamp > 0 ? true : undefined,
+    },
+    {
+      query: {
+        queryKey: ["/api/resumes", resumeId, "ats", scannedJobDescription, scanTimestamp],
+        enabled: !!resumeId && isPremiumUser && (resume?.atsScore === null || scanTimestamp > 0),
+      },
+    }
+  );
+
+  // Invalidate resume query on success to fetch updated ats fields and timestamp
+  useEffect(() => {
+    if (atsScoreData && scanTimestamp !== 0) {
+      setScanTimestamp(0);
+      void queryClient.invalidateQueries({
+        queryKey: getGetResumeQueryKey(resumeId),
+      });
+    }
+  }, [atsScoreData, scanTimestamp, resumeId, queryClient]);
+
+  const activeAtsData = atsScoreData || (hasAtsScoreInDb ? {
+    score: resume!.atsScore!,
+    maxScore: 100,
+    feedback: resume!.atsFeedback || [],
+    passedChecks: resume!.atsPassedChecks || [],
+    failedChecks: resume!.atsFailedChecks || [],
+    atsUpdatedAt: resume!.atsUpdatedAt,
+  } : null);
+
+  const isAtsOutdated = useMemo(() => {
+    if (!resume?.updatedAt || !activeAtsData?.atsUpdatedAt) return false;
+    const updatedAtTime = new Date(resume.updatedAt).getTime();
+    const atsUpdatedAtTime = new Date(activeAtsData.atsUpdatedAt).getTime();
+    // Allow a small buffer of 2 seconds to avoid false positives due to network delay or database write delays
+    return updatedAtTime > atsUpdatedAtTime + 2000;
+  }, [resume?.updatedAt, activeAtsData?.atsUpdatedAt]);
+
+  const handleScan = (jobDesc?: string) => {
+    setScannedJobDescription(jobDesc || "");
+    setScanTimestamp(Date.now());
+  };
+
+  const [previousSections, setPreviousSections] = useState<any[] | null>(null);
+  const [previousAtsData, setPreviousAtsData] = useState<{
+    score: number | null;
+    passedChecks: string[] | null;
+    failedChecks: string[] | null;
+    feedback: string[] | null;
+    atsUpdatedAt: string | null;
+    atsJobDescription: string | null;
+  } | null>(null);
+  const [optimizationSummary, setOptimizationSummary] = useState<string | null>(null);
+
+  const optimizeResumeMutation = useOptimizeResume({
+    mutation: {
+      onSuccess: (data) => {
+        const resumeData = data.resume;
+        // Update local resume query cache
+        queryClient.setQueryData(getGetResumeQueryKey(resumeId), resumeData);
+        
+        // Update local states
+        const nextSections = (resumeData.sections ?? []).map((s) => ({ ...s }));
+        setLocalSections(nextSections);
+        
+        if (resumeData.accentColor) setAccentColor(resumeData.accentColor);
+        if (resumeData.fontFamily) setFontFamily(resumeData.fontFamily);
+        if (resumeData.fontColor) setFontColor(resumeData.fontColor);
+        if (resumeData.backgroundColor) setBackgroundColor(resumeData.backgroundColor);
+        if (resumeData.templateId) setTemplateId(resumeData.templateId);
+        
+        setOptimizationSummary(data.summary || "");
+
+        toast({
+          title: "Optimization Complete",
+          description: "Your resume has been aligned and optimized by AI.",
+        });
+        
+        // Trigger page recalculations
+        bumpPreviewRevision();
+        
+        // Recalculate ATS Score against the scanned job description
+        handleScan(scannedJobDescription);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Optimization Failed",
+          description: err.message || "Failed to optimize resume.",
+          variant: "destructive",
+        });
+      },
     },
   });
 
@@ -1160,7 +1281,8 @@ export default function BuilderPage() {
       />
       <BuilderNavbar
         title={resume?.title ?? ""}
-        atsScore={isPremiumUser ? atsScoreData?.score : undefined}
+        atsScore={isPremiumUser ? (activeAtsData?.score ?? undefined) : undefined}
+        isAtsFetching={isPremiumUser ? isAtsFetching : false}
         atsPremiumLocked={!isPremiumUser}
         onAtsPremiumClick={() => {
           setPaywallTitle("ATS score is a Pro feature");
@@ -1169,6 +1291,7 @@ export default function BuilderPage() {
           );
           setShowPaywall(true);
         }}
+        onAtsScoreClick={() => setAtsPanelOpen(true)}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
           // Optimistically update the title in the cache before the request fires.
@@ -1798,6 +1921,396 @@ export default function BuilderPage() {
         title={paywallTitle}
         description={paywallDescription}
       />
+
+      <Sheet open={atsPanelOpen} onOpenChange={setAtsPanelOpen}>
+        <SheetContent className="w-full sm:max-w-md md:max-w-lg flex flex-col h-full bg-background border-l border-border px-0 py-6">
+          <div className="pl-6 pr-14 pb-4 border-b border-border flex items-center justify-between shrink-0">
+            <div>
+              <SheetTitle className="text-xl font-bold flex items-center gap-2">
+                <Zap className="h-5 w-5 text-amber-500 fill-amber-500 animate-pulse" />
+                ATS Auditor
+              </SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground mt-0.5">
+                AI-powered resume optimization audit.
+              </SheetDescription>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                handleScan(scannedJobDescription);
+              }}
+              disabled={isAtsFetching}
+              className="h-8 gap-1.5 text-xs hover:bg-muted/80"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
+              Scan Now
+            </Button>
+          </div>
+
+          <ScrollArea className="flex-1 min-h-0 px-6 py-4">
+            <div className="space-y-6 pb-6">
+              {/* Job Description Matching Section */}
+              <div className="p-4 rounded-xl border border-border bg-card space-y-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                    <Target className="h-4 w-4 text-primary shrink-0" />
+                    Job Description Match
+                  </h4>
+                  {scannedJobDescription && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-500 border border-green-500/20">
+                      Active Scan
+                    </span>
+                  )}
+                </div>
+                
+                <div className="space-y-2.5">
+                  <textarea
+                    value={jobDescriptionText}
+                    onChange={(e) => setJobDescriptionText(e.target.value)}
+                    placeholder="Paste the target job description here to calculate a tailored ATS compatibility score and get optimized keywords/suggestions..."
+                    className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y leading-relaxed"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        handleScan(jobDescriptionText);
+                      }}
+                      disabled={isAtsFetching}
+                      className="flex-1 text-xs h-9 gap-1.5 font-semibold"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
+                      Scan Job Match
+                    </Button>
+                    
+                    {scannedJobDescription && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setJobDescriptionText("");
+                          setScannedJobDescription("");
+                          setScanTimestamp(0);
+                        }}
+                        disabled={isAtsFetching}
+                        className="h-9 text-xs px-3 hover:bg-muted"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* AI Optimize Button */}
+                {activeAtsData && (
+                  <div className="pt-3 border-t border-border mt-1 space-y-3">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        if (resume) {
+                          if (resume.sections) {
+                            setPreviousSections(
+                              resume.sections.map((s) => ({
+                                id: s.id,
+                                type: s.type,
+                                title: s.title,
+                                content: s.content ? JSON.parse(JSON.stringify(s.content)) : null,
+                                displayOrder: s.displayOrder,
+                                isVisible: s.isVisible,
+                              }))
+                            );
+                          }
+                          setPreviousAtsData({
+                            score: resume.atsScore ?? null,
+                            passedChecks: resume.atsPassedChecks ?? null,
+                            failedChecks: resume.atsFailedChecks ?? null,
+                            feedback: resume.atsFeedback ?? null,
+                            atsUpdatedAt: resume.atsUpdatedAt ?? null,
+                            atsJobDescription: resume.atsJobDescription ?? null,
+                          });
+                        }
+                        optimizeResumeMutation.mutate({
+                          id: resumeId,
+                          data: {
+                            jobDescription: scannedJobDescription || undefined,
+                          },
+                        });
+                      }}
+                      disabled={optimizeResumeMutation.isPending}
+                      className="w-full text-xs h-9 gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-semibold"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {scannedJobDescription ? "Optimize Resume with AI" : "Improve Resume with AI"}
+                    </Button>
+
+                    {/* AI Optimization Summary */}
+                    {optimizationSummary && (
+                      <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+                            AI Changes Summary
+                          </h5>
+                          {previousSections && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                if (previousSections) {
+                                  updateResume.mutate({
+                                    id: resumeId,
+                                    data: {
+                                      sections: previousSections,
+                                      atsScore: previousAtsData?.score,
+                                      atsPassedChecks: previousAtsData?.passedChecks,
+                                      atsFailedChecks: previousAtsData?.failedChecks,
+                                      atsFeedback: previousAtsData?.feedback,
+                                      atsUpdatedAt: previousAtsData?.atsUpdatedAt,
+                                      atsJobDescription: previousAtsData?.atsJobDescription,
+                                    },
+                                  }, {
+                                    onSuccess: (updatedData) => {
+                                      const restoredSections = (updatedData.sections ?? []).map((s) => ({ ...s }));
+                                      setLocalSections(restoredSections);
+                                      if (previousAtsData) {
+                                        setScannedJobDescription(previousAtsData.atsJobDescription || "");
+                                      }
+                                      setPreviousSections(null);
+                                      setPreviousAtsData(null);
+                                      setOptimizationSummary(null);
+                                      toast({
+                                        title: "Optimization Undone",
+                                        description: "Your resume and original ATS score have been restored.",
+                                      });
+                                      bumpPreviewRevision();
+                                    }
+                                  });
+                                }
+                              }}
+                              disabled={updateResume.isPending}
+                              className="h-6 text-[10px] px-1.5 text-muted-foreground hover:text-primary gap-1"
+                            >
+                              <Undo className="h-2.5 w-2.5" />
+                              Undo
+                            </Button>
+                          )}
+                        </div>
+                        <div className="text-xs text-foreground/80 space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                          {optimizationSummary.split("\n").filter(Boolean).map((line, idx) => {
+                            const cleanLine = line.replace(/^[\s*-]+/, "").trim();
+                            if (!cleanLine) return null;
+                            
+                            const parts = cleanLine.split(":**");
+                            if (parts.length === 2 && parts[0].startsWith("**")) {
+                              const title = parts[0].replace(/^\*\*/, "");
+                              return (
+                                <p key={idx} className="leading-relaxed text-[11px]">
+                                  <strong className="text-foreground font-semibold">{title}:</strong>{parts[1]}
+                                </p>
+                              );
+                            }
+                            
+                            return <p key={idx} className="leading-relaxed text-[11px]">• {cleanLine}</p>;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Separator */}
+              <div className="border-t border-border/80 my-2" />
+
+              {/* Audit Results */}
+              {isAtsFetching ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="text-center">
+                    <p className="text-sm font-semibold">Running AI Audit...</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
+                      Analyzing keyword density, achievement quantification, and job alignment.
+                    </p>
+                  </div>
+                </div>
+              ) : activeAtsData ? (
+                <div className="space-y-6">
+                  {/* Outdated Score Alert */}
+                  {isAtsOutdated && (
+                    <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-800 dark:text-amber-300 flex items-start justify-between gap-3 shadow-sm">
+                      <div className="flex gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+                        <div>
+                          <p className="font-semibold">Score Outdated</p>
+                          <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                            You have edited the resume since the last scan. Run a rescan to get updated metrics.
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleScan(scannedJobDescription)}
+                        className="h-7 text-[10px] px-2.5 font-bold hover:bg-amber-500/10 border-amber-500/20 text-amber-600 hover:text-amber-700 shrink-0 bg-background"
+                      >
+                        Rescan
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Score Circle & Verdict */}
+                  <div className="flex items-center gap-6 p-4 rounded-xl border border-border bg-muted/40">
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <svg className="w-24 h-24 transform -rotate-90">
+                        <circle
+                          cx="48"
+                          cy="48"
+                          r="40"
+                          className="stroke-muted"
+                          strokeWidth="8"
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="48"
+                          cy="48"
+                          r="40"
+                          className={`transition-all duration-500 ${
+                            activeAtsData.score >= 80
+                              ? "stroke-green-500"
+                              : activeAtsData.score >= 60
+                                ? "stroke-yellow-500"
+                                : "stroke-red-500"
+                          }`}
+                          strokeWidth="8"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={
+                            2 * Math.PI * 40 * (1 - activeAtsData.score / 100)
+                          }
+                          strokeLinecap="round"
+                          fill="transparent"
+                        />
+                      </svg>
+                      <span className="absolute text-2xl font-bold">
+                        {activeAtsData.score}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-base">
+                        {activeAtsData.score >= 80
+                          ? "Excellent Compatibility"
+                          : activeAtsData.score >= 60
+                            ? "Good Match, but improvable"
+                            : "Needs Critical Optimization"}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {activeAtsData.score >= 80
+                          ? "Your resume is highly optimized for applicant tracking systems. Excellent work!"
+                          : activeAtsData.score >= 60
+                            ? "A few optimizations could significantly improve your parser matching and keyword alignment."
+                            : "Your resume is missing critical elements or alignment for the target job role. Please check details below."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Target Job Title Indicator */}
+                  {(() => {
+                    const personal = localSections.find((s) => s.type === "personal")?.content as any;
+                    const titleStr = personal?.jobTitle || resume?.title || "Not specified";
+                    return (
+                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-border bg-card text-xs">
+                        <Target className="h-4 w-4 text-primary shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <span className="text-muted-foreground">Audit target job role:</span>
+                          <strong className="block text-foreground truncate mt-0.5">{titleStr}</strong>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Failed / Critical Fixes */}
+                  {Array.isArray(activeAtsData.failedChecks) && activeAtsData.failedChecks.length > 0 && (
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-semibold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                        Critical Fixes ({activeAtsData.failedChecks.length})
+                      </h5>
+                      <ul className="space-y-2">
+                        {activeAtsData.failedChecks.map((check: string, idx: number) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-red-500/10 bg-red-500/5 text-xs text-foreground leading-relaxed"
+                          >
+                            <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                            <span>{check}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Feedback / Recommendations */}
+                  {Array.isArray(activeAtsData.feedback) && activeAtsData.feedback.length > 0 && (
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                        Improvement Recommendations ({activeAtsData.feedback.length})
+                      </h5>
+                      <ul className="space-y-2">
+                        {activeAtsData.feedback.map((item: string, idx: number) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-xs text-foreground leading-relaxed"
+                          >
+                            <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Passed Checks */}
+                  {Array.isArray(activeAtsData.passedChecks) && activeAtsData.passedChecks.length > 0 && (
+                    <div className="space-y-3">
+                      <h5 className="text-xs font-semibold uppercase tracking-wider text-green-500 flex items-center gap-1.5">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                        Passed Checks ({activeAtsData.passedChecks.length})
+                      </h5>
+                      <ul className="space-y-2">
+                        {activeAtsData.passedChecks.map((check: string, idx: number) => (
+                          <li
+                            key={idx}
+                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-green-500/10 bg-green-500/5 text-xs text-foreground leading-relaxed"
+                          >
+                            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                            <span>{check}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+                  <AlertCircle className="h-8 w-8 mb-2" />
+                  <p className="text-sm font-semibold">No ATS data available</p>
+                  <p className="text-xs max-w-[200px] mt-1">
+                    Click 'Scan Now' to run an AI-powered ATS score analysis.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+      {optimizeResumeMutation.isPending && (
+        <PremiumLoadingScreen
+          title="Aligning & Optimizing Resume..."
+          subtitle="AI is rewrite-fitting your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
+        />
+      )}
     </div>
   );
 }

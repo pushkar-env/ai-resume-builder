@@ -30,6 +30,12 @@ export const resumesTable = pgTable("resumes", {
     .notNull()
     .defaultNow()
     .$onUpdate(() => new Date()),
+  atsScore: integer("ats_score"),
+  atsPassedChecks: jsonb("ats_passed_checks"),
+  atsFailedChecks: jsonb("ats_failed_checks"),
+  atsFeedback: jsonb("ats_feedback"),
+  atsUpdatedAt: timestamp("ats_updated_at", { withTimezone: true }),
+  atsJobDescription: text("ats_job_description"),
 });
 
 export const resumeSectionsTable = pgTable("resume_sections", {

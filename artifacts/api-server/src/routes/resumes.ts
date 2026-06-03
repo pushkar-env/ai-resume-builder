@@ -11,6 +11,10 @@ import {
   ExportResumeParams,
   ExportResumeBody,
   GetAtsScoreParams,
+  GetAtsScoreQueryParams,
+  OptimizeResumeParams,
+  OptimizeResumeBody,
+  OptimizeResumeResponse,
   ListResumesResponse,
   GetResumeResponse,
   UpdateResumeResponse,
@@ -829,6 +833,18 @@ router.patch(
       updateData.backgroundColor = resumeFields.backgroundColor;
     if (resumeFields.isPublic != null)
       updateData.isPublic = resumeFields.isPublic;
+    if (resumeFields.atsScore !== undefined)
+      updateData.atsScore = resumeFields.atsScore;
+    if (resumeFields.atsPassedChecks !== undefined)
+      updateData.atsPassedChecks = resumeFields.atsPassedChecks;
+    if (resumeFields.atsFailedChecks !== undefined)
+      updateData.atsFailedChecks = resumeFields.atsFailedChecks;
+    if (resumeFields.atsFeedback !== undefined)
+      updateData.atsFeedback = resumeFields.atsFeedback;
+    if (resumeFields.atsUpdatedAt !== undefined)
+      updateData.atsUpdatedAt = resumeFields.atsUpdatedAt ? new Date(resumeFields.atsUpdatedAt) : null;
+    if (resumeFields.atsJobDescription !== undefined)
+      updateData.atsJobDescription = resumeFields.atsJobDescription;
 
     const hasResumeFieldUpdates = Object.keys(updateData).length > 0;
     const hasSectionPayload = !!(sections && sections.length > 0);
@@ -1037,6 +1053,14 @@ router.get(
       return;
     }
 
+    const queryParams = GetAtsScoreQueryParams.safeParse(req.query);
+    if (!queryParams.success) {
+      res.status(400).json({ error: queryParams.error.message });
+      return;
+    }
+    const jobDescription = queryParams.data.jobDescription;
+    const forceScan = queryParams.data.forceScan === true;
+
     const [resume] = await db
       .select()
       .from(resumesTable)
@@ -1060,78 +1084,495 @@ router.get(
       return;
     }
 
+    // Check if we can return the persisted score instantly
+    const hasJobDescription = jobDescription && jobDescription.trim().length > 0;
+    const dbJobDescription = resume.atsJobDescription;
+    const isJobDescriptionMatch = 
+      (!hasJobDescription && !dbJobDescription) ||
+      (hasJobDescription && dbJobDescription && jobDescription.trim() === dbJobDescription.trim());
+
+    if (!forceScan && resume.atsScore !== null && isJobDescriptionMatch) {
+      res.json(
+        GetAtsScoreResponse.parse({
+          score: resume.atsScore,
+          maxScore: 100,
+          feedback: resume.atsFeedback || [],
+          passedChecks: resume.atsPassedChecks || [],
+          failedChecks: resume.atsFailedChecks || [],
+          atsUpdatedAt: resume.atsUpdatedAt,
+        }),
+      );
+      return;
+    }
+
     const sections = await db
       .select()
       .from(resumeSectionsTable)
       .where(eq(resumeSectionsTable.resumeId, resume.id));
 
-    const passedChecks: string[] = [];
-    const failedChecks: string[] = [];
-    const feedback: string[] = [];
+    let score = 70;
+    let passedChecks: string[] = [];
+    let failedChecks: string[] = [];
+    let feedback: string[] = [];
+
+    const fallbackScoreCalc = () => {
+      passedChecks = [];
+      failedChecks = [];
+      feedback = [];
+
+      const personalSection = sections.find((s) => s.type === "personal");
+      const personalContent = personalSection?.content as any;
+      if (personalContent?.email) passedChecks.push("Contact email present");
+      else failedChecks.push("Missing contact email");
+
+      if (personalContent?.phone) passedChecks.push("Phone number present");
+      else failedChecks.push("Missing phone number");
+
+      const summarySection = sections.find((s) => s.type === "summary");
+      const summaryContent = summarySection?.content as any;
+      if (summaryContent?.text && summaryContent.text.length > 50) {
+        passedChecks.push("Professional summary present");
+      } else {
+        failedChecks.push("Missing or too short professional summary");
+        feedback.push(
+          "Add a compelling professional summary of at least 3-4 sentences",
+        );
+      }
+
+      const expSection = sections.find((s) => s.type === "experience");
+      const expContent = expSection?.content as any;
+      if (expContent?.items && expContent.items.length > 0) {
+        passedChecks.push("Work experience included");
+        const hasQuantified = expContent.items.some((item: any) =>
+          item.bullets?.some((b: string) => /\d/.test(b)),
+        );
+        if (hasQuantified) passedChecks.push("Quantified achievements present");
+        else {
+          failedChecks.push("No quantified achievements");
+          feedback.push(
+            "Add numbers and metrics to your bullet points (e.g., 'Increased sales by 30%')",
+          );
+        }
+      } else {
+        failedChecks.push("Missing work experience");
+      }
+
+      const skillsSection = sections.find((s) => s.type === "skills");
+      const skillsContent = skillsSection?.content as any;
+      if (skillsContent?.items && skillsContent.items.length >= 5) {
+        passedChecks.push("Adequate skills listed");
+      } else {
+        failedChecks.push("Too few skills listed");
+        feedback.push(
+          "List at least 5-10 relevant skills for better ATS matching",
+        );
+      }
+
+      if (resume.title && resume.title.length > 2)
+        passedChecks.push("Resume has a title");
+
+      score = Math.round(
+        (passedChecks.length / (passedChecks.length + failedChecks.length)) * 100,
+      );
+    };
 
     const personalSection = sections.find((s) => s.type === "personal");
     const personalContent = personalSection?.content as any;
-    if (personalContent?.email) passedChecks.push("Contact email present");
-    else failedChecks.push("Missing contact email");
-
-    if (personalContent?.phone) passedChecks.push("Phone number present");
-    else failedChecks.push("Missing phone number");
-
-    const summarySection = sections.find((s) => s.type === "summary");
-    const summaryContent = summarySection?.content as any;
-    if (summaryContent?.text && summaryContent.text.length > 50) {
-      passedChecks.push("Professional summary present");
-    } else {
-      failedChecks.push("Missing or too short professional summary");
-      feedback.push(
-        "Add a compelling professional summary of at least 3-4 sentences",
-      );
-    }
-
-    const expSection = sections.find((s) => s.type === "experience");
-    const expContent = expSection?.content as any;
-    if (expContent?.items && expContent.items.length > 0) {
-      passedChecks.push("Work experience included");
-      const hasQuantified = expContent.items.some((item: any) =>
-        item.bullets?.some((b: string) => /\d/.test(b)),
-      );
-      if (hasQuantified) passedChecks.push("Quantified achievements present");
-      else {
-        failedChecks.push("No quantified achievements");
-        feedback.push(
-          "Add numbers and metrics to your bullet points (e.g., 'Increased sales by 30%')",
-        );
-      }
-    } else {
-      failedChecks.push("Missing work experience");
-    }
-
     const skillsSection = sections.find((s) => s.type === "skills");
     const skillsContent = skillsSection?.content as any;
-    if (skillsContent?.items && skillsContent.items.length >= 5) {
-      passedChecks.push("Adequate skills listed");
-    } else {
-      failedChecks.push("Too few skills listed");
-      feedback.push(
-        "List at least 5-10 relevant skills for better ATS matching",
-      );
+
+    const targetJobTitle = personalContent?.jobTitle || resume.title || "Professional";
+    const skillsList = Array.isArray(skillsContent?.items)
+      ? skillsContent.items.map((i: any) => i.name || i).join(", ")
+      : "";
+
+    // Format all sections for the prompt
+    let resumeText = "";
+    for (const s of sections) {
+      if (!s.isVisible) continue;
+      let contentStr = "";
+      if (s.type === "personal") {
+        const c = s.content as any;
+        contentStr = `Name: ${c?.name || ""}\nTarget Job Title: ${c?.jobTitle || ""}\nEmail: ${c?.email || ""}\nPhone: ${c?.phone || ""}\nLocation: ${c?.location || ""}\nSocials: ${
+          Array.isArray(c?.socials)
+            ? c.socials.map((soc: any) => `${soc.label}: ${soc.url}`).join(", ")
+            : ""
+        }`;
+      } else if (s.type === "summary") {
+        contentStr = (s.content as any)?.text || "";
+      } else if (s.type === "skills") {
+        const items = (s.content as any)?.items || [];
+        contentStr = items.map((i: any) => i.name || i).join(", ");
+      } else if (
+        s.type === "experience" ||
+        s.type === "education" ||
+        s.type === "projects" ||
+        s.type === "certifications"
+      ) {
+        const items = (s.content as any)?.items || [];
+        contentStr = items
+          .map((item: any) => {
+            const details = [];
+            const mainTitle = item.title || item.role || item.school || item.name || "";
+            const org = item.company || item.school || item.issuer || "";
+            if (mainTitle) details.push(`Title/Role/School: ${mainTitle}`);
+            if (org) details.push(`Organization/Company: ${org}`);
+            if (item.startDate) details.push(`Duration: ${item.startDate} - ${item.endDate || "Present"}`);
+            if (item.description) details.push(`Description: ${item.description}`);
+            if (Array.isArray(item.bullets) && item.bullets.length > 0) {
+              details.push(`Bullet Points:\n${item.bullets.map((b: string) => `- ${b}`).join("\n")}`);
+            }
+            return details.join("\n");
+          })
+          .join("\n\n");
+      }
+      if (contentStr.trim()) {
+        resumeText += `### ${s.title || s.type}\n${contentStr}\n\n`;
+      }
     }
 
-    if (resume.title && resume.title.length > 2)
-      passedChecks.push("Resume has a title");
+    let prompt = "";
+    if (jobDescription && jobDescription.trim().length > 0) {
+      prompt = `You are a professional Applicant Tracking System (ATS) auditor.
+Analyze the following resume content specifically optimized for the target job title "${targetJobTitle}" AND evaluated against the provided Job Description.
 
-    const score = Math.round(
-      (passedChecks.length / (passedChecks.length + failedChecks.length)) * 100,
+Target Job Title: ${targetJobTitle}
+Candidate's Listed Skills: ${skillsList || "None listed"}
+
+Target Job Description:
+"""
+${jobDescription.substring(0, 5000)}
+"""
+
+Resume Content:
+"""
+${resumeText.substring(0, 10000)}
+"""
+
+Evaluate the resume on:
+1. Contact Information: Are essential details (email, phone, location) and professional profile links (e.g. LinkedIn, GitHub, Portfolio) present?
+2. Job Description Alignment: Does the resume align with the requirements, keywords, technologies, and responsibilities mentioned in the Target Job Description?
+3. Action Verbs & Achievements: Are experience bullets starting with strong action verbs? Are achievements quantified with numbers/metrics (e.g., percentages, dollar values, headcounts, scale)?
+4. Formatting & Readability: Are sections clear, free of weak language or fluff?
+5. Skill Coverage: Does the candidate list the tech stack, methodologies, or certifications requested in the Job Description?
+
+Return ONLY a JSON object with this exact structure:
+{
+  "score": 75,
+  "passedChecks": [
+    "Contact details (email and phone) are present.",
+    "Target job title matches professional summary context.",
+    "Experience bullet points contain action verbs and numbers."
+  ],
+  "failedChecks": [
+    "No professional socials (e.g., LinkedIn, GitHub) detected in contact details.",
+    "Skills section does not list core competencies matching the job description."
+  ],
+  "feedback": [
+    "Add your LinkedIn profile to the contact section to increase ATS visibility.",
+    "Ensure all bullet points in your work experience have quantified outcomes."
+  ]
+}
+
+- score: an integer between 0 and 100. Be realistic and accurate based on how well the resume content matches the target job description requirements.
+- passedChecks: array of 3-5 specific checks that are fully satisfied. Be specific to this resume and the job description.
+- failedChecks: array of specific checks that failed or need optimization. Be specific to this resume and the job description.
+- feedback: array of 3-5 actionable recommendations to improve the score.
+
+Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks.`;
+    } else {
+      prompt = `You are a professional Applicant Tracking System (ATS) auditor.
+Analyze the following resume content specifically optimized for the target job title "${targetJobTitle}".
+
+Target Job Title: ${targetJobTitle}
+Candidate's Listed Skills: ${skillsList || "None listed"}
+
+Resume Content:
+"""
+${resumeText.substring(0, 10000)}
+"""
+
+Evaluate the resume on:
+1. Contact Information: Are essential details (email, phone, location) and professional profile links (e.g. LinkedIn, GitHub, Portfolio) present?
+2. Target Role Alignment: Does the summary and experience align with the target job title "${targetJobTitle}"?
+3. Action Verbs & Achievements: Are experience bullets starting with strong action verbs? Are achievements quantified with numbers/metrics (e.g., percentages, dollar values, headcounts, scale)?
+4. Formatting & Readability: Are sections clear, free of weak language or fluff?
+5. Skill Coverage: Does the candidate list modern, industry-standard skills for the target role "${targetJobTitle}"?
+
+Return ONLY a JSON object with this exact structure:
+{
+  "score": 75,
+  "passedChecks": [
+    "Contact details (email and phone) are present.",
+    "Target job title matches professional summary context.",
+    "Experience bullet points contain action verbs and numbers."
+  ],
+  "failedChecks": [
+    "No professional socials (e.g., LinkedIn, GitHub) detected in contact details.",
+    "Skills section does not list core competencies matching the job title."
+  ],
+  "feedback": [
+    "Add your LinkedIn profile to the contact section to increase ATS visibility.",
+    "Ensure all bullet points in your work experience have quantified outcomes."
+  ]
+}
+
+- score: an integer between 0 and 100. Be realistic and accurate based on target job title and metrics.
+- passedChecks: array of 3-5 specific checks that are fully satisfied. Be specific to this resume.
+- failedChecks: array of specific checks that failed or need optimization. Be specific to this resume.
+- feedback: array of 3-5 actionable recommendations to improve the score.
+
+Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks.`;
+    }
+
+    let parsedResult: any = null;
+    try {
+      const aiResponse = await completeResumeAi(prompt, 900, "ats-score-ai");
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResult = JSON.parse(jsonMatch[0]);
+      }
+    } catch (err: any) {
+      logger.error({ error: err }, "AI ATS scoring failed, using rule-based fallback");
+    }
+
+    const now = new Date();
+
+    if (parsedResult && typeof parsedResult.score === "number") {
+      const scoreVal = Math.max(0, Math.min(100, Math.round(parsedResult.score)));
+      const passedVal = Array.isArray(parsedResult.passedChecks)
+        ? parsedResult.passedChecks.map(String)
+        : [];
+      const failedVal = Array.isArray(parsedResult.failedChecks)
+        ? parsedResult.failedChecks.map(String)
+        : [];
+      const feedbackVal = Array.isArray(parsedResult.feedback)
+        ? parsedResult.feedback.map(String)
+        : [];
+
+      await db
+        .update(resumesTable)
+        .set({
+          atsScore: scoreVal,
+          atsPassedChecks: passedVal,
+          atsFailedChecks: failedVal,
+          atsFeedback: feedbackVal,
+          atsUpdatedAt: now,
+          atsJobDescription: jobDescription && jobDescription.trim().length > 0 ? jobDescription.trim() : null,
+        })
+        .where(eq(resumesTable.id, resume.id));
+
+      res.json(
+        GetAtsScoreResponse.parse({
+          score: scoreVal,
+          maxScore: 100,
+          feedback: feedbackVal,
+          passedChecks: passedVal,
+          failedChecks: failedVal,
+          atsUpdatedAt: now,
+        }),
+      );
+    } else {
+      // Fallback
+      fallbackScoreCalc();
+
+      await db
+        .update(resumesTable)
+        .set({
+          atsScore: score,
+          atsPassedChecks: passedChecks,
+          atsFailedChecks: failedChecks,
+          atsFeedback: feedback,
+          atsUpdatedAt: now,
+          atsJobDescription: jobDescription && jobDescription.trim().length > 0 ? jobDescription.trim() : null,
+        })
+        .where(eq(resumesTable.id, resume.id));
+
+      res.json(
+        GetAtsScoreResponse.parse({
+          score,
+          maxScore: 100,
+          feedback,
+          passedChecks,
+          failedChecks,
+          atsUpdatedAt: now,
+        }),
+      );
+    }
+  },
+);
+
+router.post(
+  "/resumes/:id/optimize",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const params = OptimizeResumeParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const body = OptimizeResumeBody.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: body.error.message });
+      return;
+    }
+
+    const [resume] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, params.data.id),
+          eq(resumesTable.userId, userId),
+        ),
+      );
+
+    if (!resume) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (clerkUser.publicMetadata?.isPremium !== true) {
+      res
+        .status(403)
+        .json({ error: "AI optimization is available for Pro subscribers only." });
+      return;
+    }
+
+    const sections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, resume.id));
+
+    const jobDescription = body.data.jobDescription || "";
+
+    // Prepare sections for prompt
+    const sectionsToOptimize = sections.filter(
+      (s) => s.isVisible && ["summary", "skills", "experience", "projects"].includes(s.type)
     );
 
+    if (sectionsToOptimize.length === 0) {
+      res.status(400).json({ error: "No editable sections found to optimize." });
+      return;
+    }
+
+    const sectionsInput = sectionsToOptimize.map((s) => ({
+      id: s.id,
+      type: s.type,
+      title: s.title,
+      content: s.content,
+    }));
+
+    const hasJobDescription = jobDescription.trim().length > 0;
+    const prompt = hasJobDescription
+      ? `You are an expert AI Resume Writer and career coach.
+Your task is to optimize and rewrite sections of a candidate's resume to make it highly aligned with the target Job Description, and provide a summary of the changes.
+
+Target Job Description:
+"""
+${jobDescription.substring(0, 4000)}
+"""
+
+Input Sections (JSON format):
+\`\`\`json
+${JSON.stringify(sectionsInput, null, 2)}
+\`\`\`
+
+Instructions:
+1. Optimize the "content" of each section to match the job description requirements, keywords, tech stack, and key responsibilities.
+2. In the "summary" section: rewrite the summary to highlight target matches, experiences, and technical strengths requested in the Job Description. Keep it to 3-4 professional sentences.
+3. In the "skills" section: add critical technical skills, frameworks, languages, or tools mentioned in the Job Description that are plausible/highly matching, whilst retaining the candidate's existing core skills. Return each skill as an object matching the existing skills structure (e.g. {"name": "Skill Name"}).
+4. In the "experience" and "projects" sections: rewrite descriptions, titles, and especially bullet points to use strong action verbs, emphasize accomplishments, and match job description keywords. Reformat bullet points to contain quantified impact (e.g. "Optimized API load times by 40% using Redis caching", "Managed a team of 4 engineers to deliver X"). Avoid making up completely false companies or degrees, but enhance existing details to read beautifully.
+5. Return a JSON object with two keys:
+   - "sections": the exact same JSON array structure containing the optimized content, with fields "id", "type", "title", and "content". Crucially, do not change the "id" or "type" fields.
+   - "summary": a markdown bulleted string summarizing the key changes and improvements made in each section (e.g., "* **Summary**: Aligned key highlights to focus on X.\\n* **Experience**: Quantified backend efficiency achievements by adding Y.").
+6. Return ONLY the raw JSON object string. Do not wrap in markdown code blocks or any other explanation.`
+      : `You are an expert AI Resume Writer and career coach.
+Your task is to optimize and rewrite sections of a candidate's resume to make it highly professional, clean, achievement-oriented, and generic-ATS friendly, and provide a summary of the changes.
+
+Input Sections (JSON format):
+\`\`\`json
+${JSON.stringify(sectionsInput, null, 2)}
+\`\`\`
+
+Instructions:
+1. Optimize the "content" of each section to improve flow, grammar, standard industry vocabulary, and readability.
+2. In the "summary" section: rewrite the summary to present a clear professional identity, key areas of expertise, and overall value proposition. Keep it to 3-4 professional sentences.
+3. In the "skills" section: clean up, standardize, and group critical professional skills, frameworks, tools, or concepts. Return each skill as an object matching the existing skills structure (e.g. {"name": "Skill Name"}).
+4. In the "experience" and "projects" sections: rewrite bullet points to use strong action verbs, focus on quantifiable results, and emphasize accomplishments. Reformat bullet points to contain quantified impact (e.g. "Optimized API load times by 40% using Redis caching", "Managed a team of 4 engineers to deliver X"). Enhance existing details to read beautifully without introducing completely fabricated companies or degrees.
+5. Return a JSON object with two keys:
+   - "sections": the exact same JSON array structure containing the optimized content, with fields "id", "type", "title", and "content". Crucially, do not change the "id" or "type" fields.
+   - "summary": a markdown bulleted string summarizing the key changes and improvements made in each section (e.g., "* **Summary**: Enhanced flow and focused on backend engineering strengths.\\n* **Skills**: Grouped similar technical abilities for cleaner presentation.").
+6. Return ONLY the raw JSON object string. Do not wrap in markdown code blocks or any other explanation.`;
+
+    let optimizedSections: any[] = [];
+    let optimizationSummary = "";
+    try {
+      const aiResponse = await completeResumeAi(prompt, 2000, "optimize-resume-ai");
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsedResult = JSON.parse(jsonMatch[0]);
+        optimizedSections = parsedResult.sections || [];
+        optimizationSummary = parsedResult.summary || "";
+      }
+    } catch (err: any) {
+      logger.error({ error: err }, "AI resume optimization failed");
+      res.status(500).json({ error: "Failed to optimize resume with AI. Please try again." });
+      return;
+    }
+
+    if (!Array.isArray(optimizedSections) || optimizedSections.length === 0) {
+      res.status(500).json({ error: "AI optimization returned invalid structure." });
+      return;
+    }
+
+    // Update database
+    for (const optSec of optimizedSections) {
+      if (typeof optSec.id !== "number" || !optSec.content) continue;
+      await db
+        .update(resumeSectionsTable)
+        .set({
+          content: optSec.content,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(resumeSectionsTable.id, optSec.id),
+            eq(resumeSectionsTable.resumeId, resume.id),
+          ),
+        );
+    }
+
+    // Bump resume timestamp and reset saved ATS score since content has changed completely
+    const [updatedResume] = await db
+      .update(resumesTable)
+      .set({
+        updatedAt: new Date(),
+        atsScore: null,
+        atsPassedChecks: null,
+        atsFailedChecks: null,
+        atsFeedback: null,
+        atsUpdatedAt: null,
+        atsJobDescription: null,
+      })
+      .where(eq(resumesTable.id, resume.id))
+      .returning();
+
+    const updatedSections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, resume.id))
+      .orderBy(resumeSectionsTable.displayOrder);
+
     res.json(
-      GetAtsScoreResponse.parse({
-        score,
-        maxScore: 100,
-        feedback,
-        passedChecks,
-        failedChecks,
-      }),
+      OptimizeResumeResponse.parse(
+        toJSON({
+          resume: { ...updatedResume, sections: updatedSections },
+          summary: optimizationSummary,
+        }),
+      ),
     );
   },
 );

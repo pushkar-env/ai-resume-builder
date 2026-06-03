@@ -32,6 +32,12 @@ export const ListResumesResponseItem = zod.object({
   downloadCount: zod.number(),
   createdAt: zod.string(),
   updatedAt: zod.string(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  atsJobDescription: zod.string().nullish(),
 });
 export const ListResumesResponse = zod.array(ListResumesResponseItem);
 
@@ -82,6 +88,12 @@ export const GetResumeResponse = zod.object({
   downloadCount: zod.number(),
   createdAt: zod.string(),
   updatedAt: zod.string(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  atsJobDescription: zod.string().nullish(),
   sections: zod.array(
     zod.object({
       id: zod.number(),
@@ -122,6 +134,12 @@ export const UpdateResumeBody = zod.object({
       }),
     )
     .optional(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  atsJobDescription: zod.string().nullish(),
 });
 
 export const UpdateResumeResponse = zod.object({
@@ -139,6 +157,12 @@ export const UpdateResumeResponse = zod.object({
   downloadCount: zod.number(),
   createdAt: zod.string(),
   updatedAt: zod.string(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  atsJobDescription: zod.string().nullish(),
   sections: zod.array(
     zod.object({
       id: zod.number(),
@@ -190,12 +214,66 @@ export const GetAtsScoreParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const GetAtsScoreQueryParams = zod.object({
+  jobDescription: zod.coerce.string().optional(),
+  forceScan: zod.coerce.boolean().optional(),
+});
+
 export const GetAtsScoreResponse = zod.object({
   score: zod.number(),
   maxScore: zod.number(),
   feedback: zod.array(zod.string()),
   passedChecks: zod.array(zod.string()),
   failedChecks: zod.array(zod.string()),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary Optimize resume content with AI based on a job description
+ */
+export const OptimizeResumeParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const OptimizeResumeBody = zod.object({
+  jobDescription: zod.string().optional(),
+});
+
+export const OptimizeResumeResponse = zod.object({
+  resume: zod.object({
+    id: zod.number(),
+    userId: zod.string(),
+    title: zod.string(),
+    templateId: zod.string(),
+    accentColor: zod.string(),
+    fontFamily: zod.string(),
+    fontColor: zod.string(),
+    backgroundColor: zod.string(),
+    isPublic: zod.boolean(),
+    shareToken: zod.string().nullable(),
+    viewCount: zod.number(),
+    downloadCount: zod.number(),
+    createdAt: zod.string(),
+    updatedAt: zod.string(),
+    atsScore: zod.number().nullish(),
+    atsPassedChecks: zod.array(zod.string()).nullish(),
+    atsFailedChecks: zod.array(zod.string()).nullish(),
+    atsFeedback: zod.array(zod.string()).nullish(),
+    atsUpdatedAt: zod.coerce.date().nullish(),
+    atsJobDescription: zod.string().nullish(),
+    sections: zod.array(
+      zod.object({
+        id: zod.number(),
+        resumeId: zod.number(),
+        type: zod.string(),
+        title: zod.string(),
+        content: zod.object({}).passthrough(),
+        displayOrder: zod.number(),
+        isVisible: zod.boolean(),
+      }),
+    ),
+  }),
+  summary: zod.string(),
 });
 
 /**
@@ -234,6 +312,12 @@ export const GetDashboardStatsResponse = zod.object({
       downloadCount: zod.number(),
       createdAt: zod.string(),
       updatedAt: zod.string(),
+      atsScore: zod.number().nullish(),
+      atsPassedChecks: zod.array(zod.string()).nullish(),
+      atsFailedChecks: zod.array(zod.string()).nullish(),
+      atsFeedback: zod.array(zod.string()).nullish(),
+      atsUpdatedAt: zod.coerce.date().nullish(),
+      atsJobDescription: zod.string().nullish(),
     }),
   ),
   resumesByTemplate: zod.array(

@@ -29,6 +29,12 @@ export interface Resume {
   downloadCount: number;
   createdAt: string;
   updatedAt: string;
+  atsScore?: number | null;
+  atsPassedChecks?: string[] | null;
+  atsFailedChecks?: string[] | null;
+  atsFeedback?: string[] | null;
+  atsUpdatedAt?: string | null;
+  atsJobDescription?: string | null;
 }
 
 export type ResumeSectionContent = { [key: string]: unknown };
@@ -59,6 +65,12 @@ export interface ResumeDetail {
   downloadCount: number;
   createdAt: string;
   updatedAt: string;
+  atsScore?: number | null;
+  atsPassedChecks?: string[] | null;
+  atsFailedChecks?: string[] | null;
+  atsFeedback?: string[] | null;
+  atsUpdatedAt?: string | null;
+  atsJobDescription?: string | null;
   sections: ResumeSection[];
 }
 
@@ -98,6 +110,12 @@ export interface UpdateResumeBody {
   backgroundColor?: string;
   isPublic?: boolean;
   sections?: UpdateSectionItem[];
+  atsScore?: number | null;
+  atsPassedChecks?: string[] | null;
+  atsFailedChecks?: string[] | null;
+  atsFeedback?: string[] | null;
+  atsUpdatedAt?: string | null;
+  atsJobDescription?: string | null;
 }
 
 export type ExportResumeBodyFormat =
@@ -118,12 +136,22 @@ export interface ExportResult {
   format: string;
 }
 
+export interface OptimizeResumeBody {
+  jobDescription?: string;
+}
+
+export interface OptimizeResumeResponse {
+  resume: ResumeDetail;
+  summary: string;
+}
+
 export interface AtsScore {
   score: number;
   maxScore: number;
   feedback: string[];
   passedChecks: string[];
   failedChecks: string[];
+  atsUpdatedAt?: string | null;
 }
 
 export interface Template {
@@ -188,3 +216,8 @@ export interface AtsSuggestionsResult {
   keywords: string[];
   score: number;
 }
+
+export type GetAtsScoreParams = {
+  jobDescription?: string;
+  forceScan?: boolean;
+};

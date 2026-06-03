@@ -28,9 +28,12 @@ import type {
   ExportResult,
   ExportResumeBody,
   GenerateSummaryBody,
+  GetAtsScoreParams,
   HealthStatus,
   ImportResumeBody,
   ImproveBulletBody,
+  OptimizeResumeBody,
+  OptimizeResumeResponse,
   Resume,
   ResumeDetail,
   SuggestSkillsBody,
@@ -800,22 +803,38 @@ export const useExportResume = <
  * Requires an active Pro subscription (same source as Clerk publicMetadata.isPremium).
  * @summary Get ATS score for a resume
  */
-export const getGetAtsScoreUrl = (id: number) => {
-  return `/api/resumes/${id}/ats-score`;
+export const getGetAtsScoreUrl = (id: number, params?: GetAtsScoreParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/resumes/${id}/ats-score?${stringifiedParams}`
+    : `/api/resumes/${id}/ats-score`;
 };
 
 export const getAtsScore = async (
   id: number,
+  params?: GetAtsScoreParams,
   options?: RequestInit,
 ): Promise<AtsScore> => {
-  return customFetch<AtsScore>(getGetAtsScoreUrl(id), {
+  return customFetch<AtsScore>(getGetAtsScoreUrl(id, params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetAtsScoreQueryKey = (id: number) => {
-  return [`/api/resumes/${id}/ats-score`] as const;
+export const getGetAtsScoreQueryKey = (
+  id: number,
+  params?: GetAtsScoreParams,
+) => {
+  return [`/api/resumes/${id}/ats-score`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetAtsScoreQueryOptions = <
@@ -823,6 +842,7 @@ export const getGetAtsScoreQueryOptions = <
   TError = ErrorType<ErrorResponse>,
 >(
   id: number,
+  params?: GetAtsScoreParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getAtsScore>>,
@@ -834,11 +854,11 @@ export const getGetAtsScoreQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetAtsScoreQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getGetAtsScoreQueryKey(id, params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAtsScore>>> = ({
     signal,
-  }) => getAtsScore(id, { signal, ...requestOptions });
+  }) => getAtsScore(id, params, { signal, ...requestOptions });
 
   return {
     queryKey,
@@ -866,6 +886,7 @@ export function useGetAtsScore<
   TError = ErrorType<ErrorResponse>,
 >(
   id: number,
+  params?: GetAtsScoreParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getAtsScore>>,
@@ -875,7 +896,7 @@ export function useGetAtsScore<
     request?: SecondParameter<typeof customFetch>;
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetAtsScoreQueryOptions(id, options);
+  const queryOptions = getGetAtsScoreQueryOptions(id, params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -883,6 +904,93 @@ export function useGetAtsScore<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Optimize resume content with AI based on a job description
+ */
+export const getOptimizeResumeUrl = (id: number) => {
+  return `/api/resumes/${id}/optimize`;
+};
+
+export const optimizeResume = async (
+  id: number,
+  optimizeResumeBody: OptimizeResumeBody,
+  options?: RequestInit,
+): Promise<OptimizeResumeResponse> => {
+  return customFetch<OptimizeResumeResponse>(getOptimizeResumeUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(optimizeResumeBody),
+  });
+};
+
+export const getOptimizeResumeMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof optimizeResume>>,
+    TError,
+    { id: number; data: BodyType<OptimizeResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof optimizeResume>>,
+  TError,
+  { id: number; data: BodyType<OptimizeResumeBody> },
+  TContext
+> => {
+  const mutationKey = ["optimizeResume"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof optimizeResume>>,
+    { id: number; data: BodyType<OptimizeResumeBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return optimizeResume(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type OptimizeResumeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof optimizeResume>>
+>;
+export type OptimizeResumeMutationBody = BodyType<OptimizeResumeBody>;
+export type OptimizeResumeMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Optimize resume content with AI based on a job description
+ */
+export const useOptimizeResume = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof optimizeResume>>,
+    TError,
+    { id: number; data: BodyType<OptimizeResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof optimizeResume>>,
+  TError,
+  { id: number; data: BodyType<OptimizeResumeBody> },
+  TContext
+> => {
+  return useMutation(getOptimizeResumeMutationOptions(options));
+};
 
 /**
  * @summary List all available resume templates
