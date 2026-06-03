@@ -624,6 +624,8 @@ export default function BuilderPage() {
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [localSections, setLocalSections] = useState<Section[]>([]);
   const [scannedContentText, setScannedContentText] = useState<string | null>(null);
+  const [initialContentText, setInitialContentText] = useState<string | null>(null);
+  const [wasInitiallyEmpty, setWasInitiallyEmpty] = useState<boolean>(false);
   const [accentColor, setAccentColor] = useState("#000000");
   const [fontFamily, setFontFamily] = useState("Inter, sans-serif");
   const [fontColor, setFontColor] = useState("#111827");
@@ -879,19 +881,28 @@ export default function BuilderPage() {
   } : null);
 
   const isAtsOutdated = useMemo(() => {
-    if (!resume?.updatedAt || !activeAtsData?.atsUpdatedAt) return false;
+    if (!resume) return false;
 
-    // Compare actual text content to avoid false positives on style/layout adjustments or undo edits
-    if (scannedContentText !== null) {
-      const currentSerialContent = serializeResumeTextContent(localSections);
-      return currentSerialContent !== scannedContentText;
+    // Case 1: An AI scan has been executed (activeAtsData is non-null)
+    if (activeAtsData?.atsUpdatedAt) {
+      if (scannedContentText !== null) {
+        const currentSerialContent = serializeResumeTextContent(localSections);
+        return currentSerialContent !== scannedContentText;
+      }
+      const updatedAtTime = new Date(resume.updatedAt).getTime();
+      const atsUpdatedAtTime = new Date(activeAtsData.atsUpdatedAt).getTime();
+      return updatedAtTime > atsUpdatedAtTime + 2000;
     }
 
-    const updatedAtTime = new Date(resume.updatedAt).getTime();
-    const atsUpdatedAtTime = new Date(activeAtsData.atsUpdatedAt).getTime();
-    // Allow a small buffer of 2 seconds to avoid false positives due to network delay or database write delays
-    return updatedAtTime > atsUpdatedAtTime + 2000;
-  }, [resume?.updatedAt, activeAtsData?.atsUpdatedAt, scannedContentText, localSections]);
+    // Case 2: Resume has never been scanned (activeAtsData is null)
+    // Show the exclamation mark once they make any text modifications from the initial state
+    if (initialContentText !== null) {
+      const currentSerialContent = serializeResumeTextContent(localSections);
+      return currentSerialContent !== initialContentText;
+    }
+
+    return false;
+  }, [resume, activeAtsData?.atsUpdatedAt, scannedContentText, initialContentText, localSections]);
 
   const displayedAtsScore = useMemo(() => {
     if (isResumeContentEmpty(localSections)) {
@@ -900,8 +911,11 @@ export default function BuilderPage() {
     if (activeAtsData?.score !== undefined && activeAtsData?.score !== null) {
       return activeAtsData.score;
     }
+    if (wasInitiallyEmpty) {
+      return 0;
+    }
     return getDefaultAtsScore(templateId);
-  }, [localSections, activeAtsData?.score, templateId]);
+  }, [localSections, activeAtsData?.score, wasInitiallyEmpty, templateId]);
 
   const handleScan = (jobDesc?: string) => {
     flushSave();
@@ -1011,6 +1025,9 @@ export default function BuilderPage() {
 
       // Initialize or load scanned content text cache for isAtsOutdated logic
       const serialContent = serializeResumeTextContent(nextSections);
+      setInitialContentText(serialContent);
+      setWasInitiallyEmpty(isResumeContentEmpty(nextSections));
+      
       let loadedScannedContent: string | null = null;
       if (typeof window !== "undefined") {
         loadedScannedContent = window.localStorage.getItem(`ats_scanned_sections_${resume.id}`);
@@ -1379,6 +1396,7 @@ export default function BuilderPage() {
   };
 
   const handleClearAllSections = useCallback(() => {
+    setWasInitiallyEmpty(true);
     setLocalSections((prev) => {
       const updated = prev.map((s) => ({
         ...s,
