@@ -34,7 +34,7 @@ const SEO_KEYWORDS =
 const faqs = [
   {
     q: "What does “ATS-friendly” mean here?",
-    a: "Applicant tracking systems parse your resume automatically. Resumesensei uses clean typography and structure, and Pro includes an ATS score in your dashboard so you can iterate before you submit.",
+    a: "Applicant tracking systems parse resumes automatically. Resumesensei templates are specifically designed to be easily parsed, and Pro includes a built-in AI ATS Auditor to grade and optimize your content for specific job descriptions.",
   },
   {
     q: "Will my PDF match the on-screen preview?",
@@ -59,7 +59,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
     operatingSystem: "Web",
     url: SITE_URL,
     description:
-      "Online resume builder with AI writing assistance, applicant tracking system (ATS) score tracking on Pro, twelve templates, and PDF, DOCX, and JSON export on every plan.",
+      "Online resume builder with AI writing assistance, AI-powered ATS Auditor & score tracker on Pro, twelve templates, and PDF, DOCX, and JSON export on every plan.",
     offers: {
       "@type": "Offer",
       price: "99",
@@ -72,7 +72,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
       "Import existing PDF or DOCX resumes",
       "Highly customizable, professional resume templates",
       "Live A4 preview aligned with export",
-      "ATS score tracking on Pro (dashboard)",
+      "AI-powered ATS Auditor & Score Tracker on Pro",
       "PDF, DOCX, and JSON export on Free (PDF/Word include a subtle brand footer); Pro is watermark-free",
       "Unlimited resumes and full AI on Pro",
     ],
@@ -117,9 +117,9 @@ const capabilities = [
   },
   {
     icon: Gauge,
-    title: "ATS score tracking",
+    title: "AI ATS Auditor",
     description:
-      "Pro shows how your resume reads to automated screeners so you can iterate before applying.",
+      "Pro scans your resume against any job description, calculates compatibility score, identifies critical failures, and provides actionable recommendations.",
   },
   {
     icon: Download,
@@ -138,7 +138,7 @@ const pillars = [
   {
     icon: Shield,
     title: "ATS-aware design",
-    body: "Templates avoid noisy layouts that confuse parsers; Pro adds an ATS score in your dashboard for extra confidence.",
+    body: "Templates avoid layouts that confuse parsers. Scan and optimize your content against job descriptions with the built-in AI ATS Auditor.",
   },
   {
     icon: Monitor,
@@ -212,7 +212,7 @@ export default function LandingPage() {
               <span className="font-extrabold text-foreground">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>{" "}
-              combines structured editing, AI suggestions, ATS score feedback,
+              combines structured editing, AI suggestions, AI ATS auditing & scoring,
               and exports that match your live preview — without clutter.
             </motion.p>
             <motion.div
@@ -419,8 +419,8 @@ export default function LandingPage() {
                 Simple pricing
               </h2>
               <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-                Start free. Move to Pro when you want unlimited resumes, every
-                template, premium colors & fonts, and full AI.
+                Start free. Move to Pro to unlock unlimited resumes, every template,
+                the AI ATS Auditor, premium colors & fonts, and full AI.
               </p>
             </div>
             <div className="mt-10 grid gap-5 sm:grid-cols-2">

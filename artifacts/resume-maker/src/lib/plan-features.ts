@@ -11,6 +11,6 @@ export const PRO_PLAN_FEATURES = [
   "All Premium templates",
   "Watermark-free PDF & Word exports",
   "Premium colors & custom fonts",
-  "ATS score tracking",
+  "AI-powered ATS Auditor & Score Tracker",
   "Priority support",
 ] as const;
