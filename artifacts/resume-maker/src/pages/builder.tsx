@@ -763,11 +763,27 @@ export default function BuilderPage() {
   useEffect(() => {
     if (atsScoreData && scanTimestamp !== 0) {
       setScanTimestamp(0);
+      
+      // Synchronously write the ATS fields and align updatedAt to prevent stale blink warnings
+      queryClient.setQueryData(getGetResumeQueryKey(resumeId), (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          atsScore: atsScoreData.score,
+          atsFeedback: atsScoreData.feedback,
+          atsPassedChecks: atsScoreData.passedChecks,
+          atsFailedChecks: atsScoreData.failedChecks,
+          atsUpdatedAt: atsScoreData.atsUpdatedAt,
+          atsJobDescription: scannedJobDescription,
+          updatedAt: atsScoreData.atsUpdatedAt,
+        };
+      });
+
       void queryClient.invalidateQueries({
         queryKey: getGetResumeQueryKey(resumeId),
       });
     }
-  }, [atsScoreData, scanTimestamp, resumeId, queryClient]);
+  }, [atsScoreData, scanTimestamp, resumeId, queryClient, scannedJobDescription]);
 
   const activeAtsData = atsScoreData || (hasAtsScoreInDb ? {
     score: resume!.atsScore!,
@@ -787,6 +803,7 @@ export default function BuilderPage() {
   }, [resume?.updatedAt, activeAtsData?.atsUpdatedAt]);
 
   const handleScan = (jobDesc?: string) => {
+    flushSave();
     setScannedJobDescription(jobDesc || "");
     setScanTimestamp(Date.now());
   };
@@ -969,6 +986,55 @@ export default function BuilderPage() {
     [resumeId, updateResume],
   );
 
+  const flushSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+      
+      const seq = ++saveSeqRef.current;
+      latestSaveSeqRef.current = seq;
+      
+      updateResume.mutate(
+        {
+          id: resumeId,
+          data: {
+            accentColor,
+            fontFamily,
+            fontColor,
+            backgroundColor,
+            templateId,
+            sections: localSections.map((s) => ({
+              id: s.id,
+              content: s.content as Record<string, unknown>,
+              displayOrder: s.displayOrder,
+              isVisible: s.isVisible,
+            })),
+          },
+        },
+        {
+          onError: (err: unknown) => {
+            if (seq !== latestSaveSeqRef.current) return;
+            const msg = (err as { message?: string })?.message ?? "";
+            if (/aborted|cancelled|canceled|AbortError/i.test(msg)) return;
+            toast({
+              title: "Failed to save",
+              description: msg || undefined,
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    }
+  }, [
+    resumeId,
+    updateResume,
+    accentColor,
+    fontFamily,
+    fontColor,
+    backgroundColor,
+    templateId,
+    localSections,
+  ]);
   const handleSectionContentChange = useCallback(
     (sectionId: number, content: SectionContent) => {
       setLocalSections((prev) => {
@@ -2009,6 +2075,7 @@ export default function BuilderPage() {
                       size="sm"
                       variant="secondary"
                       onClick={() => {
+                        flushSave();
                         if (resume) {
                           if (resume.sections) {
                             setPreviousSections(
