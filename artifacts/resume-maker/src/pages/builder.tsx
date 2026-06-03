@@ -99,6 +99,7 @@ import { SectionEditor } from "@/components/resume/SectionEditor";
 import {
   getDefaultAccentColor,
   getDefaultFontFamily,
+  getDefaultAtsScore,
 } from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
@@ -534,6 +535,81 @@ function ExportDialog({
   );
 }
 
+function isResumeContentEmpty(sections: Section[]): boolean {
+  if (!sections || sections.length === 0) return true;
+  for (const s of sections) {
+    const content = s.content as any;
+    if (!content) continue;
+
+    if (s.type === "personal") {
+      if (
+        (typeof content.name === "string" && content.name.trim() !== "") ||
+        (typeof content.jobTitle === "string" && content.jobTitle.trim() !== "") ||
+        (typeof content.email === "string" && content.email.trim() !== "") ||
+        (typeof content.phone === "string" && content.phone.trim() !== "") ||
+        (typeof content.location === "string" && content.location.trim() !== "")
+      ) {
+        return false;
+      }
+    } else if (s.type === "summary") {
+      if (typeof content.text === "string" && content.text.trim() !== "") {
+        return false;
+      }
+    } else if (Array.isArray(content.items) && content.items.length > 0) {
+      for (const item of content.items) {
+        if (!item) continue;
+        const values = Object.values(item);
+        if (values.some((val) => typeof val === "string" && val.trim() !== "")) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function serializeResumeTextContent(sections: Section[]): string {
+  if (!sections) return "";
+  const sorted = [...sections].sort((a, b) => {
+    if (a.displayOrder !== b.displayOrder) {
+      return a.displayOrder - b.displayOrder;
+    }
+    return a.id.toString().localeCompare(b.id.toString());
+  });
+
+  let text = "";
+  for (const s of sorted) {
+    if (!s.isVisible) continue;
+    const content = s.content as any;
+    if (!content) continue;
+
+    text += `||section:${s.type}`;
+    if (s.type === "personal") {
+      text += `|name:${content.name || ""}`;
+      text += `|jobTitle:${content.jobTitle || ""}`;
+      text += `|email:${content.email || ""}`;
+      text += `|phone:${content.phone || ""}`;
+      text += `|location:${content.location || ""}`;
+    } else if (s.type === "summary") {
+      text += `|text:${content.text || ""}`;
+    } else if (Array.isArray(content.items)) {
+      for (const item of content.items) {
+        if (!item) continue;
+        const keys = Object.keys(item).sort();
+        for (const k of keys) {
+          const val = item[k];
+          if (typeof val === "string") {
+            text += `|${k}:${val}`;
+          } else if (Array.isArray(val)) {
+            text += `|${k}:${val.join(",")}`;
+          }
+        }
+      }
+    }
+  }
+  return text;
+}
+
 /* ─── BuilderPage ─── */
 
 export default function BuilderPage() {
@@ -547,6 +623,7 @@ export default function BuilderPage() {
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [localSections, setLocalSections] = useState<Section[]>([]);
+  const [scannedContentText, setScannedContentText] = useState<string | null>(null);
   const [accentColor, setAccentColor] = useState("#000000");
   const [fontFamily, setFontFamily] = useState("Inter, sans-serif");
   const [fontColor, setFontColor] = useState("#111827");
@@ -754,7 +831,7 @@ export default function BuilderPage() {
     {
       query: {
         queryKey: ["/api/resumes", resumeId, "ats", scannedJobDescription, scanTimestamp],
-        enabled: !!resumeId && isPremiumUser && (resume?.atsScore === null || scanTimestamp > 0),
+        enabled: !!resumeId && isPremiumUser && scanTimestamp > 0,
       },
     }
   );
@@ -764,6 +841,13 @@ export default function BuilderPage() {
     if (atsScoreData && scanTimestamp !== 0) {
       setScanTimestamp(0);
       
+      // Save current content as the scanned baseline
+      const serialContent = serializeResumeTextContent(localSections);
+      setScannedContentText(serialContent);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(`ats_scanned_sections_${resumeId}`, serialContent);
+      }
+
       // Synchronously write the ATS fields and align updatedAt to prevent stale blink warnings
       queryClient.setQueryData(getGetResumeQueryKey(resumeId), (old: any) => {
         if (!old) return old;
@@ -783,7 +867,7 @@ export default function BuilderPage() {
         queryKey: getGetResumeQueryKey(resumeId),
       });
     }
-  }, [atsScoreData, scanTimestamp, resumeId, queryClient, scannedJobDescription]);
+  }, [atsScoreData, scanTimestamp, resumeId, queryClient, scannedJobDescription, localSections]);
 
   const activeAtsData = atsScoreData || (hasAtsScoreInDb ? {
     score: resume!.atsScore!,
@@ -796,11 +880,28 @@ export default function BuilderPage() {
 
   const isAtsOutdated = useMemo(() => {
     if (!resume?.updatedAt || !activeAtsData?.atsUpdatedAt) return false;
+
+    // Compare actual text content to avoid false positives on style/layout adjustments or undo edits
+    if (scannedContentText !== null) {
+      const currentSerialContent = serializeResumeTextContent(localSections);
+      return currentSerialContent !== scannedContentText;
+    }
+
     const updatedAtTime = new Date(resume.updatedAt).getTime();
     const atsUpdatedAtTime = new Date(activeAtsData.atsUpdatedAt).getTime();
     // Allow a small buffer of 2 seconds to avoid false positives due to network delay or database write delays
     return updatedAtTime > atsUpdatedAtTime + 2000;
-  }, [resume?.updatedAt, activeAtsData?.atsUpdatedAt]);
+  }, [resume?.updatedAt, activeAtsData?.atsUpdatedAt, scannedContentText, localSections]);
+
+  const displayedAtsScore = useMemo(() => {
+    if (isResumeContentEmpty(localSections)) {
+      return 0;
+    }
+    if (activeAtsData?.score !== undefined && activeAtsData?.score !== null) {
+      return activeAtsData.score;
+    }
+    return getDefaultAtsScore(templateId);
+  }, [localSections, activeAtsData?.score, templateId]);
 
   const handleScan = (jobDesc?: string) => {
     flushSave();
@@ -907,6 +1008,27 @@ export default function BuilderPage() {
         }
         return nextSections[0].id;
       });
+
+      // Initialize or load scanned content text cache for isAtsOutdated logic
+      const serialContent = serializeResumeTextContent(nextSections);
+      let loadedScannedContent: string | null = null;
+      if (typeof window !== "undefined") {
+        loadedScannedContent = window.localStorage.getItem(`ats_scanned_sections_${resume.id}`);
+      }
+      
+      const hasAts = resume.atsScore !== null && resume.atsScore !== undefined;
+      const atsUpdatedAtTime = resume.atsUpdatedAt ? new Date(resume.atsUpdatedAt).getTime() : 0;
+      const updatedAtTime = resume.updatedAt ? new Date(resume.updatedAt).getTime() : 0;
+      const isAtsCleanOnDb = hasAts && atsUpdatedAtTime >= updatedAtTime - 2000;
+      
+      if (hasAts && (isAtsCleanOnDb || !loadedScannedContent)) {
+        setScannedContentText(serialContent);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(`ats_scanned_sections_${resume.id}`, serialContent);
+        }
+      } else if (loadedScannedContent) {
+        setScannedContentText(loadedScannedContent);
+      }
     }
   }, [resume]);
 
@@ -1347,7 +1469,8 @@ export default function BuilderPage() {
       />
       <BuilderNavbar
         title={resume?.title ?? ""}
-        atsScore={isPremiumUser ? (activeAtsData?.score ?? undefined) : undefined}
+        atsScore={isPremiumUser ? displayedAtsScore : undefined}
+        isAtsOutdated={isPremiumUser ? isAtsOutdated : false}
         isAtsFetching={isPremiumUser ? isAtsFetching : false}
         atsPremiumLocked={!isPremiumUser}
         onAtsPremiumClick={() => {
@@ -2202,10 +2325,10 @@ export default function BuilderPage() {
                     </p>
                   </div>
                 </div>
-              ) : activeAtsData ? (
+              ) : (
                 <div className="space-y-6">
                   {/* Outdated Score Alert */}
-                  {isAtsOutdated && (
+                  {isAtsOutdated && activeAtsData && (
                     <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-800 dark:text-amber-300 flex items-start justify-between gap-3 shadow-sm">
                       <div className="flex gap-2">
                         <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
@@ -2244,39 +2367,43 @@ export default function BuilderPage() {
                           cy="48"
                           r="40"
                           className={`transition-all duration-500 ${
-                            activeAtsData.score >= 80
+                            displayedAtsScore >= 80
                               ? "stroke-green-500"
-                              : activeAtsData.score >= 60
+                              : displayedAtsScore >= 60
                                 ? "stroke-yellow-500"
                                 : "stroke-red-500"
                           }`}
                           strokeWidth="8"
                           strokeDasharray={2 * Math.PI * 40}
                           strokeDashoffset={
-                            2 * Math.PI * 40 * (1 - activeAtsData.score / 100)
+                            2 * Math.PI * 40 * (1 - displayedAtsScore / 100)
                           }
                           strokeLinecap="round"
                           fill="transparent"
                         />
                       </svg>
                       <span className="absolute text-2xl font-bold">
-                        {activeAtsData.score}
+                        {displayedAtsScore}
                       </span>
                     </div>
                     <div>
                       <h4 className="font-bold text-base">
-                        {activeAtsData.score >= 80
+                        {displayedAtsScore >= 80
                           ? "Excellent Compatibility"
-                          : activeAtsData.score >= 60
+                          : displayedAtsScore >= 60
                             ? "Good Match, but improvable"
-                            : "Needs Critical Optimization"}
+                            : displayedAtsScore > 0
+                              ? "Needs Critical Optimization"
+                              : "Empty Resume"}
                       </h4>
                       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        {activeAtsData.score >= 80
+                        {displayedAtsScore >= 80
                           ? "Your resume is highly optimized for applicant tracking systems. Excellent work!"
-                          : activeAtsData.score >= 60
+                          : displayedAtsScore >= 60
                             ? "A few optimizations could significantly improve your parser matching and keyword alignment."
-                            : "Your resume is missing critical elements or alignment for the target job role. Please check details below."}
+                            : displayedAtsScore > 0
+                              ? "Your resume is missing critical elements or alignment for the target job role. Please check details below."
+                              : "This resume is empty. Please enter your professional experience and details to calculate your ATS score."}
                       </p>
                     </div>
                   </div>
@@ -2296,76 +2423,81 @@ export default function BuilderPage() {
                     );
                   })()}
 
-                  {/* Failed / Critical Fixes */}
-                  {Array.isArray(activeAtsData.failedChecks) && activeAtsData.failedChecks.length > 0 && (
-                    <div className="space-y-3">
-                      <h5 className="text-xs font-semibold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
-                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                        Critical Fixes ({activeAtsData.failedChecks.length})
-                      </h5>
-                      <ul className="space-y-2">
-                        {activeAtsData.failedChecks.map((check: string, idx: number) => (
-                          <li
-                            key={idx}
-                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-red-500/10 bg-red-500/5 text-xs text-foreground leading-relaxed"
-                          >
-                            <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                            <span>{check}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {/* Audit Details */}
+                  {activeAtsData ? (
+                    <>
+                      {/* Failed / Critical Fixes */}
+                      {Array.isArray(activeAtsData.failedChecks) && activeAtsData.failedChecks.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="text-xs font-semibold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                            Critical Fixes ({activeAtsData.failedChecks.length})
+                          </h5>
+                          <ul className="space-y-2">
+                            {activeAtsData.failedChecks.map((check: string, idx: number) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-red-500/10 bg-red-500/5 text-xs text-foreground leading-relaxed"
+                              >
+                                <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                                <span>{check}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
-                  {/* Feedback / Recommendations */}
-                  {Array.isArray(activeAtsData.feedback) && activeAtsData.feedback.length > 0 && (
-                    <div className="space-y-3">
-                      <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                        Improvement Recommendations ({activeAtsData.feedback.length})
-                      </h5>
-                      <ul className="space-y-2">
-                        {activeAtsData.feedback.map((item: string, idx: number) => (
-                          <li
-                            key={idx}
-                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-xs text-foreground leading-relaxed"
-                          >
-                            <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                      {/* Feedback / Recommendations */}
+                      {Array.isArray(activeAtsData.feedback) && activeAtsData.feedback.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                            Improvement Recommendations ({activeAtsData.feedback.length})
+                          </h5>
+                          <ul className="space-y-2">
+                            {activeAtsData.feedback.map((item: string, idx: number) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-xs text-foreground leading-relaxed"
+                              >
+                                <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
-                  {/* Passed Checks */}
-                  {Array.isArray(activeAtsData.passedChecks) && activeAtsData.passedChecks.length > 0 && (
-                    <div className="space-y-3">
-                      <h5 className="text-xs font-semibold uppercase tracking-wider text-green-500 flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                        Passed Checks ({activeAtsData.passedChecks.length})
-                      </h5>
-                      <ul className="space-y-2">
-                        {activeAtsData.passedChecks.map((check: string, idx: number) => (
-                          <li
-                            key={idx}
-                            className="flex items-start gap-2.5 p-2.5 rounded-lg border border-green-500/10 bg-green-500/5 text-xs text-foreground leading-relaxed"
-                          >
-                            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                            <span>{check}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {/* Passed Checks */}
+                      {Array.isArray(activeAtsData.passedChecks) && activeAtsData.passedChecks.length > 0 && (
+                        <div className="space-y-3">
+                          <h5 className="text-xs font-semibold uppercase tracking-wider text-green-500 flex items-center gap-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                            Passed Checks ({activeAtsData.passedChecks.length})
+                          </h5>
+                          <ul className="space-y-2">
+                            {activeAtsData.passedChecks.map((check: string, idx: number) => (
+                              <li
+                                key={idx}
+                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-green-500/10 bg-green-500/5 text-xs text-foreground leading-relaxed"
+                              >
+                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                                <span>{check}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 px-4 text-center text-muted-foreground border border-dashed border-border rounded-xl bg-card">
+                      <AlertCircle className="h-6 w-6 mb-2 text-primary/70" />
+                      <p className="text-xs font-semibold text-foreground">Baseline Score Displayed</p>
+                      <p className="text-[11px] max-w-[280px] mt-1 leading-relaxed">
+                        This is the baseline template compatibility score. Paste a target job description above and scan to generate tailored suggestions.
+                      </p>
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-                  <AlertCircle className="h-8 w-8 mb-2" />
-                  <p className="text-sm font-semibold">No ATS data available</p>
-                  <p className="text-xs max-w-[200px] mt-1">
-                    Click 'Scan Now' to run an AI-powered ATS score analysis.
-                  </p>
                 </div>
               )}
             </div>

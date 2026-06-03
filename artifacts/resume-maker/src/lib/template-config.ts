@@ -63,3 +63,24 @@ export function getDefaultFontFamily(
   if (!templateId) return "Inter, sans-serif";
   return TEMPLATE_DEFAULT_FONTS[templateId] ?? "Inter, sans-serif";
 }
+
+export const TEMPLATE_DEFAULT_ATS_SCORES: Record<string, number> = {
+  "silicon-valley": 85,
+  faang: 85,
+  nova: 85,
+  "executive-pro": 85,
+  "creative-pro": 85,
+  midnight: 85,
+  "ats-clean": 85,
+  academic: 85,
+  "corporate-navy": 85,
+  compact: 85,
+  european: 85,
+  "two-column": 85,
+};
+
+export function getDefaultAtsScore(
+  templateId: string | null | undefined,
+): number {
+  return 85;
+}

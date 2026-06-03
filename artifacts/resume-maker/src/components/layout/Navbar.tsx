@@ -373,6 +373,7 @@ import { useState, useEffect, useRef } from "react";
 export function BuilderNavbar({
   title,
   atsScore,
+  isAtsOutdated,
   atsPremiumLocked,
   isAtsFetching,
   onAtsPremiumClick,
@@ -382,6 +383,7 @@ export function BuilderNavbar({
 }: {
   title: string;
   atsScore?: number;
+  isAtsOutdated?: boolean;
   isAtsFetching?: boolean;
   /** When true, show a locked ATS entry point instead of the numeric score (free users). */
   atsPremiumLocked?: boolean;
@@ -522,8 +524,8 @@ export function BuilderNavbar({
           <button
             type="button"
             onClick={onAtsScoreClick}
-            className="flex items-center gap-1.5 shrink-0 min-w-0 transition-transform hover:scale-105 active:scale-95"
-            title="Click to view detailed ATS feedback"
+            className="relative flex items-center gap-1.5 shrink-0 min-w-0 transition-transform hover:scale-105 active:scale-95"
+            title={isAtsOutdated ? "ATS score may be outdated. Click to view and rescan." : "Click to view detailed ATS feedback"}
           >
             <div
               className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 ${
@@ -537,6 +539,12 @@ export function BuilderNavbar({
               <Zap className="h-3 w-3 fill-current" />
               <span>ATS {atsScore}</span>
             </div>
+            {isAtsOutdated && (
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[9px] font-black text-white shadow-sm ring-1 ring-background" title="Outdated: Scan required">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
+                <span className="relative z-10 leading-none">!</span>
+              </span>
+            )}
           </button>
         )}
         <Button
