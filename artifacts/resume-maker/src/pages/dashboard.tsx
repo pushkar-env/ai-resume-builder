@@ -214,6 +214,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   isDraggingThis,
   setActiveDragResumeId,
   setIsOverTrash,
+  onDragDelete,
 }: {
   resume: Resume;
   fadeUp: Variants;
@@ -227,6 +228,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   isDraggingThis: boolean;
   setActiveDragResumeId: (id: number | null) => void;
   setIsOverTrash: (over: boolean) => void;
+  onDragDelete: (id: number) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const cardInitialRectRef = useRef<DOMRect | null>(null);
@@ -463,7 +465,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           setIsOverTrash(false);
 
           if (currentOverTrash.current) {
-            setDeleteId(resume.id);
+            onDragDelete(resume.id);
           }
           currentOverTrash.current = false;
         }}
@@ -696,6 +698,128 @@ export default function DashboardPage() {
     null,
   );
   const [isOverTrash, setIsOverTrash] = useState(false);
+  const [isDeletedTrashPop, setIsDeletedTrashPop] = useState(false);
+  const [optimisticallyDeletedIds, setOptimisticallyDeletedIds] = useState<number[]>([]);
+
+  // Canvas particle burst refs & loop
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const particlesRef = useRef<any[]>([]);
+  const animationFrameRef = useRef<number | null>(null);
+  const trashBinRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth;
+        canvasRef.current.height = window.innerHeight;
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const triggerBurst = useCallback((startX: number, startY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Vibrant gradient colors matching premium tags
+    const colors = [
+      "#f43f5e", // rose-500
+      "#ec4899", // pink-500
+      "#a855f7", // purple-500
+      "#eab308", // yellow-500
+      "#3b82f6", // blue-500
+      "#10b981", // emerald-500
+      "#f97316", // orange-500
+    ];
+
+    // Spawn 45 particles radiating upwards
+    for (let i = 0; i < 45; i++) {
+      const angle = Math.PI * 1.5 + (Math.random() - 0.5) * Math.PI * 0.75;
+      const speed = 4 + Math.random() * 9;
+      particlesRef.current.push({
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 3.5 + Math.random() * 5.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 1,
+        decay: 0.012 + Math.random() * 0.016,
+        gravity: 0.16,
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.15,
+        shape: Math.random() > 0.45 ? "sparkle" : (Math.random() > 0.45 ? "circle" : "square"),
+      });
+    }
+
+    if (!animationFrameRef.current) {
+      const tick = () => {
+        const currentCanvas = canvasRef.current;
+        if (!currentCanvas) return;
+        const currentCtx = currentCanvas.getContext("2d");
+        if (!currentCtx) return;
+
+        currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+
+        const particles = particlesRef.current;
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.alpha -= p.decay;
+          p.rotation += p.rotationSpeed;
+
+          if (p.alpha <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+
+          currentCtx.save();
+          currentCtx.globalAlpha = p.alpha;
+          currentCtx.translate(p.x, p.y);
+          currentCtx.rotate(p.rotation);
+          
+          // Glow effect
+          currentCtx.shadowBlur = 8;
+          currentCtx.shadowColor = p.color;
+          currentCtx.fillStyle = p.color;
+
+          if (p.shape === "circle") {
+            currentCtx.beginPath();
+            currentCtx.arc(0, 0, p.size, 0, Math.PI * 2);
+            currentCtx.fill();
+          } else if (p.shape === "sparkle") {
+            currentCtx.beginPath();
+            currentCtx.moveTo(0, -p.size * 1.6);
+            currentCtx.lineTo(p.size * 0.4, -p.size * 0.4);
+            currentCtx.lineTo(p.size * 1.6, 0);
+            currentCtx.lineTo(p.size * 0.4, p.size * 0.4);
+            currentCtx.lineTo(0, p.size * 1.6);
+            currentCtx.lineTo(-p.size * 0.4, p.size * 0.4);
+            currentCtx.lineTo(-p.size * 1.6, 0);
+            currentCtx.lineTo(-p.size * 0.4, -p.size * 0.4);
+            currentCtx.closePath();
+            currentCtx.fill();
+          } else {
+            currentCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          }
+          currentCtx.restore();
+        }
+
+        if (particles.length > 0) {
+          animationFrameRef.current = requestAnimationFrame(tick);
+        } else {
+          animationFrameRef.current = null;
+        }
+      };
+      animationFrameRef.current = requestAnimationFrame(tick);
+    }
+  }, []);
 
   // Prevent native page scrolling / pointercancel triggers on touch devices when a card is dragging
   useEffect(() => {
@@ -733,11 +857,12 @@ export default function DashboardPage() {
   const { data: resumes, isLoading: resumesLoading } = useListResumes();
   const resumeList = useMemo(() => {
     const list = Array.isArray(resumes) ? resumes : [];
-    return [...list].sort(
+    const sorted = [...list].sort(
       (a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
-  }, [resumes]);
+    return sorted.filter((r) => !optimisticallyDeletedIds.includes(r.id));
+  }, [resumes, optimisticallyDeletedIds]);
 
   // Clean up orphaned local storage keys (e.g. after a local DB wipe or deletion)
   useEffect(() => {
@@ -817,15 +942,51 @@ export default function DashboardPage() {
 
   const deleteResume = useDeleteResume({
     mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+      onSuccess: async (data, variables) => {
         setDeleteId(null);
+        await queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+        setOptimisticallyDeletedIds((prev) =>
+          prev.filter((id) => id !== variables.id),
+        );
         toast({ title: "Resume deleted" });
       },
-      onError: () =>
-        toast({ title: "Failed to delete resume", variant: "destructive" }),
+      onError: (error, variables) => {
+        setDeleteId(null);
+        setOptimisticallyDeletedIds((prev) =>
+          prev.filter((id) => id !== variables.id),
+        );
+        toast({ title: "Failed to delete resume", variant: "destructive" });
+      },
     },
   });
+
+  const handleDragDelete = useCallback(
+    (id: number) => {
+      // Trigger physically reactive scale pop on trash bin
+      setIsDeletedTrashPop(true);
+      setTimeout(() => setIsDeletedTrashPop(false), 300);
+
+      // Play particle burst
+      if (trashBinRef.current) {
+        const rect = trashBinRef.current.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        triggerBurst(x, y);
+      } else {
+        triggerBurst(window.innerWidth / 2, window.innerHeight - 56);
+      }
+
+      // Add to optimistic deletion array & call mutation
+      setOptimisticallyDeletedIds((prev) => [...prev, id]);
+      deleteResume.mutate({ id });
+
+      // Trigger standard vibration feedback
+      if (navigator.vibrate) {
+        navigator.vibrate([30, 50, 40]);
+      }
+    },
+    [deleteResume.mutate, triggerBurst],
+  );
 
   const duplicateResume = useDuplicateResume({
     mutation: {
@@ -978,6 +1139,7 @@ export default function DashboardPage() {
                 isDraggingThis={activeDragResumeId === resume.id}
                 setActiveDragResumeId={setActiveDragResumeId}
                 setIsOverTrash={setIsOverTrash}
+                onDragDelete={handleDragDelete}
               />
             ))}
           </motion.div>
@@ -988,7 +1150,7 @@ export default function DashboardPage() {
 
       {/* Bottom Trash Zone */}
       <AnimatePresence>
-        {activeDragResumeId !== null && (
+        {(activeDragResumeId !== null || isDeletedTrashPop) && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -997,15 +1159,16 @@ export default function DashboardPage() {
             className="fixed bottom-6 left-1/2 -translate-x-1/2 w-24 h-24 z-[100] pointer-events-none flex items-center justify-center"
           >
             <motion.div
+              ref={trashBinRef}
               animate={{
-                scale: isOverTrash ? 1.25 : 1,
-                borderColor: isOverTrash
+                scale: isDeletedTrashPop ? 1.4 : (isOverTrash ? 1.25 : 1),
+                borderColor: isOverTrash || isDeletedTrashPop
                   ? "rgba(244, 63, 94, 0.6)"
                   : "rgba(71, 85, 105, 0.4)",
-                backgroundColor: isOverTrash
+                backgroundColor: isOverTrash || isDeletedTrashPop
                   ? "rgba(76, 5, 25, 0.95)"
                   : "rgba(15, 23, 42, 0.85)",
-                boxShadow: isOverTrash
+                boxShadow: isOverTrash || isDeletedTrashPop
                   ? "0 0 30px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.2)"
                   : "0 10px 30px rgba(0, 0, 0, 0.25)",
               }}
@@ -1193,9 +1356,12 @@ export default function DashboardPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
-              onClick={() =>
-                deleteId !== null && deleteResume.mutate({ id: deleteId })
-              }
+              onClick={() => {
+                if (deleteId !== null) {
+                  setOptimisticallyDeletedIds((prev) => [...prev, deleteId]);
+                  deleteResume.mutate({ id: deleteId });
+                }
+              }}
             >
               Delete
             </AlertDialogAction>
@@ -1208,6 +1374,10 @@ export default function DashboardPage() {
         onOpenChange={setShowPaywall}
         title="Resume Limit Reached"
         description="Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates."
+      />
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none z-[150]"
       />
     </div>
   );
