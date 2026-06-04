@@ -60,7 +60,7 @@ export function Navbar() {
   const brandHref = showAppNav ? "/dashboard" : "/";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-8">
@@ -73,7 +73,7 @@ export function Navbar() {
                 alt="Resumesensei mascot"
                 className="h-10 w-10 object-contain shrink-0"
               />
-              <span className="text-xl font-extrabold tracking-tight sm:text-2xl">
+              <span className="hidden min-[380px]:inline-block text-xl font-extrabold tracking-tight sm:text-2xl">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
@@ -256,8 +256,8 @@ export function Navbar() {
                   <Link href="/pricing" className="flex items-center">
                     <ProButton
                       size="sm"
-                      className="h-8 px-2.5 sm:px-3 text-xs sm:text-sm"
-                      text="Go Pro"
+                      className="h-8 w-8 p-0 sm:w-auto sm:px-3 text-xs sm:text-sm rounded-full sm:rounded-md"
+                      text={<span className="hidden sm:inline">Go Pro</span>}
                       showIcon
                     />
                   </Link>
@@ -267,7 +267,7 @@ export function Navbar() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex items-center gap-1 sm:gap-2 h-8 px-1 sm:px-2 rounded-full sm:rounded-md"
+                      className="flex items-center gap-1 sm:gap-2 h-8 w-8 p-0 sm:w-auto sm:px-2 rounded-full sm:rounded-md"
                     >
                       <div className="h-6 w-6 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                         {user.firstName?.[0] ??
@@ -421,7 +421,7 @@ export function BuilderNavbar({
   return (
     <header
       className={cn(
-        "flex shrink-0 border-b border-border/60 bg-background px-4",
+        "flex shrink-0 border-b border-border/60 bg-background px-4 max-w-[100vw] overflow-x-clip",
         isEditing
           ? "min-h-12 flex-col items-stretch gap-2 py-2 sm:h-12 sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:py-0"
           : "h-12 items-center justify-between",
