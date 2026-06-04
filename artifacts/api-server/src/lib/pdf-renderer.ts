@@ -1,4 +1,5 @@
 import puppeteer, { type Browser, type Page } from "puppeteer";
+import path from "path";
 import { logger } from "./logger";
 
 const PDF_RENDER_TIMEOUT_MS =
@@ -22,6 +23,9 @@ const PUPPETEER_ARGS = [
   "--mute-audio",
   "--no-first-run",
   "--safebrowsing-disable-auto-update",
+  "--disable-web-security",
+  "--disk-cache-size=104857600",
+  "--font-render-hinting=none",
 ];
 
 let browserPromise: Promise<Browser> | null = null;
@@ -49,10 +53,12 @@ function releasePdfSlot(): void {
 
 async function launchBrowser(): Promise<Browser> {
   logger.info("Launching headless Chrome for PDF export");
+  const cachePath = process.env.PUPPETEER_USER_DATA_DIR || path.join(process.cwd(), ".puppeteer-cache");
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: PUPPETEER_ARGS,
+    userDataDir: cachePath,
   });
 
   browser.on("disconnected", () => {
@@ -94,20 +100,6 @@ async function withTimeout<T>(
 async function configurePage(page: Page): Promise<void> {
   await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
   await page.emulateMediaType("print");
-
-  await page.setRequestInterception(true);
-  page.on("request", (request) => {
-    const type = request.resourceType();
-    if (type === "document" || type === "stylesheet" || type === "font") {
-      request.continue();
-      return;
-    }
-    if (type === "image" || type === "media" || type === "websocket") {
-      request.abort();
-      return;
-    }
-    request.continue();
-  });
 }
 
 async function waitForFonts(page: Page): Promise<void> {
