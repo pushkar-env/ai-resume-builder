@@ -812,15 +812,19 @@ export default function BuilderPage() {
   const [scannedJobDescription, setScannedJobDescription] = useState("");
   const [scanTimestamp, setScanTimestamp] = useState<number>(0);
 
-  const hasAtsScoreInDb = scannedJobDescription
-    ? resume?.atsScore !== null && resume?.atsScore !== undefined && resume?.atsJobDescription === scannedJobDescription
-    : resume?.atsScore !== null && resume?.atsScore !== undefined && !resume?.atsJobDescription;
+  const hasAtsScoreInDb = useMemo(() => {
+    if (resume?.atsScore === null || resume?.atsScore === undefined) return false;
+    const dbJd = (resume.atsJobDescription || "").trim();
+    const currentJd = (scannedJobDescription || "").trim();
+    return dbJd === currentJd;
+  }, [resume?.atsScore, resume?.atsJobDescription, scannedJobDescription]);
 
   // Initialize job description from resume details
   useEffect(() => {
     if (resume?.atsJobDescription && !jobDescriptionText && !scannedJobDescription) {
-      setJobDescriptionText(resume.atsJobDescription);
-      setScannedJobDescription(resume.atsJobDescription);
+      const trimmedJd = resume.atsJobDescription.trim();
+      setJobDescriptionText(trimmedJd);
+      setScannedJobDescription(trimmedJd);
     }
   }, [resume?.atsJobDescription, resumeId]);
 
@@ -860,7 +864,7 @@ export default function BuilderPage() {
           atsPassedChecks: atsScoreData.passedChecks,
           atsFailedChecks: atsScoreData.failedChecks,
           atsUpdatedAt: atsScoreData.atsUpdatedAt,
-          atsJobDescription: scannedJobDescription,
+          atsJobDescription: scannedJobDescription ? scannedJobDescription.trim() : null,
           updatedAt: atsScoreData.atsUpdatedAt,
         };
       });
@@ -871,13 +875,13 @@ export default function BuilderPage() {
     }
   }, [atsScoreData, scanTimestamp, resumeId, queryClient, scannedJobDescription, localSections]);
 
-  const activeAtsData = atsScoreData || (hasAtsScoreInDb ? {
-    score: resume!.atsScore!,
+  const activeAtsData = atsScoreData || (hasAtsScoreInDb && resume ? {
+    score: resume.atsScore ?? 0,
     maxScore: 100,
-    feedback: resume!.atsFeedback || [],
-    passedChecks: resume!.atsPassedChecks || [],
-    failedChecks: resume!.atsFailedChecks || [],
-    atsUpdatedAt: resume!.atsUpdatedAt,
+    feedback: resume.atsFeedback || [],
+    passedChecks: resume.atsPassedChecks || [],
+    failedChecks: resume.atsFailedChecks || [],
+    atsUpdatedAt: resume.atsUpdatedAt,
   } : null);
 
   const isAtsOutdated = useMemo(() => {
@@ -919,7 +923,7 @@ export default function BuilderPage() {
 
   const handleScan = (jobDesc?: string) => {
     flushSave();
-    setScannedJobDescription(jobDesc || "");
+    setScannedJobDescription(jobDesc ? jobDesc.trim() : "");
     setScanTimestamp(Date.now());
   };
 
@@ -2141,18 +2145,6 @@ export default function BuilderPage() {
                 AI-powered resume optimization audit.
               </SheetDescription>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                handleScan(scannedJobDescription);
-              }}
-              disabled={isAtsFetching}
-              className="h-8 gap-1.5 text-xs hover:bg-muted/80"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
-              Scan Now
-            </Button>
           </div>
 
           <ScrollArea className="flex-1 min-h-0 px-6 py-4">
@@ -2188,7 +2180,7 @@ export default function BuilderPage() {
                       className="flex-1 text-xs h-9 gap-1.5 font-semibold"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
-                      Scan Job Match
+                      Scan Now
                     </Button>
                     
                     {jobDescriptionText && (
