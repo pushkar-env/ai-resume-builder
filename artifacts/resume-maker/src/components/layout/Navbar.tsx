@@ -73,7 +73,7 @@ export function Navbar() {
                 alt="Resumesensei mascot"
                 className="h-10 w-10 object-contain shrink-0"
               />
-              <span className="hidden min-[380px]:inline-block text-xl font-extrabold tracking-tight sm:text-2xl">
+              <span className="brand-text-responsive text-xl font-extrabold tracking-tight sm:text-2xl">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
