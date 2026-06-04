@@ -21,6 +21,7 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { clearAllToasts } from "@/hooks/use-toast";
 import LandingPage from "@/pages/landing";
 import DashboardPage from "@/pages/dashboard";
 import BuilderPage from "@/pages/builder";
@@ -191,6 +192,7 @@ function ClerkQueryClientCacheInvalidator() {
         if (prev != null) {
           qc.clear();
           setAuthTokenGetter(null);
+          clearAllToasts();
         }
         prevUserIdRef.current = null;
         return;

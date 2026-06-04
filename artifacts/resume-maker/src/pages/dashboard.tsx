@@ -971,7 +971,6 @@ export default function DashboardPage() {
         setOptimisticallyDeletedIds((prev) =>
           prev.filter((id) => id !== variables.id),
         );
-        toast({ title: "Resume deleted" });
       },
       onError: (error, variables) => {
         setDeleteId(null);
@@ -999,8 +998,9 @@ export default function DashboardPage() {
         triggerBurst(window.innerWidth / 2, window.innerHeight - 56);
       }
 
-      // Add to optimistic deletion array & call mutation
+      // Add to optimistic deletion array, show toast immediately, & call mutation
       setOptimisticallyDeletedIds((prev) => [...prev, id]);
+      toast({ title: "Resume deleted" });
       deleteResume.mutate({ id });
 
       // Trigger standard vibration feedback
@@ -1394,6 +1394,7 @@ export default function DashboardPage() {
               onClick={() => {
                 if (deleteId !== null) {
                   setOptimisticallyDeletedIds((prev) => [...prev, deleteId]);
+                  toast({ title: "Resume deleted" });
                   deleteResume.mutate({ id: deleteId });
                 }
               }}

@@ -189,4 +189,8 @@ function useToast() {
   };
 }
 
+export function clearAllToasts() {
+  dispatch({ type: "REMOVE_TOAST" });
+}
+
 export { useToast, toast };
