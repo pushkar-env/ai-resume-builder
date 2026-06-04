@@ -385,7 +385,7 @@ function ExportDialog({
     {
       id: "pdf" as const,
       label: "PDF Document",
-      description: "Print dialog — save as PDF for ATS-friendly vector output",
+      description: "ATS-optimized vector PDF, perfect for job applications",
     },
     {
       id: "docx" as const,
