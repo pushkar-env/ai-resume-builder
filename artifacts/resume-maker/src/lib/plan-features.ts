@@ -1,9 +1,8 @@
 export const FREE_PLAN_FEATURES = [
-  "1 resume",
+  "Create multiple resumes",
   "Free designer templates",
   "PDF, DOCX & JSON exports (watermarked)",
-  "Basic AI suggestions",
-  "Auto-Fit layout system",
+  "Full AI Polish & Suggestions",
 ] as const;
 
 export const PRO_PLAN_FEATURES = [

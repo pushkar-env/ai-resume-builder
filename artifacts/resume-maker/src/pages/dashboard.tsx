@@ -890,10 +890,6 @@ export default function DashboardPage() {
   }, [resumes]);
 
   const handleCreateRequest = () => {
-    if (!isPremiumUser && resumeList.length >= 1) {
-      setShowPaywall(true);
-      return;
-    }
     setCreateOpen(true);
   };
 
@@ -924,10 +920,6 @@ export default function DashboardPage() {
   });
 
   const handleImportClick = () => {
-    if (!isPremiumUser && resumeList.length >= 1) {
-      setShowPaywall(true);
-      return;
-    }
     fileInputRef.current?.click();
   };
 
@@ -1022,13 +1014,9 @@ export default function DashboardPage() {
 
   const handleDuplicateRequest = useCallback(
     (id: number) => {
-      if (!isPremiumUser && resumeList.length >= 1) {
-        setShowPaywall(true);
-        return;
-      }
       duplicateResume.mutate({ id });
     },
-    [isPremiumUser, resumeList.length, duplicateResume.mutate],
+    [duplicateResume.mutate],
   );
 
   const updateResume = useUpdateResume({

@@ -416,10 +416,6 @@ function SummaryEditor({
   const willRefine = currentText.length > 0;
 
   const handleGenerate = () => {
-    if (!isPremium) {
-      onShowPaywall();
-      return;
-    }
     if (!jobTitle && !willRefine) {
       toast({
         title: "Add a job title first",
@@ -665,10 +661,6 @@ function ExperienceEditor({
                           className="h-7 w-7 p-0"
                           title="Improve with AI"
                           onClick={() => {
-                            if (!isPremium) {
-                              onShowPaywall();
-                              return;
-                            }
                             setPendingBullet({ itemIndex: i, bulletIndex: bi });
                             improveBullet.mutate({
                               data: {
@@ -991,10 +983,6 @@ function SkillsEditor({
   const summaryText = findSummary(allSections);
 
   const handleSuggest = () => {
-    if (!isPremium) {
-      onShowPaywall();
-      return;
-    }
     if (!jobTitle) {
       toast({
         title: "Add a job title first",
@@ -1366,10 +1354,6 @@ function ProjectsEditor({
                   className="h-7 w-7 p-0"
                   title="Improve with AI"
                   onClick={() => {
-                    if (!isPremium) {
-                      onShowPaywall();
-                      return;
-                    }
                     setPendingProject(i);
                     improveDescription.mutate({
                       data: {
