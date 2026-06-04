@@ -63,17 +63,17 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center gap-8">
+          <div className="flex min-w-0 items-center gap-8">
             <Link
               href={brandHref}
-              className="flex items-center gap-2 text-foreground transition-opacity hover:opacity-90"
+              className="flex min-w-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90"
             >
               <img
                 src={`${import.meta.env.BASE_URL}bluemascot.svg`}
                 alt="Resumesensei mascot"
                 className="h-10 w-10 object-contain shrink-0"
               />
-              <span className="brand-text-responsive text-xl font-extrabold tracking-tight sm:text-2xl">
+              <span className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
@@ -97,7 +97,7 @@ export function Navbar() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Mobile Menu */}
             <div className="md:hidden flex items-center">
               <Sheet>
