@@ -1331,6 +1331,8 @@ Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResult = JSON.parse(jsonMatch[0]);
+      } else {
+        logger.warn({ aiResponse }, "AI ATS response did not contain valid JSON structure");
       }
     } catch (err: any) {
       logger.error({ error: err }, "AI ATS scoring failed, using rule-based fallback");
@@ -1338,8 +1340,20 @@ Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks
 
     const now = new Date();
 
-    if (parsedResult && typeof parsedResult.score === "number") {
-      const scoreVal = Math.max(0, Math.min(100, Math.round(parsedResult.score)));
+    let scoreVal: number | null = null;
+    if (parsedResult) {
+      if (typeof parsedResult.score === "number") {
+        scoreVal = parsedResult.score;
+      } else if (typeof parsedResult.score === "string") {
+        const parsed = parseInt(parsedResult.score, 10);
+        if (!isNaN(parsed)) {
+          scoreVal = parsed;
+        }
+      }
+    }
+
+    if (parsedResult && scoreVal !== null) {
+      scoreVal = Math.max(0, Math.min(100, Math.round(scoreVal)));
       const passedVal = Array.isArray(parsedResult.passedChecks)
         ? parsedResult.passedChecks.map(String)
         : [];
@@ -1530,16 +1544,54 @@ Instructions:
 
     // Update database
     for (const optSec of optimizedSections) {
-      if (typeof optSec.id !== "number" || !optSec.content) continue;
+      const sectionId = typeof optSec.id === "string" ? parseInt(optSec.id, 10) : optSec.id;
+      if (typeof sectionId !== "number" || isNaN(sectionId) || !optSec.content) continue;
+
+      let sanitizedContent = optSec.content;
+      if (optSec.type === "skills") {
+        let items: any[] = [];
+        let style = "chips";
+        
+        if (Array.isArray(optSec.content)) {
+          items = optSec.content;
+        } else if (optSec.content && typeof optSec.content === "object") {
+          items = Array.isArray(optSec.content.items) ? optSec.content.items : [];
+          style = typeof optSec.content.style === "string" ? optSec.content.style : "chips";
+        }
+        
+        const sanitizedItems = items.map((item: any) => {
+          if (typeof item === "string") {
+            return { name: item };
+          }
+          if (item && typeof item === "object") {
+            return {
+              name: typeof item.name === "string" ? item.name : (item.name ? String(item.name) : ""),
+              level: typeof item.level === "number" ? item.level : undefined
+            };
+          }
+          return { name: "" };
+        }).filter((item: any) => item.name.trim() !== "");
+
+        sanitizedContent = { style, items: sanitizedItems };
+      }
+      
+      if (optSec.type === "summary") {
+        if (typeof optSec.content === "string") {
+          sanitizedContent = { text: optSec.content };
+        } else if (optSec.content && typeof optSec.content === "object" && typeof optSec.content.text !== "string") {
+          sanitizedContent = { text: optSec.content.text ? String(optSec.content.text) : "" };
+        }
+      }
+
       await db
         .update(resumeSectionsTable)
         .set({
-          content: optSec.content,
+          content: sanitizedContent,
           updatedAt: new Date(),
         })
         .where(
           and(
-            eq(resumeSectionsTable.id, optSec.id),
+            eq(resumeSectionsTable.id, sectionId),
             eq(resumeSectionsTable.resumeId, resume.id),
           ),
         );

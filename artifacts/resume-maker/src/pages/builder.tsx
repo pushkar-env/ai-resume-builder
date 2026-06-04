@@ -2191,14 +2191,12 @@ export default function BuilderPage() {
                       Scan Job Match
                     </Button>
                     
-                    {scannedJobDescription && (
+                    {jobDescriptionText && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
                           setJobDescriptionText("");
-                          setScannedJobDescription("");
-                          setScanTimestamp(0);
                         }}
                         disabled={isAtsFetching}
                         className="h-9 text-xs px-3 hover:bg-muted"
