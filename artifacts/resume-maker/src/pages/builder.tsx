@@ -103,6 +103,7 @@ import {
 } from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
+import { AtsPaywallDialog } from "@/components/shared/AtsPaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { SEO } from "@/components/shared/SEO";
 import {
@@ -616,6 +617,7 @@ export default function BuilderPage() {
   });
   const [templateId, setTemplateId] = useState("modern");
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showAtsPaywall, setShowAtsPaywall] = useState(false);
   const [paywallTitle, setPaywallTitle] = useState("Premium Feature");
   const [paywallDescription, setPaywallDescription] = useState(
     "This feature is reserved for Pro users. Upgrade to unlock all templates, unlimited AI generation, and premium customization.",
@@ -1472,11 +1474,7 @@ export default function BuilderPage() {
         isAtsFetching={isPremiumUser ? isAtsFetching : false}
         atsPremiumLocked={!isPremiumUser}
         onAtsPremiumClick={() => {
-          setPaywallTitle("ATS score is a Pro feature");
-          setPaywallDescription(
-            "Upgrade to Resumesensei Pro to see your live ATS compatibility score and detailed pass/fail checks while you edit.",
-          );
-          setShowPaywall(true);
+          setShowAtsPaywall(true);
         }}
         onAtsScoreClick={() => setAtsPanelOpen(true)}
         onExport={() => setExportOpen(true)}
@@ -2107,6 +2105,11 @@ export default function BuilderPage() {
         onOpenChange={setShowPaywall}
         title={paywallTitle}
         description={paywallDescription}
+      />
+
+      <AtsPaywallDialog
+        open={showAtsPaywall}
+        onOpenChange={setShowAtsPaywall}
       />
 
       <Sheet open={atsPanelOpen} onOpenChange={setAtsPanelOpen}>
