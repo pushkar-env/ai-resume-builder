@@ -1,5 +1,6 @@
 import {
-  AI_REQUEST_TIMEOUT_MS,
+  AI_HEAVY_TIMEOUT_MS,
+  createAiHeavyRequestOptions,
   createAiRequestOptions,
   isAiTimeoutError,
 } from "@/lib/ai-request";
@@ -11,7 +12,7 @@ export const RESUME_MUTATION_TIMEOUT_MS = 45_000;
 export const PDF_EXPORT_TIMEOUT_MS = 90_000;
 
 /** Import uses OpenAI parsing on the server. */
-export const IMPORT_RESUME_TIMEOUT_MS = AI_REQUEST_TIMEOUT_MS;
+export const IMPORT_RESUME_TIMEOUT_MS = AI_HEAVY_TIMEOUT_MS;
 
 export function createResumeMutationOptions(
   timeoutMs = RESUME_MUTATION_TIMEOUT_MS,
@@ -20,7 +21,7 @@ export function createResumeMutationOptions(
 }
 
 export function createImportResumeOptions(): RequestInit {
-  return createAiRequestOptions(IMPORT_RESUME_TIMEOUT_MS);
+  return createAiHeavyRequestOptions();
 }
 
 export function createPdfExportSignal(

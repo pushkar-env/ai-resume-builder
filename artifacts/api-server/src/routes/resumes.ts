@@ -26,7 +26,13 @@ import { logger } from "../lib/logger";
 import multer from "multer";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
-import { completeResumeAi } from "../lib/resume-ai-chat";
+import {
+  clipAiInput,
+  completeResumeAiJson,
+} from "../lib/resume-ai-chat";
+import { sendAiRouteError } from "../lib/ai-route-error";
+import { formatSectionsForAiAnalysis } from "../lib/resume-ai-serialize";
+import { optimizeResumeWithAi } from "../lib/optimize-resume-ai";
 import { renderResumePdf } from "../lib/pdf-renderer";
 
 const upload = multer({
@@ -422,74 +428,30 @@ router.post(
         return;
       }
 
-      // Prepare prompt
-      const prompt = `Parse the following resume text into a structured format.
-    
-    Extract the candidate's personal details, professional summary, work experience, education, skills, projects, and certifications.
-    
-    Guidelines:
-    1. Social & Professional Links: Extract ALL social or professional profile links/usernames found in the resume (such as LinkedIn, GitHub, Twitter, Portfolio, LeetCode, Behance, Dribbble, etc.) into the 'personal.socials' array. Populate the 'label' with the platform name (e.g. "LinkedIn", "GitHub", "Twitter", "LeetCode", "Portfolio") and the 'url' with the full URL or username. Make sure that the 'label' is always in PascalCase (e.g. "LinkedIn", "GitHub", "Twitter", "LeetCode", "Portfolio").
-    2. GPA & Percentage Mode: Extract the candidate's GPA/Grade from the education items as a clean numeric score (e.g. "3.9" or "9.8" or "98.5"). If the score is a percentage (e.g. "85%", "92.5%"), extract only the numeric value (e.g. "85" or "92.5") and determine the grading system mode ('gpaMode' should be 'percentage'). If the score is a GPA (e.g., "3.9", "8.5", "3.9/4.0"), extract the clean score part (e.g. "3.9" or "8.5") and set the grading system mode ('gpaMode' should be 'gpa'). For every education item, also extract the field 'gpaMode' with value either "gpa" or "percentage" depending on the format of the grade.
-    3. Dates: Normalize all work experience and education dates into a clean, consistent format, preferably "Month Year" (e.g. "Jan 2020", "May 2021") or just "Year" (e.g. "2020") if month is missing. If a job or education is ongoing/current, use "Present" for the end date.
-    
-    Return ONLY a valid JSON object with the following structure, populated with the extracted information. Use empty strings or empty arrays if information is missing.
-    Do NOT wrap the JSON in quotes or code blocks, return ONLY the raw JSON string.
+      const prompt = `Parse this resume text into structured JSON.
 
-    Structure:
-    {
-      "title": "A short suitable title for this resume (e.g. Software Engineer)",
-      "personal": {
-        "name": "", "jobTitle": "", "email": "", "phone": "", "location": "", "website": "",
-        "socials": [
-          { "label": "", "url": "" }
-        ]
-      },
-      "summary": { "text": "" },
-      "experience": [
-        { "title": "", "company": "", "location": "", "startDate": "", "endDate": "", "bullets": [""] }
-      ],
-      "education": [
-        { "school": "", "degree": "", "field": "", "startDate": "", "endDate": "", "gpa": "", "gpaMode": "gpa" }
-      ],
-      "skills": [ { "name": "", "level": 90 } ],
-      "projects": [
-        { "name": "", "description": "", "url": "" }
-      ],
-      "certifications": [
-        { "name": "", "issuer": "", "date": "", "credentialUrl": "" }
-      ]
-    }
+Rules:
+- socials: LinkedIn, GitHub, Portfolio, etc. as {label, url} with PascalCase labels
+- education gpa: numeric only; gpaMode "gpa" or "percentage"
+- dates: "Mon YYYY" or "YYYY"; current roles end with "Present"
 
-    Resume Text:
-    """${extractedText.substring(0, 15000)}"""
-    `;
+Return JSON:
+{"title":"","personal":{"name":"","jobTitle":"","email":"","phone":"","location":"","website":"","socials":[{"label":"","url":""}]},"summary":{"text":""},"experience":[{"title":"","company":"","location":"","startDate":"","endDate":"","bullets":[""]}],"education":[{"school":"","degree":"","field":"","startDate":"","endDate":"","gpa":"","gpaMode":"gpa"}],"skills":[{"name":"","level":90}],"projects":[{"name":"","description":"","url":""}],"certifications":[{"name":"","issuer":"","date":"","credentialUrl":""}]}
 
-      const aiResultText = await completeResumeAi(
-        prompt,
-        2500,
-        "import-resume",
-      );
-      if (!aiResultText) {
-        throw new Error("AI returned empty content");
-      }
+Resume text:
+"""${clipAiInput(extractedText, 12_000)}"""`;
 
-      let parsedData;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let parsedData: any;
       try {
-        const jsonMatch = aiResultText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("Could not parse JSON from AI response");
-        }
+        parsedData = await completeResumeAiJson<any>(
+          prompt,
+          "import-resume",
+          "import",
+        );
       } catch (e: any) {
-        logger.error(
-          { error: e, aiResultText },
-          "Failed to parse AI output for resume import",
-        );
-        import("fs").then((fs) =>
-          fs.writeFileSync("import-json-error.txt", String(e?.stack || e)),
-        );
-        res.status(500).json({ error: "Failed to parse the imported resume." });
+        logger.error({ error: e }, "Failed to parse AI output for resume import");
+        sendAiRouteError(res, e);
         return;
       }
 
@@ -1186,154 +1148,36 @@ router.get(
       ? skillsContent.items.map((i: any) => i.name || i).join(", ")
       : "";
 
-    // Format all sections for the prompt
-    let resumeText = "";
-    for (const s of sections) {
-      if (!s.isVisible) continue;
-      let contentStr = "";
-      if (s.type === "personal") {
-        const c = s.content as any;
-        contentStr = `Name: ${c?.name || ""}\nTarget Job Title: ${c?.jobTitle || ""}\nEmail: ${c?.email || ""}\nPhone: ${c?.phone || ""}\nLocation: ${c?.location || ""}\nSocials: ${
-          Array.isArray(c?.socials)
-            ? c.socials.map((soc: any) => `${soc.label}: ${soc.url}`).join(", ")
-            : ""
-        }`;
-      } else if (s.type === "summary") {
-        contentStr = (s.content as any)?.text || "";
-      } else if (s.type === "skills") {
-        const items = (s.content as any)?.items || [];
-        contentStr = items.map((i: any) => i.name || i).join(", ");
-      } else if (
-        s.type === "experience" ||
-        s.type === "education" ||
-        s.type === "projects" ||
-        s.type === "certifications"
-      ) {
-        const items = (s.content as any)?.items || [];
-        contentStr = items
-          .map((item: any) => {
-            const details = [];
-            const mainTitle = item.title || item.role || item.school || item.name || "";
-            const org = item.company || item.school || item.issuer || "";
-            if (mainTitle) details.push(`Title/Role/School: ${mainTitle}`);
-            if (org) details.push(`Organization/Company: ${org}`);
-            if (item.startDate) details.push(`Duration: ${item.startDate} - ${item.endDate || "Present"}`);
-            if (item.description) details.push(`Description: ${item.description}`);
-            if (Array.isArray(item.bullets) && item.bullets.length > 0) {
-              details.push(`Bullet Points:\n${item.bullets.map((b: string) => `- ${b}`).join("\n")}`);
-            }
-            return details.join("\n");
-          })
-          .join("\n\n");
-      }
-      if (contentStr.trim()) {
-        resumeText += `### ${s.title || s.type}\n${contentStr}\n\n`;
-      }
-    }
+    const resumeText = formatSectionsForAiAnalysis(sections);
+    const jdBlock =
+      jobDescription && jobDescription.trim().length > 0
+        ? `\nJob description:\n"""${clipAiInput(jobDescription, 3_500)}"""`
+        : "";
 
-    let prompt = "";
-    if (jobDescription && jobDescription.trim().length > 0) {
-      prompt = `You are a professional Applicant Tracking System (ATS) auditor.
-Analyze the following resume content specifically optimized for the target job title "${targetJobTitle}" AND evaluated against the provided Job Description.
+    const prompt = `You are an ATS auditor. Score this resume for target role "${targetJobTitle}".
+Skills on resume: ${skillsList || "none"}${jdBlock}
 
-Target Job Title: ${targetJobTitle}
-Candidate's Listed Skills: ${skillsList || "None listed"}
-
-Target Job Description:
+Resume:
 """
-${jobDescription.substring(0, 5000)}
+${resumeText}
 """
 
-Resume Content:
-"""
-${resumeText.substring(0, 10000)}
-"""
+Return JSON: {"score":75,"passedChecks":["..."],"failedChecks":["..."],"feedback":["..."]}
+- score: integer 0-100
+- passedChecks, failedChecks, feedback: 3-5 specific strings each`;
 
-Evaluate the resume on:
-1. Contact Information: Are essential details (email, phone, location) and professional profile links (e.g. LinkedIn, GitHub, Portfolio) present?
-2. Job Description Alignment: Does the resume align with the requirements, keywords, technologies, and responsibilities mentioned in the Target Job Description?
-3. Action Verbs & Achievements: Are experience bullets starting with strong action verbs? Are achievements quantified with numbers/metrics (e.g., percentages, dollar values, headcounts, scale)?
-4. Formatting & Readability: Are sections clear, free of weak language or fluff?
-5. Skill Coverage: Does the candidate list the tech stack, methodologies, or certifications requested in the Job Description?
-
-Return ONLY a JSON object with this exact structure:
-{
-  "score": 75,
-  "passedChecks": [
-    "Contact details (email and phone) are present.",
-    "Target job title matches professional summary context.",
-    "Experience bullet points contain action verbs and numbers."
-  ],
-  "failedChecks": [
-    "No professional socials (e.g., LinkedIn, GitHub) detected in contact details.",
-    "Skills section does not list core competencies matching the job description."
-  ],
-  "feedback": [
-    "Add your LinkedIn profile to the contact section to increase ATS visibility.",
-    "Ensure all bullet points in your work experience have quantified outcomes."
-  ]
-}
-
-- score: an integer between 0 and 100. Be realistic and accurate based on how well the resume content matches the target job description requirements.
-- passedChecks: array of 3-5 specific checks that are fully satisfied. Be specific to this resume and the job description.
-- failedChecks: array of specific checks that failed or need optimization. Be specific to this resume and the job description.
-- feedback: array of 3-5 actionable recommendations to improve the score.
-
-Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks.`;
-    } else {
-      prompt = `You are a professional Applicant Tracking System (ATS) auditor.
-Analyze the following resume content specifically optimized for the target job title "${targetJobTitle}".
-
-Target Job Title: ${targetJobTitle}
-Candidate's Listed Skills: ${skillsList || "None listed"}
-
-Resume Content:
-"""
-${resumeText.substring(0, 10000)}
-"""
-
-Evaluate the resume on:
-1. Contact Information: Are essential details (email, phone, location) and professional profile links (e.g. LinkedIn, GitHub, Portfolio) present?
-2. Target Role Alignment: Does the summary and experience align with the target job title "${targetJobTitle}"?
-3. Action Verbs & Achievements: Are experience bullets starting with strong action verbs? Are achievements quantified with numbers/metrics (e.g., percentages, dollar values, headcounts, scale)?
-4. Formatting & Readability: Are sections clear, free of weak language or fluff?
-5. Skill Coverage: Does the candidate list modern, industry-standard skills for the target role "${targetJobTitle}"?
-
-Return ONLY a JSON object with this exact structure:
-{
-  "score": 75,
-  "passedChecks": [
-    "Contact details (email and phone) are present.",
-    "Target job title matches professional summary context.",
-    "Experience bullet points contain action verbs and numbers."
-  ],
-  "failedChecks": [
-    "No professional socials (e.g., LinkedIn, GitHub) detected in contact details.",
-    "Skills section does not list core competencies matching the job title."
-  ],
-  "feedback": [
-    "Add your LinkedIn profile to the contact section to increase ATS visibility.",
-    "Ensure all bullet points in your work experience have quantified outcomes."
-  ]
-}
-
-- score: an integer between 0 and 100. Be realistic and accurate based on target job title and metrics.
-- passedChecks: array of 3-5 specific checks that are fully satisfied. Be specific to this resume.
-- failedChecks: array of specific checks that failed or need optimization. Be specific to this resume.
-- feedback: array of 3-5 actionable recommendations to improve the score.
-
-Output ONLY the raw JSON string. Do not wrap in markdown or markdown code blocks.`;
-    }
-
-    let parsedResult: any = null;
+    let parsedResult: {
+      score?: number | string;
+      passedChecks?: unknown[];
+      failedChecks?: unknown[];
+      feedback?: unknown[];
+    } | null = null;
     try {
-      const aiResponse = await completeResumeAi(prompt, 900, "ats-score-ai");
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResult = JSON.parse(jsonMatch[0]);
-      } else {
-        logger.warn({ aiResponse }, "AI ATS response did not contain valid JSON structure");
-      }
+      parsedResult = await completeResumeAiJson(
+        prompt,
+        "ats-score-ai",
+        "ats-score",
+      );
     } catch (err: any) {
       logger.error({ error: err }, "AI ATS scoring failed, using rule-based fallback");
     }
@@ -1472,68 +1316,18 @@ router.post(
       return;
     }
 
-    const sectionsInput = sectionsToOptimize.map((s) => ({
-      id: s.id,
-      type: s.type,
-      title: s.title,
-      content: s.content,
-    }));
-
-    const hasJobDescription = jobDescription.trim().length > 0;
-    const prompt = hasJobDescription
-      ? `You are an expert AI Resume Writer and career coach.
-Your task is to optimize and rewrite sections of a candidate's resume to make it highly aligned with the target Job Description, and provide a summary of the changes.
-
-Target Job Description:
-"""
-${jobDescription.substring(0, 4000)}
-"""
-
-Input Sections (JSON format):
-\`\`\`json
-${JSON.stringify(sectionsInput, null, 2)}
-\`\`\`
-
-Instructions:
-1. Optimize the "content" of each section to match the job description requirements, keywords, tech stack, and key responsibilities.
-2. In the "summary" section: rewrite the summary to highlight target matches, experiences, and technical strengths requested in the Job Description. Keep it to 3-4 professional sentences.
-3. In the "skills" section: add critical technical skills, frameworks, languages, or tools mentioned in the Job Description that are plausible/highly matching, whilst retaining the candidate's existing core skills. Return each skill as an object matching the existing skills structure (e.g. {"name": "Skill Name"}).
-4. In the "experience" and "projects" sections: rewrite descriptions, titles, and especially bullet points to use strong action verbs, emphasize accomplishments, and match job description keywords. Reformat bullet points to contain quantified impact (e.g. "Optimized API load times by 40% using Redis caching", "Managed a team of 4 engineers to deliver X"). Avoid making up completely false companies or degrees, but enhance existing details to read beautifully.
-5. Return a JSON object with two keys:
-   - "sections": the exact same JSON array structure containing the optimized content, with fields "id", "type", "title", and "content". Crucially, do not change the "id" or "type" fields.
-   - "summary": a markdown bulleted string summarizing the key changes and improvements made in each section (e.g., "* **Summary**: Aligned key highlights to focus on X.\\n* **Experience**: Quantified backend efficiency achievements by adding Y.").
-6. Return ONLY the raw JSON object string. Do not wrap in markdown code blocks or any other explanation.`
-      : `You are an expert AI Resume Writer and career coach.
-Your task is to optimize and rewrite sections of a candidate's resume to make it highly professional, clean, achievement-oriented, and generic-ATS friendly, and provide a summary of the changes.
-
-Input Sections (JSON format):
-\`\`\`json
-${JSON.stringify(sectionsInput, null, 2)}
-\`\`\`
-
-Instructions:
-1. Optimize the "content" of each section to improve flow, grammar, standard industry vocabulary, and readability.
-2. In the "summary" section: rewrite the summary to present a clear professional identity, key areas of expertise, and overall value proposition. Keep it to 3-4 professional sentences.
-3. In the "skills" section: clean up, standardize, and group critical professional skills, frameworks, tools, or concepts. Return each skill as an object matching the existing skills structure (e.g. {"name": "Skill Name"}).
-4. In the "experience" and "projects" sections: rewrite bullet points to use strong action verbs, focus on quantifiable results, and emphasize accomplishments. Reformat bullet points to contain quantified impact (e.g. "Optimized API load times by 40% using Redis caching", "Managed a team of 4 engineers to deliver X"). Enhance existing details to read beautifully without introducing completely fabricated companies or degrees.
-5. Return a JSON object with two keys:
-   - "sections": the exact same JSON array structure containing the optimized content, with fields "id", "type", "title", and "content". Crucially, do not change the "id" or "type" fields.
-   - "summary": a markdown bulleted string summarizing the key changes and improvements made in each section (e.g., "* **Summary**: Enhanced flow and focused on backend engineering strengths.\\n* **Skills**: Grouped similar technical abilities for cleaner presentation.").
-6. Return ONLY the raw JSON object string. Do not wrap in markdown code blocks or any other explanation.`;
-
     let optimizedSections: any[] = [];
     let optimizationSummary = "";
     try {
-      const aiResponse = await completeResumeAi(prompt, 2000, "optimize-resume-ai");
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsedResult = JSON.parse(jsonMatch[0]);
-        optimizedSections = parsedResult.sections || [];
-        optimizationSummary = parsedResult.summary || "";
-      }
+      const result = await optimizeResumeWithAi(
+        sectionsToOptimize,
+        jobDescription,
+      );
+      optimizedSections = result.sections;
+      optimizationSummary = result.summary;
     } catch (err: any) {
       logger.error({ error: err }, "AI resume optimization failed");
-      res.status(500).json({ error: "Failed to optimize resume with AI. Please try again." });
+      sendAiRouteError(res, err);
       return;
     }
 

@@ -31,7 +31,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
-import { AI_REQUEST_OPTIONS, isAiTimeoutError } from "@/lib/ai-request";
+import {
+  aiErrorDescription,
+  createAiQuickRequestOptions,
+  createAiStandardRequestOptions,
+  isAiTimeoutError,
+} from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 import { TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
 
@@ -43,8 +48,7 @@ function aiErrorToast(
   if (isAiTimeoutError(err)) {
     toast({
       title: "AI took too long",
-      description:
-        "Please wait a moment and try again. If it keeps happening, check your connection.",
+      description: aiErrorDescription(err, "Please try again in a moment."),
       variant: "destructive",
     });
     return;
@@ -383,7 +387,7 @@ function SummaryEditor({
 }) {
   const { toast } = useToast();
   const generateSummary = useGenerateSummary({
-    request: AI_REQUEST_OPTIONS,
+    request: createAiQuickRequestOptions(),
     mutation: {
       onSuccess: (data) => {
         if (data?.text && data.text.trim().length > 0) {
@@ -517,7 +521,7 @@ function ExperienceEditor({
   contentRef.current = content;
 
   const improveBullet = useImproveBullet({
-    request: AI_REQUEST_OPTIONS,
+    request: createAiQuickRequestOptions(),
     mutation: {
       onSuccess: (data) => {
         if (!pendingBullet || !data?.text?.trim()) {
@@ -918,7 +922,7 @@ function SkillsEditor({
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
   const suggestSkills = useSuggestSkills({
-    request: AI_REQUEST_OPTIONS,
+    request: createAiStandardRequestOptions(),
     mutation: {
       onSuccess: (data) => {
         const existing = new Set(
@@ -1266,7 +1270,7 @@ function ProjectsEditor({
   contentRef.current = content;
 
   const improveDescription = useImproveBullet({
-    request: AI_REQUEST_OPTIONS,
+    request: createAiQuickRequestOptions(),
     mutation: {
       onSuccess: (data) => {
         if (pendingProject === null) return;

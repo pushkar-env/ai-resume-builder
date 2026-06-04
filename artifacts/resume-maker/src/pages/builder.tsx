@@ -120,6 +120,10 @@ import { useToast } from "@/hooks/use-toast";
 import { emptySectionContentForType } from "@/lib/empty-section-content";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
 import {
+  aiErrorDescription,
+  createAiHeavyRequestOptions,
+} from "@/lib/ai-request";
+import {
   createPdfExportSignal,
   resumeOperationErrorMessage,
 } from "@/lib/resume-api-request";
@@ -807,8 +811,10 @@ export default function BuilderPage() {
       query: {
         queryKey: ["/api/resumes", resumeId, "ats", scannedJobDescription, scanTimestamp],
         enabled: !!resumeId && isPremiumUser && scanTimestamp > 0,
+        retry: 1,
       },
-    }
+      request: createAiHeavyRequestOptions(),
+    },
   );
 
   // Invalidate resume query on success to fetch updated ats fields and timestamp
@@ -908,6 +914,7 @@ export default function BuilderPage() {
   const [optimizationSummary, setOptimizationSummary] = useState<string | null>(null);
 
   const optimizeResumeMutation = useOptimizeResume({
+    request: createAiHeavyRequestOptions(),
     mutation: {
       onSuccess: (data) => {
         const resumeData = data.resume;
@@ -937,10 +944,10 @@ export default function BuilderPage() {
         // Recalculate ATS Score against the scanned job description
         handleScan(scannedJobDescription);
       },
-      onError: (err: any) => {
+      onError: (err: unknown) => {
         toast({
           title: "Optimization Failed",
-          description: err.message || "Failed to optimize resume.",
+          description: aiErrorDescription(err, "Failed to optimize resume."),
           variant: "destructive",
         });
       },
