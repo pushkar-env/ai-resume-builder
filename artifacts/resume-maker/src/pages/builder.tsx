@@ -118,7 +118,11 @@ import {
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { emptySectionContentForType } from "@/lib/empty-section-content";
-import { RESUME_PDF_EXPORT_CSS } from "@/lib/resume-export-styles";
+import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
+import {
+  createPdfExportSignal,
+  resumeOperationErrorMessage,
+} from "@/lib/resume-api-request";
 
 const ACCENT_COLORS = [
   { label: "Black", value: "#000000" },
@@ -198,54 +202,6 @@ function downloadFileBlob(blob: Blob, filename: string) {
   document.body.removeChild(a);
   // Delay revoke so Safari / mobile WebKit can start the download before the blob URL disappears.
   window.setTimeout(() => URL.revokeObjectURL(url), 2_000);
-}
-
-/**
- * Build a complete HTML document containing the actual rendered resume preview DOM,
- * including all stylesheets from the current document. The result is byte-identical
- * to what the user sees in the preview pane.
- */
-function buildExportHtml(resumeTitle: string): string | null {
-  const previewEl = document.querySelector<HTMLElement>(
-    "[data-resume-export-target]",
-  );
-  if (!previewEl) return null;
-
-  // Collect all <style> tags and stylesheet <link>s from document head
-  const headEls = Array.from(document.head.children).filter((el) => {
-    if (el.tagName === "STYLE") return true;
-    if (el.tagName === "LINK" && (el as HTMLLinkElement).rel === "stylesheet")
-      return true;
-    return false;
-  });
-
-  // For <link>, convert to absolute URLs so the new window can fetch them
-  const headHtml = headEls
-    .map((el) => {
-      if (el.tagName === "LINK") {
-        const link = el as HTMLLinkElement;
-        const absHref = new URL(link.href, document.baseURI).href;
-        return `<link rel="stylesheet" href="${absHref}" />`;
-      }
-      return el.outerHTML;
-    })
-    .join("\n");
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>${resumeTitle.replace(/[<>]/g, "")}</title>
-  ${headHtml}
-  <style>
-    ${RESUME_PDF_EXPORT_CSS}
-    @media print {
-      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
-</head>
-<body>${previewEl.outerHTML.trim()}</body>
-</html>`;
 }
 
 /* ─── SortableSectionItem ─── */
@@ -345,7 +301,9 @@ function ExportDialog({
         );
         toast({ title: "JSON downloaded" });
       } else if (format === "pdf") {
-        const html = buildExportHtml(resume.title || "Resume");
+        const html = await buildSelfContainedExportHtml(
+          resume.title || "Resume",
+        );
         if (!html) {
           toast({
             title: "Could not capture resume preview",
@@ -364,12 +322,16 @@ function ExportDialog({
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ html }),
+            signal: createPdfExportSignal(),
           });
 
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
             throw new Error(
-              `Server PDF Generation Failed: ${errData.details || errData.error || res.statusText}`,
+              errData.details ||
+                errData.error ||
+                res.statusText ||
+                "PDF generation failed",
             );
           }
 
@@ -378,7 +340,14 @@ function ExportDialog({
           toast({ title: "PDF downloaded successfully" });
         } catch (error) {
           console.error(error);
-          toast({ title: "Failed to download PDF", variant: "destructive" });
+          toast({
+            title: "Failed to download PDF",
+            description: resumeOperationErrorMessage(
+              error,
+              "Please try again in a moment.",
+            ),
+            variant: "destructive",
+          });
         }
       } else {
         try {

@@ -26,9 +26,8 @@ import { logger } from "../lib/logger";
 import multer from "multer";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
-import puppeteer from "puppeteer";
-
 import { completeResumeAi } from "../lib/resume-ai-chat";
+import { renderResumePdf } from "../lib/pdf-renderer";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -738,13 +737,14 @@ router.post(
 
       res.status(201).json(toJSON({ ...resume, sections }));
     } catch (error: any) {
-      logger.error({ error }, "Error importing resume");
-      import("fs").then((fs) =>
-        fs.writeFileSync("import-error.txt", String(error?.stack || error)),
-      );
-      res
-        .status(500)
-        .json({ error: "An error occurred while importing the resume." });
+      const message = error?.message || String(error);
+      const isTimeout = /timed out/i.test(message);
+      logger.error({ error: message }, "Error importing resume");
+      res.status(isTimeout ? 504 : 500).json({
+        error: isTimeout
+          ? "Import timed out while parsing your resume. Please try again."
+          : "An error occurred while importing the resume.",
+      });
     }
   },
 );
@@ -1634,46 +1634,31 @@ router.post(
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
     const { html } = req.body;
-    if (!html) {
+    if (!html || typeof html !== "string") {
       res.status(400).json({ error: "No HTML provided" });
       return;
     }
 
+    if (html.length > 15 * 1024 * 1024) {
+      res.status(413).json({ error: "Export payload is too large" });
+      return;
+    }
+
     try {
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-        ],
-      });
-
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "load" });
-
-      // Some fonts might need a bit more time to render perfectly, waiting a small fixed amount can help
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true,
-        preferCSSPageSize: true,
-        margin: { top: 0, bottom: 0, left: 0, right: 0 },
-      });
-
-      await browser.close();
+      const pdfBuffer = await renderResumePdf(html);
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
-      res.send(Buffer.from(pdfBuffer));
+      res.send(pdfBuffer);
     } catch (error: any) {
-      logger.error({ error: error.message || error }, "Error generating PDF");
-      res.status(500).json({
-        error: "Failed to generate PDF",
-        details: error.message || String(error),
+      const message = error?.message || String(error);
+      const isTimeout = /timed out/i.test(message);
+      logger.error({ error: message }, "Error generating PDF");
+      res.status(isTimeout ? 504 : 500).json({
+        error: isTimeout
+          ? "PDF generation timed out. Please try again."
+          : "Failed to generate PDF",
+        details: message,
       });
     }
   },

@@ -11,6 +11,7 @@ import { AppFooter } from "@/components/layout/AppFooter";
 import {
   useListTemplates,
   useCreateResume,
+  createResume as createResumeApi,
   getListResumesQueryKey,
   useListResumes,
 } from "@workspace/api-client-react";
@@ -21,6 +22,11 @@ import { useUser } from "@clerk/react";
 import { SEO } from "@/components/shared/SEO";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
+import {
+  createResumeMutationOptions,
+  resumeOperationErrorMessage,
+  withResumeMutationRetry,
+} from "@/lib/resume-api-request";
 import { Zap } from "lucide-react";
 import { SITE_URL } from "@/lib/brand";
 import {
@@ -67,17 +73,28 @@ export default function TemplatesPage() {
   const resumeList = Array.isArray(resumes) ? resumes : [];
 
   const createResume = useCreateResume({
+    request: createResumeMutationOptions(),
     mutation: {
+      mutationFn: ({ data }) =>
+        withResumeMutationRetry(() =>
+          createResumeApi(data, createResumeMutationOptions()),
+        ),
       onSuccess: (data) => {
+        setCreating(false);
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         navigate(`/builder/${data.id}`);
       },
-      onError: (error: any) =>
+      onError: (error: any) => {
+        setCreating(false);
         toast({
           title: "Failed to create resume",
-          description: error?.message || "Unknown error occurred",
+          description: resumeOperationErrorMessage(
+            error,
+            "Unknown error occurred",
+          ),
           variant: "destructive",
-        }),
+        });
+      },
     },
   });
 
@@ -138,6 +155,12 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {(creating || createResume.isPending) && (
+        <PremiumLoadingScreen
+          title="Creating your resume"
+          subtitle="Applying template and sample sections"
+        />
+      )}
       <SEO
         title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."

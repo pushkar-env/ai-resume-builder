@@ -65,6 +65,8 @@ import {
   useUpdateResume,
   useGetResume,
   useImportResume,
+  createResume as createResumeApi,
+  importResume as importResumeApi,
   getListResumesQueryKey,
   getGetResumeQueryKey,
   type Resume,
@@ -74,6 +76,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
+import {
+  createImportResumeOptions,
+  createResumeMutationOptions,
+  resumeOperationErrorMessage,
+  withResumeMutationRetry,
+} from "@/lib/resume-api-request";
 import {
   previewCardHoverTransition,
   previewCardWhileHover,
@@ -890,7 +898,12 @@ export default function DashboardPage() {
   };
 
   const importResume = useImportResume({
+    request: createImportResumeOptions(),
     mutation: {
+      mutationFn: ({ data }) =>
+        withResumeMutationRetry(() =>
+          importResumeApi(data, createImportResumeOptions()),
+        ),
       onSuccess: (data: Resume) => {
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         toast({ title: "Resume imported successfully" });
@@ -899,8 +912,10 @@ export default function DashboardPage() {
       onError: (error: any) => {
         toast({
           title: "Failed to import resume",
-          description:
-            error?.message || "Ensure the file is a valid PDF or DOCX.",
+          description: resumeOperationErrorMessage(
+            error,
+            "Ensure the file is a valid PDF or DOCX.",
+          ),
           variant: "destructive",
         });
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -925,7 +940,12 @@ export default function DashboardPage() {
   };
 
   const createResume = useCreateResume({
+    request: createResumeMutationOptions(),
     mutation: {
+      mutationFn: ({ data }) =>
+        withResumeMutationRetry(() =>
+          createResumeApi(data, createResumeMutationOptions()),
+        ),
       onSuccess: (data: Resume) => {
         queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
         setCreateOpen(false);
@@ -934,7 +954,10 @@ export default function DashboardPage() {
       onError: (error: any) =>
         toast({
           title: "Failed to create resume",
-          description: error?.message || "Unknown error occurred",
+          description: resumeOperationErrorMessage(
+            error,
+            "Unknown error occurred",
+          ),
           variant: "destructive",
         }),
     },
@@ -1041,6 +1064,18 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {(createResume.isPending || importResume.isPending) && (
+        <PremiumLoadingScreen
+          title={
+            importResume.isPending ? "Importing your resume" : "Creating your resume"
+          }
+          subtitle={
+            importResume.isPending
+              ? "Extracting and structuring content with AI"
+              : "Setting up sections and template"
+          }
+        />
+      )}
       <SEO
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
