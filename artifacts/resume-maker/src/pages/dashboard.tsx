@@ -128,6 +128,13 @@ function ResumeThumbnail({
   const hostRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
+  const [isReady, setIsReady] = useState(false);
+
+  // Defer rendering the heavy preview SVG/HTML text nodes until entrance animations complete
+  useEffect(() => {
+    const timer = setTimeout(() => setIsReady(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -151,7 +158,7 @@ function ResumeThumbnail({
   const { data: resume } = useGetResume(resumeId, {
     query: {
       queryKey: getGetResumeQueryKey(resumeId),
-      enabled: inView && !isDragging,
+      enabled: isReady && inView && !isDragging,
     },
   });
 
@@ -182,7 +189,7 @@ function ResumeThumbnail({
       ref={hostRef}
       className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
     >
-      {!inView || !resume ? (
+      {!isReady || !inView || !resume ? (
         <ScaledResumeThumbnailShell
           hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
           measureDeps={[templateId]}
@@ -384,7 +391,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: isDraggingThis ? "transform" : "auto",
+        willChange: "transform, opacity",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -396,6 +403,14 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         style={{
           transformStyle: isDraggingThis ? "preserve-3d" : "flat",
           backfaceVisibility: isDraggingThis ? "hidden" : "visible",
+          willChange: "transform",
+        }}
+        initial={{
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotate: 0,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
         drag={!resumeMenuOpen}
         dragControls={dragControls}
@@ -1104,7 +1119,7 @@ export default function DashboardPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
           >
             {/* Create New Card */}
-            <motion.div variants={fadeUp}>
+            <motion.div variants={fadeUp} style={{ willChange: "transform, opacity" }}>
               <div
                 onClick={handleCreateRequest}
                 className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
@@ -1120,7 +1135,7 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Import Card */}
-            <motion.div variants={fadeUp}>
+            <motion.div variants={fadeUp} style={{ willChange: "transform, opacity" }}>
               <input
                 type="file"
                 ref={fileInputRef}
