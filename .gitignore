@@ -62,3 +62,11 @@ render-build.sh
 # Playwright test output
 playwright-report/
 test-results/
+
+# Puppeteer cache
+.puppeteer-cache/
+**/.puppeteer-cache/
+**/dist/
+**/playwright-report/
+**/test-results/
+

@@ -63,6 +63,17 @@ function unwrapProseAnchors(root: Element) {
   }
 }
 
+function ensureTargetBlank(root: Element) {
+  const anchors = Array.from(root.querySelectorAll("a[href]"));
+  for (const a of anchors) {
+    const href = a.getAttribute("href") ?? "";
+    if (!/^(mailto|tel):/i.test(href)) {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noreferrer noopener");
+    }
+  }
+}
+
 function stripBreakingCharsFromTextNodes(root: Element) {
   const doc = root.ownerDocument;
   if (!doc) return;
@@ -122,6 +133,7 @@ export function sanitizeResumeRichHtml(html: string): string {
     if (!root) return s;
 
     unwrapProseAnchors(root);
+    ensureTargetBlank(root);
     cleanInlineStyles(root);
     stripRiskyClasses(root);
     stripBreakingCharsFromTextNodes(root);
