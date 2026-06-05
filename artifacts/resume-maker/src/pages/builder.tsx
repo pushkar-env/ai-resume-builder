@@ -624,6 +624,7 @@ export default function BuilderPage() {
   );
   const [exportOpen, setExportOpen] = useState(false);
   const [atsPanelOpen, setAtsPanelOpen] = useState(false);
+  const [isOptimizingWorkflow, setIsOptimizingWorkflow] = useState(false);
   const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">(
     "sections",
   );
@@ -803,7 +804,7 @@ export default function BuilderPage() {
     }
   }, [resume?.atsJobDescription, resumeId]);
 
-  const { data: atsScoreData, isFetching: isAtsFetching } = useGetAtsScore(
+  const { data: atsScoreData, isFetching: isAtsFetching, error: atsScanError } = useGetAtsScore(
     resumeId,
     {
       jobDescription: scannedJobDescription || undefined,
@@ -849,8 +850,23 @@ export default function BuilderPage() {
       void queryClient.invalidateQueries({
         queryKey: getGetResumeQueryKey(resumeId),
       });
+
+      setIsOptimizingWorkflow(false);
     }
   }, [atsScoreData, scanTimestamp, resumeId, queryClient, scannedJobDescription, localSections]);
+
+  // Handle ATS Scan errors to prevent loading screens from getting stuck
+  useEffect(() => {
+    if (atsScanError && scanTimestamp !== 0) {
+      setScanTimestamp(0);
+      setIsOptimizingWorkflow(false);
+      toast({
+        title: "Scan Failed",
+        description: "Failed to recalculate ATS score after optimization.",
+        variant: "destructive",
+      });
+    }
+  }, [atsScanError, scanTimestamp]);
 
   const activeAtsData = atsScoreData || (hasAtsScoreInDb && resume ? {
     score: resume.atsScore ?? 0,
@@ -918,7 +934,7 @@ export default function BuilderPage() {
   const optimizeResumeMutation = useOptimizeResume({
     request: createAiHeavyRequestOptions(),
     mutation: {
-      onSuccess: (data) => {
+      onSuccess: (data, variables) => {
         const resumeData = data.resume;
         // Update local resume query cache
         queryClient.setQueryData(getGetResumeQueryKey(resumeId), resumeData);
@@ -944,9 +960,11 @@ export default function BuilderPage() {
         bumpPreviewRevision();
         
         // Recalculate ATS Score against the scanned job description
-        handleScan(scannedJobDescription);
+        const jd = variables?.data?.jobDescription || "";
+        handleScan(jd);
       },
       onError: (err: unknown) => {
+        setIsOptimizingWorkflow(false);
         toast({
           title: "Optimization Failed",
           description: aiErrorDescription(err, "Failed to optimize resume."),
@@ -2208,13 +2226,16 @@ export default function BuilderPage() {
                             atsJobDescription: resume.atsJobDescription ?? null,
                           });
                         }
+                        const activeJd = jobDescriptionText ? jobDescriptionText.trim() : "";
+                        setScannedJobDescription(activeJd);
+                        setIsOptimizingWorkflow(true);
+
                         optimizeResumeMutation.mutate({
                           id: resumeId,
                           data: {
-                            jobDescription: scannedJobDescription || undefined,
+                            jobDescription: activeJd || undefined,
                           },
                         });
-                        setAtsPanelOpen(false);
                         toast({
                           title: "AI Optimization Started",
                           description: "AI is analyzing and refining your resume content in the background...",
@@ -2496,10 +2517,14 @@ export default function BuilderPage() {
           </ScrollArea>
         </SheetContent>
       </Sheet>
-      {optimizeResumeMutation.isPending && (
+      {isOptimizingWorkflow && (
         <PremiumLoadingScreen
-          title="Aligning & Optimizing Resume..."
-          subtitle="AI is rewrite-fitting your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
+          title={optimizeResumeMutation.isPending ? "Aligning & Optimizing Resume..." : "Auditing Updated Resume..."}
+          subtitle={
+            optimizeResumeMutation.isPending
+              ? "AI is rewrite-fitting your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
+              : "Calculating your new ATS compatibility score and generating updated suggestions. This may take a few seconds."
+          }
         />
       )}
     </div>
