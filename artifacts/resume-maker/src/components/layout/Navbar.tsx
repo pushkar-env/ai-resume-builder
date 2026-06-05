@@ -78,7 +78,7 @@ export function Navbar() {
               </span>
             </Link>
             <nav
-              className="hidden md:flex items-center gap-1"
+              className="hidden lg:flex items-center gap-1"
               aria-label={showAppNav ? "App navigation" : "Site navigation"}
             >
               {navLinks.map(({ href, label }) => (
@@ -99,7 +99,7 @@ export function Navbar() {
 
           <div className="flex shrink-0 items-center gap-1.5 min-[380px]:gap-2 sm:gap-3">
             {/* Mobile Menu */}
-            <div className="md:hidden flex items-center">
+            <div className="lg:hidden flex items-center">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="sm" className="px-2 h-8">
@@ -228,7 +228,7 @@ export function Navbar() {
               </Sheet>
             </div>
             {!showAppNav && isLoaded ? (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
                 <Button variant="ghost" size="sm" className="h-8" asChild>
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
