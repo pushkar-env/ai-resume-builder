@@ -63,17 +63,17 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-border/60 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between">
-          <div className="flex min-w-0 items-center gap-8">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:gap-8">
             <Link
               href={brandHref}
-              className="flex min-w-0 items-center gap-1.5 min-[380px]:gap-2 text-foreground transition-opacity hover:opacity-90"
+              className="flex shrink-0 items-center gap-1.5 min-[380px]:gap-2 text-foreground transition-opacity hover:opacity-90"
             >
               <img
                 src={`${import.meta.env.BASE_URL}bluemascot.svg`}
                 alt="Resumesensei mascot"
                 className="h-8 w-8 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 object-contain shrink-0"
               />
-              <span className="truncate text-lg min-[380px]:text-xl font-extrabold tracking-tight sm:text-2xl">
+              <span className="text-lg min-[380px]:text-xl font-extrabold tracking-tight sm:text-2xl">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
@@ -85,7 +85,7 @@ export function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-2 lg:px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     location === href
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -342,14 +342,14 @@ export function LandingNavbar() {
         <div className="flex min-h-14 items-center justify-between gap-2 py-2 sm:py-0">
           <Link
             href="/"
-            className="flex min-w-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90"
+            className="flex shrink-0 items-center gap-2 text-foreground transition-opacity hover:opacity-90"
           >
             <img
               src={`${import.meta.env.BASE_URL}bluemascot.svg`}
               alt="Resumesensei mascot"
               className="h-9 w-9 object-contain shrink-0 sm:h-10 sm:w-10"
             />
-            <span className="truncate text-xl font-extrabold tracking-tight sm:text-2xl">
+            <span className="text-xl font-extrabold tracking-tight sm:text-2xl">
               Resume<span className="text-primary font-black">sensei</span>
             </span>
           </Link>
