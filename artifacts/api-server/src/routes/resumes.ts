@@ -1336,10 +1336,20 @@ router.post(
       return;
     }
 
-    // Update database
+    // Update database with allowed section restrictions
+    const allowedSectionIds = new Set(sectionsToOptimize.map((s) => s.id));
+
     for (const optSec of optimizedSections) {
       const sectionId = typeof optSec.id === "string" ? parseInt(optSec.id, 10) : optSec.id;
       if (typeof sectionId !== "number" || isNaN(sectionId) || !optSec.content) continue;
+
+      if (!allowedSectionIds.has(sectionId)) {
+        logger.warn(
+          { sectionId, resumeId: resume.id },
+          "AI attempted to modify a section ID not in allowed optimize list"
+        );
+        continue;
+      }
 
       let sanitizedContent = optSec.content;
       if (optSec.type === "skills") {

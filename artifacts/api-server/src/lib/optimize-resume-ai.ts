@@ -73,6 +73,225 @@ ${JSON.stringify(compact)}`;
   );
 }
 
+function bulletText(b: unknown): string {
+  if (typeof b === "string") return b.trim();
+  if (b && typeof b === "object" && "text" in b) {
+    return String((b as { text?: string }).text ?? "").trim();
+  }
+  return "";
+}
+
+export function alignOptimizedSections(
+  originalSections: SectionRow[],
+  optimizedSections: any[],
+): Array<{ id: number; type: string; title: string; content: unknown }> {
+  const aligned: Array<{ id: number; type: string; title: string; content: unknown }> = [];
+  const originalIds = new Set(originalSections.map((s) => s.id));
+  const matchedOriginalIds = new Set<number>();
+
+  const findOriginalById = (id: number) => {
+    if (originalIds.has(id) && !matchedOriginalIds.has(id)) {
+      return originalSections.find((s) => s.id === id);
+    }
+    return undefined;
+  };
+
+  const findOriginalByType = (type: string) => {
+    return originalSections.find((s) => s.type === type && !matchedOriginalIds.has(s.id));
+  };
+
+  const findFirstUnmatchedOriginal = () => {
+    return originalSections.find((s) => !matchedOriginalIds.has(s.id));
+  };
+
+  // 1. First pass: try to match by exact ID if it belongs to this group
+  for (const optSec of optimizedSections) {
+    if (!optSec || typeof optSec !== "object") continue;
+    const optId = typeof optSec.id === "string" ? parseInt(optSec.id, 10) : optSec.id;
+    if (typeof optId === "number" && !isNaN(optId)) {
+      const match = findOriginalById(optId);
+      if (match) {
+        aligned.push({
+          id: match.id,
+          type: match.type,
+          title: match.title,
+          content: optSec.content,
+        });
+        matchedOriginalIds.add(match.id);
+        (optSec as any)._matched = true;
+      }
+    }
+  }
+
+  // 2. Second pass: for unmatched LLM sections, try to match by index if length is identical
+  if (optimizedSections.length === originalSections.length) {
+    for (let i = 0; i < optimizedSections.length; i++) {
+      const optSec = optimizedSections[i];
+      if (!optSec || typeof optSec !== "object" || optSec._matched) continue;
+
+      const origSec = originalSections[i];
+      if (origSec && !matchedOriginalIds.has(origSec.id)) {
+        aligned.push({
+          id: origSec.id,
+          type: origSec.type,
+          title: origSec.title,
+          content: optSec.content,
+        });
+        matchedOriginalIds.add(origSec.id);
+        optSec._matched = true;
+      }
+    }
+  }
+
+  // 3. Third pass: match by type
+  for (const optSec of optimizedSections) {
+    if (!optSec || typeof optSec !== "object" || optSec._matched) continue;
+    if (typeof optSec.type === "string") {
+      const match = findOriginalByType(optSec.type);
+      if (match) {
+        aligned.push({
+          id: match.id,
+          type: match.type,
+          title: match.title,
+          content: optSec.content,
+        });
+        matchedOriginalIds.add(match.id);
+        optSec._matched = true;
+      }
+    }
+  }
+
+  // 4. Fourth pass: fallback to any remaining unmatched original sections in order
+  for (const optSec of optimizedSections) {
+    if (!optSec || typeof optSec !== "object" || optSec._matched) continue;
+    const match = findFirstUnmatchedOriginal();
+    if (match) {
+      aligned.push({
+        id: match.id,
+        type: match.type,
+        title: match.title,
+        content: optSec.content,
+      });
+      matchedOriginalIds.add(match.id);
+      optSec._matched = true;
+    }
+  }
+
+  // Clean up temporary property
+  for (const optSec of optimizedSections) {
+    if (optSec && typeof optSec === "object") {
+      delete optSec._matched;
+    }
+  }
+
+  return aligned;
+}
+
+export function sanitizeSectionContent(type: string, content: any): any {
+  if (!content) {
+    return type === "summary" ? { text: "" } : { items: [] };
+  }
+
+  if (type === "summary") {
+    if (typeof content === "string") {
+      return { text: content };
+    }
+    if (typeof content === "object") {
+      return { text: typeof content.text === "string" ? content.text : "" };
+    }
+    return { text: "" };
+  }
+
+  if (type === "skills") {
+    let items: any[] = [];
+    let style = "chips";
+
+    if (Array.isArray(content)) {
+      items = content;
+    } else if (typeof content === "object") {
+      items = Array.isArray(content.items) ? content.items : [];
+      style = typeof content.style === "string" ? content.style : "chips";
+    }
+
+    const sanitizedItems = items
+      .map((item: any) => {
+        if (typeof item === "string") {
+          return { name: item };
+        }
+        if (item && typeof item === "object") {
+          return {
+            name: typeof item.name === "string" ? item.name : (item.name ? String(item.name) : ""),
+            level: typeof item.level === "number" ? item.level : undefined,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is { name: string; level?: number } => !!item && item.name.trim() !== "");
+
+    return { style, items: sanitizedItems };
+  }
+
+  if (type === "experience") {
+    let items: any[] = [];
+    if (Array.isArray(content)) {
+      items = content;
+    } else if (typeof content === "object" && Array.isArray(content.items)) {
+      items = content.items;
+    }
+
+    const sanitizedItems = items
+      .map((item: any) => {
+        if (!item || typeof item !== "object") return null;
+
+        let bullets: string[] = [];
+        if (Array.isArray(item.bullets)) {
+          bullets = item.bullets
+            .map((b: any) => typeof b === "string" ? b.trim() : (b && typeof b === "object" && "text" in b ? String(b.text).trim() : ""))
+            .filter(Boolean);
+        } else if (typeof item.bullets === "string") {
+          bullets = [item.bullets.trim()];
+        }
+
+        return {
+          title: typeof item.title === "string" ? item.title.trim() : (item.role && typeof item.role === "string" ? item.role.trim() : ""),
+          company: typeof item.company === "string" ? item.company.trim() : "",
+          location: typeof item.location === "string" ? item.location.trim() : "",
+          startDate: typeof item.startDate === "string" ? item.startDate.trim() : (item.start_date && typeof item.start_date === "string" ? item.start_date.trim() : ""),
+          endDate: typeof item.endDate === "string" ? item.endDate.trim() : (item.end_date && typeof item.end_date === "string" ? item.end_date.trim() : ""),
+          bullets,
+        };
+      })
+      .filter(Boolean);
+
+    return { items: sanitizedItems };
+  }
+
+  if (type === "projects") {
+    let items: any[] = [];
+    if (Array.isArray(content)) {
+      items = content;
+    } else if (typeof content === "object" && Array.isArray(content.items)) {
+      items = content.items;
+    }
+
+    const sanitizedItems = items
+      .map((item: any) => {
+        if (!item || typeof item !== "object") return null;
+
+        return {
+          name: typeof item.name === "string" ? item.name.trim() : (item.title && typeof item.title === "string" ? item.title.trim() : ""),
+          description: typeof item.description === "string" ? item.description.trim() : "",
+          url: typeof item.url === "string" ? item.url.trim() : "",
+        };
+      })
+      .filter(Boolean);
+
+    return { items: sanitizedItems };
+  }
+
+  return content;
+}
+
 /**
  * Optimize resume in parallel section groups — faster and more reliable than one huge completion.
  */
@@ -82,7 +301,15 @@ export async function optimizeResumeWithAi(
 ): Promise<{ sections: OptimizeGroupResult["sections"]; summary: string }> {
   const groups = groupSections(sections);
   const results = await Promise.all(
-    groups.map((group) => optimizeGroup(group, jobDescription)),
+    groups.map(async (group) => {
+      const result = await optimizeGroup(group, jobDescription);
+      const aligned = alignOptimizedSections(group, result.sections || []);
+      const sanitized = aligned.map((s) => ({
+        ...s,
+        content: sanitizeSectionContent(s.type, s.content),
+      }));
+      return { ...result, sections: sanitized };
+    }),
   );
 
   const mergedSections = results.flatMap((r) => r.sections ?? []);
@@ -93,3 +320,4 @@ export async function optimizeResumeWithAi(
 
   return { sections: mergedSections, summary };
 }
+
