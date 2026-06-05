@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEO } from "@/components/shared/SEO";
 import { ResumePreview } from "@/components/resume/ResumePreview";
+import { ResumeSkeleton } from "@/components/resume/ResumeSkeleton";
 import { ScaledResumeThumbnailShell } from "@/components/resume/ScaledResumeThumbnailShell";
 import { getDefaultAccentColor, TEMPLATE_CONFIG } from "@/lib/template-config";
 import {
@@ -115,9 +116,11 @@ function timeAgo(date: string) {
  */
 function ResumeThumbnail({
   resumeId,
+  templateId,
   isDragging,
 }: {
   resumeId: number;
+  templateId: string;
   isDragging?: boolean;
 }) {
   const { user } = useUser();
@@ -180,7 +183,12 @@ function ResumeThumbnail({
       className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
     >
       {!inView || !resume ? (
-        <Skeleton className="h-full w-full rounded-none" />
+        <ScaledResumeThumbnailShell
+          hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+          measureDeps={[templateId]}
+        >
+          <ResumeSkeleton templateId={templateId} />
+        </ScaledResumeThumbnailShell>
       ) : (
         <ScaledResumeThumbnailShell
           hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
@@ -534,7 +542,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
           }`}
         >
           <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none">
-            <ResumeThumbnail resumeId={resume.id} isDragging={isDraggingThis} />
+            <ResumeThumbnail
+              resumeId={resume.id}
+              templateId={resume.templateId}
+              isDragging={isDraggingThis}
+            />
           </div>
 
           <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">

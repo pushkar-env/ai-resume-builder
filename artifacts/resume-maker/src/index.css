@@ -712,4 +712,18 @@
   animation: trash-vibrate 0.4s ease-in-out infinite;
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  animation: skeleton-shimmer 1.8s infinite linear;
+}
+
+
 
