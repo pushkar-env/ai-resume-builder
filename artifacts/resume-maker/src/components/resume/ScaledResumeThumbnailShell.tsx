@@ -14,9 +14,9 @@ import {
 import { useThumbnailMeasure } from "@/hooks/use-thumbnail-scale";
 
 const SCALED_LAYER_STYLE = {
-  backfaceVisibility: "hidden" as const,
-  WebkitFontSmoothing: "antialiased" as const,
+  WebkitFontSmoothing: "subpixel-antialiased" as const,
   pointerEvents: "none" as const,
+  textRendering: "geometricPrecision" as const,
 };
 
 /**
@@ -56,7 +56,7 @@ export function ScaledResumeThumbnailShell({
           style={{
             width: THUMBNAIL_PAGE_WIDTH_PX,
             transformOrigin: "top center",
-            transform: `scale(${fitScale}) translateZ(0)`,
+            transform: `scale(${fitScale})`,
             ...SCALED_LAYER_STYLE,
           }}
         >

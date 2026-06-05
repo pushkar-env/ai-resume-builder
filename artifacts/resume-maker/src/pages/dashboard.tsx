@@ -391,7 +391,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: "transform, opacity",
+        willChange: isDraggingThis ? "transform" : "auto",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -403,7 +403,6 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         style={{
           transformStyle: isDraggingThis ? "preserve-3d" : "flat",
           backfaceVisibility: isDraggingThis ? "hidden" : "visible",
-          willChange: "transform",
         }}
         initial={{
           x: 0,
@@ -1119,7 +1118,7 @@ export default function DashboardPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
           >
             {/* Create New Card */}
-            <motion.div variants={fadeUp} style={{ willChange: "transform, opacity" }}>
+            <motion.div variants={fadeUp}>
               <div
                 onClick={handleCreateRequest}
                 className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
@@ -1135,7 +1134,7 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Import Card */}
-            <motion.div variants={fadeUp} style={{ willChange: "transform, opacity" }}>
+            <motion.div variants={fadeUp}>
               <input
                 type="file"
                 ref={fileInputRef}
