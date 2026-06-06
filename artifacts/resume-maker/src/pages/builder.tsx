@@ -45,6 +45,7 @@ import {
   Maximize,
   Eraser,
   Sparkles,
+  Wand2,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -2807,7 +2808,7 @@ export default function BuilderPage() {
 
             {/* Dynamic Scaling Wrapper */}
             <div
-              className="relative mx-auto"
+              className="relative mx-auto shadow-2xl rounded-lg overflow-hidden"
               style={{
                 width: `${794 * previewScale}px`,
                 minHeight: `${contentHeight * previewScale}px`,
@@ -2826,7 +2827,6 @@ export default function BuilderPage() {
                 <div
                   ref={contentRef}
                   data-resume-export-target
-                  className="shadow-2xl"
                 >
                   <ResumePreview
                     key={templateId}
@@ -2841,6 +2841,146 @@ export default function BuilderPage() {
                   />
                 </div>
               </div>
+
+              {/* Localized Premium Magic Wand Overlay */}
+              {isOptimizingWorkflow && (
+                <div className="absolute inset-0 bg-background/85 backdrop-blur-[6px] z-30 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+                  <div className="relative flex flex-col items-center max-w-[280px] sm:max-w-xs">
+                    <div
+                      className="absolute -inset-10 blur-2xl pointer-events-none rounded-full"
+                      style={{ backgroundImage: "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)" }}
+                    />
+                    
+                    {/* Magic Wand & Floating Sparks Animation */}
+                    <div className="relative mb-8 flex items-center justify-center h-20 w-20">
+                      {/* circular pulse rings */}
+                      <motion.div
+                        className="absolute h-16 w-16 rounded-full border border-primary/30 bg-primary/5"
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1.4, opacity: [0, 0.4, 0] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeOut",
+                        }}
+                      />
+                      <motion.div
+                        className="absolute h-16 w-16 rounded-full border border-primary/20 bg-primary/5"
+                        initial={{ scale: 0.6, opacity: 0 }}
+                        animate={{ scale: 1.8, opacity: [0, 0.2, 0] }}
+                        transition={{
+                          duration: 2,
+                          delay: 0.7,
+                          repeat: Infinity,
+                          ease: "easeOut",
+                        }}
+                      />
+                      
+                      {/* Sparks */}
+                      <motion.div
+                        className="absolute"
+                        initial={{ x: 8, y: -8, scale: 0, opacity: 0 }}
+                        animate={{
+                          x: [8, 28, 35],
+                          y: [-8, -28, -35],
+                          scale: [0, 1.2, 0],
+                          opacity: [0, 1, 0],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          delay: 0.2,
+                          ease: "easeOut",
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 text-amber-400 fill-amber-400" />
+                      </motion.div>
+                      
+                      <motion.div
+                        className="absolute"
+                        initial={{ x: 12, y: -4, scale: 0, opacity: 0 }}
+                        animate={{
+                          x: [12, 32, 40],
+                          y: [-4, -12, -15],
+                          scale: [0, 1, 0],
+                          opacity: [0, 0.8, 0],
+                        }}
+                        transition={{
+                          duration: 1.8,
+                          repeat: Infinity,
+                          delay: 0.8,
+                          ease: "easeOut",
+                        }}
+                      >
+                        <Sparkles className="h-3 w-3 text-primary fill-primary" />
+                      </motion.div>
+
+                      <motion.div
+                        className="absolute"
+                        initial={{ x: 4, y: -12, scale: 0, opacity: 0 }}
+                        animate={{
+                          x: [4, 12, 15],
+                          y: [-12, -35, -42],
+                          scale: [0, 0.8, 0],
+                          opacity: [0, 0.9, 0],
+                        }}
+                        transition={{
+                          duration: 1.4,
+                          repeat: Infinity,
+                          delay: 0.5,
+                          ease: "easeOut",
+                        }}
+                      >
+                        <Sparkles className="h-2.5 w-2.5 text-purple-400 fill-purple-400" />
+                      </motion.div>
+
+                      {/* Main Wand */}
+                      <motion.div
+                        animate={{
+                          rotate: [0, -12, 16, -12, 0],
+                          x: [0, -3, 3, -3, 0],
+                          y: [0, -2, 2, -2, 0],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                        className="relative z-10 text-primary"
+                      >
+                        <Wand2 className="h-10 w-10 drop-shadow-[0_0_10px_rgba(var(--primary),0.4)]" />
+                      </motion.div>
+                    </div>
+
+                    {/* Progress details */}
+                    <div className="space-y-3 z-10">
+                      <h4 className="text-sm font-extrabold tracking-tight text-foreground sm:text-base">
+                        {optimizeResumeMutation.isPending ? "Optimizing with AI..." : "Calculating ATS Score..."}
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed sm:text-xs">
+                        {optimizeResumeMutation.isPending
+                          ? "AI is tailoring your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
+                          : "Analyzing keyword density, achievement quantification, and job alignment. This may take a few seconds."}
+                      </p>
+                      
+                      {/* Animated gradient progress bar */}
+                      <div className="pt-2">
+                        <div className="h-1 w-28 bg-muted rounded-full overflow-hidden mx-auto sm:w-32">
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-primary to-purple-500"
+                            initial={{ width: "0%" }}
+                            animate={{ width: "100%" }}
+                            transition={{
+                              duration: optimizeResumeMutation.isPending ? 25 : 4,
+                              ease: "easeOut",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2923,16 +3063,7 @@ export default function BuilderPage() {
       />
 
 
-      {isOptimizingWorkflow && (
-        <PremiumLoadingScreen
-          title={optimizeResumeMutation.isPending ? "Aligning & Optimizing Resume..." : "Auditing Updated Resume..."}
-          subtitle={
-            optimizeResumeMutation.isPending
-              ? "AI is rewrite-fitting your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
-              : "Calculating your new ATS compatibility score and generating updated suggestions. This may take a few seconds."
-          }
-        />
-      )}
+
     </div>
   );
 }
