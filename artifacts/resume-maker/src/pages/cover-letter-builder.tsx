@@ -112,6 +112,7 @@ export default function CoverLetterBuilder() {
   const coverLetterId = parseInt(id || "", 10);
   const { toast } = useToast();
   const { user } = useUser();
+  const showWatermark = user?.publicMetadata?.isPremium !== true;
 
   // Active tab on mobile (editor vs preview)
   const [activeMobileTab, setActiveMobileTab] = useState<"edit" | "preview">("edit");
@@ -603,6 +604,8 @@ export default function CoverLetterBuilder() {
         generatedContent: localContent,
         fontFamily: localFontFamily,
         accentColor: localAccentColor,
+      }, {
+        includeWatermark: showWatermark,
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -1321,6 +1324,7 @@ export default function CoverLetterBuilder() {
                   accentColor={localAccentColor}
                   fontFamily={localFontFamily}
                   zoom={1} // Keep raw zoom as 1 inside scale transform wrapper
+                  showWatermark={showWatermark}
                 />
               </div>
             </div>

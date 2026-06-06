@@ -1,6 +1,7 @@
 import {
   AlignmentType,
   Document,
+  ExternalHyperlink,
   Packer,
   Paragraph,
   TextRun,
@@ -48,7 +49,10 @@ interface DocxCoverLetterData {
   accentColor?: string;
 }
 
-export async function buildCoverLetterDocx(data: DocxCoverLetterData): Promise<Blob> {
+export async function buildCoverLetterDocx(
+  data: DocxCoverLetterData,
+  options?: { includeWatermark?: boolean },
+): Promise<Blob> {
   const font = data.fontFamily === "serif" ? "Georgia" : data.fontFamily === "mono" ? "Courier New" : "Calibri";
   const accentColor = hexToWordColor(data.accentColor || "#1A1A1A");
 
@@ -246,6 +250,30 @@ export async function buildCoverLetterDocx(data: DocxCoverLetterData): Promise<B
       ],
     }),
   );
+
+  if (options?.includeWatermark) {
+    const site = "https://resumesensei.com/";
+    body.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 360, after: 80 },
+        children: [
+          new TextRun({ text: "Created at ", size: 16, color: "94A3B8", font }),
+          new ExternalHyperlink({
+            children: [
+              new TextRun({
+                text: "resumesensei.com",
+                style: "Hyperlink",
+                size: 16,
+                font,
+              }),
+            ],
+            link: site,
+          }),
+        ],
+      }),
+    );
+  }
 
   const doc = new Document({
     creator: "ResumeSensei",

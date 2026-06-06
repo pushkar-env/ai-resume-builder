@@ -916,6 +916,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   const senderName = user?.fullName || "Your Name";
   const senderEmail = user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+  const showWatermark = user?.publicMetadata?.isPremium !== true;
 
   return (
     <motion.div
@@ -1111,6 +1112,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                 templateId={coverLetter.templateId || "classic"}
                 accentColor="#1e3a8a"
                 zoom={1}
+                showWatermark={showWatermark}
               />
             </div>
           </div>

@@ -1,5 +1,6 @@
 import type React from "react";
 import { useMemo } from "react";
+import { ResumeWatermark } from "./ResumeWatermark";
 
 interface CoverLetterPreviewProps {
   content: string;
@@ -15,6 +16,7 @@ interface CoverLetterPreviewProps {
   accentColor?: string;
   fontFamily?: string;
   zoom?: number;
+  showWatermark?: boolean;
 }
 
 export interface ParsedCoverLetter {
@@ -210,6 +212,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
   accentColor = "#1e3a8a",
   fontFamily = "sans",
   zoom = 1,
+  showWatermark = false,
 }) => {
   const finalFontClass = useMemo(() => {
     if (fontFamily === "serif") return "font-serif";
@@ -847,6 +850,11 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
       <div className={`h-full w-full relative ${finalFontClass}`}>
         {renderedTemplate}
       </div>
+      {showWatermark && (
+        <div className="absolute inset-x-0 bottom-2 z-[10] flex justify-center pointer-events-none">
+          <ResumeWatermark backgroundColor="#ffffff" />
+        </div>
+      )}
     </div>
   );
 };
