@@ -413,6 +413,14 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
+      {isDraggingThis && (
+        <div className="absolute inset-0 rounded-xl border-2 border-dashed border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center p-6 pointer-events-none select-none z-0">
+          <FileText className="h-8 w-8 text-primary/40 mb-2 animate-pulse" />
+          <span className="text-[11px] font-bold tracking-wider text-primary/40 uppercase">
+            Moving Resume
+          </span>
+        </div>
+      )}
       <motion.div
         ref={cardRef}
         className={`h-full origin-center animate-fill-both ${
@@ -432,8 +440,6 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         drag={!resumeMenuOpen}
         dragControls={dragControls}
         dragListener={false}
-        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-        dragElastic={0.8}
         dragMomentum={false}
         onDragStart={() => {
           if (cardRef.current) {
@@ -529,11 +535,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
               }
             : isDraggingThis
               ? {
-                  scale: 1.05,
-                  rotate: -2,
-                  y: 0,
-                  boxShadow: "0 20px 35px rgba(0,0,0,0.15)",
-                  transition: { type: "spring", stiffness: 300, damping: 20 },
+                  scale: 1.04,
+                  rotate: -1.5,
+                  boxShadow: "0 20px 35px rgba(0,0,0,0.12)",
+                  opacity: 0.92,
+                  transition: { type: "spring", stiffness: 300, damping: 25 },
                 }
               : isHovered && !resumeMenuOpen
                 ? {
@@ -569,7 +575,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         <Card
           className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
             isDraggingThis
-              ? "border-primary bg-primary/5 cursor-grabbing touch-none"
+              ? "border-primary/60 bg-background/90 backdrop-blur-md cursor-grabbing touch-none z-10"
               : "cursor-grab touch-pan-y"
           }`}
         >
@@ -577,7 +583,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
             <ResumeThumbnail
               resumeId={resume.id}
               templateId={resume.templateId}
-              isDragging={isDraggingThis}
+              isDragging={false}
               index={index}
             />
           </div>
@@ -878,28 +884,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeDragResumeId === null) return;
 
-    // Lock page scroll coordinates to prevent auto-scrolling when dragging near window edges
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-    const lockScroll = () => {
-      window.scrollTo(scrollX, scrollY);
-    };
-
-    window.addEventListener("scroll", lockScroll, { passive: true });
-
-    // Set overflowY: clip on body during active drag to prevent absolute/relative children
-    // from expanding the document scrollable height.
-    const originalBodyOverflowY = document.body.style.overflowY;
-    document.body.style.overflowY = "clip";
-
     const preventDefault = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
     };
     window.addEventListener("touchmove", preventDefault, { passive: false });
 
     return () => {
-      document.body.style.overflowY = originalBodyOverflowY;
-      window.removeEventListener("scroll", lockScroll);
       window.removeEventListener("touchmove", preventDefault);
     };
   }, [activeDragResumeId]);
