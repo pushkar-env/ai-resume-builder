@@ -1315,9 +1315,6 @@ export default function DashboardPage() {
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
-            </Button>
             <Button
               onClick={() => {
                 const cfg = TEMPLATE_CONFIG["silicon-valley"] ?? {
@@ -1335,6 +1332,9 @@ export default function DashboardPage() {
               disabled={createResume.isPending || !newTitle.trim()}
             >
               {createResume.isPending ? "Creating..." : "Create resume"}
+            </Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
