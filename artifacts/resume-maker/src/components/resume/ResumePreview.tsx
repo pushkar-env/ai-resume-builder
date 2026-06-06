@@ -3690,8 +3690,8 @@ export function ResumePreview({
   const color =
     accentColor ?? resume.accentColor ?? getDefaultAccentColor(templateId);
   const font = resume.fontFamily ?? getDefaultFontFamily(templateId);
-  const fColor = fontColor ?? resume.fontColor ?? "#111827";
-  const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
+  const fColor = fontColor ?? resume.fontColor ?? (templateId === "midnight" ? "#f9fafb" : "#111827");
+  const bColor = backgroundColor ?? resume.backgroundColor ?? (templateId === "midnight" ? "#0d1117" : "#ffffff");
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
 
   const sections = useMemo(() => {

@@ -112,6 +112,7 @@ import {
   getDefaultAccentColor,
   getDefaultFontFamily,
   getDefaultAtsScore,
+  TEMPLATE_CONFIG,
 } from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
@@ -1342,8 +1343,10 @@ export default function BuilderPage() {
       setFontFamily(
         resume.fontFamily ?? getDefaultFontFamily(resume.templateId),
       );
-      setFontColor(resume.fontColor ?? "#111827");
-      setBackgroundColor(resume.backgroundColor ?? "#ffffff");
+      const defaultBg = resume.templateId === "midnight" ? "#0d1117" : "#ffffff";
+      const defaultFg = resume.templateId === "midnight" ? "#f9fafb" : "#111827";
+      setFontColor(resume.fontColor ?? defaultFg);
+      setBackgroundColor(resume.backgroundColor ?? defaultBg);
       setTemplateId(resume.templateId ?? "modern");
       setActiveSectionId((prevActiveId) => {
         if (nextSections.length === 0) return null;
@@ -1661,13 +1664,17 @@ export default function BuilderPage() {
     setFontFamily(newFont);
     const newAccent = getDefaultAccentColor(t);
     setAccentColor(newAccent);
+    const newBg = t === "midnight" ? "#0d1117" : "#ffffff";
+    const newFg = t === "midnight" ? "#f9fafb" : "#111827";
+    setBackgroundColor(newBg);
+    setFontColor(newFg);
     scheduleSave(
       localSections,
       newAccent,
       newFont,
       t,
-      fontColor,
-      backgroundColor,
+      newFg,
+      newBg,
     );
     bumpPreviewRevision();
   };
@@ -2133,10 +2140,13 @@ export default function BuilderPage() {
                                   isSelected ? "border-primary ring-1 ring-primary/20" : "border-border"
                                 }`}
                               >
-                                <div className="aspect-[3/4] w-full rounded-lg bg-muted relative overflow-hidden border border-border/40 mb-2">
+                                <div
+                                  className="aspect-[3/4] w-full rounded-lg relative overflow-hidden border border-border/40 mb-2"
+                                  style={{ background: TEMPLATE_CONFIG[t.id]?.bg ?? "#f8fafc" }}
+                                >
                                   <TemplateThumbnail
                                     templateId={t.id}
-                                    accent={accentColor}
+                                    accent={isSelected ? accentColor : getDefaultAccentColor(t.id)}
                                     showWatermark={!isPremiumUser}
                                   />
                                   {t.isPremium && (

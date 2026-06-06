@@ -229,8 +229,8 @@ export function ResumeThumbnail({
                 resume.accentColor ?? getDefaultAccentColor(resume.templateId)
               }
               fontScale={fontScale}
-              fontColor={resume.fontColor ?? "#111827"}
-              backgroundColor={resume.backgroundColor ?? "#ffffff"}
+              fontColor={resume.fontColor ?? (resume.templateId === "midnight" ? "#f9fafb" : "#111827")}
+              backgroundColor={resume.backgroundColor ?? (resume.templateId === "midnight" ? "#0d1117" : "#ffffff")}
               showWatermark={showWatermark}
             />
           </ScaledResumeThumbnailShell>
