@@ -18,6 +18,8 @@ tags:
     description: AI assistance
   - name: dashboard
     description: Dashboard analytics
+  - name: cover-letters
+    description: Cover letter management
 
 paths:
   /healthz:
@@ -467,6 +469,349 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /cover-letters:
+    get:
+      operationId: listCoverLetters
+      tags: [cover-letters]
+      summary: List all cover letters for the authenticated user
+      parameters:
+        - name: resumeId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: isArchived
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of cover letters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoverLetter"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createCoverLetter
+      tags: [cover-letters]
+      summary: Create a new cover letter draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCoverLetterBody"
+      responses:
+        "201":
+          description: Created cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cover-letters/generate:
+    post:
+      operationId: generateCoverLetter
+      tags: [cover-letters]
+      summary: Generate a cover letter using AI (3 creation flows)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateCoverLetterBody"
+      responses:
+        "201":
+          description: Generated cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cover-letters/scrape-job:
+    post:
+      operationId: scrapeJobDetails
+      tags: [cover-letters]
+      summary: Scrape job description and details from URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScrapeJobBody"
+      responses:
+        "200":
+          description: Scraped details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScrapeJobResult"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cover-letters/export-pdf:
+    post:
+      operationId: exportCoverLetterPdf
+      tags: [cover-letters]
+      summary: Export cover letter HTML as PDF file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExportPdfBody"
+      responses:
+        "200":
+          description: PDF binary file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cover-letters/{id}:
+    get:
+      operationId: getCoverLetter
+      tags: [cover-letters]
+      summary: Get cover letter details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cover letter details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateCoverLetter
+      tags: [cover-letters]
+      summary: Update cover letter details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCoverLetterBody"
+      responses:
+        "200":
+          description: Updated cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCoverLetter
+      tags: [cover-letters]
+      summary: Delete cover letter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        "404":
+          description: Not found
+
+  /cover-letters/{id}/duplicate:
+    post:
+      operationId: duplicateCoverLetter
+      tags: [cover-letters]
+      summary: Duplicate a cover letter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Duplicated cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "404":
+          description: Not found
+
+  /cover-letters/{id}/regenerate:
+    post:
+      operationId: regenerateCoverLetter
+      tags: [cover-letters]
+      summary: Regenerate cover letter content using AI and save previous to history
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegenerateCoverLetterBody"
+      responses:
+        "200":
+          description: Regenerated cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "404":
+          description: Not found
+
+  /cover-letters/{id}/versions:
+    get:
+      operationId: getCoverLetterVersions
+      tags: [cover-letters]
+      summary: Get list of previous versions of the cover letter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoverLetterVersion"
+        "404":
+          description: Not found
+
+  /cover-letters/{id}/versions/{versionId}/restore:
+    post:
+      operationId: restoreCoverLetterVersion
+      tags: [cover-letters]
+      summary: Restore a previous version of the cover letter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Restored cover letter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoverLetter"
+        "404":
+          description: Not found
+
+  /cover-letters/{id}/ats-score:
+    post:
+      operationId: auditCoverLetterAts
+      tags: [cover-letters]
+      summary: Get ATS score audit and recommendations for the cover letter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtsScoreBody"
+      responses:
+        "200":
+          description: ATS score details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AtsScore"
+        "404":
+          description: Not found
 
 components:
   schemas:
@@ -974,3 +1319,304 @@ components:
         - suggestions
         - keywords
         - score
+
+    CoverLetter:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        title:
+          type: string
+        resumeId:
+          type: integer
+          nullable: true
+        jobTitle:
+          type: string
+          nullable: true
+        companyName:
+          type: string
+          nullable: true
+        hiringManagerName:
+          type: string
+          nullable: true
+        companyLocation:
+          type: string
+          nullable: true
+        generatedContent:
+          type: string
+          nullable: true
+        customInstructions:
+          type: string
+          nullable: true
+        jobDescription:
+          type: string
+          nullable: true
+        templateId:
+          type: string
+        tone:
+          type: string
+        fontFamily:
+          type: string
+        accentColor:
+          type: string
+        experienceLevel:
+          type: string
+          nullable: true
+        isArchived:
+          type: boolean
+        atsScore:
+          type: integer
+          nullable: true
+        atsPassedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFailedChecks:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsFeedback:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsKeywords:
+          type: array
+          items:
+            type: string
+          nullable: true
+        atsUpdatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - title
+        - templateId
+        - tone
+        - fontFamily
+        - accentColor
+        - isArchived
+        - createdAt
+        - updatedAt
+
+    CoverLetterVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+        coverLetterId:
+          type: integer
+        title:
+          type: string
+        jobTitle:
+          type: string
+          nullable: true
+        companyName:
+          type: string
+          nullable: true
+        hiringManagerName:
+          type: string
+          nullable: true
+        companyLocation:
+          type: string
+          nullable: true
+        generatedContent:
+          type: string
+          nullable: true
+        customInstructions:
+          type: string
+          nullable: true
+        jobDescription:
+          type: string
+          nullable: true
+        templateId:
+          type: string
+        tone:
+          type: string
+        fontFamily:
+          type: string
+        accentColor:
+          type: string
+        experienceLevel:
+          type: string
+          nullable: true
+        generationMetadata:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - coverLetterId
+        - title
+        - templateId
+        - tone
+        - fontFamily
+        - accentColor
+        - createdAt
+
+    CreateCoverLetterBody:
+      type: object
+      properties:
+        title:
+          type: string
+        resumeId:
+          type: integer
+        jobTitle:
+          type: string
+        companyName:
+          type: string
+      required:
+        - title
+
+    UpdateCoverLetterBody:
+      type: object
+      properties:
+        title:
+          type: string
+        resumeId:
+          type: integer
+          nullable: true
+        jobTitle:
+          type: string
+          nullable: true
+        companyName:
+          type: string
+          nullable: true
+        hiringManagerName:
+          type: string
+          nullable: true
+        companyLocation:
+          type: string
+          nullable: true
+        generatedContent:
+          type: string
+          nullable: true
+        customInstructions:
+          type: string
+          nullable: true
+        jobDescription:
+          type: string
+          nullable: true
+        templateId:
+          type: string
+        tone:
+          type: string
+        fontFamily:
+          type: string
+        accentColor:
+          type: string
+        experienceLevel:
+          type: string
+          nullable: true
+        senderName:
+          type: string
+          nullable: true
+        senderEmail:
+          type: string
+          nullable: true
+        senderPhone:
+          type: string
+          nullable: true
+        senderLocation:
+          type: string
+          nullable: true
+        isArchived:
+          type: boolean
+
+    GenerateCoverLetterBody:
+      type: object
+      properties:
+        flowType:
+          type: string
+          enum: [resume, jobDescription, jobUrl]
+        resumeId:
+          type: integer
+        jobDescription:
+          type: string
+        jobTitle:
+          type: string
+        companyName:
+          type: string
+        hiringManagerName:
+          type: string
+        companyLocation:
+          type: string
+        jobUrl:
+          type: string
+        customInstructions:
+          type: string
+        tone:
+          type: string
+        experienceLevel:
+          type: string
+      required:
+        - flowType
+        - tone
+        - experienceLevel
+
+    RegenerateCoverLetterBody:
+      type: object
+      properties:
+        customInstructions:
+          type: string
+        tone:
+          type: string
+        experienceLevel:
+          type: string
+        jobDescription:
+          type: string
+
+    AtsScoreBody:
+      type: object
+      properties:
+        jobDescription:
+          type: string
+      required:
+        - jobDescription
+
+    ScrapeJobBody:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    ScrapeJobResult:
+      type: object
+      properties:
+        jobTitle:
+          type: string
+          nullable: true
+        companyName:
+          type: string
+          nullable: true
+        description:
+          type: string
+          location:
+            type: string
+            nullable: true
+      required:
+        - description
+
+    ExportPdfBody:
+      type: object
+      properties:
+        html:
+          type: string
+      required:
+        - html

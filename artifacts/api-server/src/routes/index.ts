@@ -6,6 +6,7 @@ import dashboardRouter from "./dashboard";
 import aiRouter from "./ai";
 import paymentsRouter from "./payments";
 import contactRouter from "./contact";
+import coverLettersRouter from "./cover-letters";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(templatesRouter);
 router.use(dashboardRouter);
 router.use(aiRouter);
 router.use(paymentsRouter);
+router.use(coverLettersRouter);
 
 export default router;

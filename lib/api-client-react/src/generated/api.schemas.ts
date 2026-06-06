@@ -217,7 +217,145 @@ export interface AtsSuggestionsResult {
   score: number;
 }
 
+export interface CoverLetter {
+  id: number;
+  userId: string;
+  title: string;
+  resumeId?: number | null;
+  jobTitle?: string | null;
+  companyName?: string | null;
+  hiringManagerName?: string | null;
+  companyLocation?: string | null;
+  generatedContent?: string | null;
+  customInstructions?: string | null;
+  jobDescription?: string | null;
+  templateId: string;
+  tone: string;
+  fontFamily: string;
+  accentColor: string;
+  experienceLevel?: string | null;
+  isArchived: boolean;
+  atsScore?: number | null;
+  atsPassedChecks?: string[] | null;
+  atsFailedChecks?: string[] | null;
+  atsFeedback?: string[] | null;
+  atsKeywords?: string[] | null;
+  atsUpdatedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CoverLetterVersionGenerationMetadata = {
+  [key: string]: unknown;
+} | null;
+
+export interface CoverLetterVersion {
+  id: number;
+  coverLetterId: number;
+  title: string;
+  jobTitle?: string | null;
+  companyName?: string | null;
+  hiringManagerName?: string | null;
+  companyLocation?: string | null;
+  generatedContent?: string | null;
+  customInstructions?: string | null;
+  jobDescription?: string | null;
+  templateId: string;
+  tone: string;
+  fontFamily: string;
+  accentColor: string;
+  experienceLevel?: string | null;
+  generationMetadata?: CoverLetterVersionGenerationMetadata;
+  createdAt: string;
+}
+
+export interface CreateCoverLetterBody {
+  title: string;
+  resumeId?: number;
+  jobTitle?: string;
+  companyName?: string;
+}
+
+export interface UpdateCoverLetterBody {
+  title?: string;
+  resumeId?: number | null;
+  jobTitle?: string | null;
+  companyName?: string | null;
+  hiringManagerName?: string | null;
+  companyLocation?: string | null;
+  generatedContent?: string | null;
+  customInstructions?: string | null;
+  jobDescription?: string | null;
+  templateId?: string;
+  tone?: string;
+  fontFamily?: string;
+  accentColor?: string;
+  experienceLevel?: string | null;
+  senderName?: string | null;
+  senderEmail?: string | null;
+  senderPhone?: string | null;
+  senderLocation?: string | null;
+  isArchived?: boolean;
+}
+
+export type GenerateCoverLetterBodyFlowType =
+  (typeof GenerateCoverLetterBodyFlowType)[keyof typeof GenerateCoverLetterBodyFlowType];
+
+export const GenerateCoverLetterBodyFlowType = {
+  resume: "resume",
+  jobDescription: "jobDescription",
+  jobUrl: "jobUrl",
+} as const;
+
+export interface GenerateCoverLetterBody {
+  flowType: GenerateCoverLetterBodyFlowType;
+  resumeId?: number;
+  jobDescription?: string;
+  jobTitle?: string;
+  companyName?: string;
+  hiringManagerName?: string;
+  companyLocation?: string;
+  jobUrl?: string;
+  customInstructions?: string;
+  tone: string;
+  experienceLevel: string;
+}
+
+export interface RegenerateCoverLetterBody {
+  customInstructions?: string;
+  tone?: string;
+  experienceLevel?: string;
+  jobDescription?: string;
+}
+
+export interface AtsScoreBody {
+  jobDescription: string;
+}
+
+export interface ScrapeJobBody {
+  url: string;
+}
+
+export interface ScrapeJobResult {
+  jobTitle?: string | null;
+  companyName?: string | null;
+  description: string;
+}
+
+export interface ExportPdfBody {
+  html: string;
+}
+
 export type GetAtsScoreParams = {
   jobDescription?: string;
   forceScan?: boolean;
+};
+
+export type ListCoverLettersParams = {
+  resumeId?: number;
+  isArchived?: boolean;
+};
+
+export type DeleteCoverLetter200 = {
+  success?: boolean;
 };

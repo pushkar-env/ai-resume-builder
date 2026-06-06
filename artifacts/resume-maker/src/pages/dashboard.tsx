@@ -71,7 +71,18 @@ import {
   getListResumesQueryKey,
   getGetResumeQueryKey,
   type Resume,
+  useListCoverLetters,
+  useCreateCoverLetter,
+  useDeleteCoverLetter,
+  useDuplicateCoverLetter,
+  useUpdateCoverLetter,
+  useGenerateCoverLetter,
+  useScrapeJobDetails,
+  getListCoverLettersQueryKey,
+  type CoverLetter,
+  type ScrapeJobResult,
 } from "@workspace/api-client-react";
+import { CoverLetterPreview } from "@/components/resume/CoverLetterPreview";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
@@ -741,19 +752,543 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   );
 });
 
+const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
+  coverLetter,
+  fadeUp,
+  coarsePointer,
+  navigate,
+  setRenameTitle,
+  setRenameId,
+  setDeleteId,
+  deleteId,
+  handleDuplicateRequest,
+  index,
+  user,
+  isDraggingThis,
+  setActiveDragCoverLetterId,
+  setIsOverTrash,
+  onDragDelete,
+}: {
+  coverLetter: CoverLetter;
+  fadeUp: Variants;
+  coarsePointer: boolean;
+  navigate: (path: string) => void;
+  setRenameTitle: (t: string) => void;
+  setRenameId: (id: number | null) => void;
+  setDeleteId: (id: number | null) => void;
+  deleteId: number | null;
+  handleDuplicateRequest: (id: number) => void;
+  index: number;
+  user: any;
+  isDraggingThis: boolean;
+  setActiveDragCoverLetterId: (id: number | null) => void;
+  setIsOverTrash: (over: boolean) => void;
+  onDragDelete: (id: number) => void;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const cardInitialRectRef = useRef<DOMRect | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuSlipRef = useRef(false);
+  const menuStartRef = useRef({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const isDragging = useRef(false);
+  const dragControls = useDragControls();
+  const longPressTimer = useRef<any>(null);
+  const startPoint = useRef({ x: 0, y: 0 });
+  const currentOverTrash = useRef(false);
+  const hasDragged = useRef(false);
+  const isPointerDownThisCard = useRef(false);
+  const wasDraggableDuringTouch = useRef(false);
+  const isDeleting = deleteId === coverLetter.id;
+
+  // Close options menu when scrolling anywhere on mobile or desktop
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleScroll = () => {
+      setMenuOpen(false);
+    };
+
+    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, [menuOpen]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only allow left click / standard touch to drag
+    if (e.button !== 0 || menuOpen) return;
+
+    // Ignore if clicking on buttons or menu trigger
+    const target = e.target as HTMLElement;
+    if (
+      target.closest("button") ||
+      target.closest("[role='menuitem']") ||
+      target.closest(".dropdown-menu-trigger")
+    ) {
+      return;
+    }
+
+    // Close options menu if open
+    setMenuOpen(false);
+
+    startPoint.current = { x: e.clientX, y: e.clientY };
+    hasDragged.current = false;
+    currentOverTrash.current = false;
+    isPointerDownThisCard.current = true;
+    wasDraggableDuringTouch.current = false;
+
+    const nativeEvent = e.nativeEvent;
+    longPressTimer.current = setTimeout(() => {
+      isDragging.current = true;
+      wasDraggableDuringTouch.current = true;
+      if (navigator.vibrate) {
+        navigator.vibrate(40);
+      }
+      dragControls.start(nativeEvent);
+      setActiveDragCoverLetterId(coverLetter.id);
+    }, 280);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current) {
+      const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
+      const threshold = isTouch ? 24 : 8;
+      const dist = Math.hypot(
+        e.clientX - startPoint.current.x,
+        e.clientY - startPoint.current.y,
+      );
+      if (dist > threshold) {
+        clearTimeout(longPressTimer.current);
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
+    clearTimeout(longPressTimer.current);
+    if (!isPointerDownThisCard.current) {
+      return;
+    }
+    isPointerDownThisCard.current = false;
+
+    if (isDragging.current) {
+      isDragging.current = false;
+      setActiveDragCoverLetterId(null);
+      setIsOverTrash(false);
+      currentOverTrash.current = false;
+    }
+  };
+
+  const handlePointerCancel = () => {
+    clearTimeout(longPressTimer.current);
+    isPointerDownThisCard.current = false;
+    if (isDragging.current) {
+      isDragging.current = false;
+      setActiveDragCoverLetterId(null);
+      setIsOverTrash(false);
+      currentOverTrash.current = false;
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (wasDraggableDuringTouch.current || hasDragged.current) {
+      wasDraggableDuringTouch.current = false;
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+    if (
+      target.closest &&
+      (target.closest("button") ||
+        target.closest(".dropdown-menu-trigger") ||
+        target.closest("[role='menuitem']"))
+    ) {
+      return;
+    }
+
+    if (menuOpen) {
+      setMenuOpen(false);
+      return;
+    }
+
+    navigate(`/cover-letter-builder/${coverLetter.id}`);
+  };
+
+  const senderName = user?.fullName || "Your Name";
+  const senderEmail = user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+
+  return (
+    <motion.div
+      variants={fadeUp}
+      className={`h-full relative select-none no-touch-callout ${
+        isDraggingThis ? "touch-none" : "touch-pan-y"
+      }`}
+      style={{
+        zIndex: isDraggingThis ? 50 : 1,
+        willChange: isDraggingThis ? "transform" : "auto",
+      }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {isDraggingThis && (
+        <div className="absolute inset-0 rounded-xl border-2 border-dashed border-primary/20 bg-primary/5 flex flex-col items-center justify-center text-center p-6 pointer-events-none select-none z-0">
+          <FileText className="h-8 w-8 text-primary/40 mb-2 animate-pulse" />
+          <span className="text-[11px] font-bold tracking-wider text-primary/40 uppercase">
+            Moving Cover Letter
+          </span>
+        </div>
+      )}
+      <motion.div
+        ref={cardRef}
+        className={`h-full origin-center animate-fill-both ${
+          isDraggingThis ? "touch-none" : "touch-pan-y"
+        }`}
+        style={{
+          transformStyle: isDraggingThis ? "preserve-3d" : "flat",
+          backfaceVisibility: isDraggingThis ? "hidden" : "visible",
+        }}
+        initial={{
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotate: 0,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        }}
+        drag={!menuOpen}
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        onDragStart={() => {
+          if (cardRef.current) {
+            cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
+          }
+        }}
+        onDrag={(event, info) => {
+          hasDragged.current = true;
+
+          // Get viewport-relative pointer coordinates from raw event or fallback
+          let pointerX = (event as any).clientX;
+          let pointerY = (event as any).clientY;
+
+          if (pointerX === undefined || pointerY === undefined) {
+            if ((event as any).touches && (event as any).touches.length > 0) {
+              pointerX = (event as any).touches[0].clientX;
+              pointerY = (event as any).touches[0].clientY;
+            } else if ((event as any).changedTouches && (event as any).changedTouches.length > 0) {
+              pointerX = (event as any).changedTouches[0].clientX;
+              pointerY = (event as any).changedTouches[0].clientY;
+            } else {
+              // Fallback to Framer Motion point relative to viewport by subtracting document scroll
+              pointerX = info.point.x - window.scrollX;
+              pointerY = info.point.y - window.scrollY;
+            }
+          }
+
+          // Calculate viewport-relative trash bin bounds mathematically
+          const trashLeft = window.innerWidth / 2 - 32;
+          const trashRight = window.innerWidth / 2 + 32;
+          const trashTop = window.innerHeight - 88;
+          const trashBottom = window.innerHeight - 24;
+
+          const currentOver = currentOverTrash.current;
+
+          // Check if the card itself overlaps the trash bin (reflow-free using initial rect + offset)
+          let cardOver = false;
+          if (cardInitialRectRef.current) {
+            const cardLeft = cardInitialRectRef.current.left + info.offset.x;
+            const cardRight = cardInitialRectRef.current.right + info.offset.x;
+            const cardTop = cardInitialRectRef.current.top + info.offset.y;
+            const cardBottom = cardInitialRectRef.current.bottom + info.offset.y;
+
+            // Hysteresis padding: card must penetrate 20px to activate, 0px to deactivate
+            const cardPadding = currentOver ? 0 : -20;
+            cardOver = !(
+              cardRight < trashLeft - cardPadding ||
+              cardLeft > trashRight + cardPadding ||
+              cardBottom < trashTop - cardPadding ||
+              cardTop > trashBottom + cardPadding
+            );
+          }
+
+          // Check if the pointer is within a generous box of the trash bin
+          const pointerPadding = currentOver ? 48 : 24;
+          const pointerOver = (
+            pointerX >= trashLeft - pointerPadding &&
+            pointerX <= trashRight + pointerPadding &&
+            pointerY >= trashTop - pointerPadding &&
+            pointerY <= trashBottom + pointerPadding
+          );
+
+          // Over is true if either the card intersects or the pointer hovers over the bin area
+          const over = cardOver || pointerOver;
+
+          if (over !== currentOver) {
+            currentOverTrash.current = over;
+            setIsOverTrash(over);
+            if (over && navigator.vibrate) {
+              navigator.vibrate(15);
+            }
+          }
+        }}
+        onDragEnd={(event, info) => {
+          isDragging.current = false;
+          setActiveDragCoverLetterId(null);
+          setIsOverTrash(false);
+
+          if (currentOverTrash.current) {
+            onDragDelete(coverLetter.id);
+          }
+          currentOverTrash.current = false;
+        }}
+        animate={
+          isDeleting
+            ? {
+                x: 0,
+                scale: 0,
+                opacity: 0,
+                y: 150,
+                rotate: 0,
+                transition: { duration: 0.3, ease: "easeInOut" },
+              }
+            : isDraggingThis
+              ? {
+                  scale: 1.04,
+                  rotate: -1.5,
+                  boxShadow: "0 20px 35px rgba(0,0,0,0.12)",
+                  opacity: 0.92,
+                  transition: { type: "spring", stiffness: 300, damping: 25 },
+                }
+              : isHovered && !menuOpen
+                ? {
+                    x: 0,
+                    y: -4,
+                    scale: 1.012,
+                    rotate: 0,
+                    boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                    transition: previewCardHoverTransition,
+                  }
+                : {
+                    x: 0,
+                    y: 0,
+                    scale: 1,
+                    rotate: 0,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                    transition: previewCardHoverTransition,
+                  }
+        }
+        onHoverStart={() => {
+          if (coarsePointer || isDraggingThis) return;
+          setIsHovered(true);
+        }}
+        onHoverEnd={() => {
+          setIsHovered(false);
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onClick={handleClick}
+      >
+        <Card
+          className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
+            isDraggingThis
+              ? "border-primary/60 bg-background/90 backdrop-blur-md cursor-grabbing touch-none z-10"
+              : "cursor-grab touch-pan-y"
+          }`}
+        >
+          {/* Cover Letter Thumbnail / Preview container */}
+          <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-slate-50 flex items-center justify-center">
+            <div className="absolute top-4 scale-[0.17] origin-top">
+              <CoverLetterPreview
+                content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
+                senderName={senderName}
+                senderEmail={senderEmail}
+                senderPhone=""
+                senderLocation=""
+                recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
+                companyName={coverLetter.companyName || "Company Name"}
+                companyLocation={coverLetter.companyLocation || ""}
+                jobTitle={coverLetter.jobTitle || "Job Title"}
+                templateId={coverLetter.templateId || "classic"}
+                accentColor="#1e3a8a"
+                zoom={1}
+              />
+            </div>
+          </div>
+
+          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
+            <div className="flex items-start justify-between mb-auto pointer-events-auto">
+              <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
+                <h3 className="font-semibold text-base truncate mb-1 text-slate-900">
+                  {coverLetter.title}
+                </h3>
+                <p className="text-xs text-muted-foreground truncate mb-2">
+                  {coverLetter.jobTitle && coverLetter.companyName
+                    ? `${coverLetter.jobTitle} at ${coverLetter.companyName}`
+                    : coverLetter.jobTitle || coverLetter.companyName || "Draft"}
+                </p>
+                <span className="inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium bg-emerald-50 text-emerald-700 capitalize">
+                  {coverLetter.templateId || "Classic"} Template
+                </span>
+              </div>
+              <DropdownMenu
+                modal={false}
+                open={menuOpen}
+                onOpenChange={(next: boolean) => {
+                  if (coarsePointer && next && menuSlipRef.current) {
+                    menuSlipRef.current = false;
+                    return;
+                  }
+                  setMenuOpen(next);
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`dropdown-menu-trigger h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
+                      coarsePointer ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      clearTimeout(longPressTimer.current);
+                      if (!coarsePointer) return;
+                      if (e.pointerType !== "touch" && e.pointerType !== "pen")
+                        return;
+                      menuSlipRef.current = false;
+                      menuStartRef.current = { x: e.clientX, y: e.clientY };
+                      try {
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                      } catch {
+                        /* noop */
+                      }
+                    }}
+                    onPointerMove={(e) => {
+                      if (!coarsePointer) return;
+                      if (!e.currentTarget.hasPointerCapture(e.pointerId))
+                        return;
+                      const s = menuStartRef.current;
+                      if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12)
+                        menuSlipRef.current = true;
+                    }}
+                    onPointerUp={(e) => {
+                      if (coarsePointer) {
+                        try {
+                          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                            e.currentTarget.releasePointerCapture(e.pointerId);
+                          }
+                        } catch {
+                          /* noop */
+                        }
+                      }
+                    }}
+                    onPointerCancel={(e) => {
+                      if (coarsePointer) {
+                        try {
+                          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                            e.currentTarget.releasePointerCapture(e.pointerId);
+                          }
+                        } catch {
+                          /* noop */
+                        }
+                      }
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchMove={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 z-30">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/cover-letter-builder/${coverLetter.id}`);
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Open Editor
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDuplicateRequest(coverLetter.id);
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Duplicate
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenameTitle(coverLetter.title ?? "");
+                      setRenameId(coverLetter.id);
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteId(coverLetter.id);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex items-center text-xs text-muted-foreground mt-6 pt-4 border-t border-border/50">
+              <Clock className="h-3.5 w-3.5 mr-1.5 opacity-70" />
+              Updated {timeAgo(coverLetter.updatedAt)}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
+  );
+});
+
 export default function DashboardPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const coarsePointer = useCoarsePointer();
+  const [activeTab, setActiveTab] = useState<"resumes" | "cover-letters">(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    return tab === "cover-letters" ? "cover-letters" : "resumes";
+  });
   const [createOpen, setCreateOpen] = useState(false);
+  const [createCoverLetterOpen, setCreateCoverLetterOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteType, setDeleteType] = useState<"resume" | "cover-letter">("resume");
   const [renameId, setRenameId] = useState<number | null>(null);
+  const [renameType, setRenameType] = useState<"resume" | "cover-letter">("resume");
   const [newTitle, setNewTitle] = useState("My Resume");
   const [renameTitle, setRenameTitle] = useState("");
   const [showPaywall, setShowPaywall] = useState(false);
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(
+    null,
+  );
+  const [activeDragCoverLetterId, setActiveDragCoverLetterId] = useState<number | null>(
     null,
   );
   const [isOverTrash, setIsOverTrash] = useState(false);
@@ -777,6 +1312,18 @@ export default function DashboardPage() {
     handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Synchronize activeTab to URL search parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const currentTab = params.get("tab");
+    if (currentTab !== activeTab) {
+      params.set("tab", activeTab);
+      const newSearch = params.toString();
+      const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+      window.history.replaceState(null, "", newPath);
+    }
+  }, [activeTab]);
 
   const triggerBurst = useCallback((startX: number, startY: number) => {
     const canvas = canvasRef.current;
@@ -882,7 +1429,7 @@ export default function DashboardPage() {
 
   // Prevent native page scrolling / pointercancel triggers on touch devices when a card is dragging
   useEffect(() => {
-    if (activeDragResumeId === null) return;
+    if (activeDragResumeId === null && activeDragCoverLetterId === null) return;
 
     const preventDefault = (e: TouchEvent) => {
       if (e.cancelable) e.preventDefault();
@@ -892,7 +1439,7 @@ export default function DashboardPage() {
     return () => {
       window.removeEventListener("touchmove", preventDefault);
     };
-  }, [activeDragResumeId]);
+  }, [activeDragResumeId, activeDragCoverLetterId]);
 
   const { user } = useUser();
   const isPremiumUser = user?.publicMetadata?.isPremium === true;
@@ -1009,7 +1556,88 @@ export default function DashboardPage() {
     },
   });
 
-  const handleDragDelete = useCallback(
+  const { data: coverLetters, isLoading: coverLettersLoading } = useListCoverLetters();
+  const coverLetterList = useMemo(() => {
+    const list = Array.isArray(coverLetters) ? coverLetters : [];
+    const sorted = [...list].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+    return sorted.filter((c) => !optimisticallyDeletedIds.includes(c.id));
+  }, [coverLetters, optimisticallyDeletedIds]);
+
+  const deleteCoverLetter = useDeleteCoverLetter({
+    mutation: {
+      onSuccess: async (data, variables) => {
+        setDeleteId(null);
+        await queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        setOptimisticallyDeletedIds((prev) =>
+          prev.filter((id) => id !== variables.id),
+        );
+      },
+      onError: (error, variables) => {
+        setDeleteId(null);
+        setOptimisticallyDeletedIds((prev) =>
+          prev.filter((id) => id !== variables.id),
+        );
+        toast({ title: "Failed to delete cover letter", variant: "destructive" });
+      },
+    },
+  });
+
+  const duplicateCoverLetter = useDuplicateCoverLetter({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        toast({ title: "Cover letter duplicated" });
+      },
+      onError: () => {
+        toast({ title: "Failed to duplicate cover letter", variant: "destructive" });
+      }
+    },
+  });
+
+  const handleDuplicateCoverLetterRequest = useCallback(
+    (id: number) => {
+      duplicateCoverLetter.mutate({ id });
+    },
+    [duplicateCoverLetter.mutate],
+  );
+
+  const updateCoverLetter = useUpdateCoverLetter({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        setRenameId(null);
+        toast({ title: "Cover letter renamed" });
+      },
+      onError: () =>
+        toast({ title: "Failed to rename cover letter", variant: "destructive" }),
+    },
+  });
+
+  const generateCoverLetter = useGenerateCoverLetter({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        toast({ title: "Cover letter generated successfully" });
+        setCreateCoverLetterOpen(false);
+        if (clTitle.trim() && clTitle !== "My Cover Letter") {
+          updateCoverLetter.mutate({ id: data.id, data: { title: clTitle } });
+        }
+        navigate(`/cover-letter-builder/${data.id}`);
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Failed to generate cover letter",
+          description: error?.message || "Unknown error occurred",
+          variant: "destructive",
+        });
+      }
+    }
+  });
+
+  const handleDragDeleteResume = useCallback(
     (id: number) => {
       // Trigger physically reactive scale pop on trash bin
       setIsDeletedTrashPop(true);
@@ -1036,6 +1664,35 @@ export default function DashboardPage() {
       }
     },
     [deleteResume.mutate, triggerBurst],
+  );
+
+  const handleDragDeleteCoverLetter = useCallback(
+    (id: number) => {
+      // Trigger physically reactive scale pop on trash bin
+      setIsDeletedTrashPop(true);
+      setTimeout(() => setIsDeletedTrashPop(false), 300);
+
+      // Play particle burst
+      if (trashBinRef.current) {
+        const rect = trashBinRef.current.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        triggerBurst(x, y);
+      } else {
+        triggerBurst(window.innerWidth / 2, window.innerHeight - 56);
+      }
+
+      // Add to optimistic deletion array, show toast immediately, & call mutation
+      setOptimisticallyDeletedIds((prev) => [...prev, id]);
+      toast({ title: "Cover letter deleted" });
+      deleteCoverLetter.mutate({ id });
+
+      // Trigger standard vibration feedback
+      if (navigator.vibrate) {
+        navigator.vibrate([30, 50, 40]);
+      }
+    },
+    [deleteCoverLetter.mutate, triggerBurst],
   );
 
   const duplicateResume = useDuplicateResume({
@@ -1085,17 +1742,59 @@ export default function DashboardPage() {
     [coarsePointer],
   );
 
+  const [clTitle, setClTitle] = useState("My Cover Letter");
+  const [clResumeId, setClResumeId] = useState<number | "">("");
+  const [clJobTitle, setClJobTitle] = useState("");
+  const [clCompanyName, setClCompanyName] = useState("");
+  const [clHiringManager, setClHiringManager] = useState("");
+  const [clCompanyLocation, setClCompanyLocation] = useState("");
+  const [clJobDescription, setClJobDescription] = useState("");
+  const [clJobUrl, setClJobUrl] = useState("");
+  const [clTone, setClTone] = useState("professional");
+  const [clExpLevel, setClExpLevel] = useState("mid");
+  const [clCustomInstructions, setClCustomInstructions] = useState("");
+  const [clTemplateId, setClTemplateId] = useState("classic");
+
+  const scrapeJob = useScrapeJobDetails({
+    mutation: {
+      onSuccess: (data: ScrapeJobResult) => {
+        toast({ title: "Job details scraped successfully" });
+        if (data.jobTitle) setClJobTitle(data.jobTitle);
+        if (data.companyName) setClCompanyName(data.companyName);
+        if (data.description) setClJobDescription(data.description);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Failed to scrape job URL",
+          description: err?.message || "Please paste the job description manually.",
+          variant: "destructive",
+        });
+      }
+    }
+  });
+
+  const handleScrapeJobUrl = () => {
+    if (!clJobUrl) return;
+    scrapeJob.mutate({ data: { url: clJobUrl } });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {(createResume.isPending || importResume.isPending) && (
+      {(createResume.isPending || importResume.isPending || generateCoverLetter.isPending) && (
         <PremiumLoadingScreen
           title={
-            importResume.isPending ? "Importing your resume" : "Creating your resume"
+            importResume.isPending
+              ? "Importing your resume"
+              : generateCoverLetter.isPending
+                ? "Generating your Cover Letter"
+                : "Creating your resume"
           }
           subtitle={
             importResume.isPending
               ? "Extracting and structuring content with AI"
-              : "Setting up sections and template"
+              : generateCoverLetter.isPending
+                ? "Tailoring tone and content to match job requirements..."
+                : "Setting up sections and template"
           }
         />
       )}
@@ -1105,103 +1804,209 @@ export default function DashboardPage() {
       />
       <Navbar />
       <main className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">My Resumes</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 bg-clip-text text-transparent dark:from-white dark:to-slate-300">
+              {activeTab === "resumes" ? "My Resumes" : "My Cover Letters"}
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Manage and build your professional resumes
+              {activeTab === "resumes"
+                ? "Manage and build your professional resumes"
+                : "Generate and tailor cover letters for job openings"}
             </p>
+          </div>
+
+          {/* Gorgeous animated tab controller */}
+          <div className="relative p-1 bg-slate-100/80 backdrop-blur-sm border border-slate-200/50 rounded-xl flex items-center w-fit self-start sm:self-auto shadow-sm">
+            <button
+              onClick={() => setActiveTab("resumes")}
+              className={`relative px-4 py-2 text-xs font-semibold rounded-lg transition-colors z-10 duration-200 flex items-center gap-2 ${
+                activeTab === "resumes" ? "text-indigo-600 font-bold" : "text-slate-600 hover:text-slate-950"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Resumes
+              {activeTab === "resumes" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute inset-0 bg-white border border-slate-200/40 rounded-lg shadow-sm -z-10"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("cover-letters")}
+              className={`relative px-4 py-2 text-xs font-semibold rounded-lg transition-colors z-10 duration-200 flex items-center gap-2 ${
+                activeTab === "cover-letters" ? "text-indigo-600 font-bold" : "text-slate-600 hover:text-slate-950"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Cover Letters
+              {activeTab === "cover-letters" && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute inset-0 bg-white border border-slate-200/40 rounded-lg shadow-sm -z-10"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </button>
           </div>
         </div>
 
-        {resumesLoading ? (
-          <PremiumLoadingScreen
-            title="Fetching your resumes"
-            subtitle="Preparing your dashboard"
-          />
-        ) : (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
-          >
-            {/* Create New Card */}
-            <motion.div variants={fadeUp}>
-              <div
-                onClick={handleCreateRequest}
-                className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
-              >
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <Plus className="h-5 w-5 text-primary" />
+        {activeTab === "resumes" ? (
+          resumesLoading ? (
+            <PremiumLoadingScreen
+              title="Fetching your resumes"
+              subtitle="Preparing your dashboard"
+            />
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={stagger}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
+            >
+              {/* Create New Card */}
+              <motion.div variants={fadeUp}>
+                <div
+                  onClick={handleCreateRequest}
+                  className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Plus className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-medium text-sm">Create New Resume</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Start from a blank template
+                  </p>
                 </div>
-                <h3 className="font-medium text-sm">Create New Resume</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Start from a blank template
-                </p>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            {/* Import Card */}
-            <motion.div variants={fadeUp}>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                onChange={handleFileChange}
-              />
-              <div
-                onClick={handleImportClick}
-                className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
-                  ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
-                `}
-              >
-                {importResume.isPending ? (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                      <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                    </div>
-                    <h3 className="font-medium text-sm">Importing...</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Extracting with AI
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <FileUp className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-medium text-sm">Import Resume</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Upload PDF or DOCX
-                    </p>
-                  </>
-                )}
-              </div>
-            </motion.div>
+              {/* Import Card */}
+              <motion.div variants={fadeUp}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileChange}
+                />
+                <div
+                  onClick={handleImportClick}
+                  className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
+                    ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
+                  `}
+                >
+                  {importResume.isPending ? (
+                    <>
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                        <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                      </div>
+                      <h3 className="font-medium text-sm">Importing...</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Extracting with AI
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <FileUp className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-medium text-sm">Import Resume</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Upload PDF or DOCX
+                      </p>
+                    </>
+                  )}
+                </div>
+              </motion.div>
 
-            {/* Existing Resumes */}
-            {resumeList.map((resume, index) => (
-              <DashboardResumeCard
-                key={resume.id}
-                resume={resume}
-                fadeUp={fadeUp}
-                coarsePointer={coarsePointer}
-                navigate={navigate}
-                setRenameTitle={setRenameTitle}
-                setRenameId={setRenameId}
-                setDeleteId={setDeleteId}
-                deleteId={deleteId}
-                handleDuplicateRequest={handleDuplicateRequest}
-                isDraggingThis={activeDragResumeId === resume.id}
-                setActiveDragResumeId={setActiveDragResumeId}
-                setIsOverTrash={setIsOverTrash}
-                onDragDelete={handleDragDelete}
-                index={index}
-              />
-            ))}
-          </motion.div>
+              {/* Existing Resumes */}
+              {resumeList.map((resume, index) => (
+                <DashboardResumeCard
+                  key={resume.id}
+                  resume={resume}
+                  fadeUp={fadeUp}
+                  coarsePointer={coarsePointer}
+                  navigate={navigate}
+                  setRenameTitle={setRenameTitle}
+                  setRenameId={(id) => {
+                    setRenameType("resume");
+                    setRenameId(id);
+                  }}
+                  setDeleteId={(id) => {
+                    setDeleteType("resume");
+                    setDeleteId(id);
+                  }}
+                  deleteId={deleteId}
+                  handleDuplicateRequest={handleDuplicateRequest}
+                  isDraggingThis={activeDragResumeId === resume.id}
+                  setActiveDragResumeId={setActiveDragResumeId}
+                  setIsOverTrash={setIsOverTrash}
+                  onDragDelete={handleDragDeleteResume}
+                  index={index}
+                />
+              ))}
+            </motion.div>
+          )
+        ) : (
+          coverLettersLoading ? (
+            <PremiumLoadingScreen
+              title="Fetching your cover letters"
+              subtitle="Preparing your dashboard"
+            />
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={stagger}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
+            >
+              {/* Generate Cover Letter Card */}
+              <motion.div variants={fadeUp}>
+                <div
+                  onClick={() => setCreateCoverLetterOpen(true)}
+                  className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                    <Plus className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-medium text-sm text-slate-900">Generate Cover Letter</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    AI-tailored to any job description
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Cover Letters List */}
+              {coverLetterList.map((cl, idx) => (
+                <DashboardCoverLetterCard
+                  key={cl.id}
+                  coverLetter={cl}
+                  fadeUp={fadeUp}
+                  coarsePointer={coarsePointer}
+                  navigate={navigate}
+                  setRenameTitle={setRenameTitle}
+                  setRenameId={(id) => {
+                    setRenameType("cover-letter");
+                    setRenameId(id);
+                  }}
+                  setDeleteId={(id) => {
+                    setDeleteType("cover-letter");
+                    setDeleteId(id);
+                  }}
+                  deleteId={deleteId}
+                  handleDuplicateRequest={handleDuplicateCoverLetterRequest}
+                  index={idx}
+                  user={user}
+                  isDraggingThis={activeDragCoverLetterId === cl.id}
+                  setActiveDragCoverLetterId={setActiveDragCoverLetterId}
+                  setIsOverTrash={setIsOverTrash}
+                  onDragDelete={handleDragDeleteCoverLetter}
+                />
+              ))}
+            </motion.div>
+          )
         )}
       </main>
 
@@ -1209,7 +2014,7 @@ export default function DashboardPage() {
 
       {/* Bottom Trash Zone */}
       <AnimatePresence>
-        {(activeDragResumeId !== null || isDeletedTrashPop) && (
+        {(activeDragResumeId !== null || activeDragCoverLetterId !== null || isDeletedTrashPop) && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -1357,7 +2162,7 @@ export default function DashboardPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename resume</DialogTitle>
+            <DialogTitle>Rename {renameType === "resume" ? "resume" : "cover letter"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -1366,13 +2171,20 @@ export default function DashboardPage() {
                 id="rename"
                 value={renameTitle}
                 onChange={(e) => setRenameTitle(e.target.value)}
-                placeholder="e.g. Software Engineer Resume"
+                placeholder={renameType === "resume" ? "e.g. Software Engineer Resume" : "e.g. Cover Letter for Stripe"}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && renameId !== null) {
-                    updateResume.mutate({
-                      id: renameId,
-                      data: { title: renameTitle },
-                    });
+                    if (renameType === "resume") {
+                      updateResume.mutate({
+                        id: renameId,
+                        data: { title: renameTitle },
+                      });
+                    } else {
+                      updateCoverLetter.mutate({
+                        id: renameId,
+                        data: { title: renameTitle },
+                      });
+                    }
                   }
                 }}
               />
@@ -1383,16 +2195,234 @@ export default function DashboardPage() {
               Cancel
             </Button>
             <Button
-              onClick={() =>
-                renameId !== null &&
-                updateResume.mutate({
-                  id: renameId,
-                  data: { title: renameTitle },
-                })
-              }
-              disabled={updateResume.isPending || !renameTitle.trim()}
+              onClick={() => {
+                if (renameId !== null) {
+                  if (renameType === "resume") {
+                    updateResume.mutate({
+                      id: renameId,
+                      data: { title: renameTitle },
+                    });
+                  } else {
+                    updateCoverLetter.mutate({
+                      id: renameId,
+                      data: { title: renameTitle },
+                    });
+                  }
+                }
+              }}
+              disabled={(renameType === "resume" ? updateResume.isPending : updateCoverLetter.isPending) || !renameTitle.trim()}
             >
-              {updateResume.isPending ? "Renaming..." : "Save changes"}
+              {(renameType === "resume" ? updateResume.isPending : updateCoverLetter.isPending) ? "Renaming..." : "Save changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Generate Cover Letter dialog */}
+      <Dialog
+        open={createCoverLetterOpen}
+        onOpenChange={setCreateCoverLetterOpen}
+      >
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Generate Tailored Cover Letter</DialogTitle>
+            <DialogDescription>
+              AI will analyze your resume and target job listing to write a personalized, high-conversion cover letter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2 text-slate-800">
+            <div className="space-y-2">
+              <Label htmlFor="cl-title" className="text-slate-700 font-medium">Document Title</Label>
+              <Input
+                id="cl-title"
+                value={clTitle}
+                onChange={(e) => setClTitle(e.target.value)}
+                placeholder="e.g. Cover Letter for Software Engineer at Google"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cl-resume" className="text-slate-700 font-medium">Reference Resume</Label>
+              <select
+                id="cl-resume"
+                value={clResumeId}
+                onChange={(e) => setClResumeId(e.target.value ? Number(e.target.value) : "")}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">-- Select a Resume (Highly Recommended) --</option>
+                {resumeList.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="border-t border-border pt-4 mt-2">
+              <h4 className="text-sm font-semibold mb-3 text-slate-900">Job Details</h4>
+              
+              <div className="flex gap-2 mb-3 items-end">
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="cl-url" className="text-slate-700 font-medium">Scrape Job Posting URL (Optional)</Label>
+                  <Input
+                    id="cl-url"
+                    value={clJobUrl}
+                    onChange={(e) => setClJobUrl(e.target.value)}
+                    placeholder="https://linkedin.com/jobs/view/... or any job site"
+                  />
+                </div>
+                <Button 
+                  type="button" 
+                  variant="secondary"
+                  disabled={!clJobUrl || scrapeJob.isPending}
+                  onClick={handleScrapeJobUrl}
+                >
+                  {scrapeJob.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Scrape"}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="cl-job-title" className="text-slate-700 font-medium">Job Title</Label>
+                  <Input
+                    id="cl-job-title"
+                    value={clJobTitle}
+                    onChange={(e) => setClJobTitle(e.target.value)}
+                    placeholder="e.g. Frontend Engineer"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cl-company" className="text-slate-700 font-medium">Company Name</Label>
+                  <Input
+                    id="cl-company"
+                    value={clCompanyName}
+                    onChange={(e) => setClCompanyName(e.target.value)}
+                    placeholder="e.g. Stripe"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="cl-hiring-manager" className="text-slate-700 font-medium">Hiring Manager (Optional)</Label>
+                  <Input
+                    id="cl-hiring-manager"
+                    value={clHiringManager}
+                    onChange={(e) => setClHiringManager(e.target.value)}
+                    placeholder="e.g. Recruiting Team"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cl-location" className="text-slate-700 font-medium">Company Location (Optional)</Label>
+                  <Input
+                    id="cl-location"
+                    value={clCompanyLocation}
+                    onChange={(e) => setClCompanyLocation(e.target.value)}
+                    placeholder="e.g. San Francisco, CA"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="cl-desc" className="text-slate-700 font-medium">Job Description</Label>
+                <textarea
+                  id="cl-desc"
+                  rows={4}
+                  value={clJobDescription}
+                  onChange={(e) => setClJobDescription(e.target.value)}
+                  placeholder="Paste the job description keywords, requirements, and responsibilities here..."
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-4 mt-2 grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="cl-tone" className="text-slate-700 font-medium">Tone</Label>
+                <select
+                  id="cl-tone"
+                  value={clTone}
+                  onChange={(e) => setClTone(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="professional">Professional</option>
+                  <option value="enthusiastic">Enthusiastic</option>
+                  <option value="conversational">Conversational</option>
+                  <option value="bold">Bold & Confident</option>
+                  <option value="academic">Academic/Detailed</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="cl-exp" className="text-slate-700 font-medium">Exp. Level</Label>
+                <select
+                  id="cl-exp"
+                  value={clExpLevel}
+                  onChange={(e) => setClExpLevel(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="entry">Entry-Level</option>
+                  <option value="mid">Mid-Level</option>
+                  <option value="senior">Senior-Level</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="cl-template" className="text-slate-700 font-medium">Template Style</Label>
+                <select
+                  id="cl-template"
+                  value={clTemplateId}
+                  onChange={(e) => setClTemplateId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="classic">Classic</option>
+                  <option value="modern">Modern</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="creative">Creative</option>
+                  <option value="elegant">Elegant</option>
+                  <option value="professional">Professional</option>
+                  <option value="startup">Startup</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="cl-instructions" className="text-slate-700 font-medium">Custom Instructions (Optional)</Label>
+              <textarea
+                id="cl-instructions"
+                rows={2}
+                value={clCustomInstructions}
+                onChange={(e) => setClCustomInstructions(e.target.value)}
+                placeholder="e.g. Focus on my experience with cloud systems. Keep the introduction short."
+                className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-row mt-4">
+            <Button
+              onClick={() => {
+                generateCoverLetter.mutate({
+                  data: {
+                    flowType: clJobUrl ? "jobUrl" : (clResumeId ? "resume" : "jobDescription"),
+                    resumeId: clResumeId || undefined,
+                    jobTitle: clJobTitle,
+                    companyName: clCompanyName,
+                    companyLocation: clCompanyLocation || undefined,
+                    hiringManagerName: clHiringManager || undefined,
+                    jobDescription: clJobDescription || undefined,
+                    tone: clTone,
+                    experienceLevel: clExpLevel,
+                    customInstructions: clCustomInstructions || undefined,
+                    jobUrl: clJobUrl || undefined,
+                  }
+                });
+              }}
+              disabled={generateCoverLetter.isPending || !clTitle.trim() || !clJobTitle.trim() || !clCompanyName.trim()}
+            >
+              {generateCoverLetter.isPending ? "Generating..." : "Generate Cover Letter"}
+            </Button>
+            <Button variant="outline" onClick={() => setCreateCoverLetterOpen(false)}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1405,9 +2435,9 @@ export default function DashboardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete resume?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteType === "resume" ? "resume" : "cover letter"}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. Your resume and all its content will
+              This action cannot be undone. Your {deleteType === "resume" ? "resume" : "cover letter"} and all its content will
               be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1418,8 +2448,13 @@ export default function DashboardPage() {
               onClick={() => {
                 if (deleteId !== null) {
                   setOptimisticallyDeletedIds((prev) => [...prev, deleteId]);
-                  toast({ title: "Resume deleted" });
-                  deleteResume.mutate({ id: deleteId });
+                  if (deleteType === "resume") {
+                    toast({ title: "Resume deleted" });
+                    deleteResume.mutate({ id: deleteId });
+                  } else {
+                    toast({ title: "Cover letter deleted" });
+                    deleteCoverLetter.mutate({ id: deleteId });
+                  }
                 }
               }}
             >

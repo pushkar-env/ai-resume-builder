@@ -392,3 +392,325 @@ export const GetAtsSuggestionsResponse = zod.object({
   keywords: zod.array(zod.string()),
   score: zod.number(),
 });
+
+/**
+ * @summary List all cover letters for the authenticated user
+ */
+export const ListCoverLettersQueryParams = zod.object({
+  resumeId: zod.coerce.number().optional(),
+  isArchived: zod.coerce.boolean().optional(),
+});
+
+export const ListCoverLettersResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  title: zod.string(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  isArchived: zod.boolean(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsKeywords: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListCoverLettersResponse = zod.array(ListCoverLettersResponseItem);
+
+/**
+ * @summary Create a new cover letter draft
+ */
+export const CreateCoverLetterBody = zod.object({
+  title: zod.string(),
+  resumeId: zod.number().optional(),
+  jobTitle: zod.string().optional(),
+  companyName: zod.string().optional(),
+});
+
+/**
+ * @summary Generate a cover letter using AI (3 creation flows)
+ */
+export const GenerateCoverLetterBody = zod.object({
+  flowType: zod.enum(["resume", "jobDescription", "jobUrl"]),
+  resumeId: zod.number().optional(),
+  jobDescription: zod.string().optional(),
+  jobTitle: zod.string().optional(),
+  companyName: zod.string().optional(),
+  hiringManagerName: zod.string().optional(),
+  companyLocation: zod.string().optional(),
+  jobUrl: zod.string().optional(),
+  customInstructions: zod.string().optional(),
+  tone: zod.string(),
+  experienceLevel: zod.string(),
+});
+
+/**
+ * @summary Scrape job description and details from URL
+ */
+export const ScrapeJobDetailsBody = zod.object({
+  url: zod.string(),
+});
+
+export const ScrapeJobDetailsResponse = zod.object({
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  description: zod.string(),
+});
+
+/**
+ * @summary Export cover letter HTML as PDF file
+ */
+export const ExportCoverLetterPdfBody = zod.object({
+  html: zod.string(),
+});
+
+/**
+ * @summary Get cover letter details
+ */
+export const GetCoverLetterParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCoverLetterResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  title: zod.string(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  isArchived: zod.boolean(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsKeywords: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update cover letter details
+ */
+export const UpdateCoverLetterParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCoverLetterBody = zod.object({
+  title: zod.string().optional(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string().optional(),
+  tone: zod.string().optional(),
+  fontFamily: zod.string().optional(),
+  accentColor: zod.string().optional(),
+  experienceLevel: zod.string().nullish(),
+  senderName: zod.string().nullish(),
+  senderEmail: zod.string().nullish(),
+  senderPhone: zod.string().nullish(),
+  senderLocation: zod.string().nullish(),
+  isArchived: zod.boolean().optional(),
+});
+
+export const UpdateCoverLetterResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  title: zod.string(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  isArchived: zod.boolean(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsKeywords: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete cover letter
+ */
+export const DeleteCoverLetterParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteCoverLetterResponse = zod.object({
+  success: zod.boolean().optional(),
+});
+
+/**
+ * @summary Duplicate a cover letter
+ */
+export const DuplicateCoverLetterParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Regenerate cover letter content using AI and save previous to history
+ */
+export const RegenerateCoverLetterParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const RegenerateCoverLetterBody = zod.object({
+  customInstructions: zod.string().optional(),
+  tone: zod.string().optional(),
+  experienceLevel: zod.string().optional(),
+  jobDescription: zod.string().optional(),
+});
+
+export const RegenerateCoverLetterResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  title: zod.string(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  isArchived: zod.boolean(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsKeywords: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get list of previous versions of the cover letter
+ */
+export const GetCoverLetterVersionsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCoverLetterVersionsResponseItem = zod.object({
+  id: zod.number(),
+  coverLetterId: zod.number(),
+  title: zod.string(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  generationMetadata: zod.object({}).passthrough().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetCoverLetterVersionsResponse = zod.array(
+  GetCoverLetterVersionsResponseItem,
+);
+
+/**
+ * @summary Restore a previous version of the cover letter
+ */
+export const RestoreCoverLetterVersionParams = zod.object({
+  id: zod.coerce.number(),
+  versionId: zod.coerce.number(),
+});
+
+export const RestoreCoverLetterVersionResponse = zod.object({
+  id: zod.number(),
+  userId: zod.string(),
+  title: zod.string(),
+  resumeId: zod.number().nullish(),
+  jobTitle: zod.string().nullish(),
+  companyName: zod.string().nullish(),
+  hiringManagerName: zod.string().nullish(),
+  companyLocation: zod.string().nullish(),
+  generatedContent: zod.string().nullish(),
+  customInstructions: zod.string().nullish(),
+  jobDescription: zod.string().nullish(),
+  templateId: zod.string(),
+  tone: zod.string(),
+  fontFamily: zod.string(),
+  accentColor: zod.string(),
+  experienceLevel: zod.string().nullish(),
+  isArchived: zod.boolean(),
+  atsScore: zod.number().nullish(),
+  atsPassedChecks: zod.array(zod.string()).nullish(),
+  atsFailedChecks: zod.array(zod.string()).nullish(),
+  atsFeedback: zod.array(zod.string()).nullish(),
+  atsKeywords: zod.array(zod.string()).nullish(),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get ATS score audit and recommendations for the cover letter
+ */
+export const AuditCoverLetterAtsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AuditCoverLetterAtsBody = zod.object({
+  jobDescription: zod.string(),
+});
+
+export const AuditCoverLetterAtsResponse = zod.object({
+  score: zod.number(),
+  maxScore: zod.number(),
+  feedback: zod.array(zod.string()),
+  passedChecks: zod.array(zod.string()),
+  failedChecks: zod.array(zod.string()),
+  atsUpdatedAt: zod.coerce.date().nullish(),
+});

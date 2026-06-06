@@ -20,24 +20,36 @@ import type {
   AiSkillsResult,
   AiTextResult,
   AtsScore,
+  AtsScoreBody,
   AtsSuggestionsBody,
   AtsSuggestionsResult,
+  CoverLetter,
+  CoverLetterVersion,
+  CreateCoverLetterBody,
   CreateResumeBody,
   DashboardStats,
+  DeleteCoverLetter200,
   ErrorResponse,
+  ExportPdfBody,
   ExportResult,
   ExportResumeBody,
+  GenerateCoverLetterBody,
   GenerateSummaryBody,
   GetAtsScoreParams,
   HealthStatus,
   ImportResumeBody,
   ImproveBulletBody,
+  ListCoverLettersParams,
   OptimizeResumeBody,
   OptimizeResumeResponse,
+  RegenerateCoverLetterBody,
   Resume,
   ResumeDetail,
+  ScrapeJobBody,
+  ScrapeJobResult,
   SuggestSkillsBody,
   Template,
+  UpdateCoverLetterBody,
   UpdateResumeBody,
 } from "./api.schemas";
 
@@ -1484,4 +1496,1141 @@ export const useGetAtsSuggestions = <
   TContext
 > => {
   return useMutation(getGetAtsSuggestionsMutationOptions(options));
+};
+
+/**
+ * @summary List all cover letters for the authenticated user
+ */
+export const getListCoverLettersUrl = (params?: ListCoverLettersParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/cover-letters?${stringifiedParams}`
+    : `/api/cover-letters`;
+};
+
+export const listCoverLetters = async (
+  params?: ListCoverLettersParams,
+  options?: RequestInit,
+): Promise<CoverLetter[]> => {
+  return customFetch<CoverLetter[]>(getListCoverLettersUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListCoverLettersQueryKey = (
+  params?: ListCoverLettersParams,
+) => {
+  return [`/api/cover-letters`, ...(params ? [params] : [])] as const;
+};
+
+export const getListCoverLettersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listCoverLetters>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params?: ListCoverLettersParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listCoverLetters>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListCoverLettersQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listCoverLetters>>
+  > = ({ signal }) => listCoverLetters(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listCoverLetters>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListCoverLettersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listCoverLetters>>
+>;
+export type ListCoverLettersQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary List all cover letters for the authenticated user
+ */
+
+export function useListCoverLetters<
+  TData = Awaited<ReturnType<typeof listCoverLetters>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params?: ListCoverLettersParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listCoverLetters>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListCoverLettersQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new cover letter draft
+ */
+export const getCreateCoverLetterUrl = () => {
+  return `/api/cover-letters`;
+};
+
+export const createCoverLetter = async (
+  createCoverLetterBody: CreateCoverLetterBody,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getCreateCoverLetterUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCoverLetterBody),
+  });
+};
+
+export const getCreateCoverLetterMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCoverLetter>>,
+    TError,
+    { data: BodyType<CreateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCoverLetter>>,
+  TError,
+  { data: BodyType<CreateCoverLetterBody> },
+  TContext
+> => {
+  const mutationKey = ["createCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCoverLetter>>,
+    { data: BodyType<CreateCoverLetterBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCoverLetter(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCoverLetter>>
+>;
+export type CreateCoverLetterMutationBody = BodyType<CreateCoverLetterBody>;
+export type CreateCoverLetterMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Create a new cover letter draft
+ */
+export const useCreateCoverLetter = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCoverLetter>>,
+    TError,
+    { data: BodyType<CreateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCoverLetter>>,
+  TError,
+  { data: BodyType<CreateCoverLetterBody> },
+  TContext
+> => {
+  return useMutation(getCreateCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Generate a cover letter using AI (3 creation flows)
+ */
+export const getGenerateCoverLetterUrl = () => {
+  return `/api/cover-letters/generate`;
+};
+
+export const generateCoverLetter = async (
+  generateCoverLetterBody: GenerateCoverLetterBody,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getGenerateCoverLetterUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateCoverLetterBody),
+  });
+};
+
+export const getGenerateCoverLetterMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateCoverLetter>>,
+    TError,
+    { data: BodyType<GenerateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateCoverLetter>>,
+  TError,
+  { data: BodyType<GenerateCoverLetterBody> },
+  TContext
+> => {
+  const mutationKey = ["generateCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateCoverLetter>>,
+    { data: BodyType<GenerateCoverLetterBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateCoverLetter(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateCoverLetter>>
+>;
+export type GenerateCoverLetterMutationBody = BodyType<GenerateCoverLetterBody>;
+export type GenerateCoverLetterMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Generate a cover letter using AI (3 creation flows)
+ */
+export const useGenerateCoverLetter = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateCoverLetter>>,
+    TError,
+    { data: BodyType<GenerateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateCoverLetter>>,
+  TError,
+  { data: BodyType<GenerateCoverLetterBody> },
+  TContext
+> => {
+  return useMutation(getGenerateCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Scrape job description and details from URL
+ */
+export const getScrapeJobDetailsUrl = () => {
+  return `/api/cover-letters/scrape-job`;
+};
+
+export const scrapeJobDetails = async (
+  scrapeJobBody: ScrapeJobBody,
+  options?: RequestInit,
+): Promise<ScrapeJobResult> => {
+  return customFetch<ScrapeJobResult>(getScrapeJobDetailsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(scrapeJobBody),
+  });
+};
+
+export const getScrapeJobDetailsMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof scrapeJobDetails>>,
+    TError,
+    { data: BodyType<ScrapeJobBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof scrapeJobDetails>>,
+  TError,
+  { data: BodyType<ScrapeJobBody> },
+  TContext
+> => {
+  const mutationKey = ["scrapeJobDetails"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof scrapeJobDetails>>,
+    { data: BodyType<ScrapeJobBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return scrapeJobDetails(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ScrapeJobDetailsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof scrapeJobDetails>>
+>;
+export type ScrapeJobDetailsMutationBody = BodyType<ScrapeJobBody>;
+export type ScrapeJobDetailsMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Scrape job description and details from URL
+ */
+export const useScrapeJobDetails = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof scrapeJobDetails>>,
+    TError,
+    { data: BodyType<ScrapeJobBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof scrapeJobDetails>>,
+  TError,
+  { data: BodyType<ScrapeJobBody> },
+  TContext
+> => {
+  return useMutation(getScrapeJobDetailsMutationOptions(options));
+};
+
+/**
+ * @summary Export cover letter HTML as PDF file
+ */
+export const getExportCoverLetterPdfUrl = () => {
+  return `/api/cover-letters/export-pdf`;
+};
+
+export const exportCoverLetterPdf = async (
+  exportPdfBody: ExportPdfBody,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportCoverLetterPdfUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(exportPdfBody),
+  });
+};
+
+export const getExportCoverLetterPdfMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof exportCoverLetterPdf>>,
+    TError,
+    { data: BodyType<ExportPdfBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof exportCoverLetterPdf>>,
+  TError,
+  { data: BodyType<ExportPdfBody> },
+  TContext
+> => {
+  const mutationKey = ["exportCoverLetterPdf"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof exportCoverLetterPdf>>,
+    { data: BodyType<ExportPdfBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return exportCoverLetterPdf(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ExportCoverLetterPdfMutationResult = NonNullable<
+  Awaited<ReturnType<typeof exportCoverLetterPdf>>
+>;
+export type ExportCoverLetterPdfMutationBody = BodyType<ExportPdfBody>;
+export type ExportCoverLetterPdfMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Export cover letter HTML as PDF file
+ */
+export const useExportCoverLetterPdf = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof exportCoverLetterPdf>>,
+    TError,
+    { data: BodyType<ExportPdfBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof exportCoverLetterPdf>>,
+  TError,
+  { data: BodyType<ExportPdfBody> },
+  TContext
+> => {
+  return useMutation(getExportCoverLetterPdfMutationOptions(options));
+};
+
+/**
+ * @summary Get cover letter details
+ */
+export const getGetCoverLetterUrl = (id: number) => {
+  return `/api/cover-letters/${id}`;
+};
+
+export const getCoverLetter = async (
+  id: number,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getGetCoverLetterUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCoverLetterQueryKey = (id: number) => {
+  return [`/api/cover-letters/${id}`] as const;
+};
+
+export const getGetCoverLetterQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCoverLetter>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoverLetter>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCoverLetterQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCoverLetter>>> = ({
+    signal,
+  }) => getCoverLetter(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCoverLetter>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCoverLetterQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCoverLetter>>
+>;
+export type GetCoverLetterQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get cover letter details
+ */
+
+export function useGetCoverLetter<
+  TData = Awaited<ReturnType<typeof getCoverLetter>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoverLetter>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCoverLetterQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update cover letter details
+ */
+export const getUpdateCoverLetterUrl = (id: number) => {
+  return `/api/cover-letters/${id}`;
+};
+
+export const updateCoverLetter = async (
+  id: number,
+  updateCoverLetterBody: UpdateCoverLetterBody,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getUpdateCoverLetterUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateCoverLetterBody),
+  });
+};
+
+export const getUpdateCoverLetterMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCoverLetter>>,
+    TError,
+    { id: number; data: BodyType<UpdateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCoverLetter>>,
+  TError,
+  { id: number; data: BodyType<UpdateCoverLetterBody> },
+  TContext
+> => {
+  const mutationKey = ["updateCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCoverLetter>>,
+    { id: number; data: BodyType<UpdateCoverLetterBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCoverLetter(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCoverLetter>>
+>;
+export type UpdateCoverLetterMutationBody = BodyType<UpdateCoverLetterBody>;
+export type UpdateCoverLetterMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update cover letter details
+ */
+export const useUpdateCoverLetter = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCoverLetter>>,
+    TError,
+    { id: number; data: BodyType<UpdateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCoverLetter>>,
+  TError,
+  { id: number; data: BodyType<UpdateCoverLetterBody> },
+  TContext
+> => {
+  return useMutation(getUpdateCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Delete cover letter
+ */
+export const getDeleteCoverLetterUrl = (id: number) => {
+  return `/api/cover-letters/${id}`;
+};
+
+export const deleteCoverLetter = async (
+  id: number,
+  options?: RequestInit,
+): Promise<DeleteCoverLetter200> => {
+  return customFetch<DeleteCoverLetter200>(getDeleteCoverLetterUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCoverLetterMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCoverLetter>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCoverLetter>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCoverLetter>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCoverLetter(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCoverLetter>>
+>;
+
+export type DeleteCoverLetterMutationError = ErrorType<void>;
+
+/**
+ * @summary Delete cover letter
+ */
+export const useDeleteCoverLetter = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCoverLetter>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCoverLetter>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Duplicate a cover letter
+ */
+export const getDuplicateCoverLetterUrl = (id: number) => {
+  return `/api/cover-letters/${id}/duplicate`;
+};
+
+export const duplicateCoverLetter = async (
+  id: number,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getDuplicateCoverLetterUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getDuplicateCoverLetterMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof duplicateCoverLetter>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof duplicateCoverLetter>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["duplicateCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof duplicateCoverLetter>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return duplicateCoverLetter(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DuplicateCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof duplicateCoverLetter>>
+>;
+
+export type DuplicateCoverLetterMutationError = ErrorType<void>;
+
+/**
+ * @summary Duplicate a cover letter
+ */
+export const useDuplicateCoverLetter = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof duplicateCoverLetter>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof duplicateCoverLetter>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDuplicateCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Regenerate cover letter content using AI and save previous to history
+ */
+export const getRegenerateCoverLetterUrl = (id: number) => {
+  return `/api/cover-letters/${id}/regenerate`;
+};
+
+export const regenerateCoverLetter = async (
+  id: number,
+  regenerateCoverLetterBody: RegenerateCoverLetterBody,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(getRegenerateCoverLetterUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(regenerateCoverLetterBody),
+  });
+};
+
+export const getRegenerateCoverLetterMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateCoverLetter>>,
+    TError,
+    { id: number; data: BodyType<RegenerateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof regenerateCoverLetter>>,
+  TError,
+  { id: number; data: BodyType<RegenerateCoverLetterBody> },
+  TContext
+> => {
+  const mutationKey = ["regenerateCoverLetter"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof regenerateCoverLetter>>,
+    { id: number; data: BodyType<RegenerateCoverLetterBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return regenerateCoverLetter(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegenerateCoverLetterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof regenerateCoverLetter>>
+>;
+export type RegenerateCoverLetterMutationBody =
+  BodyType<RegenerateCoverLetterBody>;
+export type RegenerateCoverLetterMutationError = ErrorType<void>;
+
+/**
+ * @summary Regenerate cover letter content using AI and save previous to history
+ */
+export const useRegenerateCoverLetter = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof regenerateCoverLetter>>,
+    TError,
+    { id: number; data: BodyType<RegenerateCoverLetterBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof regenerateCoverLetter>>,
+  TError,
+  { id: number; data: BodyType<RegenerateCoverLetterBody> },
+  TContext
+> => {
+  return useMutation(getRegenerateCoverLetterMutationOptions(options));
+};
+
+/**
+ * @summary Get list of previous versions of the cover letter
+ */
+export const getGetCoverLetterVersionsUrl = (id: number) => {
+  return `/api/cover-letters/${id}/versions`;
+};
+
+export const getCoverLetterVersions = async (
+  id: number,
+  options?: RequestInit,
+): Promise<CoverLetterVersion[]> => {
+  return customFetch<CoverLetterVersion[]>(getGetCoverLetterVersionsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCoverLetterVersionsQueryKey = (id: number) => {
+  return [`/api/cover-letters/${id}/versions`] as const;
+};
+
+export const getGetCoverLetterVersionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCoverLetterVersions>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoverLetterVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetCoverLetterVersionsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCoverLetterVersions>>
+  > = ({ signal }) => getCoverLetterVersions(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCoverLetterVersions>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCoverLetterVersionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCoverLetterVersions>>
+>;
+export type GetCoverLetterVersionsQueryError = ErrorType<void>;
+
+/**
+ * @summary Get list of previous versions of the cover letter
+ */
+
+export function useGetCoverLetterVersions<
+  TData = Awaited<ReturnType<typeof getCoverLetterVersions>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCoverLetterVersions>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCoverLetterVersionsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Restore a previous version of the cover letter
+ */
+export const getRestoreCoverLetterVersionUrl = (
+  id: number,
+  versionId: number,
+) => {
+  return `/api/cover-letters/${id}/versions/${versionId}/restore`;
+};
+
+export const restoreCoverLetterVersion = async (
+  id: number,
+  versionId: number,
+  options?: RequestInit,
+): Promise<CoverLetter> => {
+  return customFetch<CoverLetter>(
+    getRestoreCoverLetterVersionUrl(id, versionId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getRestoreCoverLetterVersionMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof restoreCoverLetterVersion>>,
+    TError,
+    { id: number; versionId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof restoreCoverLetterVersion>>,
+  TError,
+  { id: number; versionId: number },
+  TContext
+> => {
+  const mutationKey = ["restoreCoverLetterVersion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof restoreCoverLetterVersion>>,
+    { id: number; versionId: number }
+  > = (props) => {
+    const { id, versionId } = props ?? {};
+
+    return restoreCoverLetterVersion(id, versionId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RestoreCoverLetterVersionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof restoreCoverLetterVersion>>
+>;
+
+export type RestoreCoverLetterVersionMutationError = ErrorType<void>;
+
+/**
+ * @summary Restore a previous version of the cover letter
+ */
+export const useRestoreCoverLetterVersion = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof restoreCoverLetterVersion>>,
+    TError,
+    { id: number; versionId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof restoreCoverLetterVersion>>,
+  TError,
+  { id: number; versionId: number },
+  TContext
+> => {
+  return useMutation(getRestoreCoverLetterVersionMutationOptions(options));
+};
+
+/**
+ * @summary Get ATS score audit and recommendations for the cover letter
+ */
+export const getAuditCoverLetterAtsUrl = (id: number) => {
+  return `/api/cover-letters/${id}/ats-score`;
+};
+
+export const auditCoverLetterAts = async (
+  id: number,
+  atsScoreBody: AtsScoreBody,
+  options?: RequestInit,
+): Promise<AtsScore> => {
+  return customFetch<AtsScore>(getAuditCoverLetterAtsUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(atsScoreBody),
+  });
+};
+
+export const getAuditCoverLetterAtsMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof auditCoverLetterAts>>,
+    TError,
+    { id: number; data: BodyType<AtsScoreBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof auditCoverLetterAts>>,
+  TError,
+  { id: number; data: BodyType<AtsScoreBody> },
+  TContext
+> => {
+  const mutationKey = ["auditCoverLetterAts"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof auditCoverLetterAts>>,
+    { id: number; data: BodyType<AtsScoreBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return auditCoverLetterAts(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AuditCoverLetterAtsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof auditCoverLetterAts>>
+>;
+export type AuditCoverLetterAtsMutationBody = BodyType<AtsScoreBody>;
+export type AuditCoverLetterAtsMutationError = ErrorType<void>;
+
+/**
+ * @summary Get ATS score audit and recommendations for the cover letter
+ */
+export const useAuditCoverLetterAts = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof auditCoverLetterAts>>,
+    TError,
+    { id: number; data: BodyType<AtsScoreBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof auditCoverLetterAts>>,
+  TError,
+  { id: number; data: BodyType<AtsScoreBody> },
+  TContext
+> => {
+  return useMutation(getAuditCoverLetterAtsMutationOptions(options));
 };

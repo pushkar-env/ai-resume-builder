@@ -234,6 +234,8 @@ function ScrollToTop() {
   return null;
 }
 
+import CoverLetterBuilderPage from "@/pages/cover-letter-builder";
+
 function AppRouter() {
   return (
     <Switch>
@@ -245,6 +247,10 @@ function AppRouter() {
       <Route
         path="/builder/:id"
         component={() => <ProtectedRoute component={BuilderPage} />}
+      />
+      <Route
+        path="/cover-letter-builder/:id"
+        component={() => <ProtectedRoute component={CoverLetterBuilderPage} />}
       />
       <Route
         path="/templates"
@@ -350,6 +356,7 @@ function App() {
           {/* Protected routes redirect to home in E2E mode */}
           <Route path="/dashboard" component={() => <Redirect to="/" />} />
           <Route path="/builder/:id" component={() => <Redirect to="/" />} />
+          <Route path="/cover-letter-builder/:id" component={() => <Redirect to="/" />} />
           <Route path="/templates" component={() => <Redirect to="/" />} />
           <Route path="/billing" component={() => <Redirect to="/" />} />
           <Route path="/settings/*?" component={() => <Redirect to="/" />} />
