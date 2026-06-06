@@ -1,10 +1,12 @@
-import {
+import React, {
   useState,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useDeferredValue,
+  ChangeEvent,
+  MouseEvent,
 } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser, useAuth } from "@clerk/react";
@@ -158,6 +160,149 @@ const MOBILE_DEFAULT_PREVIEW_ZOOM = 0.4;
 function clampPreviewZoom(n: number) {
   return Math.min(PREVIEW_ZOOM_MAX, Math.max(PREVIEW_ZOOM_MIN, n));
 }
+
+interface ThrottledColorPickerProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (color: string) => void;
+  isPremiumUser: boolean;
+  onPaywall: () => void;
+}
+
+const ThrottledColorPicker = ({
+  id,
+  label,
+  value,
+  onChange,
+  isPremiumUser,
+  onPaywall,
+}: ThrottledColorPickerProps) => {
+  const [localValue, setLocalValue] = useState(value);
+  const lastCloseTimeRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const latestValueRef = useRef(value);
+
+  // Sync with prop changes (e.g. from template defaults or database load)
+  useEffect(() => {
+    setLocalValue(value);
+    latestValueRef.current = value;
+  }, [value]);
+
+  // Handle window focus to track picker close
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      lastCloseTimeRef.current = Date.now();
+    };
+    window.addEventListener("focus", handleWindowFocus);
+    return () => window.removeEventListener("focus", handleWindowFocus);
+  }, []);
+
+  // Flush any pending change immediately
+  const flushChange = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (latestValueRef.current !== value) {
+      onChange(latestValueRef.current);
+    }
+  }, [value, onChange]);
+
+  const lastUpdateRef = useRef(0);
+
+  const handleColorInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalValue(val);
+    latestValueRef.current = val;
+
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateRef.current;
+
+    if (timeSinceLastUpdate >= 80) {
+      // Throttle: Update parent state immediately if at least 80ms has passed since last update
+      onChange(val);
+      lastUpdateRef.current = now;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    } else {
+      // Debounce backup: Queue update for when dragging/interaction stops
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        onChange(latestValueRef.current);
+        lastUpdateRef.current = Date.now();
+        timeoutRef.current = null;
+      }, 80);
+    }
+  };
+
+  const handleInputClick = (e: MouseEvent<HTMLInputElement>) => {
+    const timeSinceLastClose = Date.now() - lastCloseTimeRef.current;
+    if (timeSinceLastClose < 350) {
+      // Prevent re-opening if it was just closed
+      e.preventDefault();
+    }
+  };
+
+  const handleInputBlur = () => {
+    lastCloseTimeRef.current = Date.now();
+    flushChange();
+  };
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {isPremiumUser ? (
+        <div className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors">
+          <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+            {localValue.toUpperCase()}
+          </span>
+          <span
+            className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+            style={{ background: localValue }}
+          />
+          <input
+            id={id}
+            type="color"
+            value={localValue}
+            onChange={handleColorInputChange}
+            onClick={handleInputClick}
+            onBlur={handleInputBlur}
+            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+            aria-label={`Pick ${label.toLowerCase()} color`}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+          onClick={onPaywall}
+          aria-label={`${label} color is a Pro feature. Tap to learn more.`}
+        >
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+            {localValue.toUpperCase()}
+          </span>
+          <span
+            className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+            style={{ background: localValue }}
+          />
+          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
+            <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+          </span>
+        </button>
+      )}
+    </div>
+  );
+};
 
 function initialPreviewZoomForViewport(): number {
   if (typeof window === "undefined") return 1;
@@ -1513,9 +1658,11 @@ export default function BuilderPage() {
     setTemplateId(t);
     const newFont = getDefaultFontFamily(t);
     setFontFamily(newFont);
+    const newAccent = getDefaultAccentColor(t);
+    setAccentColor(newAccent);
     scheduleSave(
       localSections,
-      accentColor,
+      newAccent,
       newFont,
       t,
       fontColor,
@@ -2094,164 +2241,32 @@ export default function BuilderPage() {
                         </h3>
 
                         <div className="grid grid-cols-3 gap-3">
-                          {/* Accent Color */}
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Accent</Label>
-                            <div className="flex items-center gap-1.5">
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full h-9 gap-1.5 text-xs justify-start px-2 overflow-hidden"
-                                  >
-                                    <div
-                                      className="h-3.5 w-3.5 rounded-full shrink-0 border border-border"
-                                      style={{ background: accentColor }}
-                                    />
-                                    <span className="truncate text-[11px]">
-                                      {ACCENT_COLORS.find((c) => c.value === accentColor)?.label ?? "Custom"}
-                                    </span>
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent side="top" className="w-40 p-2">
-                                  <div className="grid grid-cols-4 gap-1.5">
-                                    {ACCENT_COLORS.map((c) => (
-                                      <div key={c.value} className="relative">
-                                        <button
-                                          title={c.label}
-                                          className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${
-                                            accentColor === c.value ? "ring-2 ring-offset-1 ring-foreground/40" : ""
-                                          }`}
-                                          style={{ background: c.value }}
-                                          onClick={() => handleAccentChange(c.value)}
-                                        />
-                                      </div>
-                                    ))}
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
-                              
-                              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md border border-input bg-background hover:bg-muted/50 transition-colors">
-                                {isPremiumUser ? (
-                                  <label
-                                    className="relative flex h-full w-full cursor-pointer touch-manipulation items-center justify-center"
-                                    htmlFor={`resume-accent-custom-${resumeId}`}
-                                    aria-label="Pick custom accent color"
-                                  >
-                                    <Palette className="pointer-events-none relative z-0 h-4 w-4 text-muted-foreground" />
-                                    <input
-                                      id={`resume-accent-custom-${resumeId}`}
-                                      type="color"
-                                      value={accentColor}
-                                      onChange={(e) => handleAccentChange(e.target.value)}
-                                      className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                                    />
-                                  </label>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="relative flex h-full w-full touch-manipulation items-center justify-center active:bg-muted/70"
-                                    onClick={showAccentCustomPaywall}
-                                    aria-label="Custom accent color is a Pro feature. Tap to learn more."
-                                  >
-                                    <Star className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
-                                    <Palette className="pointer-events-none h-4 w-4 text-muted-foreground" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                          <ThrottledColorPicker
+                            id={`resume-accent-color-${resumeId}`}
+                            label="Accent"
+                            value={accentColor}
+                            onChange={handleAccentChange}
+                            isPremiumUser={isPremiumUser}
+                            onPaywall={showAccentCustomPaywall}
+                          />
 
-                          {/* Text Color */}
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Text</Label>
-                            {isPremiumUser ? (
-                              <label
-                                className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
-                                htmlFor={`resume-font-color-${resumeId}`}
-                              >
-                                <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-                                  {fontColor.toUpperCase()}
-                                </span>
-                                <span
-                                  className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-                                  style={{ background: fontColor }}
-                                />
-                                <input
-                                  id={`resume-font-color-${resumeId}`}
-                                  type="color"
-                                  value={fontColor}
-                                  onChange={(e) => handleFontColorChange(e.target.value)}
-                                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                                  aria-label="Pick text color"
-                                />
-                              </label>
-                            ) : (
-                              <button
-                                type="button"
-                                className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
-                                onClick={showFontColorPaywall}
-                                aria-label="Text color is a Pro feature. Tap to learn more."
-                              >
-                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-                                  {fontColor.toUpperCase()}
-                                </span>
-                                <span
-                                  className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-                                  style={{ background: fontColor }}
-                                />
-                                <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
-                                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                                </span>
-                              </button>
-                            )}
-                          </div>
+                          <ThrottledColorPicker
+                            id={`resume-font-color-${resumeId}`}
+                            label="Text"
+                            value={fontColor}
+                            onChange={handleFontColorChange}
+                            isPremiumUser={isPremiumUser}
+                            onPaywall={showFontColorPaywall}
+                          />
 
-                          {/* Background Color */}
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Background</Label>
-                            {isPremiumUser ? (
-                              <label
-                                className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
-                                htmlFor={`resume-bg-color-${resumeId}`}
-                              >
-                                <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-                                  {backgroundColor.toUpperCase()}
-                                </span>
-                                <span
-                                  className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-                                  style={{ background: backgroundColor }}
-                                />
-                                <input
-                                  id={`resume-bg-color-${resumeId}`}
-                                  type="color"
-                                  value={backgroundColor}
-                                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                                  aria-label="Pick background color"
-                                />
-                              </label>
-                            ) : (
-                              <button
-                                type="button"
-                                className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
-                                onClick={showBackgroundColorPaywall}
-                                aria-label="Background color is a Pro feature. Tap to learn more."
-                              >
-                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-                                  {backgroundColor.toUpperCase()}
-                                </span>
-                                <span
-                                  className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-                                  style={{ background: backgroundColor }}
-                                />
-                                <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
-                                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                                </span>
-                              </button>
-                            )}
-                          </div>
+                          <ThrottledColorPicker
+                            id={`resume-bg-color-${resumeId}`}
+                            label="Background"
+                            value={backgroundColor}
+                            onChange={handleBackgroundColorChange}
+                            isPremiumUser={isPremiumUser}
+                            onPaywall={showBackgroundColorPaywall}
+                          />
                         </div>
                       </div>
                       </motion.div>
