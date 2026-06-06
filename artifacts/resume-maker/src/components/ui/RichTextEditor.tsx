@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useRef, useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
@@ -42,27 +42,34 @@ export const RichTextEditor = memo(function RichTextEditor({
   placeholder,
   className,
 }: RichTextEditorProps) {
-  const apiUpdatesRef = useRef(0);
+  // Keep local track of the editor's value to avoid cursor jumping and race conditions
+  const [editorValue, setEditorValue] = useState(value);
+  const lastUserValueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  // Sync internal editor state when the external value prop changes
+  useEffect(() => {
+    // Only update if the external value differs from what we last sent/processed
+    if (value !== lastUserValueRef.current) {
+      setEditorValue(value);
+      lastUserValueRef.current = value;
+    }
+  }, [value]);
 
   const handleChange = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (html: string, delta: any, source: string) => {
-      if (source === "api") {
-        apiUpdatesRef.current++;
-        if (apiUpdatesRef.current > 5) {
-          console.warn("React-Quill API loop prevented.");
-          return;
-        }
-        setTimeout(() => {
-          apiUpdatesRef.current = Math.max(0, apiUpdatesRef.current - 1);
-        }, 1000);
-      } else {
-        // If the user typed, always allow it and reset the API block counter
-        apiUpdatesRef.current = 0;
-      }
-      onChangeRef.current(sanitizeResumeRichHtml(html));
+      // Update local state immediately so ReactQuill doesn't see a mismatch on rerender
+      setEditorValue(html);
+
+      const sanitized = sanitizeResumeRichHtml(html);
+
+      // Update our record of the last processed value
+      lastUserValueRef.current = sanitized;
+
+      // Pass the sanitized value to the parent
+      onChangeRef.current(sanitized);
     },
     [],
   );
@@ -71,7 +78,7 @@ export const RichTextEditor = memo(function RichTextEditor({
     <div className={`rich-text-container ${className || ""}`}>
       <ReactQuill
         theme="snow"
-        value={value}
+        value={editorValue}
         onChange={handleChange}
         placeholder={placeholder}
         modules={modules}

@@ -112,12 +112,14 @@ function cleanInlineStyles(root: Element) {
   walk(root);
 }
 
-/** Quill empty placeholders — avoid blank blocks in preview/PDF. */
 function stripEmptyRichBlocks(html: string): string {
-  return html
-    .replace(/<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
-    .replace(/<div>(?:\s|&nbsp;|<br\s*\/?>)*<\/div>/gi, "")
-    .trim();
+  // If the HTML contains only formatting tags and whitespace (i.e. no text/content),
+  // return an empty string to avoid saving empty blocks.
+  const textContent = html.replace(/<[^>]*>/g, "").replace(/&nbsp;|\s/g, "");
+  if (textContent.length === 0) {
+    return "";
+  }
+  return html.trim();
 }
 
 export function sanitizeResumeRichHtml(html: string): string {
