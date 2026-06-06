@@ -2689,7 +2689,7 @@ export default function BuilderPage() {
 
             {/* Pinned Footer (only shown if not in Mobile Dashboard view) */}
             {!(mobileTab === "sections" && window.innerWidth < 1024) && (
-              <div className="border-t border-border p-3.5 shrink-0 bg-background flex flex-row items-center justify-between">
+              <div className="border-t border-border p-3 lg:p-3.5 shrink-0 bg-background flex flex-row items-center justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -2697,10 +2697,10 @@ export default function BuilderPage() {
                   onClick={() => navigate("/dashboard")}
                 >
                   <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-                  <span>Back to Dashboard</span>
+                  <span>Back</span>
                 </Button>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 lg:gap-3">
                   <div className="flex items-center gap-1.5">
                     {updateResume.isPending ? (
                       <>
@@ -2722,7 +2722,7 @@ export default function BuilderPage() {
                       disabled={localSections.length === 0}
                     >
                       <Eraser className="h-3.5 w-3.5 shrink-0" />
-                      <span>Clear Content</span>
+                      <span>Clear</span>
                     </Button>
                   )}
                 </div>
