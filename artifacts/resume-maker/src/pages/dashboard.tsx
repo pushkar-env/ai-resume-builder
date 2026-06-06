@@ -114,14 +114,16 @@ function timeAgo(date: string) {
  * Lazy-load the heavy preview DOM until the card is near the viewport.
  * Keeps mobile scroll/main thread responsive when many resumes exist.
  */
-function ResumeThumbnail({
+export function ResumeThumbnail({
   resumeId,
   templateId,
   isDragging,
+  index = 0,
 }: {
   resumeId: number;
   templateId: string;
-  isDragging?: boolean;
+  isDragging: boolean;
+  index?: number;
 }) {
   const { user } = useUser();
   const showWatermark = user?.publicMetadata?.isPremium !== true;
@@ -132,9 +134,10 @@ function ResumeThumbnail({
 
   // Defer rendering the heavy preview SVG/HTML text nodes until entrance animations complete
   useEffect(() => {
-    const timer = setTimeout(() => setIsReady(true), 400);
+    const delay = 400 + index * 60;
+    const timer = setTimeout(() => setIsReady(true), delay);
     return () => clearTimeout(timer);
-  }, []);
+  }, [index]);
 
   useEffect(() => {
     const el = hostRef.current;
@@ -187,38 +190,51 @@ function ResumeThumbnail({
   return (
     <div
       ref={hostRef}
-      className="w-full h-full min-h-[1px] relative overflow-hidden bg-muted/10 pointer-events-none [content-visibility:visible]"
+      className="w-full h-full min-h-[1px] relative overflow-hidden bg-white pointer-events-none [content-visibility:visible]"
     >
-      {!isReady || !inView || !resume ? (
+      {/* Skeleton overlay: visible initially, fades out when preview is ready */}
+      <div
+        className="absolute inset-0 transition-opacity duration-500 ease-in-out"
+        style={{
+          opacity: isReady && resume ? 0 : 1,
+          visibility: isReady && resume ? "hidden" : "visible",
+          transition: "opacity 500ms ease-in-out, visibility 500ms step-end",
+        }}
+      >
         <ScaledResumeThumbnailShell
           hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
           measureDeps={[templateId]}
         >
           <ResumeSkeleton templateId={templateId} />
         </ScaledResumeThumbnailShell>
-      ) : (
-        <ScaledResumeThumbnailShell
-          hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
-          measureDeps={[
-            resume.id,
-            resume.templateId,
-            resume.updatedAt,
-            fontScale,
-            showWatermark,
-          ]}
-        >
-          <ResumePreview
-            layout="continuous"
-            resume={resume}
-            accentColor={
-              resume.accentColor ?? getDefaultAccentColor(resume.templateId)
-            }
-            fontScale={fontScale}
-            fontColor={resume.fontColor ?? "#111827"}
-            backgroundColor={resume.backgroundColor ?? "#ffffff"}
-            showWatermark={showWatermark}
-          />
-        </ScaledResumeThumbnailShell>
+      </div>
+
+      {/* Preview overlay: mounts and fades in when ready */}
+      {isReady && resume && (
+        <div className="absolute inset-0 animate-fade-in">
+          <ScaledResumeThumbnailShell
+            hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+            measureDeps={[
+              resume.id,
+              resume.templateId,
+              resume.updatedAt,
+              fontScale,
+              showWatermark,
+            ]}
+          >
+            <ResumePreview
+              layout="continuous"
+              resume={resume}
+              accentColor={
+                resume.accentColor ?? getDefaultAccentColor(resume.templateId)
+              }
+              fontScale={fontScale}
+              fontColor={resume.fontColor ?? "#111827"}
+              backgroundColor={resume.backgroundColor ?? "#ffffff"}
+              showWatermark={showWatermark}
+            />
+          </ScaledResumeThumbnailShell>
+        </div>
       )}
     </div>
   );
@@ -238,6 +254,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setActiveDragResumeId,
   setIsOverTrash,
   onDragDelete,
+  index,
 }: {
   resume: Resume;
   fadeUp: Variants;
@@ -252,6 +269,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setActiveDragResumeId: (id: number | null) => void;
   setIsOverTrash: (over: boolean) => void;
   onDragDelete: (id: number) => void;
+  index: number;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const cardInitialRectRef = useRef<DOMRect | null>(null);
@@ -560,6 +578,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
               resumeId={resume.id}
               templateId={resume.templateId}
               isDragging={isDraggingThis}
+              index={index}
             />
           </div>
 
@@ -1173,7 +1192,7 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Existing Resumes */}
-            {resumeList.map((resume) => (
+            {resumeList.map((resume, index) => (
               <DashboardResumeCard
                 key={resume.id}
                 resume={resume}
@@ -1189,6 +1208,7 @@ export default function DashboardPage() {
                 setActiveDragResumeId={setActiveDragResumeId}
                 setIsOverTrash={setIsOverTrash}
                 onDragDelete={handleDragDelete}
+                index={index}
               />
             ))}
           </motion.div>
