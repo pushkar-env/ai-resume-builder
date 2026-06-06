@@ -8,7 +8,7 @@ import {
 } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser, useAuth } from "@clerk/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -49,6 +49,14 @@ import {
   RefreshCw,
   Target,
   Undo,
+  User,
+  Briefcase,
+  GraduationCap,
+  Wrench,
+  FolderGit,
+  Award,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -96,6 +104,7 @@ import { BuilderNavbar } from "@/components/layout/Navbar";
 import { ResumePreview } from "@/components/resume/ResumePreview";
 import { measureResumePagedViewHeight } from "@/lib/measure-resume-paged-view";
 import { SectionEditor } from "@/components/resume/SectionEditor";
+import { TemplateThumbnail } from "@/components/resume/TemplateThumbnail";
 import {
   getDefaultAccentColor,
   getDefaultFontFamily,
@@ -584,6 +593,183 @@ function serializeResumeTextContent(sections: Section[]): string {
   return text;
 }
 
+function getSectionIcon(type: string) {
+  switch (type) {
+    case "personal":
+      return User;
+    case "summary":
+      return FileText;
+    case "experience":
+      return Briefcase;
+    case "education":
+      return GraduationCap;
+    case "skills":
+      return Wrench;
+    case "projects":
+      return FolderGit;
+    case "certifications":
+      return Award;
+    default:
+      return FileText;
+  }
+}
+
+function getSectionShortLabel(type: string, title: string) {
+  switch (type) {
+    case "personal":
+      return "Profile";
+    case "summary":
+      return "Summary";
+    case "experience":
+      return "Work";
+    case "education":
+      return "Education";
+    case "skills":
+      return "Skills";
+    case "projects":
+      return "Projects";
+    case "certifications":
+      return "Awards";
+    default:
+      return title.slice(0, 10);
+  }
+}
+
+function SortableRailItem({
+  section,
+  isActive,
+  onSelect,
+}: {
+  section: Section;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const Icon = getSectionIcon(section.type);
+  const label = getSectionShortLabel(section.type, section.title);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="relative group flex flex-col items-center w-full"
+    >
+      <span
+        {...attributes}
+        {...listeners}
+        className="absolute left-0.5 top-5 cursor-grab active:cursor-grabbing p-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/60 hover:text-foreground z-20"
+        onClick={(e) => e.stopPropagation()}
+        title="Drag to reorder"
+      >
+        <GripVertical className="h-3 w-3" />
+      </span>
+
+      <button
+        type="button"
+        onClick={onSelect}
+        className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative select-none ${
+          isActive
+            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+        } ${section.isVisible === false ? "opacity-50" : ""}`}
+        title={`${section.title}${section.isVisible === false ? " (Hidden)" : ""}`}
+      >
+        <Icon className="h-4.5 w-4.5 mb-1 shrink-0" />
+        <span className="text-[9px] font-semibold tracking-tight leading-none truncate w-full px-1.5 text-center">
+          {label}
+        </span>
+        
+        {section.isVisible === false && (
+          <span className="absolute top-1 right-1 bg-muted-foreground/80 text-background rounded-full p-0.5 scale-75 border border-background">
+            <EyeOff className="h-2 w-2" />
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function SortableSectionMobileItem({
+  section,
+  isActive,
+  onSelect,
+}: {
+  section: Section;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: section.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const Icon = getSectionIcon(section.type);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 rounded-xl border border-border p-3.5 bg-card hover:bg-muted/10 transition-colors ${
+        isActive ? "border-primary/50 bg-primary/[0.01]" : ""
+      }`}
+      onClick={onSelect}
+    >
+      <span
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing p-1.5 text-muted-foreground/60 hover:text-foreground transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="h-4 w-4" />
+      </span>
+
+      <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
+        isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+      }`}>
+        <Icon className="h-4 w-4" />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-bold text-foreground truncate">
+          {section.title}
+        </p>
+      </div>
+
+      {section.isVisible === false && (
+        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
+          Hidden
+        </span>
+      )}
+
+      <ChevronRight className="h-4 w-4 text-muted-foreground/60 shrink-0" />
+    </div>
+  );
+}
+
 /* ─── BuilderPage ─── */
 
 export default function BuilderPage() {
@@ -596,6 +782,7 @@ export default function BuilderPage() {
   const resumeId = parseInt(id ?? "0");
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
+  const [activeSidebarMode, setActiveSidebarMode] = useState<"content" | "design" | "ats">("content");
   const [localSections, setLocalSections] = useState<Section[]>([]);
   const [scannedContentText, setScannedContentText] = useState<string | null>(null);
   const [initialContentText, setInitialContentText] = useState<string | null>(null);
@@ -1494,7 +1681,10 @@ export default function BuilderPage() {
         onAtsPremiumClick={() => {
           setShowAtsPaywall(true);
         }}
-        onAtsScoreClick={() => setAtsPanelOpen(true)}
+        onAtsScoreClick={() => {
+          setActiveSidebarMode("ats");
+          if (window.innerWidth < 1024) setMobileTab("edit");
+        }}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
           // Optimistically update the title in the cache before the request fires.
@@ -1532,17 +1722,35 @@ export default function BuilderPage() {
       />
 
       <div className="flex flex-1 overflow-hidden relative pb-14 lg:pb-0">
-        {/* Left sidebar — sections */}
+        {/* Unified Left Edit Panel */}
         <aside
-          className={`w-full lg:w-56 border-r border-border bg-background flex-col shrink-0 overflow-hidden min-h-0 ${mobileTab === "sections" ? "flex" : "hidden lg:flex"}`}
+          className={`w-full lg:w-[560px] border-r border-border bg-background flex shrink-0 overflow-hidden min-h-0 ${
+            mobileTab === "sections" || mobileTab === "edit" ? "flex" : "hidden lg:flex"
+          }`}
         >
-          <div className="px-3 pt-3 pb-2 shrink-0 min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Sections
-            </p>
-          </div>
-          <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!block">
-            <div className="px-3 pb-3 overflow-hidden min-w-0">
+          {/* 1. Far-left navigation rail (desktop only) */}
+          <div className="hidden lg:flex w-[76px] border-r border-border bg-muted/10 flex-col items-center py-4 shrink-0 justify-between select-none">
+            <div className="flex flex-col items-center gap-4 w-full">
+              {/* Design Tab */}
+              <button
+                type="button"
+                onClick={() => setActiveSidebarMode("design")}
+                className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
+                  activeSidebarMode === "design"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                }`}
+                title="Design & Template Styles"
+              >
+                <Palette className="h-4.5 w-4.5 mb-1 shrink-0" />
+                <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
+                  Design
+                </span>
+              </button>
+
+              <div className="w-8 h-px bg-border/60" />
+
+              {/* Sortable Content Sections */}
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -1552,407 +1760,976 @@ export default function BuilderPage() {
                   items={localSections.map((s) => s.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div className="space-y-1.5 lg:space-y-0.5">
+                  <div className="space-y-2.5 w-full flex flex-col items-center">
                     {localSections.map((s) => (
-                      <SortableSectionItem
+                      <SortableRailItem
                         key={s.id}
                         section={s}
-                        isActive={activeSectionId === s.id}
+                        isActive={activeSidebarMode === "content" && activeSectionId === s.id}
                         onSelect={() => {
+                          setActiveSidebarMode("content");
                           setActiveSectionId(s.id);
-                          if (window.innerWidth < 1024) setMobileTab("edit");
                         }}
                       />
                     ))}
                   </div>
                 </SortableContext>
               </DndContext>
+            </div>
 
-              {/* Controls (scrollable on mobile) */}
-              <div className="mt-4 border-t border-border pt-4 space-y-4 lg:space-y-2">
-                {/* Template selector */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Template
-                  </p>
-                  <Select
-                    value={templateId}
-                    onValueChange={handleTemplateChange}
+            {/* ATS Audit Tab at bottom */}
+            <div className="w-full flex flex-col items-center">
+              <div className="w-8 h-px bg-border/60 mb-4" />
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isPremiumUser) {
+                    setShowAtsPaywall(true);
+                    return;
+                  }
+                  setActiveSidebarMode("ats");
+                }}
+                className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative ${
+                  activeSidebarMode === "ats"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                }`}
+                title="ATS Score & Auditor"
+              >
+                {!isPremiumUser && (
+                  <span className="absolute top-1 right-1 text-amber-500">
+                    <Star className="h-2.5 w-2.5 fill-current" />
+                  </span>
+                )}
+                <Zap className={`h-4.5 w-4.5 mb-1 shrink-0 ${activeSidebarMode === "ats" ? "text-primary-foreground fill-current" : "text-amber-500 fill-amber-500/20"}`} />
+                <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
+                  ATS Audit
+                </span>
+                {isAtsOutdated && isPremiumUser && (
+                  <span className="absolute top-1 right-1 flex h-2 w-2 items-center justify-center rounded-full bg-amber-500 shadow-sm ring-1 ring-background" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Main Edit Panel Content */}
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
+            {/* Header (only shown if not in Mobile Dashboard view) */}
+            {!(mobileTab === "sections" && window.innerWidth < 1024) && (
+              <div className="px-4 py-3 border-b border-border shrink-0 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="lg:hidden h-8 w-8 p-0"
+                    onClick={() => setMobileTab("sections")}
                   >
-                    <SelectTrigger className="h-8 text-xs min-w-0 gap-1.5 overflow-hidden">
-                      <LayoutTemplate className="h-3 w-3 shrink-0" />
-                      <span className="min-w-0 flex-1 truncate text-left">
-                        <SelectValue placeholder="Template" />
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templateList.map((t) => (
-                        <SelectItem key={t.id} value={t.id} className="text-xs">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="truncate">{t.name}</span>
-                            {t.isPremium && !isPremiumUser ? (
-                              <Star
-                                className="h-2.5 w-2.5 shrink-0 text-amber-500 fill-amber-500"
-                                aria-label="Premium template"
-                              />
-                            ) : null}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <h2 className="text-sm font-bold text-foreground truncate">
+                    {activeSidebarMode === "design"
+                      ? "Design & Style"
+                      : activeSidebarMode === "ats"
+                        ? "ATS Auditor"
+                        : activeSection?.title ?? "Select a section"}
+                  </h2>
                 </div>
+                
+                {/* Visibility Toggle directly in the header for sections */}
+                {activeSidebarMode === "content" && activeSection && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => handleVisibilityToggle(activeSection.id)}
+                  >
+                    {activeSection.isVisible !== false ? (
+                      <>
+                        <Eye className="h-4 w-4 text-primary" />
+                        <span className="hidden sm:inline">Visible</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-4 w-4 text-muted-foreground/60" />
+                        <span className="hidden sm:inline text-muted-foreground/60">Hidden</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
 
-                {/* Font selector */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Font
-                  </p>
-                  <Select value={fontFamily} onValueChange={handleFontChange}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FONT_OPTIONS.map((f) => (
-                        <SelectItem
-                          key={f.value}
-                          value={f.value}
-                          className="text-xs"
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <span>{f.label}</span>
-                            {f.isPremium && !isPremiumUser && (
-                              <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />
+            {/* Scrollable Form Body */}
+            <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!block">
+              {/* Mobile Dashboard View */}
+              {mobileTab === "sections" && window.innerWidth < 1024 ? (
+                <div className="p-4 space-y-4 lg:hidden">
+                  {/* System Quick Cards (Design & ATS Auditor) */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Design Card */}
+                    <button
+                      onClick={() => {
+                        setActiveSidebarMode("design");
+                        setMobileTab("edit");
+                      }}
+                      className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
+                        activeSidebarMode === "design" ? "border-primary/50 bg-primary/[0.02]" : ""
+                      }`}
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                        <Palette className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-bold text-foreground">Design & Style</span>
+                      <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                        Templates, fonts & colors
+                      </span>
+                    </button>
+
+                    {/* ATS Auditor Card */}
+                    <button
+                      onClick={() => {
+                        if (!isPremiumUser) {
+                          setShowAtsPaywall(true);
+                          return;
+                        }
+                        setActiveSidebarMode("ats");
+                        setMobileTab("edit");
+                      }}
+                      className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left relative ${
+                        activeSidebarMode === "ats" ? "border-primary/50 bg-primary/[0.02]" : ""
+                      }`}
+                    >
+                      {!isPremiumUser && (
+                        <span className="absolute top-2 right-2 text-amber-500">
+                          <Star className="h-3.5 w-3.5 fill-current" />
+                        </span>
+                      )}
+                      <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                        <Zap className="h-5 w-5 text-amber-500 fill-amber-500" />
+                      </div>
+                      <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        ATS Auditor
+                        {isAtsOutdated && isPremiumUser && (
+                          <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                        )}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                        Score & keyword matching
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Sections Header */}
+                  <div className="pt-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2.5">
+                      Resume Sections
+                    </h3>
+                    
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={localSections.map((s) => s.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-2">
+                          {localSections.map((s) => {
+                            const isActive = activeSidebarMode === "content" && activeSectionId === s.id;
+                            return (
+                              <SortableSectionMobileItem
+                                key={s.id}
+                                section={s}
+                                isActive={isActive}
+                                onSelect={() => {
+                                  setActiveSidebarMode("content");
+                                  setActiveSectionId(s.id);
+                                  setMobileTab("edit");
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                </div>
+              ) : (
+                /* Desktop and active Edit Views */
+                <div className="p-5 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    {activeSidebarMode === "design" && (
+                      <motion.div
+                        key="design"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15, ease: "easeInOut" }}
+                        className="space-y-6"
+                      >
+                      {/* Template Gallery */}
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                          Choose Template
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3.5">
+                          {templateList.map((t) => {
+                            const isSelected = templateId === t.id;
+                            return (
+                              <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => handleTemplateChange(t.id)}
+                                className={`flex flex-col text-left rounded-xl border-2 p-2 bg-card shadow-sm hover:border-primary/50 transition-all duration-200 relative overflow-hidden group ${
+                                  isSelected ? "border-primary ring-1 ring-primary/20" : "border-border"
+                                }`}
+                              >
+                                <div className="aspect-[3/4] w-full rounded-lg bg-muted relative overflow-hidden border border-border/40 mb-2">
+                                  <TemplateThumbnail
+                                    templateId={t.id}
+                                    accent={accentColor}
+                                    showWatermark={!isPremiumUser}
+                                  />
+                                  {t.isPremium && (
+                                    <span className="absolute top-1 right-1 bg-amber-500 text-white rounded-full p-1 shadow-md z-10">
+                                      <Star className="h-3 w-3 fill-current" />
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-between px-1">
+                                  <span className="text-xs font-bold truncate">{t.name}</span>
+                                  {isSelected && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-border/60 my-4" />
+
+                      {/* Typography Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Typography
+                        </h3>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Font Family */}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Font Family</Label>
+                            <Select value={fontFamily} onValueChange={handleFontChange}>
+                              <SelectTrigger className="h-9 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {FONT_OPTIONS.map((f) => (
+                                  <SelectItem key={f.value} value={f.value} className="text-xs">
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{f.label}</span>
+                                      {f.isPremium && !isPremiumUser && (
+                                        <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />
+                                      )}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Font Size */}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Font Size</Label>
+                            <Select
+                              value={String(fontScale)}
+                              onValueChange={(v) => {
+                                setFontScale(Number(v));
+                                bumpPreviewRevision();
+                              }}
+                            >
+                              <SelectTrigger className="h-9 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
+                                <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
+                                <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
+                                <SelectItem value="1.35" className="text-xs">Huge (135%)</SelectItem>
+                                <SelectItem value="1.5" className="text-xs">Massive (150%)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Auto Fit Switch */}
+                        <div className="flex items-center justify-between bg-muted/30 border border-border/50 rounded-xl p-3">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="auto-fit" className="text-xs font-semibold text-foreground cursor-pointer">
+                              Auto-Fit Page
+                            </Label>
+                            <p className="text-[10px] text-muted-foreground leading-normal">
+                              Adjust spacing to fit content on the page perfectly.
+                            </p>
+                          </div>
+                          <Switch
+                            id="auto-fit"
+                            checked={autoFit}
+                            onCheckedChange={(v) => {
+                              setAutoFit(v);
+                              bumpPreviewRevision();
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="border-t border-border/60 my-4" />
+
+                      {/* Color Customization */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Color Theme
+                        </h3>
+
+                        <div className="grid grid-cols-3 gap-3">
+                          {/* Accent Color */}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Accent</Label>
+                            <div className="flex items-center gap-1.5">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full h-9 gap-1.5 text-xs justify-start px-2 overflow-hidden"
+                                  >
+                                    <div
+                                      className="h-3.5 w-3.5 rounded-full shrink-0 border border-border"
+                                      style={{ background: accentColor }}
+                                    />
+                                    <span className="truncate text-[11px]">
+                                      {ACCENT_COLORS.find((c) => c.value === accentColor)?.label ?? "Custom"}
+                                    </span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent side="top" className="w-40 p-2">
+                                  <div className="grid grid-cols-4 gap-1.5">
+                                    {ACCENT_COLORS.map((c) => (
+                                      <div key={c.value} className="relative">
+                                        <button
+                                          title={c.label}
+                                          className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${
+                                            accentColor === c.value ? "ring-2 ring-offset-1 ring-foreground/40" : ""
+                                          }`}
+                                          style={{ background: c.value }}
+                                          onClick={() => handleAccentChange(c.value)}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                              
+                              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md border border-input bg-background hover:bg-muted/50 transition-colors">
+                                {isPremiumUser ? (
+                                  <label
+                                    className="relative flex h-full w-full cursor-pointer touch-manipulation items-center justify-center"
+                                    htmlFor={`resume-accent-custom-${resumeId}`}
+                                    aria-label="Pick custom accent color"
+                                  >
+                                    <Palette className="pointer-events-none relative z-0 h-4 w-4 text-muted-foreground" />
+                                    <input
+                                      id={`resume-accent-custom-${resumeId}`}
+                                      type="color"
+                                      value={accentColor}
+                                      onChange={(e) => handleAccentChange(e.target.value)}
+                                      className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                    />
+                                  </label>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="relative flex h-full w-full touch-manipulation items-center justify-center active:bg-muted/70"
+                                    onClick={showAccentCustomPaywall}
+                                    aria-label="Custom accent color is a Pro feature. Tap to learn more."
+                                  >
+                                    <Star className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500" aria-hidden />
+                                    <Palette className="pointer-events-none h-4 w-4 text-muted-foreground" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Text Color */}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Text</Label>
+                            {isPremiumUser ? (
+                              <label
+                                className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
+                                htmlFor={`resume-font-color-${resumeId}`}
+                              >
+                                <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+                                  {fontColor.toUpperCase()}
+                                </span>
+                                <span
+                                  className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+                                  style={{ background: fontColor }}
+                                />
+                                <input
+                                  id={`resume-font-color-${resumeId}`}
+                                  type="color"
+                                  value={fontColor}
+                                  onChange={(e) => handleFontColorChange(e.target.value)}
+                                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                  aria-label="Pick text color"
+                                />
+                              </label>
+                            ) : (
+                              <button
+                                type="button"
+                                className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                                onClick={showFontColorPaywall}
+                                aria-label="Text color is a Pro feature. Tap to learn more."
+                              >
+                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+                                  {fontColor.toUpperCase()}
+                                </span>
+                                <span
+                                  className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+                                  style={{ background: fontColor }}
+                                />
+                                <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
+                                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+                                </span>
+                              </button>
                             )}
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                {/* Font size */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Font Size
-                  </p>
-                  <Select
-                    value={String(fontScale)}
-                    onValueChange={(v) => {
-                      setFontScale(Number(v));
-                      bumpPreviewRevision();
-                    }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1" className="text-xs">
-                        Normal (100%)
-                      </SelectItem>
-                      <SelectItem value="1.1" className="text-xs">
-                        Large (110%)
-                      </SelectItem>
-                      <SelectItem value="1.2" className="text-xs">
-                        Extra Large (120%)
-                      </SelectItem>
-                      <SelectItem value="1.35" className="text-xs">
-                        Huge (135%)
-                      </SelectItem>
-                      <SelectItem value="1.5" className="text-xs">
-                        Massive (150%)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="flex items-center justify-between mt-4 px-1 gap-4">
-                    <Label
-                      htmlFor="auto-fit"
-                      className="text-xs font-medium text-foreground cursor-pointer"
-                    >
-                      Auto-Fit Page
-                    </Label>
-                    <Switch
-                      id="auto-fit"
-                      checked={autoFit}
-                      onCheckedChange={(v) => {
-                        setAutoFit(v);
-                        bumpPreviewRevision();
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Font Color */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Text Color
-                  </p>
-                  {isPremiumUser ? (
-                    <label
-                      className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
-                      htmlFor={`resume-font-color-${resumeId}`}
-                    >
-                      <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
-                        {fontColor.toUpperCase()}
-                      </span>
-                      <span
-                        className="pointer-events-none absolute left-2.5 top-1/2 z-0 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
-                        style={{ background: fontColor }}
-                      />
-                      <input
-                        id={`resume-font-color-${resumeId}`}
-                        type="color"
-                        value={fontColor}
-                        onChange={(e) => handleFontColorChange(e.target.value)}
-                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                        aria-label="Pick text color"
-                      />
-                    </label>
-                  ) : (
-                    <button
-                      type="button"
-                      className="relative flex h-8 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
-                      onClick={showFontColorPaywall}
-                      aria-label="Text color is a Pro feature. Tap to learn more."
-                    >
-                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
-                        {fontColor.toUpperCase()}
-                      </span>
-                      <span
-                        className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
-                        style={{ background: fontColor }}
-                      />
-                      <span
-                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
-                        aria-hidden
-                      >
-                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                      </span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Background Color */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Background Color
-                  </p>
-                  {isPremiumUser ? (
-                    <label
-                      className="relative flex h-8 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
-                      htmlFor={`resume-bg-color-${resumeId}`}
-                    >
-                      <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
-                        {backgroundColor.toUpperCase()}
-                      </span>
-                      <span
-                        className="pointer-events-none absolute left-2.5 top-1/2 z-0 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
-                        style={{ background: backgroundColor }}
-                      />
-                      <input
-                        id={`resume-bg-color-${resumeId}`}
-                        type="color"
-                        value={backgroundColor}
-                        onChange={(e) =>
-                          handleBackgroundColorChange(e.target.value)
-                        }
-                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                        aria-label="Pick background color"
-                      />
-                    </label>
-                  ) : (
-                    <button
-                      type="button"
-                      className="relative flex h-8 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
-                      onClick={showBackgroundColorPaywall}
-                      aria-label="Background color is a Pro feature. Tap to learn more."
-                    >
-                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] font-medium text-foreground/80">
-                        {backgroundColor.toUpperCase()}
-                      </span>
-                      <span
-                        className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full border border-border"
-                        style={{ background: backgroundColor }}
-                      />
-                      <span
-                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"
-                        aria-hidden
-                      >
-                        <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                      </span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Accent color */}
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
-                    Accent Color
-                  </p>
-                  <div className="flex items-center gap-1.5">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 h-8 gap-2 text-xs justify-start px-2 overflow-hidden"
-                        >
-                          <div
-                            className="h-3.5 w-3.5 rounded-full shrink-0"
-                            style={{ background: accentColor }}
-                          />
-                          <span className="truncate">
-                            {ACCENT_COLORS.find((c) => c.value === accentColor)
-                              ?.label ?? "Custom"}
-                          </span>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent side="top" className="w-40 p-2">
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {ACCENT_COLORS.map((c) => (
-                            <div key={c.value} className="relative">
+                          {/* Background Color */}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-muted-foreground">Background</Label>
+                            {isPremiumUser ? (
+                              <label
+                                className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors"
+                                htmlFor={`resume-bg-color-${resumeId}`}
+                              >
+                                <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+                                  {backgroundColor.toUpperCase()}
+                                </span>
+                                <span
+                                  className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+                                  style={{ background: backgroundColor }}
+                                />
+                                <input
+                                  id={`resume-bg-color-${resumeId}`}
+                                  type="color"
+                                  value={backgroundColor}
+                                  onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                  aria-label="Pick background color"
+                                />
+                              </label>
+                            ) : (
                               <button
-                                title={c.label}
-                                className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${accentColor === c.value ? "ring-2 ring-offset-1 ring-foreground/40" : ""}`}
-                                style={{ background: c.value }}
-                                onClick={() => handleAccentChange(c.value)}
-                              />
-                            </div>
-                          ))}
+                                type="button"
+                                className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+                                onClick={showBackgroundColorPaywall}
+                                aria-label="Background color is a Pro feature. Tap to learn more."
+                              >
+                                <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
+                                  {backgroundColor.toUpperCase()}
+                                </span>
+                                <span
+                                  className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
+                                  style={{ background: backgroundColor }}
+                                />
+                                <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
+                                  <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
+                                </span>
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </PopoverContent>
-                    </Popover>
-                    <div className="relative h-8 w-9 shrink-0 overflow-hidden rounded-md border border-input bg-background hover:bg-muted/50 transition-colors">
-                      {isPremiumUser ? (
-                        <label
-                          className="relative flex h-full w-full cursor-pointer touch-manipulation items-center justify-center"
-                          htmlFor={`resume-accent-custom-${resumeId}`}
-                          aria-label="Pick custom accent color"
-                        >
-                          <Palette className="pointer-events-none relative z-0 h-4 w-4 text-muted-foreground" />
-                          <input
-                            id={`resume-accent-custom-${resumeId}`}
-                            type="color"
-                            value={accentColor}
-                            onChange={(e) => handleAccentChange(e.target.value)}
-                            className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                      </div>
+                      </motion.div>
+                    )}
+
+                    {/* ATS AUDITOR MODE */}
+                    {activeSidebarMode === "ats" && (
+                      <motion.div
+                        key="ats"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15, ease: "easeInOut" }}
+                        className="space-y-6"
+                      >
+                      <div className="p-4 rounded-xl border border-border bg-card space-y-3 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                            <Target className="h-4 w-4 text-primary shrink-0" />
+                            Job Description Match
+                          </h4>
+                          {scannedJobDescription && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-500 border border-green-500/20">
+                              Active Scan
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2.5">
+                          <textarea
+                            value={jobDescriptionText}
+                            onChange={(e) => setJobDescriptionText(e.target.value)}
+                            placeholder="Paste the target job description here to calculate a tailored ATS compatibility score and get optimized keywords/suggestions..."
+                            className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y leading-relaxed"
                           />
-                        </label>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleScan(jobDescriptionText)}
+                              disabled={isAtsFetching}
+                              className="flex-1 text-xs h-9 gap-1.5 font-semibold"
+                            >
+                              <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
+                              Scan Now
+                            </Button>
+                            
+                            {jobDescriptionText && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setJobDescriptionText("")}
+                                disabled={isAtsFetching}
+                                className="h-9 text-xs px-3 hover:bg-muted"
+                              >
+                                Clear
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* AI Optimize Button */}
+                        {activeAtsData && (
+                          <div className="pt-3 border-t border-border mt-1 space-y-3">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                flushSave();
+                                if (resume) {
+                                  if (resume.sections) {
+                                    setPreviousSections(
+                                      resume.sections.map((s) => ({
+                                        id: s.id,
+                                        type: s.type,
+                                        title: s.title,
+                                        content: s.content ? JSON.parse(JSON.stringify(s.content)) : null,
+                                        displayOrder: s.displayOrder,
+                                        isVisible: s.isVisible,
+                                      }))
+                                    );
+                                  }
+                                  setPreviousAtsData({
+                                    score: resume.atsScore ?? null,
+                                    passedChecks: resume.atsPassedChecks ?? null,
+                                    failedChecks: resume.atsFailedChecks ?? null,
+                                    feedback: resume.atsFeedback ?? null,
+                                    atsUpdatedAt: resume.atsUpdatedAt ?? null,
+                                    atsJobDescription: resume.atsJobDescription ?? null,
+                                  });
+                                }
+                                const activeJd = jobDescriptionText ? jobDescriptionText.trim() : "";
+                                setScannedJobDescription(activeJd);
+                                setIsOptimizingWorkflow(true);
+
+                                optimizeResumeMutation.mutate({
+                                  id: resumeId,
+                                  data: {
+                                    jobDescription: activeJd || undefined,
+                                  },
+                                });
+                                toast({
+                                  title: "AI Optimization Started",
+                                  description: "AI is analyzing and refining your resume content in the background...",
+                                });
+                              }}
+                              disabled={optimizeResumeMutation.isPending}
+                              className="w-full text-xs h-9 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-semibold"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              {scannedJobDescription ? "Optimize Resume with AI" : "Improve Resume with AI"}
+                            </Button>
+
+                            {/* AI Optimization Summary */}
+                            {optimizationSummary && (
+                              <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="flex items-center justify-between">
+                                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                                    <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+                                    AI Changes Summary
+                                  </h5>
+                                  {previousSections && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        if (previousSections) {
+                                          updateResume.mutate({
+                                            id: resumeId,
+                                            data: {
+                                              sections: previousSections,
+                                              atsScore: previousAtsData?.score,
+                                              atsPassedChecks: previousAtsData?.passedChecks,
+                                              atsFailedChecks: previousAtsData?.failedChecks,
+                                              atsFeedback: previousAtsData?.feedback,
+                                              atsUpdatedAt: previousAtsData?.atsUpdatedAt,
+                                              atsJobDescription: previousAtsData?.atsJobDescription,
+                                            },
+                                          }, {
+                                            onSuccess: (updatedData) => {
+                                              const restoredSections = (updatedData.sections ?? []).map((s) => ({ ...s }));
+                                              setLocalSections(restoredSections);
+                                              if (previousAtsData) {
+                                                setScannedJobDescription(previousAtsData.atsJobDescription || "");
+                                              }
+                                              setPreviousSections(null);
+                                              setPreviousAtsData(null);
+                                              setOptimizationSummary(null);
+                                              toast({
+                                                title: "Optimization Undone",
+                                                description: "Your resume and original ATS score have been restored.",
+                                              });
+                                              bumpPreviewRevision();
+                                            }
+                                          });
+                                        }
+                                      }}
+                                      disabled={updateResume.isPending}
+                                      className="h-6 text-[10px] px-1.5 text-muted-foreground hover:text-primary gap-1"
+                                    >
+                                      <Undo className="h-2.5 w-2.5" />
+                                      Undo
+                                    </Button>
+                                  )}
+                                </div>
+                                <div className="text-xs text-foreground/80 space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                                  {optimizationSummary.split("\n").filter(Boolean).map((line, idx) => {
+                                    const cleanLine = line.replace(/^[\s*-]+/, "").trim();
+                                    if (!cleanLine) return null;
+                                    
+                                    const parts = cleanLine.split(":**");
+                                    if (parts.length === 2 && parts[0].startsWith("**")) {
+                                      const title = parts[0].replace(/^\*\*/, "");
+                                      return (
+                                        <p key={idx} className="leading-relaxed text-[11px]">
+                                          <strong className="text-foreground font-semibold">{title}:</strong>{parts[1]}
+                                        </p>
+                                      );
+                                    }
+                                    
+                                    return <p key={idx} className="leading-relaxed text-[11px]">• {cleanLine}</p>;
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Separator */}
+                      <div className="border-t border-border/80 my-2" />
+
+                      {/* Audit Results */}
+                      {isAtsFetching ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-4">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <div className="text-center">
+                            <p className="text-sm font-semibold">Running AI Audit...</p>
+                            <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
+                              Analyzing keyword density, achievement quantification, and job alignment.
+                            </p>
+                          </div>
+                        </div>
                       ) : (
-                        <button
-                          type="button"
-                          className="relative flex h-full w-full touch-manipulation items-center justify-center active:bg-muted/70"
-                          onClick={showAccentCustomPaywall}
-                          aria-label="Custom accent color is a Pro feature. Tap to learn more."
-                        >
-                          <Star
-                            className="pointer-events-none absolute top-0.5 right-0.5 h-2 w-2 text-amber-500 fill-amber-500"
-                            aria-hidden
-                          />
-                          <Palette className="pointer-events-none h-4 w-4 text-muted-foreground" />
-                        </button>
+                        <div className="space-y-6">
+                          {/* Outdated Score Alert */}
+                          {isAtsOutdated && activeAtsData && (
+                            <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-800 dark:text-amber-300 flex items-start justify-between gap-3 shadow-sm">
+                              <div className="flex gap-2">
+                                <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+                                <div>
+                                  <p className="font-semibold">Score Outdated</p>
+                                  <p className="text-muted-foreground mt-0.5 leading-relaxed">
+                                    You have edited the resume since the last scan. Run a rescan to get updated metrics.
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleScan(scannedJobDescription)}
+                                className="h-7 text-[10px] px-2.5 font-bold hover:bg-amber-500/10 border-amber-500/20 text-amber-600 hover:text-amber-700 shrink-0 bg-background"
+                              >
+                                Rescan
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Score Circle & Verdict */}
+                          <div className="flex items-center gap-6 p-4 rounded-xl border border-border bg-muted/40">
+                            <div className="relative flex items-center justify-center shrink-0">
+                              <svg className="w-24 h-24 transform -rotate-90">
+                                <circle
+                                  cx="48"
+                                  cy="48"
+                                  r="40"
+                                  className="stroke-muted"
+                                  strokeWidth="8"
+                                  fill="transparent"
+                                />
+                                <circle
+                                  cx="48"
+                                  cy="48"
+                                  r="40"
+                                  className={`transition-all duration-500 ${
+                                    displayedAtsScore >= 80
+                                      ? "stroke-green-500"
+                                      : displayedAtsScore >= 60
+                                        ? "stroke-yellow-500"
+                                        : "stroke-red-500"
+                                  }`}
+                                  strokeWidth="8"
+                                  strokeDasharray={2 * Math.PI * 40}
+                                  strokeDashoffset={
+                                    2 * Math.PI * 40 * (1 - displayedAtsScore / 100)
+                                  }
+                                  strokeLinecap="round"
+                                  fill="transparent"
+                                />
+                              </svg>
+                              <span className="absolute text-2xl font-bold">
+                                {displayedAtsScore}
+                              </span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-base">
+                                {displayedAtsScore >= 80
+                                  ? "Excellent Compatibility"
+                                  : displayedAtsScore >= 60
+                                    ? "Good Match, but improvable"
+                                    : displayedAtsScore > 0
+                                      ? "Needs Critical Optimization"
+                                      : "Empty Resume"}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                                {displayedAtsScore >= 80
+                                  ? "Your resume is highly optimized for applicant tracking systems. Excellent work!"
+                                  : displayedAtsScore >= 60
+                                    ? "A few optimizations could significantly improve your parser matching and keyword alignment."
+                                    : displayedAtsScore > 0
+                                      ? "Your resume is missing critical elements or alignment for the target job role. Please check details below."
+                                      : "This resume is empty. Please enter your professional experience and details to calculate your ATS score."}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Target Job Title Indicator */}
+                          {(() => {
+                            const personal = localSections.find((s) => s.type === "personal")?.content as any;
+                            const titleStr = personal?.jobTitle || resume?.title || "Not specified";
+                            return (
+                              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-border bg-card text-xs">
+                                <Target className="h-4 w-4 text-primary shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <span className="text-muted-foreground">Audit target job role:</span>
+                                  <strong className="block text-foreground truncate mt-0.5">{titleStr}</strong>
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Audit Details */}
+                          {activeAtsData ? (
+                            <>
+                              {/* Failed / Critical Fixes */}
+                              {Array.isArray(activeAtsData.failedChecks) && activeAtsData.failedChecks.length > 0 && (
+                                <div className="space-y-3">
+                                  <h5 className="text-xs font-semibold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                    Critical Fixes ({activeAtsData.failedChecks.length})
+                                  </h5>
+                                  <ul className="space-y-2">
+                                    {activeAtsData.failedChecks.map((check: string, idx: number) => (
+                                      <li
+                                        key={idx}
+                                        className="flex items-start gap-2.5 p-2.5 rounded-lg border border-red-500/10 bg-red-500/5 text-xs text-foreground leading-relaxed"
+                                      >
+                                        <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                                        <span>{check}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Feedback / Recommendations */}
+                              {Array.isArray(activeAtsData.feedback) && activeAtsData.feedback.length > 0 && (
+                                <div className="space-y-3">
+                                  <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                                    <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                                    Improvement Recommendations ({activeAtsData.feedback.length})
+                                  </h5>
+                                  <ul className="space-y-2">
+                                    {activeAtsData.feedback.map((item: string, idx: number) => (
+                                      <li
+                                        key={idx}
+                                        className="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-xs text-foreground leading-relaxed"
+                                      >
+                                        <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* Passed Checks */}
+                              {Array.isArray(activeAtsData.passedChecks) && activeAtsData.passedChecks.length > 0 && (
+                                <div className="space-y-3">
+                                  <h5 className="text-xs font-semibold uppercase tracking-wider text-green-500 flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                                    Passed Checks ({activeAtsData.passedChecks.length})
+                                  </h5>
+                                  <ul className="space-y-2">
+                                    {activeAtsData.passedChecks.map((check: string, idx: number) => (
+                                      <li
+                                        key={idx}
+                                        className="flex items-start gap-2.5 p-2.5 rounded-lg border border-green-500/10 bg-green-500/5 text-xs text-foreground leading-relaxed"
+                                      >
+                                        <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                                        <span>{check}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-8 px-4 text-center text-muted-foreground border border-dashed border-border rounded-xl bg-card">
+                              <AlertCircle className="h-6 w-6 mb-2 text-primary/70" />
+                              <p className="text-xs font-semibold text-foreground">Baseline Score Displayed</p>
+                              <p className="text-[11px] max-w-[280px] mt-1 leading-relaxed">
+                                This is the baseline template compatibility score. Paste a target job description above and scan to generate tailored suggestions.
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </div>
+                      </motion.div>
+                    )}
+
+                    {/* CONTENT EDIT MODE */}
+                    {activeSidebarMode === "content" && (
+                      <motion.div
+                        key="content"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15, ease: "easeInOut" }}
+                      >
+                      {activeSection ? (
+                        <motion.div
+                          key={activeSection.id}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.15, ease: "easeOut" }}
+                        >
+                          <SectionEditor
+                            section={
+                              activeSection as {
+                                id: number;
+                                type: string;
+                                title: string;
+                                content: SectionContent;
+                                isVisible?: boolean;
+                              }
+                            }
+                            onChange={(content) =>
+                              handleSectionContentChange(activeSection.id, content)
+                            }
+                            onVisibilityToggle={() =>
+                              handleVisibilityToggle(activeSection.id)
+                            }
+                            resumeId={resumeId}
+                            allSections={
+                              localSections as {
+                                id: number;
+                                type: string;
+                                content: SectionContent;
+                              }[]
+                            }
+                            templateId={templateId}
+                          />
+                        </motion.div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Select a section to edit it.
+                        </p>
+                      )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </ScrollArea>
+
+            {/* Pinned Footer (only shown if not in Mobile Dashboard view) */}
+            {!(mobileTab === "sections" && window.innerWidth < 1024) && (
+              <div className="border-t border-border p-3.5 shrink-0 bg-background flex flex-row items-center justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+                  <span>Back to Dashboard</span>
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    {updateResume.isPending ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                        <span className="text-[10px] text-muted-foreground">Saving...</span>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground">Saved</span>
+                    )}
                   </div>
+
+                  {activeSidebarMode === "content" && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 h-8 text-xs font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
+                      onClick={() => setClearAllOpen(true)}
+                      disabled={localSections.length === 0}
+                    >
+                      <Eraser className="h-3.5 w-3.5 shrink-0" />
+                      <span>Clear Content</span>
+                    </Button>
+                  )}
                 </div>
               </div>
-            </div>
-          </ScrollArea>
-
-          {/* Pinned footer — clear action + nav (full-width for narrow sidebar / mobile) */}
-          <div className="border-t border-border p-3 shrink-0 bg-background flex flex-row items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-              onClick={() => navigate("/dashboard")}
-            >
-              <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
-              <span>Back</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5 h-8 text-xs font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
-              onClick={() => setClearAllOpen(true)}
-              disabled={localSections.length === 0}
-            >
-              <Eraser className="h-3.5 w-3.5 shrink-0" />
-              <span>Clear</span>
-            </Button>
-          </div>
-        </aside>
-
-        {/* Center — section editor */}
-        <div
-          className={`w-full lg:w-80 border-r border-border bg-background flex-col shrink-0 min-h-0 overflow-hidden ${mobileTab === "edit" ? "flex" : "hidden lg:flex"}`}
-        >
-          <div className="px-4 py-3 border-b border-border shrink-0">
-            <h2 className="text-xs font-semibold text-foreground">
-              {activeSection?.title ?? "Select a section"}
-            </h2>
-          </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="p-4">
-              {activeSection ? (
-                <motion.div
-                  key={activeSection.id}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                >
-                  <SectionEditor
-                    section={
-                      activeSection as {
-                        id: number;
-                        type: string;
-                        title: string;
-                        content: SectionContent;
-                        isVisible?: boolean;
-                      }
-                    }
-                    onChange={(content) =>
-                      handleSectionContentChange(activeSection.id, content)
-                    }
-                    onVisibilityToggle={() =>
-                      handleVisibilityToggle(activeSection.id)
-                    }
-                    resumeId={resumeId}
-                    allSections={
-                      localSections as {
-                        id: number;
-                        type: string;
-                        content: SectionContent;
-                      }[]
-                    }
-                    templateId={templateId}
-                  />
-                </motion.div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Select a section from the sidebar to edit it.
-                </p>
-              )}
-            </div>
-          </ScrollArea>
-
-          {/* Auto-save indicator */}
-          <div className="px-4 py-2 border-t border-border flex items-center gap-1.5">
-            {updateResume.isPending ? (
-              <>
-                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground">
-                  Saving...
-                </span>
-              </>
-            ) : (
-              <span className="text-[10px] text-muted-foreground">
-                Changes saved automatically
-              </span>
             )}
           </div>
-        </div>
+        </aside>
 
         {/* Right — live preview */}
         <div
@@ -2130,393 +2907,7 @@ export default function BuilderPage() {
         onOpenChange={setShowAtsPaywall}
       />
 
-      <Sheet open={atsPanelOpen} onOpenChange={setAtsPanelOpen}>
-        <SheetContent className="w-full sm:max-w-md md:max-w-lg flex flex-col h-full bg-background border-l border-border px-0 py-6">
-          <div className="pl-6 pr-14 pb-4 border-b border-border flex items-center justify-between shrink-0">
-            <div>
-              <SheetTitle className="text-xl font-bold flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-500 fill-amber-500 animate-pulse" />
-                ATS Auditor
-              </SheetTitle>
-              <SheetDescription className="text-xs text-muted-foreground mt-0.5">
-                AI-powered resume optimization audit.
-              </SheetDescription>
-            </div>
-          </div>
 
-          <ScrollArea className="flex-1 min-h-0 px-6 py-4">
-            <div className="space-y-6 pb-6">
-              {/* Job Description Matching Section */}
-              <div className="p-4 rounded-xl border border-border bg-card space-y-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                    <Target className="h-4 w-4 text-primary shrink-0" />
-                    Job Description Match
-                  </h4>
-                  {scannedJobDescription && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-500 border border-green-500/20">
-                      Active Scan
-                    </span>
-                  )}
-                </div>
-                
-                <div className="space-y-2.5">
-                  <textarea
-                    value={jobDescriptionText}
-                    onChange={(e) => setJobDescriptionText(e.target.value)}
-                    placeholder="Paste the target job description here to calculate a tailored ATS compatibility score and get optimized keywords/suggestions..."
-                    className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y leading-relaxed"
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        handleScan(jobDescriptionText);
-                      }}
-                      disabled={isAtsFetching}
-                      className="flex-1 text-xs h-9 gap-1.5 font-semibold"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${isAtsFetching ? "animate-spin" : ""}`} />
-                      Scan Now
-                    </Button>
-                    
-                    {jobDescriptionText && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setJobDescriptionText("");
-                        }}
-                        disabled={isAtsFetching}
-                        className="h-9 text-xs px-3 hover:bg-muted"
-                      >
-                        Clear
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* AI Optimize Button */}
-                {activeAtsData && (
-                  <div className="pt-3 border-t border-border mt-1 space-y-3">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        flushSave();
-                        if (resume) {
-                          if (resume.sections) {
-                            setPreviousSections(
-                              resume.sections.map((s) => ({
-                                id: s.id,
-                                type: s.type,
-                                title: s.title,
-                                content: s.content ? JSON.parse(JSON.stringify(s.content)) : null,
-                                displayOrder: s.displayOrder,
-                                isVisible: s.isVisible,
-                              }))
-                            );
-                          }
-                          setPreviousAtsData({
-                            score: resume.atsScore ?? null,
-                            passedChecks: resume.atsPassedChecks ?? null,
-                            failedChecks: resume.atsFailedChecks ?? null,
-                            feedback: resume.atsFeedback ?? null,
-                            atsUpdatedAt: resume.atsUpdatedAt ?? null,
-                            atsJobDescription: resume.atsJobDescription ?? null,
-                          });
-                        }
-                        const activeJd = jobDescriptionText ? jobDescriptionText.trim() : "";
-                        setScannedJobDescription(activeJd);
-                        setIsOptimizingWorkflow(true);
-
-                        optimizeResumeMutation.mutate({
-                          id: resumeId,
-                          data: {
-                            jobDescription: activeJd || undefined,
-                          },
-                        });
-                        toast({
-                          title: "AI Optimization Started",
-                          description: "AI is analyzing and refining your resume content in the background...",
-                        });
-                      }}
-                      disabled={optimizeResumeMutation.isPending}
-                      className="w-full text-xs h-9 gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-semibold"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {scannedJobDescription ? "Optimize Resume with AI" : "Improve Resume with AI"}
-                    </Button>
-
-                    {/* AI Optimization Summary */}
-                    {optimizationSummary && (
-                      <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
-                            <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
-                            AI Changes Summary
-                          </h5>
-                          {previousSections && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                if (previousSections) {
-                                  updateResume.mutate({
-                                    id: resumeId,
-                                    data: {
-                                      sections: previousSections,
-                                      atsScore: previousAtsData?.score,
-                                      atsPassedChecks: previousAtsData?.passedChecks,
-                                      atsFailedChecks: previousAtsData?.failedChecks,
-                                      atsFeedback: previousAtsData?.feedback,
-                                      atsUpdatedAt: previousAtsData?.atsUpdatedAt,
-                                      atsJobDescription: previousAtsData?.atsJobDescription,
-                                    },
-                                  }, {
-                                    onSuccess: (updatedData) => {
-                                      const restoredSections = (updatedData.sections ?? []).map((s) => ({ ...s }));
-                                      setLocalSections(restoredSections);
-                                      if (previousAtsData) {
-                                        setScannedJobDescription(previousAtsData.atsJobDescription || "");
-                                      }
-                                      setPreviousSections(null);
-                                      setPreviousAtsData(null);
-                                      setOptimizationSummary(null);
-                                      toast({
-                                        title: "Optimization Undone",
-                                        description: "Your resume and original ATS score have been restored.",
-                                      });
-                                      bumpPreviewRevision();
-                                    }
-                                  });
-                                }
-                              }}
-                              disabled={updateResume.isPending}
-                              className="h-6 text-[10px] px-1.5 text-muted-foreground hover:text-primary gap-1"
-                            >
-                              <Undo className="h-2.5 w-2.5" />
-                              Undo
-                            </Button>
-                          )}
-                        </div>
-                        <div className="text-xs text-foreground/80 space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                          {optimizationSummary.split("\n").filter(Boolean).map((line, idx) => {
-                            const cleanLine = line.replace(/^[\s*-]+/, "").trim();
-                            if (!cleanLine) return null;
-                            
-                            const parts = cleanLine.split(":**");
-                            if (parts.length === 2 && parts[0].startsWith("**")) {
-                              const title = parts[0].replace(/^\*\*/, "");
-                              return (
-                                <p key={idx} className="leading-relaxed text-[11px]">
-                                  <strong className="text-foreground font-semibold">{title}:</strong>{parts[1]}
-                                </p>
-                              );
-                            }
-                            
-                            return <p key={idx} className="leading-relaxed text-[11px]">• {cleanLine}</p>;
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Separator */}
-              <div className="border-t border-border/80 my-2" />
-
-              {/* Audit Results */}
-              {isAtsFetching ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-4">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <div className="text-center">
-                    <p className="text-sm font-semibold">Running AI Audit...</p>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
-                      Analyzing keyword density, achievement quantification, and job alignment.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Outdated Score Alert */}
-                  {isAtsOutdated && activeAtsData && (
-                    <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs text-amber-800 dark:text-amber-300 flex items-start justify-between gap-3 shadow-sm">
-                      <div className="flex gap-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
-                        <div>
-                          <p className="font-semibold">Score Outdated</p>
-                          <p className="text-muted-foreground mt-0.5 leading-relaxed">
-                            You have edited the resume since the last scan. Run a rescan to get updated metrics.
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleScan(scannedJobDescription)}
-                        className="h-7 text-[10px] px-2.5 font-bold hover:bg-amber-500/10 border-amber-500/20 text-amber-600 hover:text-amber-700 shrink-0 bg-background"
-                      >
-                        Rescan
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Score Circle & Verdict */}
-                  <div className="flex items-center gap-6 p-4 rounded-xl border border-border bg-muted/40">
-                    <div className="relative flex items-center justify-center shrink-0">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle
-                          cx="48"
-                          cy="48"
-                          r="40"
-                          className="stroke-muted"
-                          strokeWidth="8"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="48"
-                          cy="48"
-                          r="40"
-                          className={`transition-all duration-500 ${
-                            displayedAtsScore >= 80
-                              ? "stroke-green-500"
-                              : displayedAtsScore >= 60
-                                ? "stroke-yellow-500"
-                                : "stroke-red-500"
-                          }`}
-                          strokeWidth="8"
-                          strokeDasharray={2 * Math.PI * 40}
-                          strokeDashoffset={
-                            2 * Math.PI * 40 * (1 - displayedAtsScore / 100)
-                          }
-                          strokeLinecap="round"
-                          fill="transparent"
-                        />
-                      </svg>
-                      <span className="absolute text-2xl font-bold">
-                        {displayedAtsScore}
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-base">
-                        {displayedAtsScore >= 80
-                          ? "Excellent Compatibility"
-                          : displayedAtsScore >= 60
-                            ? "Good Match, but improvable"
-                            : displayedAtsScore > 0
-                              ? "Needs Critical Optimization"
-                              : "Empty Resume"}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        {displayedAtsScore >= 80
-                          ? "Your resume is highly optimized for applicant tracking systems. Excellent work!"
-                          : displayedAtsScore >= 60
-                            ? "A few optimizations could significantly improve your parser matching and keyword alignment."
-                            : displayedAtsScore > 0
-                              ? "Your resume is missing critical elements or alignment for the target job role. Please check details below."
-                              : "This resume is empty. Please enter your professional experience and details to calculate your ATS score."}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Target Job Title Indicator */}
-                  {(() => {
-                    const personal = localSections.find((s) => s.type === "personal")?.content as any;
-                    const titleStr = personal?.jobTitle || resume?.title || "Not specified";
-                    return (
-                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border border-border bg-card text-xs">
-                        <Target className="h-4 w-4 text-primary shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <span className="text-muted-foreground">Audit target job role:</span>
-                          <strong className="block text-foreground truncate mt-0.5">{titleStr}</strong>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Audit Details */}
-                  {activeAtsData ? (
-                    <>
-                      {/* Failed / Critical Fixes */}
-                      {Array.isArray(activeAtsData.failedChecks) && activeAtsData.failedChecks.length > 0 && (
-                        <div className="space-y-3">
-                          <h5 className="text-xs font-semibold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
-                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                            Critical Fixes ({activeAtsData.failedChecks.length})
-                          </h5>
-                          <ul className="space-y-2">
-                            {activeAtsData.failedChecks.map((check: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-red-500/10 bg-red-500/5 text-xs text-foreground leading-relaxed"
-                              >
-                                <XCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                                <span>{check}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Feedback / Recommendations */}
-                      {Array.isArray(activeAtsData.feedback) && activeAtsData.feedback.length > 0 && (
-                        <div className="space-y-3">
-                          <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
-                            <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                            Improvement Recommendations ({activeAtsData.feedback.length})
-                          </h5>
-                          <ul className="space-y-2">
-                            {activeAtsData.feedback.map((item: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-amber-500/10 bg-amber-500/5 text-xs text-foreground leading-relaxed"
-                              >
-                                <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Passed Checks */}
-                      {Array.isArray(activeAtsData.passedChecks) && activeAtsData.passedChecks.length > 0 && (
-                        <div className="space-y-3">
-                          <h5 className="text-xs font-semibold uppercase tracking-wider text-green-500 flex items-center gap-1.5">
-                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                            Passed Checks ({activeAtsData.passedChecks.length})
-                          </h5>
-                          <ul className="space-y-2">
-                            {activeAtsData.passedChecks.map((check: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 p-2.5 rounded-lg border border-green-500/10 bg-green-500/5 text-xs text-foreground leading-relaxed"
-                              >
-                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                <span>{check}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 px-4 text-center text-muted-foreground border border-dashed border-border rounded-xl bg-card">
-                      <AlertCircle className="h-6 w-6 mb-2 text-primary/70" />
-                      <p className="text-xs font-semibold text-foreground">Baseline Score Displayed</p>
-                      <p className="text-[11px] max-w-[280px] mt-1 leading-relaxed">
-                        This is the baseline template compatibility score. Paste a target job description above and scan to generate tailored suggestions.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
       {isOptimizingWorkflow && (
         <PremiumLoadingScreen
           title={optimizeResumeMutation.isPending ? "Aligning & Optimizing Resume..." : "Auditing Updated Resume..."}

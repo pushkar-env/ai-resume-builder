@@ -4,7 +4,7 @@ export const THUMBNAIL_PAGE_WIDTH_PX = 794;
 /** Default A4 height for gallery viewport before first measure. */
 export const THUMBNAIL_DEFAULT_VIEWPORT_H_PX = 1123;
 
-export const THUMBNAIL_MIN_SCALE = 0.32;
+export const THUMBNAIL_MIN_SCALE = 0.1;
 export const THUMBNAIL_MAX_SCALE = 0.55;
 
 const WIDTH_INSET = 0.996;
