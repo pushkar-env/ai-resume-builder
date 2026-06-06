@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef, useState, useEffect } from "react";
+import { memo, useCallback, useRef, useState, useEffect, type ReactNode } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
@@ -8,6 +8,8 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  rightElement?: ReactNode;
+  actionCount?: number;
 }
 
 const modules = {
@@ -41,6 +43,8 @@ export const RichTextEditor = memo(function RichTextEditor({
   onChange,
   placeholder,
   className,
+  rightElement,
+  actionCount,
 }: RichTextEditorProps) {
   // Keep local track of the editor's value to avoid cursor jumping and race conditions
   const [editorValue, setEditorValue] = useState(value);
@@ -74,8 +78,15 @@ export const RichTextEditor = memo(function RichTextEditor({
     [],
   );
 
+  const actionClass =
+    actionCount === 2
+      ? "has-actions-2"
+      : actionCount === 1
+        ? "has-actions-1"
+        : "";
+
   return (
-    <div className={`rich-text-container ${className || ""}`}>
+    <div className={`rich-text-container relative ${actionClass} ${className || ""}`}>
       <ReactQuill
         theme="snow"
         value={editorValue}
@@ -84,6 +95,11 @@ export const RichTextEditor = memo(function RichTextEditor({
         modules={modules}
         formats={formats}
       />
+      {rightElement && (
+        <div className="absolute top-1 right-1.5 z-10 flex items-center gap-1">
+          {rightElement}
+        </div>
+      )}
     </div>
   );
 });

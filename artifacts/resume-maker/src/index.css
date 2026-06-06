@@ -738,5 +738,13 @@
   animation: fadeIn 0.4s ease-out forwards;
 }
 
+/* RichTextEditor Toolbar Actions Padding */
+.rich-text-container.has-actions-1 .ql-toolbar.ql-snow {
+  padding-right: 38px !important;
+}
+.rich-text-container.has-actions-2 .ql-toolbar.ql-snow {
+  padding-right: 66px !important;
+}
+
 
 

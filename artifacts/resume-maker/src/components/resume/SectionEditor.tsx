@@ -646,48 +646,47 @@ function ExperienceEditor({
                     key={bi}
                     className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2"
                   >
-                    <div className="flex gap-1.5">
-                      <div className="flex-1 min-w-0">
-                        <RichTextEditor
-                          value={b.text}
-                          onChange={(val) => updateBulletAt(bi, { text: val })}
-                          placeholder="• Led ..."
-                        />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 w-7 p-0"
-                          title="Improve with AI"
-                          onClick={() => {
-                            setPendingBullet({ itemIndex: i, bulletIndex: bi });
-                            improveBullet.mutate({
-                              data: {
-                                bullet: richHtmlToPlainText(b.text),
-                                context: `${item.title ?? ""} at ${item.company ?? ""}`,
-                              },
-                            });
-                          }}
-                          disabled={isImproving}
-                        >
-                          {isImproving ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-3 w-3 text-primary" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                          title="Delete bullet"
-                          onClick={() => removeBullet(bi)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
+                    <RichTextEditor
+                      value={b.text}
+                      onChange={(val) => updateBulletAt(bi, { text: val })}
+                      placeholder="• Led ..."
+                      actionCount={2}
+                      rightElement={
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                            title="Improve with AI"
+                            onClick={() => {
+                              setPendingBullet({ itemIndex: i, bulletIndex: bi });
+                              improveBullet.mutate({
+                                data: {
+                                  bullet: richHtmlToPlainText(b.text),
+                                  context: `${item.title ?? ""} at ${item.company ?? ""}`,
+                                },
+                              });
+                            }}
+                            disabled={isImproving}
+                          >
+                            {isImproving ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5 text-primary" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 min-h-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title="Delete bullet"
+                            onClick={() => removeBullet(bi)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      }
+                    />
                   </div>
                 );
               })}
@@ -1339,19 +1338,16 @@ function ProjectsEditor({
             </div>
           </div>
           <Field label="Description">
-            <div className="flex gap-1.5">
-              <div className="flex-1 min-w-0">
-                <RichTextEditor
-                  value={(item.description as string) ?? ""}
-                  onChange={(val) => updateItem(i, "description", val)}
-                  placeholder="Brief description..."
-                />
-              </div>
-              <div className="flex flex-col gap-1">
+            <RichTextEditor
+              value={(item.description as string) ?? ""}
+              onChange={(val) => updateItem(i, "description", val)}
+              placeholder="Brief description..."
+              actionCount={1}
+              rightElement={
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="h-7 w-7 p-0"
+                  className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
                   title="Improve with AI"
                   onClick={() => {
                     setPendingProject(i);
@@ -1371,11 +1367,11 @@ function ProjectsEditor({
                   {improveDescription.isPending && pendingProject === i ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <Sparkles className="h-3 w-3 text-primary" />
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
                   )}
                 </Button>
-              </div>
-            </div>
+              }
+            />
           </Field>
         </div>
       ))}
