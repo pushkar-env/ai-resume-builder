@@ -1804,7 +1804,6 @@ export default function BuilderPage() {
         }
       }
 
-      setJobUrlText("");
     } catch (err: any) {
       toast({
         title: "Failed to import job details",
@@ -2380,6 +2379,36 @@ export default function BuilderPage() {
                               </Button>
                             </div>
                           </div>
+
+                          {(() => {
+                            const personalSection = localSections.find((s) => s.type === "personal");
+                            const currentJobTitle = (personalSection?.content as any)?.jobTitle || "";
+                            return (
+                              <div className="space-y-1.5">
+                                <Label htmlFor="ats-job-title" className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                                  <Briefcase className="h-3.5 w-3.5 text-primary shrink-0" />
+                                  Target Job Title
+                                </Label>
+                                <input
+                                  id="ats-job-title"
+                                  type="text"
+                                  placeholder="e.g. Software Engineer..."
+                                  value={currentJobTitle}
+                                  onChange={(e) => {
+                                    if (personalSection) {
+                                      const currentContent = (personalSection.content || {}) as any;
+                                      const updatedContent = {
+                                        ...currentContent,
+                                        jobTitle: e.target.value,
+                                      };
+                                      handleSectionContentChange(personalSection.id, updatedContent);
+                                    }
+                                  }}
+                                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                />
+                              </div>
+                            );
+                          })()}
 
                           <div className="relative flex py-1 items-center">
                             <div className="flex-grow border-t border-border/60"></div>
