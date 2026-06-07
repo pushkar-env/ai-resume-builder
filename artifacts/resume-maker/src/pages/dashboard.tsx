@@ -1296,7 +1296,6 @@ export default function DashboardPage() {
   const [renameType, setRenameType] = useState<"resume" | "cover-letter">("resume");
   const [newTitle, setNewTitle] = useState("My Resume");
   const [renameTitle, setRenameTitle] = useState("");
-  const [showPaywall, setShowPaywall] = useState(false);
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(
@@ -2495,12 +2494,6 @@ export default function DashboardPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <PaywallDialog
-        open={showPaywall}
-        onOpenChange={setShowPaywall}
-        title="Resume Limit Reached"
-        description="Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates."
-      />
       <canvas
         ref={canvasRef}
         className="fixed inset-0 pointer-events-none z-[150]"

@@ -99,15 +99,6 @@ export default function TemplatesPage() {
   });
 
   const handleUseTemplate = (templateId: string) => {
-    if (!isPremiumUser && resumeList.length >= 1) {
-      setPaywallTitle("Resume Limit Reached");
-      setPaywallDescription(
-        "Free users can only create 1 resume. Upgrade to Pro to create unlimited resumes and unlock premium templates.",
-      );
-      setShowPaywall(true);
-      return;
-    }
-
     const template = templateList.find((t) => t.id === templateId);
     if (template?.isPremium && !isPremiumUser) {
       setPaywallTitle("Premium Template");
