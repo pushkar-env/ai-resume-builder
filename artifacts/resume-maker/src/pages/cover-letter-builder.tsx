@@ -657,19 +657,19 @@ export default function CoverLetterBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-hidden">
       <SEO
         title={`${localTitle || "Cover Letter Builder"} | ResumeSensei`}
         description="Create, edit, and optimize your cover letter using AI assistant."
       />
 
       {/* Glassmorphic Navbar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/60 px-3 sm:px-6 py-3.5 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/60 px-3 sm:px-6 py-3.5 flex items-center justify-between gap-2 sm:gap-4">
         <div className="flex items-center gap-1.5 sm:gap-3.5 min-w-0 flex-1">
           <Button
             variant="ghost"
             size="icon"
-            className="text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 shrink-0 h-8 w-8 sm:h-9 sm:w-9"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => setLocation("/dashboard?tab=cover-letters")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -679,26 +679,26 @@ export default function CoverLetterBuilder() {
               type="text"
               value={localTitle}
               onChange={(e) => setLocalTitle(e.target.value)}
-              className="bg-transparent font-bold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-xs sm:text-base truncate w-full min-w-0"
+              className="bg-transparent font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary rounded px-1 text-xs sm:text-base truncate w-full min-w-0"
               placeholder="Cover Letter Title"
             />
             <div className="flex items-center gap-1.5 px-1 mt-0.5">
               {saveStatus === "saving" && (
                 <>
-                  <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
-                  <span className="text-[10px] text-blue-400 font-medium hidden sm:inline">Saving changes...</span>
+                  <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                  <span className="text-[10px] text-blue-500 font-medium hidden sm:inline">Saving changes...</span>
                 </>
               )}
               {saveStatus === "saved" && (
                 <>
-                  <Check className="h-3 w-3 text-emerald-400" />
-                  <span className="text-[10px] text-emerald-400 font-medium hidden sm:inline">All changes saved</span>
+                  <Check className="h-3 w-3 text-emerald-500" />
+                  <span className="text-[10px] text-emerald-500 font-medium hidden sm:inline">All changes saved</span>
                 </>
               )}
               {saveStatus === "error" && (
                 <>
-                  <AlertCircle className="h-3 w-3 text-rose-400" />
-                  <span className="text-[10px] text-rose-400 font-medium hidden sm:inline">Failed to save draft</span>
+                  <AlertCircle className="h-3 w-3 text-rose-500" />
+                  <span className="text-[10px] text-rose-500 font-medium hidden sm:inline">Failed to save draft</span>
                 </>
               )}
             </div>
@@ -710,30 +710,30 @@ export default function CoverLetterBuilder() {
           {/* Export Dropdown */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-slate-50 text-xs sm:text-sm font-semibold shadow-lg shadow-blue-500/20 px-2.5 sm:px-3 h-8 sm:h-9">
+              <Button size="sm" className="bg-primary hover:bg-primary/95 text-primary-foreground text-xs sm:text-sm font-semibold shadow-sm px-2.5 sm:px-3 h-8 sm:h-9">
                 <FileDown className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Download</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 bg-slate-950 border border-slate-800 text-slate-200 p-1.5" align="end">
+            <PopoverContent className="w-48 bg-popover border border-border text-popover-foreground p-1.5" align="end">
               <button
                 onClick={handleDownloadPdf}
                 disabled={isExportingPdf}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800/80 rounded flex items-center justify-between font-medium"
+                className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center justify-between font-medium"
               >
                 <span>Export PDF</span>
                 {isExportingPdf ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <FileText className="h-3.5 w-3.5 text-slate-400" />
+                  <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                 )}
               </button>
               <button
                 onClick={handleDownloadDocx}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800/80 rounded flex items-center justify-between font-medium mt-1"
+                className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center justify-between font-medium mt-1"
               >
                 <span>Export Word (.docx)</span>
-                <Briefcase className="h-3.5 w-3.5 text-slate-400" />
+                <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </PopoverContent>
           </Popover>
@@ -744,7 +744,7 @@ export default function CoverLetterBuilder() {
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT COLUMN: Input form & AI dashboard */}
         <div
-          className={`w-full md:w-1/2 flex flex-col border-r border-slate-800/50 bg-[#0c1220]/60 ${
+          className={`w-full md:w-1/2 flex flex-col border-r border-border/50 bg-background ${
             activeMobileTab === "edit" ? "flex" : "hidden md:flex"
           }`}
         >
@@ -752,25 +752,25 @@ export default function CoverLetterBuilder() {
             <div className="space-y-8 max-w-xl mx-auto pb-24 md:pb-12">
               
               {/* Profile Linkage & Job Scraper */}
-              <div className="bg-slate-900/60 backdrop-blur border border-slate-800/70 rounded-2xl p-5 space-y-4">
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Sliders className="h-4 w-4 text-blue-500" /> Cover Letter Target
                   </h3>
-                  {isUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />}
+                  {isUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                 </div>
 
                 {/* Linked Resume Dropdown */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-slate-400">Linked Resume Info</Label>
+                  <Label className="text-xs text-muted-foreground">Linked Resume Info</Label>
                   <Select
                     value={coverLetter.resumeId ? String(coverLetter.resumeId) : "none"}
                     onValueChange={(v) => handleSaveField("resumeId", v === "none" ? null : parseInt(v, 10))}
                   >
-                    <SelectTrigger className="bg-slate-950 border-slate-800 text-xs">
+                    <SelectTrigger className="bg-background border-border text-xs">
                       <SelectValue placeholder="No Linked Resume" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                    <SelectContent className="bg-popover border-border text-popover-foreground">
                       <SelectItem value="none">Create Generic Letter (No Resume)</SelectItem>
                       {resumesList?.map((res) => (
                         <SelectItem key={res.id} value={String(res.id)}>
@@ -779,30 +779,30 @@ export default function CoverLetterBuilder() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-slate-500 leading-normal">
+                  <p className="text-[10px] text-muted-foreground leading-normal">
                     Linking a resume fills details like your contact information and experience blocks directly.
                   </p>
                 </div>
 
                 {/* Job Link scraper */}
                 <div className="space-y-1.5 pt-2">
-                  <Label className="text-xs text-slate-400">Job URL Scraper</Label>
+                  <Label className="text-xs text-muted-foreground">Job URL Scraper</Label>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                      <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                       <Input
                         type="url"
                         placeholder="Paste LinkedIn, Indeed, Glassdoor job URL..."
                         value={localJobUrl}
                         onChange={(e) => setLocalJobUrl(e.target.value)}
-                        className="pl-8 bg-slate-950 border-slate-800 text-xs h-9"
+                        className="pl-8 bg-background border-border text-xs h-9"
                       />
                     </div>
                     <Button
                       size="sm"
                       onClick={handleScrapeUrl}
                       disabled={isScraping || !localJobUrl}
-                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs shrink-0"
+                      className="bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border text-xs shrink-0"
                     >
                       {isScraping ? <Loader2 className="h-3 w-3 animate-spin" /> : "Scrape"}
                     </Button>
@@ -812,7 +812,7 @@ export default function CoverLetterBuilder() {
 
               {/* Job & Hiring Details */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Job & Recipient Details
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -822,7 +822,7 @@ export default function CoverLetterBuilder() {
                       placeholder="e.g. Frontend Engineer"
                       value={localJobTitle}
                       onChange={(e) => setLocalJobTitle(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -831,7 +831,7 @@ export default function CoverLetterBuilder() {
                       placeholder="e.g. Google"
                       value={localCompanyName}
                       onChange={(e) => setLocalCompanyName(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                 </div>
@@ -843,7 +843,7 @@ export default function CoverLetterBuilder() {
                       placeholder="e.g. John Doe"
                       value={localHiringManager}
                       onChange={(e) => setLocalHiringManager(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -852,50 +852,50 @@ export default function CoverLetterBuilder() {
                       placeholder="e.g. London, UK (or Remote)"
                       value={localLocation}
                       onChange={(e) => setLocalLocation(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/40">
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Your Name</Label>
+                    <Label className="text-xs text-muted-foreground">Your Name</Label>
                     <Input
                       placeholder="e.g. John Doe"
                       value={localSenderName}
                       onChange={(e) => setLocalSenderName(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Your Email</Label>
+                    <Label className="text-xs text-muted-foreground">Your Email</Label>
                     <Input
                       type="email"
                       placeholder="e.g. john@example.com"
                       value={localSenderEmail}
                       onChange={(e) => setLocalSenderEmail(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Your Phone</Label>
+                    <Label className="text-xs text-muted-foreground">Your Phone</Label>
                     <Input
                       placeholder="e.g. +1 123 456 7890"
                       value={localSenderPhone}
                       onChange={(e) => setLocalSenderPhone(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-300">Your Location</Label>
+                    <Label className="text-xs text-muted-foreground">Your Location</Label>
                     <Input
                       placeholder="e.g. San Francisco, CA"
                       value={localSenderLocation}
                       onChange={(e) => setLocalSenderLocation(e.target.value)}
-                      className="bg-slate-900 border-slate-800 text-xs"
+                      className="bg-background border-border text-xs"
                     />
                   </div>
                 </div>
@@ -907,7 +907,7 @@ export default function CoverLetterBuilder() {
                     value={localJobDescription}
                     onChange={(e) => setLocalJobDescription(e.target.value)}
                     rows={4}
-                    className="bg-slate-900 border-slate-800 text-xs resize-none"
+                    className="bg-background border-border text-xs resize-none"
                   />
                 </div>
               </div>
@@ -915,10 +915,10 @@ export default function CoverLetterBuilder() {
               {/* Cover Letter Content Body */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Letter Body Copy
                   </h3>
-                  <span className="text-[10px] text-slate-500 font-mono">
+                  <span className="text-[10px] text-muted-foreground font-mono">
                     {localContent.split(/\s+/).filter(Boolean).length} words
                   </span>
                 </div>
@@ -926,31 +926,31 @@ export default function CoverLetterBuilder() {
                   value={localContent}
                   onChange={(e) => setLocalContent(e.target.value)}
                   rows={12}
-                  className="bg-slate-900 border-slate-800 text-xs font-mono leading-relaxed"
+                  className="bg-background border-border text-xs font-mono leading-relaxed"
                   placeholder="Dear Hiring Manager..."
                 />
               </div>
 
               {/* AI Toolbox */}
-              <div className="bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-850/80 rounded-2xl p-5 space-y-5">
+              <div className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 border border-purple-500/10 rounded-2xl p-5 space-y-5 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-400" /> AI Generation Panel
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-600" /> AI Generation Panel
                   </h3>
-                  <Wand2 className="h-4 w-4 text-purple-400/60" />
+                  <Wand2 className="h-4 w-4 text-purple-500" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Target Tone</Label>
+                    <Label className="text-xs text-muted-foreground">Target Tone</Label>
                     <Select
                       value={coverLetter.tone || "professional"}
                       onValueChange={(v) => handleSaveField("tone", v)}
                     >
-                      <SelectTrigger className="bg-slate-900 border-slate-800 text-xs">
+                      <SelectTrigger className="bg-background border-border text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
                         {TONES.map((t) => (
                           <SelectItem key={t.value} value={t.value}>
                             {t.label}
@@ -961,15 +961,15 @@ export default function CoverLetterBuilder() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-slate-400">Experience Level</Label>
+                    <Label className="text-xs text-muted-foreground">Experience Level</Label>
                     <Select
                       value={coverLetter.experienceLevel || "mid"}
                       onValueChange={(v) => handleSaveField("experienceLevel", v)}
                     >
-                      <SelectTrigger className="bg-slate-900 border-slate-800 text-xs">
+                      <SelectTrigger className="bg-background border-border text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
                         {EXPERIENCE_LEVELS.map((el) => (
                           <SelectItem key={el.value} value={el.value}>
                             {el.label}
@@ -981,12 +981,12 @@ export default function CoverLetterBuilder() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-slate-400">Custom Instructions</Label>
+                  <Label className="text-xs text-muted-foreground">Custom Instructions</Label>
                   <Textarea
                     placeholder="e.g. 'Highlight my experience with Next.js', 'Explain why I want to switch domains'..."
                     value={localCustomInstructions}
                     onChange={(e) => setLocalCustomInstructions(e.target.value)}
-                    className="bg-slate-900 border-slate-800 text-xs"
+                    className="bg-background border-border text-xs"
                     rows={2}
                   />
                 </div>
@@ -996,7 +996,7 @@ export default function CoverLetterBuilder() {
                   <Button
                     onClick={() => handleAiGenerate()}
                     disabled={isRegenerating}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-slate-50 text-xs sm:text-sm font-bold py-2 shadow-lg shadow-purple-500/10"
+                    className="w-full bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-primary-foreground text-xs sm:text-sm font-bold py-2 shadow-md shadow-primary/10"
                   >
                     {isRegenerating ? (
                       <>
@@ -1015,7 +1015,7 @@ export default function CoverLetterBuilder() {
                       size="sm"
                       disabled={isRegenerating}
                       onClick={() => handleQuickEdit("shorten")}
-                      className="border-slate-800 hover:bg-slate-800/50 hover:text-slate-100 text-[10px] h-8"
+                      className="border-border hover:bg-muted hover:text-foreground text-[10px] h-8"
                     >
                       Shorten
                     </Button>
@@ -1024,7 +1024,7 @@ export default function CoverLetterBuilder() {
                       size="sm"
                       disabled={isRegenerating}
                       onClick={() => handleQuickEdit("expand")}
-                      className="border-slate-800 hover:bg-slate-800/50 hover:text-slate-100 text-[10px] h-8"
+                      className="border-border hover:bg-muted hover:text-foreground text-[10px] h-8"
                     >
                       Expand
                     </Button>
@@ -1033,7 +1033,7 @@ export default function CoverLetterBuilder() {
                       size="sm"
                       disabled={isRegenerating}
                       onClick={() => handleQuickEdit("polish")}
-                      className="border-slate-800 hover:bg-slate-800/50 hover:text-slate-100 text-[10px] h-8"
+                      className="border-border hover:bg-muted hover:text-foreground text-[10px] h-8"
                     >
                       Polish Copy
                     </Button>
@@ -1042,17 +1042,17 @@ export default function CoverLetterBuilder() {
               </div>
 
               {/* Real-time ATS Audit Audit Panel */}
-              <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+              <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" /> ATS Audit Panel
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" /> ATS Audit Panel
                   </h3>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={handleRunAts}
                     disabled={isAuditing || !localJobDescription}
-                    className="text-xs text-slate-400 hover:text-slate-200 h-7"
+                    className="text-xs text-muted-foreground hover:text-foreground h-7"
                   >
                     {isAuditing ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
@@ -1065,8 +1065,8 @@ export default function CoverLetterBuilder() {
                 </div>
 
                 {!coverLetter.atsScore ? (
-                  <div className="text-center py-4 bg-slate-950/40 rounded-xl border border-slate-800/30">
-                    <p className="text-xs text-slate-400">
+                  <div className="text-center py-4 bg-muted/20 rounded-xl border border-border/30">
+                    <p className="text-xs text-muted-foreground">
                       No ATS match scores run yet. Click &quot;Run Audit&quot; above to align with job description.
                     </p>
                   </div>
@@ -1076,11 +1076,11 @@ export default function CoverLetterBuilder() {
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs font-semibold">
                         <span>ATS Match Score</span>
-                        <span className={coverLetter.atsScore >= 70 ? "text-emerald-400" : "text-amber-400"}>
+                        <span className={coverLetter.atsScore >= 70 ? "text-emerald-500" : "text-amber-500"}>
                           {coverLetter.atsScore}/100
                         </span>
                       </div>
-                      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
                             coverLetter.atsScore >= 70 ? "bg-emerald-500" : "bg-amber-500"
@@ -1093,14 +1093,14 @@ export default function CoverLetterBuilder() {
                     {/* Keywords Checklist */}
                     {coverLetter.atsKeywords && (
                       <div className="space-y-2 pt-1">
-                        <Label className="text-[11px] text-slate-400 uppercase tracking-wider block">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wider block">
                           Identified Keywords
                         </Label>
                         <div className="flex flex-wrap gap-1.5">
                           {(coverLetter.atsKeywords as string[]).map((kw, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] px-2 py-0.5 rounded-full bg-slate-950/70 text-slate-300 border border-slate-800"
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border"
                             >
                               {kw}
                             </span>
@@ -1112,13 +1112,13 @@ export default function CoverLetterBuilder() {
                     {/* Feedback checklist */}
                     {coverLetter.atsFeedback && (
                       <div className="space-y-1.5 pt-1">
-                        <Label className="text-[11px] text-slate-400 uppercase tracking-wider block">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wider block">
                           Audit Insights
                         </Label>
-                        <ul className="text-xs space-y-1.5 text-slate-300">
+                        <ul className="text-xs space-y-1.5 text-foreground">
                           {(coverLetter.atsFeedback as string[]).map((fb, idx) => (
                             <li key={idx} className="flex items-start gap-2">
-                              <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                               <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                               <span>{fb}</span>
                             </li>
                           ))}
@@ -1131,26 +1131,26 @@ export default function CoverLetterBuilder() {
 
               {/* Version History */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <History className="h-3.5 w-3.5" /> Version History
                 </h3>
 
                 {!versions || versions.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">
+                  <p className="text-xs text-muted-foreground italic">
                     No versions created yet. Making edits/regenerating saves history.
                   </p>
                 ) : (
-                  <div className="border border-slate-800/80 rounded-2xl overflow-hidden bg-slate-950/30 divide-y divide-slate-800/60 max-h-60 overflow-y-auto">
+                  <div className="border border-border rounded-2xl overflow-hidden bg-muted/10 divide-y divide-border max-h-60 overflow-y-auto">
                     {versions.map((ver) => (
                       <div
                         key={ver.id}
-                        className="px-4 py-3 flex items-center justify-between text-xs hover:bg-slate-900/30"
+                        className="px-4 py-3 flex items-center justify-between text-xs hover:bg-muted/50"
                       >
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-300 truncate">
+                          <p className="font-semibold text-foreground truncate">
                             {ver.title}
                           </p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-[10px] text-muted-foreground">
                             {new Date(ver.createdAt || "").toLocaleString()}
                           </p>
                         </div>
@@ -1159,7 +1159,7 @@ export default function CoverLetterBuilder() {
                           variant="ghost"
                           onClick={() => handleRestore(ver.id)}
                           disabled={isRestoring}
-                          className="text-xs text-blue-400 hover:text-blue-300 h-7"
+                          className="text-xs text-blue-600 hover:text-blue-700 h-7"
                         >
                           Restore
                         </Button>
@@ -1175,24 +1175,24 @@ export default function CoverLetterBuilder() {
 
         {/* RIGHT COLUMN: Style controls & Live A4 preview canvas */}
         <div
-          className={`w-full md:w-1/2 flex flex-col bg-slate-950/40 overflow-hidden ${
+          className={`w-full md:w-1/2 flex flex-col bg-muted/30 overflow-hidden ${
             activeMobileTab === "preview" ? "flex" : "hidden md:flex"
           }`}
         >
           {/* Style toolbar */}
-          <div className="bg-[#0c111c] border-b border-slate-800/50 p-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-card border-b border-border/50 p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
             <div className="flex flex-wrap items-center gap-3">
               {/* Template Select */}
               <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Template Layout</span>
+                <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Template Layout</span>
                 <Select
                   value={coverLetter.templateId || "classic"}
                   onValueChange={(v) => handleSaveField("templateId", v)}
                 >
-                  <SelectTrigger className="bg-slate-900 border-slate-800 h-8 text-xs w-44">
+                  <SelectTrigger className="bg-background border-border h-8 text-xs w-44">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     {TEMPLATES.map((t) => (
                       <SelectItem key={t.id} value={t.id}>
                         {t.name}
@@ -1204,18 +1204,18 @@ export default function CoverLetterBuilder() {
 
               {/* Accent Color picker */}
               <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Accent</span>
+                <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Accent</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className="h-8 w-12 rounded border border-slate-800 flex items-center justify-center transition-colors"
+                      className="h-8 w-12 rounded border border-border flex items-center justify-center transition-colors"
                       style={{ backgroundColor: localAccentColor }}
                     >
                       <Palette className="h-3.5 w-3.5 text-white mix-blend-difference" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56 bg-slate-950 border border-slate-800 p-3" align="start">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Preset Accents</p>
+                  <PopoverContent className="w-56 bg-popover border border-border p-3" align="start">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Preset Accents</p>
                     <div className="grid grid-cols-4 gap-2">
                       {ACCENT_COLORS.map((c) => (
                         <button
@@ -1224,7 +1224,7 @@ export default function CoverLetterBuilder() {
                             setLocalAccentColor(c.value);
                             handleSaveField("accentColor", c.value);
                           }}
-                          className="h-7 w-full rounded border border-slate-800 relative transition-transform hover:scale-105"
+                          className="h-7 w-full rounded border border-border relative transition-transform hover:scale-105"
                           style={{ backgroundColor: c.value }}
                           title={c.label}
                         >
@@ -1240,7 +1240,7 @@ export default function CoverLetterBuilder() {
 
               {/* Font Family selector */}
               <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Typography</span>
+                <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Typography</span>
                 <Select
                   value={localFontFamily}
                   onValueChange={(v) => {
@@ -1248,10 +1248,10 @@ export default function CoverLetterBuilder() {
                     handleSaveField("fontFamily", v);
                   }}
                 >
-                  <SelectTrigger className="bg-slate-900 border-slate-800 h-8 text-xs w-28">
+                  <SelectTrigger className="bg-background border-border h-8 text-xs w-28">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-950 border-slate-800 text-slate-200">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     <SelectItem value="sans">Modern Sans</SelectItem>
                     <SelectItem value="serif">Elegant Serif</SelectItem>
                     <SelectItem value="mono">Classic Mono</SelectItem>
@@ -1261,22 +1261,22 @@ export default function CoverLetterBuilder() {
             </div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+            <div className="flex items-center gap-1 bg-muted p-0.5 rounded-lg border border-border">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-slate-400 hover:text-slate-100"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/85 rounded"
                 onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
               >
                 <Minimize2 className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-[10px] font-bold font-mono px-1 w-9 text-center text-slate-400">
+              <span className="text-[10px] font-bold font-mono px-1 w-9 text-center text-foreground">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-slate-400 hover:text-slate-100"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/85 rounded"
                 onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
               >
                 <Maximize2 className="h-3.5 w-3.5" />
@@ -1285,7 +1285,7 @@ export default function CoverLetterBuilder() {
           </div>
 
           {/* Preview canvas */}
-          <div className="flex-1 overflow-auto bg-[#141a29]/40 flex justify-center p-8 pb-24 md:pb-8 relative">
+          <div className="flex-1 overflow-auto bg-muted/30 flex justify-center p-8 pb-24 md:pb-8 relative">
             <div
               className="origin-top"
               style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
@@ -1314,11 +1314,11 @@ export default function CoverLetterBuilder() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex items-center justify-around z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-background/95 backdrop-blur-xl border-t border-border flex items-center justify-around z-50">
         <button
           onClick={() => setActiveMobileTab("edit")}
           className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${
-            activeMobileTab === "edit" ? "text-blue-500 bg-blue-500/5" : "text-slate-400 hover:bg-slate-900/50"
+            activeMobileTab === "edit" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"
           }`}
         >
           <Edit className="h-4 w-4 mb-0.5" />
@@ -1326,8 +1326,8 @@ export default function CoverLetterBuilder() {
         </button>
         <button
           onClick={() => setActiveMobileTab("preview")}
-          className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium border-l border-slate-800/60 transition-colors ${
-            activeMobileTab === "preview" ? "text-blue-500 bg-blue-500/5" : "text-slate-400 hover:bg-slate-900/50"
+          className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium border-l border-border transition-colors ${
+            activeMobileTab === "preview" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"
           }`}
         >
           <Eye className="h-4 w-4 mb-0.5" />
