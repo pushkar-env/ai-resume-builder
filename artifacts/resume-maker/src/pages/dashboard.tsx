@@ -926,8 +926,12 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
     navigate(`/cover-letter-builder/${coverLetter.id}`);
   };
 
-  const senderName = user?.fullName || "Your Name";
-  const senderEmail = user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+  const senderName = (coverLetter as any).senderName || user?.fullName || "Your Name";
+  const senderEmail = (coverLetter as any).senderEmail || user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+  const senderPhone = (coverLetter as any).senderPhone || "";
+  const senderLocation = (coverLetter as any).senderLocation || "";
+  const accentColor = coverLetter.accentColor || "#1e3a8a";
+  const fontFamily = coverLetter.fontFamily || "sans";
   const showWatermark = false;
 
   return (
@@ -1115,14 +1119,15 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                 content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
                 senderName={senderName}
                 senderEmail={senderEmail}
-                senderPhone=""
-                senderLocation=""
+                senderPhone={senderPhone}
+                senderLocation={senderLocation}
                 recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
                 companyName={coverLetter.companyName || "Company Name"}
                 companyLocation={coverLetter.companyLocation || ""}
                 jobTitle={coverLetter.jobTitle || "Job Title"}
                 templateId={coverLetter.templateId || "classic"}
-                accentColor="#1e3a8a"
+                accentColor={accentColor}
+                fontFamily={fontFamily}
                 zoom={1}
                 showWatermark={showWatermark}
               />
