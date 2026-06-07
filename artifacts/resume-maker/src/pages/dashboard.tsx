@@ -926,11 +926,57 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
     navigate(`/cover-letter-builder/${coverLetter.id}`);
   };
 
-  const senderName = (coverLetter as any).senderName || user?.fullName || "Your Name";
-  const senderEmail = (coverLetter as any).senderEmail || user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
-  const senderPhone = (coverLetter as any).senderPhone || "";
-  const senderLocation = (coverLetter as any).senderLocation || "";
-  const accentColor = coverLetter.accentColor || "#1e3a8a";
+  // Load linked resume if it exists
+  const { data: linkedResume } = useGetResume(coverLetter.resumeId as number, {
+    query: {
+      enabled: !!coverLetter.resumeId,
+      queryKey: getGetResumeQueryKey(coverLetter.resumeId as number),
+    },
+  });
+
+  // Resolve personal info fallbacks from linked resume
+  let resolvedName = (coverLetter as any).senderName || "";
+  if (!resolvedName && linkedResume?.sections) {
+    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    if (personalSection?.content) {
+      const c = personalSection.content as any;
+      resolvedName = c.name || c.fullName || "";
+    }
+  }
+  const senderName = resolvedName || user?.fullName || "Your Name";
+
+  let resolvedEmail = (coverLetter as any).senderEmail || "";
+  if (!resolvedEmail && linkedResume?.sections) {
+    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    if (personalSection?.content) {
+      const c = personalSection.content as any;
+      resolvedEmail = c.email || "";
+    }
+  }
+  const senderEmail = resolvedEmail || user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+
+  let resolvedPhone = (coverLetter as any).senderPhone || "";
+  if (!resolvedPhone && linkedResume?.sections) {
+    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    if (personalSection?.content) {
+      const c = personalSection.content as any;
+      resolvedPhone = c.phone || "";
+    }
+  }
+  const senderPhone = resolvedPhone || "";
+
+  let resolvedLocation = (coverLetter as any).senderLocation || "";
+  if (!resolvedLocation && linkedResume?.sections) {
+    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    if (personalSection?.content) {
+      const c = personalSection.content as any;
+      resolvedLocation = c.location || "";
+    }
+  }
+  const senderLocation = resolvedLocation || "";
+
+  // Accent color fallbacks
+  const accentColor = coverLetter.accentColor || linkedResume?.accentColor || "#1e3a8a";
   const fontFamily = coverLetter.fontFamily || "sans";
   const showWatermark = false;
 
@@ -1318,6 +1364,18 @@ export default function DashboardPage() {
   const particlesRef = useRef<any[]>([]);
   const animationFrameRef = useRef<number | null>(null);
   const trashBinRef = useRef<HTMLDivElement | null>(null);
+
+  // Refetch lists on mount to ensure fresh database state is loaded
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+    // Invalidate all individual resume detail queries to ensure updated sections are loaded
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        typeof query.queryKey[0] === "string" &&
+        query.queryKey[0].startsWith("/api/resumes")
+    });
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
