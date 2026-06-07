@@ -707,26 +707,6 @@ export default function CoverLetterBuilder() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Mobile view toggle */}
-          <div className="flex md:hidden bg-slate-900 rounded-lg p-0.5 border border-slate-800 shrink-0">
-            <Button
-              variant={activeMobileTab === "edit" ? "secondary" : "ghost"}
-              size="sm"
-              className="px-2.5 sm:px-3 py-1 text-xs h-7"
-              onClick={() => setActiveMobileTab("edit")}
-            >
-              <Edit className="h-3 w-3 mr-1" /> Edit
-            </Button>
-            <Button
-              variant={activeMobileTab === "preview" ? "secondary" : "ghost"}
-              size="sm"
-              className="px-2.5 sm:px-3 py-1 text-xs h-7"
-              onClick={() => setActiveMobileTab("preview")}
-            >
-              <Eye className="h-3 w-3 mr-1" /> Preview
-            </Button>
-          </div>
-
           {/* Export Dropdown */}
           <Popover>
             <PopoverTrigger asChild>
@@ -769,7 +749,7 @@ export default function CoverLetterBuilder() {
           }`}
         >
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-            <div className="space-y-8 max-w-xl mx-auto pb-12">
+            <div className="space-y-8 max-w-xl mx-auto pb-24 md:pb-12">
               
               {/* Profile Linkage & Job Scraper */}
               <div className="bg-slate-900/60 backdrop-blur border border-slate-800/70 rounded-2xl p-5 space-y-4">
@@ -1305,7 +1285,7 @@ export default function CoverLetterBuilder() {
           </div>
 
           {/* Preview canvas */}
-          <div className="flex-1 overflow-auto bg-[#141a29]/40 flex justify-center p-8 relative">
+          <div className="flex-1 overflow-auto bg-[#141a29]/40 flex justify-center p-8 pb-24 md:pb-8 relative">
             <div
               className="origin-top"
               style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
@@ -1331,6 +1311,28 @@ export default function CoverLetterBuilder() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden absolute bottom-0 left-0 right-0 h-14 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex items-center justify-around z-50">
+        <button
+          onClick={() => setActiveMobileTab("edit")}
+          className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${
+            activeMobileTab === "edit" ? "text-blue-500 bg-blue-500/5" : "text-slate-400 hover:bg-slate-900/50"
+          }`}
+        >
+          <Edit className="h-4 w-4 mb-0.5" />
+          Edit
+        </button>
+        <button
+          onClick={() => setActiveMobileTab("preview")}
+          className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium border-l border-slate-800/60 transition-colors ${
+            activeMobileTab === "preview" ? "text-blue-500 bg-blue-500/5" : "text-slate-400 hover:bg-slate-900/50"
+          }`}
+        >
+          <Eye className="h-4 w-4 mb-0.5" />
+          Preview
+        </button>
       </div>
     </div>
   );
