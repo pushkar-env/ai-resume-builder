@@ -19,6 +19,7 @@ import {
   FileUp,
   Loader2,
   GripVertical,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -266,6 +267,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setIsOverTrash,
   onDragDelete,
   index,
+  onCreateCoverLetter,
 }: {
   resume: Resume;
   fadeUp: Variants;
@@ -281,6 +283,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   setIsOverTrash: (over: boolean) => void;
   onDragDelete: (id: number) => void;
   index: number;
+  onCreateCoverLetter: (id: number, title: string) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const cardInitialRectRef = useRef<DOMRect | null>(null);
@@ -725,6 +728,15 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                   >
                     <Pencil className="mr-2 h-4 w-4 text-muted-foreground" />
                     Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCreateCoverLetter(resume.id, resume.title ?? "");
+                    }}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4 text-purple-600" />
+                    Create Cover Letter
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -1757,6 +1769,22 @@ export default function DashboardPage() {
   const [clCustomInstructions, setClCustomInstructions] = useState("");
   const [clTemplateId, setClTemplateId] = useState("classic");
 
+  const handleCreateCoverLetterFromResume = useCallback((resumeId: number, resumeTitle: string) => {
+    setActiveTab("cover-letters");
+    setClResumeId(resumeId);
+    setClTitle(`Cover Letter - ${resumeTitle}`);
+    setClJobTitle("");
+    setClCompanyName("");
+    setClHiringManager("");
+    setClCompanyLocation("");
+    setClJobDescription("");
+    setClJobUrl("");
+    setClTone("professional");
+    setClExpLevel("mid");
+    setClCustomInstructions("");
+    setCreateCoverLetterOpen(true);
+  }, []);
+
   const scrapeJob = useScrapeJobDetails({
     mutation: {
       onSuccess: (data: ScrapeJobResult) => {
@@ -1947,6 +1975,7 @@ export default function DashboardPage() {
                   setIsOverTrash={setIsOverTrash}
                   onDragDelete={handleDragDeleteResume}
                   index={index}
+                  onCreateCoverLetter={handleCreateCoverLetterFromResume}
                 />
               ))}
             </motion.div>
