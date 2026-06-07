@@ -169,15 +169,28 @@ export function parseCoverLetterContent(
     return true;
   });
 
-  // Fallback defaults
-  if (!salutation) {
-    salutation = `Dear ${fallbackRecipient || "Hiring Manager"},`;
+  // Apply edited recipient/sender overrides over parsed text values
+  if (fallbackRecipient) {
+    let greeting = "Dear";
+    if (salutation) {
+      const match = salutation.match(/^(dear|hello|hi|to\s+the|attention|re:)/i);
+      if (match) {
+        greeting = match[0].charAt(0).toUpperCase() + match[0].slice(1).toLowerCase();
+      }
+    }
+    salutation = `${greeting} ${fallbackRecipient}`;
+  } else if (!salutation) {
+    salutation = "Dear Hiring Manager";
   }
+
+  if (fallbackSender) {
+    parsedSenderName = fallbackSender;
+  } else if (!parsedSenderName) {
+    parsedSenderName = "Your Name";
+  }
+
   if (!signOff) {
     signOff = "Yours Sincerely,";
-  }
-  if (!parsedSenderName) {
-    parsedSenderName = fallbackSender || "Your Name";
   }
 
   // Ensure salutation ends with comma if not already punctuated
