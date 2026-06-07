@@ -1314,7 +1314,7 @@ export default function CoverLetterBuilder() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden absolute bottom-0 left-0 right-0 h-14 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex items-center justify-around z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex items-center justify-around z-50">
         <button
           onClick={() => setActiveMobileTab("edit")}
           className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${
