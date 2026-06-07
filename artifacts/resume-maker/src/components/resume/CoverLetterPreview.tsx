@@ -288,7 +288,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
     switch (templateId) {
       case "modern":
         return (
-          <div className={`h-full flex flex-col justify-between text-slate-800 relative ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-slate-800 relative ${scale.padding}`}>
             {/* Top Border Accent */}
             <div
               className="absolute top-0 inset-x-0 h-3"
@@ -376,7 +376,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
       case "minimal":
         return (
-          <div className={`h-full flex flex-col justify-between text-zinc-800 ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-zinc-800 ${scale.padding}`}>
             <div>
               {/* Header */}
               <div className={`text-center border-b ${wordCount > 330 ? "pb-3" : wordCount > 260 ? "pb-5" : "pb-8"} ${scale.headerMargin}`} style={{ borderBottomColor: accentColor }}>
@@ -442,7 +442,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
       case "creative":
         return (
-          <div className={`h-full flex flex-col justify-between text-slate-800 relative overflow-hidden ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-slate-800 relative overflow-hidden ${scale.padding}`}>
             {/* Left Accent Bar */}
             <div
               className="absolute left-0 top-0 bottom-0 w-2.5"
@@ -533,7 +533,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
       case "elegant":
         return (
-          <div className={`h-full flex flex-col justify-between text-stone-800 ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-stone-800 ${scale.padding}`}>
             <div>
               {/* Header */}
               <div className={`text-center ${scale.headerMargin}`}>
@@ -609,7 +609,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
       case "professional":
         return (
-          <div className={`h-full flex flex-col justify-between text-slate-800 ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-slate-800 ${scale.padding}`}>
             <div>
               {/* Header */}
               <div className={`flex justify-between items-stretch border-b-2 pb-4 ${scale.headerMargin}`} style={{ borderBottomColor: accentColor }}>
@@ -675,7 +675,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
       case "startup":
         return (
-          <div className={`h-full flex flex-col justify-between text-neutral-800 bg-neutral-50/10 ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-neutral-800 bg-neutral-50/10 ${scale.padding}`}>
             <div>
               {/* Header */}
               <div className={`flex justify-between items-start gap-4 ${scale.headerMargin}`}>
@@ -758,7 +758,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
       case "classic":
       default:
         return (
-          <div className={`h-full flex flex-col justify-between text-slate-800 ${scale.padding}`}>
+          <div className={`h-full flex flex-col text-slate-800 ${scale.padding}`}>
             <div>
               {/* Header */}
               <div className={`text-center border-b pb-4 ${scale.headerMargin}`} style={{ borderBottomColor: accentColor }}>
