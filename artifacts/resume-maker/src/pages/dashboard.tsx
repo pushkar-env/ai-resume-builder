@@ -138,7 +138,7 @@ export function ResumeThumbnail({
   index?: number;
 }) {
   const { user } = useUser();
-  const showWatermark = user?.publicMetadata?.isPremium !== true;
+  const showWatermark = false;
   const hostRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [fontScale, setFontScale] = useState<number>(1);
@@ -928,7 +928,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   const senderName = user?.fullName || "Your Name";
   const senderEmail = user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
-  const showWatermark = user?.publicMetadata?.isPremium !== true;
+  const showWatermark = false;
 
   return (
     <motion.div
