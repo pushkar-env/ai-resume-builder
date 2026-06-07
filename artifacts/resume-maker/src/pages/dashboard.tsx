@@ -2338,8 +2338,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="border-t border-border pt-4 mt-2 grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
+            <div className="border-t border-border pt-4 mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="flex flex-col justify-between h-full gap-1.5">
                 <Label htmlFor="cl-tone" className="text-slate-700 font-medium">Tone</Label>
                 <select
                   id="cl-tone"
@@ -2355,7 +2355,7 @@ export default function DashboardPage() {
                 </select>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col justify-between h-full gap-1.5">
                 <Label htmlFor="cl-exp" className="text-slate-700 font-medium">Exp. Level</Label>
                 <select
                   id="cl-exp"
@@ -2369,7 +2369,7 @@ export default function DashboardPage() {
                 </select>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="flex flex-col justify-between h-full gap-1.5">
                 <Label htmlFor="cl-template" className="text-slate-700 font-medium">Template Style</Label>
                 <select
                   id="cl-template"

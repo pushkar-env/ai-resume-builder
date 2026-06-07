@@ -664,41 +664,41 @@ export default function CoverLetterBuilder() {
       />
 
       {/* Glassmorphic Navbar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/60 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 max-w-full">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/60 px-3 sm:px-6 py-3.5 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-3.5 min-w-0 flex-1">
           <Button
             variant="ghost"
             size="icon"
-            className="text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 shrink-0"
+            className="text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 shrink-0 h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => setLocation("/dashboard?tab=cover-letters")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex flex-col min-w-0">
+          <div className="flex flex-col min-w-0 flex-1">
             <input
               type="text"
               value={localTitle}
               onChange={(e) => setLocalTitle(e.target.value)}
-              className="bg-transparent font-bold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-sm sm:text-base truncate"
+              className="bg-transparent font-bold text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-xs sm:text-base truncate w-full min-w-0"
               placeholder="Cover Letter Title"
             />
             <div className="flex items-center gap-1.5 px-1 mt-0.5">
               {saveStatus === "saving" && (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
-                  <span className="text-[10px] text-blue-400 font-medium">Saving changes...</span>
+                  <span className="text-[10px] text-blue-400 font-medium hidden sm:inline">Saving changes...</span>
                 </>
               )}
               {saveStatus === "saved" && (
                 <>
                   <Check className="h-3 w-3 text-emerald-400" />
-                  <span className="text-[10px] text-emerald-400 font-medium">All changes saved</span>
+                  <span className="text-[10px] text-emerald-400 font-medium hidden sm:inline">All changes saved</span>
                 </>
               )}
               {saveStatus === "error" && (
                 <>
                   <AlertCircle className="h-3 w-3 text-rose-400" />
-                  <span className="text-[10px] text-rose-400 font-medium">Failed to save draft</span>
+                  <span className="text-[10px] text-rose-400 font-medium hidden sm:inline">Failed to save draft</span>
                 </>
               )}
             </div>
@@ -706,13 +706,13 @@ export default function CoverLetterBuilder() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Mobile view toggle */}
-          <div className="flex md:hidden bg-slate-900 rounded-lg p-0.5 border border-slate-800">
+          <div className="flex md:hidden bg-slate-900 rounded-lg p-0.5 border border-slate-800 shrink-0">
             <Button
               variant={activeMobileTab === "edit" ? "secondary" : "ghost"}
               size="sm"
-              className="px-3 py-1 text-xs h-7"
+              className="px-2.5 sm:px-3 py-1 text-xs h-7"
               onClick={() => setActiveMobileTab("edit")}
             >
               <Edit className="h-3 w-3 mr-1" /> Edit
@@ -720,7 +720,7 @@ export default function CoverLetterBuilder() {
             <Button
               variant={activeMobileTab === "preview" ? "secondary" : "ghost"}
               size="sm"
-              className="px-3 py-1 text-xs h-7"
+              className="px-2.5 sm:px-3 py-1 text-xs h-7"
               onClick={() => setActiveMobileTab("preview")}
             >
               <Eye className="h-3 w-3 mr-1" /> Preview
@@ -730,8 +730,9 @@ export default function CoverLetterBuilder() {
           {/* Export Dropdown */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-slate-50 text-xs sm:text-sm font-semibold shadow-lg shadow-blue-500/20">
-                <FileDown className="h-4 w-4 mr-2" /> Download
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-slate-50 text-xs sm:text-sm font-semibold shadow-lg shadow-blue-500/20 px-2.5 sm:px-3 h-8 sm:h-9">
+                <FileDown className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Download</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-48 bg-slate-950 border border-slate-800 text-slate-200 p-1.5" align="end">
