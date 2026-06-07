@@ -60,6 +60,7 @@ import {
   Award,
   Eye,
   EyeOff,
+  Link,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -128,6 +129,7 @@ import {
   getGetResumeQueryKey,
   getListResumesQueryKey,
   type ResumeDetail,
+  useScrapeJobDetails,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1119,6 +1121,8 @@ export default function BuilderPage() {
   }, [isLoading, mobileTab]);
 
   const [jobDescriptionText, setJobDescriptionText] = useState("");
+  const [jobUrlText, setJobUrlText] = useState("");
+  const { mutateAsync: scrapeJob, isPending: isScraping } = useScrapeJobDetails();
   const [scannedJobDescription, setScannedJobDescription] = useState("");
   const [scanTimestamp, setScanTimestamp] = useState<number>(0);
 
@@ -1771,6 +1775,45 @@ export default function BuilderPage() {
     toast,
   ]);
 
+  const handleScrapeJobUrl = useCallback(async () => {
+    if (!jobUrlText.trim()) return;
+    try {
+      const result = await scrapeJob({ data: { url: jobUrlText.trim() } });
+      toast({
+        title: "Job details imported",
+        description: "Successfully fetched job posting details.",
+      });
+
+      if (result.description) {
+        setJobDescriptionText(result.description);
+      }
+
+      if (result.jobTitle) {
+        const personalSection = localSections.find((s) => s.type === "personal");
+        if (personalSection) {
+          const currentContent = (personalSection.content || {}) as any;
+          const updatedContent = {
+            ...currentContent,
+            jobTitle: result.jobTitle,
+          };
+          handleSectionContentChange(personalSection.id, updatedContent);
+          toast({
+            title: "Updated Target Job Role",
+            description: `Set target role to "${result.jobTitle}".`,
+          });
+        }
+      }
+
+      setJobUrlText("");
+    } catch (err: any) {
+      toast({
+        title: "Failed to import job details",
+        description: err?.message || "Please check the URL or paste the description manually.",
+        variant: "destructive",
+      });
+    }
+  }, [jobUrlText, scrapeJob, localSections, handleSectionContentChange, toast]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     /* Long-press to drag on touch — avoids fighting vertical scroll in the sections list. */
@@ -2306,7 +2349,44 @@ export default function BuilderPage() {
                           )}
                         </div>
                         
-                        <div className="space-y-2.5">
+                        <div className="space-y-3">
+                          <div className="space-y-1.5">
+                            <Label htmlFor="ats-job-url" className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                              <Link className="h-3.5 w-3.5 text-primary shrink-0" />
+                              Import from Job Posting URL
+                            </Label>
+                            <div className="flex gap-2">
+                              <input
+                                id="ats-job-url"
+                                type="url"
+                                placeholder="Paste LinkedIn, Indeed, or job listing URL..."
+                                value={jobUrlText}
+                                onChange={(e) => setJobUrlText(e.target.value)}
+                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={handleScrapeJobUrl}
+                                disabled={isScraping || !jobUrlText.trim()}
+                                className="h-9 text-xs px-3 font-semibold shrink-0"
+                              >
+                                {isScraping ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  "Import"
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="relative flex py-1 items-center">
+                            <div className="flex-grow border-t border-border/60"></div>
+                            <span className="flex-shrink mx-2 text-[9px] text-muted-foreground uppercase font-bold tracking-wider">or Paste Job Description</span>
+                            <div className="flex-grow border-t border-border/60"></div>
+                          </div>
+
                           <textarea
                             value={jobDescriptionText}
                             onChange={(e) => setJobDescriptionText(e.target.value)}
