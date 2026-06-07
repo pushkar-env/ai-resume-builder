@@ -701,15 +701,15 @@ export default function CoverLetterBuilder() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex flex-col min-w-0 max-w-[180px] xs:max-w-[240px] sm:max-w-[360px] md:max-w-[450px] flex-1">
             <input
               type="text"
               value={localTitle}
               onChange={(e) => setLocalTitle(e.target.value)}
-              className="bg-transparent font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary rounded px-1 text-xs sm:text-base truncate w-full min-w-0"
+              className="bg-transparent hover:bg-muted/40 focus:bg-muted/60 font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40 rounded px-2 py-0.5 text-xs sm:text-base truncate w-full min-w-0 transition-colors cursor-pointer focus:cursor-text"
               placeholder="Cover Letter Title"
             />
-            <div className="flex items-center gap-1.5 px-1 mt-0.5">
+            <div className="flex items-center gap-1.5 px-2 mt-0.5">
               {saveStatus === "saving" && (
                 <>
                   <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
