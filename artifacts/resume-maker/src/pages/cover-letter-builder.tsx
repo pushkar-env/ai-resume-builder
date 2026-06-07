@@ -139,6 +139,9 @@ export default function CoverLetterBuilder() {
   // Local style overrides (since cover letter model doesn't store fonts/colors directly)
   const [localFontFamily, setLocalFontFamily] = useState("sans");
   const [localAccentColor, setLocalAccentColor] = useState("#1e3a8a");
+  const [localTemplateId, setLocalTemplateId] = useState("classic");
+  const [localTone, setLocalTone] = useState("professional");
+  const [localExperienceLevel, setLocalExperienceLevel] = useState("mid");
 
   // Preview zoom factor
   const [zoom, setZoom] = useState(0.75);
@@ -253,6 +256,27 @@ export default function CoverLetterBuilder() {
         }
       }
       setLocalSenderLocation(initialLocation);
+
+      // Determine template ID
+      if (coverLetter.templateId) {
+        setLocalTemplateId(coverLetter.templateId);
+      } else {
+        setLocalTemplateId("classic");
+      }
+
+      // Determine tone
+      if (coverLetter.tone) {
+        setLocalTone(coverLetter.tone);
+      } else {
+        setLocalTone("professional");
+      }
+
+      // Determine experience level
+      if (coverLetter.experienceLevel) {
+        setLocalExperienceLevel(coverLetter.experienceLevel);
+      } else {
+        setLocalExperienceLevel("mid");
+      }
 
       setHasLoadedInitial(true);
     }
@@ -469,15 +493,18 @@ export default function CoverLetterBuilder() {
     if (!coverLetter) return;
     try {
       const instructions = customInstructionOverride || localCustomInstructions;
-      await regenerateLetter({
+      const res = await regenerateLetter({
         id: coverLetterId,
         data: {
           jobDescription: localJobDescription,
-          tone: coverLetter.tone || "professional",
-          experienceLevel: coverLetter.experienceLevel || "mid",
+          tone: localTone,
+          experienceLevel: localExperienceLevel,
           customInstructions: instructions,
         },
       });
+      if (res?.generatedContent) {
+        setLocalContent(res.generatedContent);
+      }
       refetchLetter();
       refetchVersions();
       toast({
@@ -944,8 +971,11 @@ export default function CoverLetterBuilder() {
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Target Tone</Label>
                     <Select
-                      value={coverLetter.tone || "professional"}
-                      onValueChange={(v) => handleSaveField("tone", v)}
+                      value={localTone}
+                      onValueChange={(v) => {
+                        setLocalTone(v);
+                        handleSaveField("tone", v);
+                      }}
                     >
                       <SelectTrigger className="bg-background border-border text-xs">
                         <SelectValue />
@@ -963,8 +993,11 @@ export default function CoverLetterBuilder() {
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Experience Level</Label>
                     <Select
-                      value={coverLetter.experienceLevel || "mid"}
-                      onValueChange={(v) => handleSaveField("experienceLevel", v)}
+                      value={localExperienceLevel}
+                      onValueChange={(v) => {
+                        setLocalExperienceLevel(v);
+                        handleSaveField("experienceLevel", v);
+                      }}
                     >
                       <SelectTrigger className="bg-background border-border text-xs">
                         <SelectValue />
@@ -1186,8 +1219,11 @@ export default function CoverLetterBuilder() {
               <div className="space-y-0.5">
                 <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Template Layout</span>
                 <Select
-                  value={coverLetter.templateId || "classic"}
-                  onValueChange={(v) => handleSaveField("templateId", v)}
+                  value={localTemplateId}
+                  onValueChange={(v) => {
+                    setLocalTemplateId(v);
+                    handleSaveField("templateId", v);
+                  }}
                 >
                   <SelectTrigger className="bg-background border-border h-8 text-xs w-44">
                     <SelectValue />
@@ -1301,7 +1337,7 @@ export default function CoverLetterBuilder() {
                   companyName={localCompanyName}
                   companyLocation={localLocation}
                   jobTitle={localJobTitle}
-                  templateId={coverLetter.templateId || "classic"}
+                  templateId={localTemplateId}
                   accentColor={localAccentColor}
                   fontFamily={localFontFamily}
                   zoom={1} // Keep raw zoom as 1 inside scale transform wrapper
