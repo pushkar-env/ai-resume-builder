@@ -735,7 +735,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
             </div>
 
             {/* Footer / Sign-off */}
-            <div className={`border-t flex justify-between items-center ${scale.footerMargin}`} style={{ borderTopColor: `${accentColor}30` }}>
+            <div className={`border-t ${scale.footerMargin}`} style={{ borderTopColor: `${accentColor}30` }}>
               <div>
                 <p className="text-neutral-500 text-xs mb-1">{parsed.signOff}</p>
                 <div className="py-1">
@@ -747,9 +747,6 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
                   </p>
                 </div>
                 <p className="font-bold text-neutral-900 text-sm mt-0.5">{parsed.senderName}</p>
-              </div>
-              <div className="text-[10px] text-neutral-400 font-mono">
-                Generated via ResumeSensei
               </div>
             </div>
           </div>
