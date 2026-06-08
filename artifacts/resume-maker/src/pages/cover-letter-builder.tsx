@@ -25,6 +25,7 @@ import {
   Trash2,
   Sliders,
   Check,
+  Star,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -71,6 +72,7 @@ import { CoverLetterPreview } from "@/components/resume/CoverLetterPreview";
 import { buildCoverLetterDocx } from "@/lib/build-cover-letter-docx";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
+import { PaywallDialog } from "@/components/shared/PaywallDialog";
 
 const ACCENT_COLORS = [
   { label: "Classic Black", value: "#1A1A1A" },
@@ -86,10 +88,10 @@ const TEMPLATES = [
   { id: "classic", name: "Classic Corporate" },
   { id: "modern", name: "Modern Minimal" },
   { id: "minimal", name: "Zinc Minimalist" },
-  { id: "creative", name: "Creative Edge" },
+  { id: "creative", name: "Creative Edge", isPremium: true },
   { id: "elegant", name: "Elegant Editorial" },
-  { id: "professional", name: "Executive Professional" },
-  { id: "startup", name: "Tech Startup" },
+  { id: "professional", name: "Executive Professional", isPremium: true },
+  { id: "startup", name: "Tech Startup", isPremium: true },
 ];
 
 const TONES = [
@@ -113,7 +115,8 @@ export default function CoverLetterBuilder() {
   const coverLetterId = parseInt(id || "", 10);
   const { toast } = useToast();
   const { user } = useUser();
-  const showWatermark = user?.publicMetadata?.isPremium !== true;
+  const isPremiumUser = user?.publicMetadata?.isPremium === true;
+  const showWatermark = !isPremiumUser;
 
   // Active tab on mobile (editor vs preview)
   const [activeMobileTab, setActiveMobileTab] = useState<"edit" | "preview">("edit");
@@ -146,6 +149,12 @@ export default function CoverLetterBuilder() {
 
   // Preview zoom factor
   const [zoom, setZoom] = useState(0.75);
+
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallTitle, setPaywallTitle] = useState("Premium Template");
+  const [paywallDescription, setPaywallDescription] = useState(
+    "This template layout is reserved for Pro users. Upgrade to unlock all premium template layouts, unlimited AI writing assistance, and ATS optimization."
+  );
 
   // Queries & Mutations
   const {
@@ -1305,6 +1314,15 @@ export default function CoverLetterBuilder() {
                 <Select
                   value={localTemplateId}
                   onValueChange={(v) => {
+                    const template = TEMPLATES.find((t) => t.id === v);
+                    if (template?.isPremium && !isPremiumUser) {
+                      setPaywallTitle("Premium Template Layout");
+                      setPaywallDescription(
+                        `The ${template.name} template layout is reserved for Pro users. Upgrade to unlock all premium template layouts, unlimited AI writing assistance, and ATS optimization.`
+                      );
+                      setShowPaywall(true);
+                      return;
+                    }
                     setLocalTemplateId(v);
                     handleSaveField("templateId", v);
                   }}
@@ -1315,7 +1333,12 @@ export default function CoverLetterBuilder() {
                   <SelectContent className="bg-popover border-border text-popover-foreground">
                     {TEMPLATES.map((t) => (
                       <SelectItem key={t.id} value={t.id}>
-                        {t.name}
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <span>{t.name}</span>
+                          {t.isPremium && (
+                            <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0 ml-1" />
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1564,6 +1587,13 @@ export default function CoverLetterBuilder() {
           Preview
         </button>
       </div>
+
+      <PaywallDialog
+        open={showPaywall}
+        onOpenChange={setShowPaywall}
+        title={paywallTitle}
+        description={paywallDescription}
+      />
     </div>
   );
 }
