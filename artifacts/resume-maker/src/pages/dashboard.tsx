@@ -422,19 +422,26 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   return (
     <motion.div
       layout
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }}
       variants={fadeUp}
       exit={{
         opacity: 0,
         scale: 0.8,
         y: 60,
-        transition: { duration: 0.25, ease: "easeInOut" }
+        transition: { duration: 0.2, ease: "easeInOut" }
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: isDraggingThis ? "transform" : "auto",
+        willChange: "transform",
+        transform: "translateZ(0)",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -1005,19 +1012,26 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
   return (
     <motion.div
       layout
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }}
       variants={fadeUp}
       exit={{
         opacity: 0,
         scale: 0.8,
         y: 60,
-        transition: { duration: 0.25, ease: "easeInOut" }
+        transition: { duration: 0.2, ease: "easeInOut" }
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: isDraggingThis ? "transform" : "auto",
+        willChange: "transform",
+        transform: "translateZ(0)",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
