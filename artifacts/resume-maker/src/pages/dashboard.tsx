@@ -202,7 +202,7 @@ export function ResumeThumbnail({
   return (
     <div
       ref={hostRef}
-      className="w-full h-full min-h-[1px] relative overflow-hidden bg-white pointer-events-none [content-visibility:visible]"
+      className="w-full h-full min-h-[1px] relative overflow-hidden bg-white pointer-events-none [content-visibility:visible] rounded-t-xl"
     >
       {/* Skeleton overlay: visible initially, fades out when preview is ready */}
       <div
@@ -214,7 +214,7 @@ export function ResumeThumbnail({
         }}
       >
         <ScaledResumeThumbnailShell
-          hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+          hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none rounded-t-xl"
           measureDeps={[templateId]}
         >
           <ResumeSkeleton templateId={templateId} />
@@ -225,7 +225,7 @@ export function ResumeThumbnail({
       {isReady && resume && (
         <div className="absolute inset-0 animate-fade-in">
           <ScaledResumeThumbnailShell
-            hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
+            hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none rounded-t-xl"
             measureDeps={[]}
           >
             <ResumePreview
@@ -474,7 +474,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       )}
       <motion.div
         ref={cardRef}
-        className={`h-full origin-center animate-fill-both ${
+        className={`h-full origin-center animate-fill-both rounded-xl ${
           isDraggingThis ? "touch-none" : "touch-pan-y"
         }`}
         style={{
@@ -633,7 +633,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
               : "cursor-grab touch-pan-y"
           }`}
         >
-          <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none">
+          <div className="h-[220px] w-full rounded-t-xl border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none">
             <ResumeThumbnail
               resumeId={resume.id}
               templateId={resume.templateId}
@@ -642,7 +642,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
             />
           </div>
 
-          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
+          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none rounded-b-xl">
             <div className="flex items-start justify-between mb-auto pointer-events-auto">
               <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
                 <h3 className="font-semibold text-base truncate mb-1">
@@ -1085,7 +1085,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
       )}
       <motion.div
         ref={cardRef}
-        className={`h-full origin-center animate-fill-both ${
+        className={`h-full origin-center animate-fill-both rounded-xl ${
           isDraggingThis ? "touch-none" : "touch-pan-y"
         }`}
         style={{
@@ -1245,7 +1245,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
           }`}
         >
           {/* Cover Letter Thumbnail / Preview container */}
-          <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-slate-50 flex items-center justify-center">
+          <div className="h-[220px] w-full rounded-t-xl border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-slate-50 flex items-center justify-center">
             {isDraggingThis ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary/60 border-2 border-dashed border-primary/15 transition-all duration-300">
                 <FileText
@@ -1285,7 +1285,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
             )}
           </div>
 
-          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
+          <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none rounded-b-xl">
             <div className="flex items-start justify-between mb-auto pointer-events-auto">
               <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
                 <h3 className="font-semibold text-base truncate mb-1 text-slate-900">
