@@ -59,7 +59,7 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
     operatingSystem: "Web",
     url: SITE_URL,
     description:
-      "Online resume builder with AI writing assistance, AI-powered ATS Auditor & score tracker on Pro, twelve templates, and PDF, DOCX, and JSON export on every plan.",
+      "Online resume & cover letter builder with AI writing help, AI-powered ATS Auditor & score tracker on Pro, twelve templates, and PDF & Word export on every plan.",
     offers: {
       "@type": "Offer",
       price: "99",
@@ -68,13 +68,13 @@ const LANDING_JSON_LD: Record<string, unknown>[] = [
       url: `${SITE_URL}/pricing`,
     },
     featureList: [
-      "AI-powered summaries and bullet points",
+      "AI-powered resume & cover letter generation",
       "Import existing PDF or DOCX resumes",
-      "Highly customizable, professional resume templates",
-      "Live A4 preview aligned with export",
+      "Highly customizable templates with matching cover letters",
+      "Live A4 preview aligned with PDF/Word export",
       "AI-powered ATS Auditor & Score Tracker on Pro",
-      "PDF, DOCX, and JSON export on Free (PDF/Word include a subtle brand footer); Pro is watermark-free",
-      "Unlimited resumes and full AI on Pro",
+      "Watermark-free PDF & Word export on Pro",
+      "Unlimited resumes & cover letters on Pro",
     ],
   },
   {
@@ -99,9 +99,9 @@ const capabilities = [
   },
   {
     icon: Sparkles,
-    title: "AI-powered writing",
+    title: "AI Resume & Cover Letters",
     description:
-      "Refine summaries and experience bullets with context-aware, highly impactful suggestions.",
+      "Refine resume bullets or generate customized cover letters tailored to specific jobs in one click.",
   },
   {
     icon: LayoutTemplate,
@@ -117,13 +117,13 @@ const capabilities = [
   },
   {
     icon: Gauge,
-    title: "AI ATS Auditor",
+    title: "AI ATS Auditor & Scraper",
     description:
-      "Pro scans your resume against any job description, calculates compatibility score, identifies critical failures, and provides actionable recommendations.",
+      "Pro scans resumes & cover letters against job descriptions, scrapes details from links, and scores compatibility.",
   },
   {
     icon: Download,
-    title: "PDF, DOCX & JSON export",
+    title: "PDF & Word export",
     description:
       "Free and Pro both export from your live preview. Free adds a minimal footer; Pro removes it.",
   },
@@ -161,7 +161,7 @@ export default function LandingPage() {
     <div className="min-h-screen w-full min-w-0 overflow-x-clip bg-background text-foreground">
       <SEO
         title={HOME_TITLE}
-        description="Build an ATS-friendly resume with AI writing help, 12 templates, and a live A4 preview. Free includes PDF, DOCX, and JSON export with a subtle footer on documents; Pro removes the watermark and unlocks unlimited resumes and full AI."
+        description="Build an ATS-friendly resume & cover letter with AI writing help, premium templates, and live preview. Free includes PDF & Word exports; Pro removes watermarks and unlocks unlimited documents, job scraping, and AI ATS auditing."
         canonicalUrl={`${SITE_URL}/`}
         keywords={SEO_KEYWORDS}
         jsonLd={LANDING_JSON_LD}
@@ -187,7 +187,7 @@ export default function LandingPage() {
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium tracking-wide text-primary shadow-sm backdrop-blur-sm"
             >
               <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-              AI-powered Resume Builder
+              AI-powered Resume & Cover Letter Builder
             </motion.p>
             <motion.h1
               id="hero-heading"
@@ -197,7 +197,7 @@ export default function LandingPage() {
               transition={{ delay: 0.05 }}
               className="text-4xl font-black tracking-tight text-balance sm:text-5xl sm:leading-[1.08]"
             >
-              Resumes that read clear, rank well, and{" "}
+              Resumes & Cover Letters that read clear, rank well, and{" "}
               <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
                 ship fast
               </span>
@@ -212,7 +212,7 @@ export default function LandingPage() {
               <span className="font-extrabold text-foreground">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>{" "}
-              combines structured editing, AI suggestions, AI ATS auditing & scoring,
+              combines structured editing, AI cover letter generation, AI ATS auditing & scoring,
               and exports that match your live preview — without clutter.
             </motion.p>
             <motion.div
@@ -310,6 +310,248 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* AI Resume Editor Feature Showcase */}
+        <section className="border-t border-border/60 bg-gradient-to-b from-transparent via-primary/[0.01] to-transparent py-16 sm:py-24" aria-labelledby="resume-editor-heading">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+              {/* Copy on the Left (lg:col-span-5) */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                  <Monitor className="h-3 w-3" />
+                  Visual Workspace
+                </div>
+                <h2 id="resume-editor-heading" className="text-3xl font-black tracking-tight sm:text-4xl text-slate-900 dark:text-white">
+                  Craft standard-setting Resumes in real-time
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Our intuitive split-screen builder shows your A4 page layout alongside your edits. No guess-work with margins, page overflows, or formatting. What you see is exactly what you export.
+                </p>
+                <ul className="space-y-4">
+                  {[
+                    { title: "Live A4 Preview", desc: "Always know exactly where your pages break. No unexpected extra blank pages on export." },
+                    { title: "AI Bullet Optimizer", desc: "Turn raw drafts into high-impact, results-driven professional bullet points instantly." },
+                    { title: "Visual Style Controller", desc: "Customize fonts, colors, and margins in real-time with responsive design integrity." },
+                  ].map((feat, i) => (
+                    <li key={i} className="flex gap-3">
+                      <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Check className="h-3 w-3" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{feat.title}</h4>
+                        <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{feat.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Mockup on the Right (lg:col-span-7) */}
+              <div className="lg:col-span-7 relative">
+                {/* Background glow effects */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/10 to-primary/10 blur-2xl rounded-3xl" />
+                
+                {/* Interactive Mock Workspace */}
+                <div className="rounded-2xl border border-border/80 bg-background/80 p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100">
+                  <div className="flex items-center justify-between border-b pb-3 border-border/60">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-red-400" />
+                      <span className="h-3 w-3 rounded-full bg-yellow-400" />
+                      <span className="h-3 w-3 rounded-full bg-green-400" />
+                    </div>
+                    <span className="text-xs font-semibold text-muted-foreground">resumesensei.com/builder/workspace</span>
+                    <div className="w-12" />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Mock Editor Inputs */}
+                    <div className="space-y-3 p-3 rounded-xl bg-muted/40 border border-border/40 text-slate-800 dark:text-slate-200">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Editor Assistance</p>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Raw Bullet Note</label>
+                        <div className="text-[9px] border border-border bg-background p-1.5 rounded text-muted-foreground min-h-[45px] leading-tight italic">
+                          "worked on cloud APIs and speeded up database query speed"
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Action Verb Level</label>
+                        <div className="text-[10px] border border-border bg-background px-2 py-1 rounded flex items-center justify-between text-foreground font-medium">
+                          <span>Strong & Results-Oriented</span>
+                          <span className="text-[8px] text-muted-foreground">▼</span>
+                        </div>
+                      </div>
+                      <div className="w-full text-center py-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded shadow-sm hover:bg-primary/95 cursor-default">
+                        Polish with AI
+                      </div>
+                      <div className="space-y-1.5 pt-1.5 border-t border-border/40">
+                        <p className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400">Optimized Suggestion:</p>
+                        <p className="text-[8px] leading-tight text-slate-600 dark:text-slate-300 font-medium bg-emerald-500/5 p-1.5 rounded border border-emerald-500/20">
+                          "Architected scalable cloud APIs and optimized database queries, reducing latency by 35% and improving data throughput."
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Mock Document Preview */}
+                    <div className="relative p-4 rounded-xl bg-background border border-border/80 shadow-inner flex flex-col justify-between min-h-[220px]">
+                      {/* Floating Indicator */}
+                      <div className="absolute top-2 right-2 bg-indigo-500 text-white font-bold text-[8px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                        <Monitor className="h-2 w-2" />
+                        Page 1 of 1
+                      </div>
+                      
+                      <div className="space-y-3 text-[8px] leading-relaxed text-foreground/80">
+                        <div className="space-y-0.5 text-center border-b pb-2 border-border/40">
+                          <p className="font-extrabold text-slate-900 dark:text-slate-100 text-[10px] tracking-wide">JOHN DOE</p>
+                          <p className="text-[6px] text-muted-foreground font-medium">john.doe@example.com · +91 98765 43210 · github.com/johndoe</p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="font-extrabold text-[8px] tracking-wider text-slate-900 dark:text-slate-100 border-b border-slate-900/10 pb-0.5">EXPERIENCE</p>
+                          <div className="space-y-1">
+                            <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                              <span>Senior Software Engineer</span>
+                              <span className="text-[7px] font-medium text-muted-foreground">Stripe · Remote</span>
+                            </div>
+                            <p className="text-[7px] text-muted-foreground italic -mt-1">June 2023 – Present</p>
+                            <ul className="list-disc pl-2 space-y-1 text-slate-600 dark:text-slate-300 text-[6.5px]">
+                              <li>
+                                <span className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold px-0.5 rounded">Architected scalable cloud APIs</span> and optimized database queries, reducing latency by 35%.
+                              </li>
+                              <li>Collaborated with product designers to implement responsive, pixel-perfect user interfaces across multiple web apps.</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t pt-2 border-border/40 mt-3">
+                        <span className="text-[8px] text-muted-foreground font-medium">Live A4 Layout Engine</span>
+                        <span className="text-[8px] font-bold text-primary flex items-center gap-1">
+                          Preview Match <ArrowRight className="h-2 w-2" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* AI Cover Letters Feature Showcase */}
+        <section className="border-t border-border/60 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent py-16 sm:py-24" aria-labelledby="cover-letter-heading">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+              <div className="lg:col-span-5 space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                  <Sparkles className="h-3 w-3" />
+                  New Feature
+                </div>
+                <h2 id="cover-letter-heading" className="text-3xl font-black tracking-tight sm:text-4xl text-slate-900 dark:text-white">
+                  Tailor your Cover Letters with AI
+                </h2>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  Stop writing job applications from scratch. Resumesensei generates highly tailored, high-converting cover letters matching your resume details and target job description in seconds.
+                </p>
+                <ul className="space-y-4">
+                  {[
+                    { title: "Job URL Scraper", desc: "Paste any job posting link to instantly extract the role details and requirements." },
+                    { title: "Custom Tones & Experience", desc: "Adapt the writing style—from Professional & Polished to Tech Startup—to match the target company." },
+                    { title: "Built-in AI ATS Auditing", desc: "Analyze how well your cover letter matches the job requirements and optimize the keyword density." },
+                  ].map((feat, i) => (
+                    <li key={i} className="flex gap-3">
+                      <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Check className="h-3 w-3" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{feat.title}</h4>
+                        <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{feat.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="lg:col-span-7 relative">
+                {/* Background glow effects */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-indigo-500/10 blur-2xl rounded-3xl" />
+                
+                {/* Interactive Mock Workspace */}
+                <div className="rounded-2xl border border-border/80 bg-background/80 p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100">
+                  <div className="flex items-center justify-between border-b pb-3 border-border/60">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-red-400" />
+                      <span className="h-3 w-3 rounded-full bg-yellow-400" />
+                      <span className="h-3 w-3 rounded-full bg-green-400" />
+                    </div>
+                    <span className="text-xs font-semibold text-muted-foreground">resumesensei.com/cover-letter-builder</span>
+                    <div className="w-12" />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Mock Inputs */}
+                    <div className="space-y-3 p-3 rounded-xl bg-muted/40 border border-border/40 text-slate-800 dark:text-slate-200">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Generator Options</p>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Job URL / Details</label>
+                        <div className="flex gap-1">
+                          <div className="text-[10px] flex-1 border border-border bg-background px-2 py-1 rounded truncate text-muted-foreground">https://linkedin.com/jobs/view/102938...</div>
+                          <span className="text-[9px] bg-primary text-primary-foreground px-2 py-1 rounded font-bold cursor-default">Scraped</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Writing Tone</label>
+                        <div className="text-[10px] border border-border bg-background px-2 py-1 rounded flex items-center justify-between text-foreground font-medium">
+                          <span>Confident & Assertive</span>
+                          <span className="text-[8px] text-muted-foreground">▼</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Custom Instructions</label>
+                        <div className="text-[9px] border border-border bg-background p-1.5 rounded text-muted-foreground min-h-[45px] italic leading-tight">
+                          "Emphasize my cloud architecture projects and mention I can start immediately..."
+                        </div>
+                      </div>
+                      <div className="w-full text-center py-1.5 bg-primary text-primary-foreground text-[10px] font-bold rounded shadow-sm hover:bg-primary/95 cursor-default">
+                        Tailor with AI
+                      </div>
+                    </div>
+
+                    {/* Mock Output Preview */}
+                    <div className="relative p-4 rounded-xl bg-background border border-border/80 shadow-inner flex flex-col justify-between min-h-[220px]">
+                      {/* ATS Score badge floating */}
+                      <div className="absolute top-2 right-2 bg-emerald-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 animate-pulse">
+                        <Sparkles className="h-2.5 w-2.5" />
+                        ATS: 96%
+                      </div>
+                      
+                      <div className="space-y-2 text-[8px] leading-relaxed text-foreground/80">
+                        <div className="space-y-0.5 border-b pb-1.5 border-border/40">
+                          <p className="font-bold text-slate-900 dark:text-slate-100">John Doe</p>
+                          <p className="text-[6px] text-muted-foreground font-medium">john.doe@example.com · +91 98765 43210</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-bold text-[7px] text-slate-900 dark:text-slate-100">Dear Hiring Manager at Stripe,</p>
+                          <p className="indent-2">
+                            I am writing to express my strong interest in the <span className="bg-indigo-50 dark:bg-indigo-950 font-semibold text-primary px-0.5 rounded">Senior Software Engineer</span> position. With over five years of experience building secure APIs and scaling cloud-native systems, I am excited to contribute to Stripe's payment infrastructure...
+                          </p>
+                          <p className="indent-2">
+                            In my previous role, I led the migration of a legacy billing system to a serverless architecture, which <span className="bg-indigo-50 dark:bg-indigo-950 font-semibold text-primary px-0.5 rounded">improved processing efficiency by 40%</span>. I look forward to bringing this expertise...
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t pt-2 border-border/40 mt-3">
+                        <span className="text-[8px] text-muted-foreground font-medium">Watermark-free export</span>
+                        <span className="text-[8px] font-bold text-primary flex items-center gap-1">
+                          PDF & Word <ArrowRight className="h-2 w-2" />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

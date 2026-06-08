@@ -122,7 +122,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Pricing | Resumesensei Pro"
-        description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes, all templates, full AI, and ATS score tracking."
+        description="Simple pricing in INR. Free includes exports with a subtle brand footer; Pro adds watermark-free PDF & Word, unlimited resumes & cover letters, all templates, full AI, and ATS score tracking."
         canonicalUrl={`${SITE_URL}/pricing`}
       />
       <Navbar />
@@ -137,7 +137,7 @@ export default function PricingPage() {
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
             Unlock the full potential of Resumesensei. Pro removes export
-            watermarks, unlocks every template, unlimited AI, premium colors &
+            watermarks, unlocks every template, unlimited AI for resumes & cover letters, premium colors &
             fonts, and ATS score tracking.
           </p>
         </div>

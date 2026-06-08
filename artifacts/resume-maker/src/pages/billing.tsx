@@ -229,7 +229,7 @@ export default function BillingPage() {
             <div>
               <p className="text-sm font-medium">You are on the Free plan.</p>
               <p className="text-sm text-muted-foreground">
-                Upgrade below to unlock all templates, unlimited AI, premium
+                Upgrade below to unlock all templates, unlimited AI (for resumes & cover letters), premium
                 colors & fonts, ATS score tracking, and more.
               </p>
             </div>

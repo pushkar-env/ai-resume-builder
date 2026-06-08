@@ -1,15 +1,15 @@
 export const FREE_PLAN_FEATURES = [
-  "Create multiple resumes",
+  "Create multiple resumes & cover letters",
   "Free designer templates",
-  "PDF, DOCX & JSON exports (watermarked)",
-  "Full AI Polish & Suggestions",
+  "PDF & Word exports (watermarked)",
+  "AI Resume & Cover Letter tailoring",
 ] as const;
 
 export const PRO_PLAN_FEATURES = [
-  "Unlimited AI assistance",
-  "All Premium templates",
+  "Unlimited AI assistance (Resumes & Cover Letters)",
+  "All Premium templates & styling options",
   "Watermark-free PDF & Word exports",
-  "Premium colors & custom fonts",
-  "AI-powered ATS Auditor & Score Tracker",
+  "AI-powered ATS Auditor & score tracker for both",
+  "Job URL scraper to instantly import details",
   "Priority support",
 ] as const;
