@@ -349,23 +349,23 @@ export default function LandingPage() {
               </div>
 
               {/* Mockup on the Right (lg:col-span-7) */}
-              <div className="lg:col-span-7 relative">
+              <div className="lg:col-span-7 relative w-full min-w-0">
                 {/* Background glow effects */}
                 <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/10 to-primary/10 blur-2xl rounded-3xl" />
                 
                 {/* Interactive Mock Workspace */}
-                <div className="rounded-2xl border border-border/80 bg-background/80 p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100">
+                <div className="rounded-2xl border border-border/80 bg-background/80 p-4 sm:p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
                   <div className="flex items-center justify-between border-b pb-3 border-border/60">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-red-400" />
                       <span className="h-3 w-3 rounded-full bg-yellow-400" />
                       <span className="h-3 w-3 rounded-full bg-green-400" />
                     </div>
-                    <span className="text-xs font-semibold text-muted-foreground">resumesensei.com/builder/workspace</span>
-                    <div className="w-12" />
+                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[180px] sm:max-w-none">resumesensei.com/builder/workspace</span>
+                    <div className="w-12 shrink-0 sm:w-12" />
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     {/* Mock Editor Inputs */}
                     <div className="space-y-3 p-3 rounded-xl bg-muted/40 border border-border/40 text-slate-800 dark:text-slate-200">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Editor Assistance</p>
@@ -404,7 +404,13 @@ export default function LandingPage() {
                       <div className="space-y-3 text-[8px] leading-relaxed text-foreground/80">
                         <div className="space-y-0.5 text-center border-b pb-2 border-border/40">
                           <p className="font-extrabold text-slate-900 dark:text-slate-100 text-[10px] tracking-wide">JOHN DOE</p>
-                          <p className="text-[6px] text-muted-foreground font-medium">john.doe@example.com · +91 98765 43210 · github.com/johndoe</p>
+                          <div className="text-[6px] text-muted-foreground font-medium flex flex-wrap justify-center gap-x-1 gap-y-0.5 max-w-full">
+                            <span>john.doe@example.com</span>
+                            <span>·</span>
+                            <span>+91 98765 43210</span>
+                            <span>·</span>
+                            <span>github.com/johndoe</span>
+                          </div>
                         </div>
                         <div className="space-y-1.5">
                           <p className="font-extrabold text-[8px] tracking-wider text-slate-900 dark:text-slate-100 border-b border-slate-900/10 pb-0.5">EXPERIENCE</p>
@@ -472,31 +478,31 @@ export default function LandingPage() {
                 </ul>
               </div>
 
-              <div className="lg:col-span-7 relative">
+              <div className="lg:col-span-7 relative w-full min-w-0">
                 {/* Background glow effects */}
                 <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-indigo-500/10 blur-2xl rounded-3xl" />
                 
                 {/* Interactive Mock Workspace */}
-                <div className="rounded-2xl border border-border/80 bg-background/80 p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100">
+                <div className="rounded-2xl border border-border/80 bg-background/80 p-4 sm:p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
                   <div className="flex items-center justify-between border-b pb-3 border-border/60">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-red-400" />
                       <span className="h-3 w-3 rounded-full bg-yellow-400" />
                       <span className="h-3 w-3 rounded-full bg-green-400" />
                     </div>
-                    <span className="text-xs font-semibold text-muted-foreground">resumesensei.com/cover-letter-builder</span>
-                    <div className="w-12" />
+                    <span className="text-xs font-semibold text-muted-foreground truncate max-w-[180px] sm:max-w-none">resumesensei.com/cover-letter-builder</span>
+                    <div className="w-12 shrink-0 sm:w-12" />
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     {/* Mock Inputs */}
                     <div className="space-y-3 p-3 rounded-xl bg-muted/40 border border-border/40 text-slate-800 dark:text-slate-200">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Generator Options</p>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-semibold text-slate-700 dark:text-slate-300">Job URL / Details</label>
                         <div className="flex gap-1">
-                          <div className="text-[10px] flex-1 border border-border bg-background px-2 py-1 rounded truncate text-muted-foreground">https://linkedin.com/jobs/view/102938...</div>
-                          <span className="text-[9px] bg-primary text-primary-foreground px-2 py-1 rounded font-bold cursor-default">Scraped</span>
+                          <div className="text-[10px] flex-1 border border-border bg-background px-2 py-1 rounded truncate text-muted-foreground min-w-0">linkedin.com/jobs/...</div>
+                          <span className="text-[9px] bg-primary text-primary-foreground px-2 py-1 rounded font-bold cursor-default shrink-0">Scraped</span>
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -528,7 +534,11 @@ export default function LandingPage() {
                       <div className="space-y-2 text-[8px] leading-relaxed text-foreground/80">
                         <div className="space-y-0.5 border-b pb-1.5 border-border/40">
                           <p className="font-bold text-slate-900 dark:text-slate-100">John Doe</p>
-                          <p className="text-[6px] text-muted-foreground font-medium">john.doe@example.com · +91 98765 43210</p>
+                          <div className="text-[6px] text-muted-foreground font-medium flex flex-wrap gap-x-1 gap-y-0.5 max-w-full">
+                            <span>john.doe@example.com</span>
+                            <span>·</span>
+                            <span>+91 98765 43210</span>
+                          </div>
                         </div>
                         <div className="space-y-1">
                           <p className="font-bold text-[7px] text-slate-900 dark:text-slate-100">Dear Hiring Manager at Stripe,</p>
