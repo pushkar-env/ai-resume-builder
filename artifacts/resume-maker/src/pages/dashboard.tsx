@@ -441,19 +441,20 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
 
   return (
     <motion.div
-      layout
+      layout="position"
       transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8
+        layout: {
+          type: "spring",
+          stiffness: 220,
+          damping: 28,
+          mass: 0.7,
+        },
       }}
       variants={fadeUp}
       exit={{
         opacity: 0,
-        scale: 0.8,
-        y: 60,
-        transition: { duration: 0.2, ease: "easeInOut" }
+        scale: 0.85,
+        transition: { duration: 0.2, ease: "easeOut" }
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
@@ -1052,19 +1053,20 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   return (
     <motion.div
-      layout
+      layout="position"
       transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8
+        layout: {
+          type: "spring",
+          stiffness: 220,
+          damping: 28,
+          mass: 0.7,
+        },
       }}
       variants={fadeUp}
       exit={{
         opacity: 0,
-        scale: 0.8,
-        y: 60,
-        transition: { duration: 0.2, ease: "easeInOut" }
+        scale: 0.85,
+        transition: { duration: 0.2, ease: "easeOut" }
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
@@ -1521,8 +1523,10 @@ export default function DashboardPage() {
       "#f97316", // orange-500
     ];
 
-    // Spawn 45 particles radiating upwards
-    for (let i = 0; i < 45; i++) {
+    // Fewer particles on touch/mobile to avoid GPU stalls during layout reflow
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+    const particleCount = isMobile ? 22 : 40;
+    for (let i = 0; i < particleCount; i++) {
       const angle = Math.PI * 1.5 + (Math.random() - 0.5) * Math.PI * 0.75;
       const speed = 4 + Math.random() * 9;
       particlesRef.current.push({
@@ -1533,7 +1537,7 @@ export default function DashboardPage() {
         size: 3.5 + Math.random() * 5.5,
         color: colors[Math.floor(Math.random() * colors.length)],
         alpha: 1,
-        decay: 0.012 + Math.random() * 0.016,
+        decay: 0.014 + Math.random() * 0.018,
         gravity: 0.16,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.15,
@@ -1568,10 +1572,6 @@ export default function DashboardPage() {
           currentCtx.globalAlpha = p.alpha;
           currentCtx.translate(p.x, p.y);
           currentCtx.rotate(p.rotation);
-          
-          // Glow effect
-          currentCtx.shadowBlur = 8;
-          currentCtx.shadowColor = p.color;
           currentCtx.fillStyle = p.color;
 
           if (p.shape === "circle") {
@@ -1818,11 +1818,11 @@ export default function DashboardPage() {
 
   const handleDragDeleteResume = useCallback(
     (id: number) => {
-      // Trigger physically reactive scale pop on trash bin
+      // 1. Trigger physically reactive scale pop on trash bin
       setIsDeletedTrashPop(true);
       setTimeout(() => setIsDeletedTrashPop(false), 300);
 
-      // Play particle burst
+      // 2. Play particle burst immediately (canvas runs independently)
       if (trashBinRef.current) {
         const rect = trashBinRef.current.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
@@ -1832,26 +1832,31 @@ export default function DashboardPage() {
         triggerBurst(window.innerWidth / 2, window.innerHeight - 56);
       }
 
-      // Add to optimistic deletion array, show toast immediately, & call mutation
-      setOptimisticallyDeletedIds((prev) => [...prev, id]);
-      toast({ title: "Resume deleted" });
-      deleteResume.mutate({ id });
-
-      // Trigger standard vibration feedback
+      // 3. Vibration feedback
       if (navigator.vibrate) {
         navigator.vibrate([30, 50, 40]);
       }
+
+      // 4. Defer DOM removal by one frame so the burst animation starts
+      //    before the heavy layout FLIP recalculation on remaining cards.
+      //    This prevents the particle burst + layout reflow from competing
+      //    for the same frame budget on mobile GPUs.
+      requestAnimationFrame(() => {
+        setOptimisticallyDeletedIds((prev) => [...prev, id]);
+        toast({ title: "Resume deleted" });
+        deleteResume.mutate({ id });
+      });
     },
     [deleteResume.mutate, triggerBurst],
   );
 
   const handleDragDeleteCoverLetter = useCallback(
     (id: number) => {
-      // Trigger physically reactive scale pop on trash bin
+      // 1. Trigger physically reactive scale pop on trash bin
       setIsDeletedTrashPop(true);
       setTimeout(() => setIsDeletedTrashPop(false), 300);
 
-      // Play particle burst
+      // 2. Play particle burst immediately
       if (trashBinRef.current) {
         const rect = trashBinRef.current.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
@@ -1861,15 +1866,17 @@ export default function DashboardPage() {
         triggerBurst(window.innerWidth / 2, window.innerHeight - 56);
       }
 
-      // Add to optimistic deletion array, show toast immediately, & call mutation
-      setOptimisticallyDeletedIds((prev) => [...prev, id]);
-      toast({ title: "Cover letter deleted" });
-      deleteCoverLetter.mutate({ id });
-
-      // Trigger standard vibration feedback
+      // 3. Vibration feedback
       if (navigator.vibrate) {
         navigator.vibrate([30, 50, 40]);
       }
+
+      // 4. Defer DOM removal by one frame (same pattern as resume delete)
+      requestAnimationFrame(() => {
+        setOptimisticallyDeletedIds((prev) => [...prev, id]);
+        toast({ title: "Cover letter deleted" });
+        deleteCoverLetter.mutate({ id });
+      });
     },
     [deleteCoverLetter.mutate, triggerBurst],
   );
