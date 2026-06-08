@@ -596,10 +596,10 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
               : isHovered && !resumeMenuOpen
                 ? {
                     x: 0,
-                    y: -4,
-                    scale: 1.012,
+                    y: -6,
+                    scale: 1,
                     rotate: 0,
-                    boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                    boxShadow: "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
                     transition: previewCardHoverTransition,
                   }
                 : {
@@ -1207,10 +1207,10 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
               : isHovered && !menuOpen
                 ? {
                     x: 0,
-                    y: -4,
-                    scale: 1.012,
+                    y: -6,
+                    scale: 1,
                     rotate: 0,
-                    boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                    boxShadow: "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
                     transition: previewCardHoverTransition,
                   }
                 : {
