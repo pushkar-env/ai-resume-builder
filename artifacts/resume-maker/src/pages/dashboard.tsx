@@ -1245,7 +1245,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
           }`}
         >
           {/* Cover Letter Thumbnail / Preview container */}
-          <div className="h-[220px] w-full rounded-t-xl border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-slate-50 flex items-center justify-center">
+          <div className="h-[220px] w-full rounded-t-xl border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-white">
             {isDraggingThis ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary/60 border-2 border-dashed border-primary/15 transition-all duration-300">
                 <FileText
@@ -1257,30 +1257,28 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                 </span>
               </div>
             ) : (
-              <div
-                className="absolute top-4 origin-top"
-                style={{
-                  transform: "scale(0.17)",
-                  WebkitFontSmoothing: "antialiased",
-                  MozOsxFontSmoothing: "grayscale",
-                }}
-              >
-                <CoverLetterPreview
-                  content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
-                  senderName={senderName}
-                  senderEmail={senderEmail}
-                  senderPhone={senderPhone}
-                  senderLocation={senderLocation}
-                  recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
-                  companyName={coverLetter.companyName || "Company Name"}
-                  companyLocation={coverLetter.companyLocation || ""}
-                  jobTitle={coverLetter.jobTitle || "Job Title"}
-                  templateId={coverLetter.templateId || "classic"}
-                  accentColor={accentColor}
-                  fontFamily={fontFamily}
-                  zoom={1}
-                  showWatermark={showWatermark}
-                />
+              <div className="absolute inset-0 animate-fade-in">
+                <ScaledResumeThumbnailShell
+                  hostClassName="absolute inset-0 overflow-hidden bg-white [&_.a4-page]:!shadow-none rounded-t-xl"
+                  measureDeps={[coverLetter.id, coverLetter.templateId, accentColor, fontFamily]}
+                >
+                  <CoverLetterPreview
+                    content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
+                    senderName={senderName}
+                    senderEmail={senderEmail}
+                    senderPhone={senderPhone}
+                    senderLocation={senderLocation}
+                    recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
+                    companyName={coverLetter.companyName || "Company Name"}
+                    companyLocation={coverLetter.companyLocation || ""}
+                    jobTitle={coverLetter.jobTitle || "Job Title"}
+                    templateId={coverLetter.templateId || "classic"}
+                    accentColor={accentColor}
+                    fontFamily={fontFamily}
+                    zoom={1}
+                    showWatermark={showWatermark}
+                  />
+                </ScaledResumeThumbnailShell>
               </div>
             )}
           </div>
@@ -2601,7 +2599,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row mt-4">
-            <Button
+             <Button
               onClick={() => {
                 generateCoverLetter.mutate({
                   data: {
@@ -2620,8 +2618,71 @@ export default function DashboardPage() {
                 });
               }}
               disabled={generateCoverLetter.isPending || !clTitle.trim() || !clJobTitle.trim() || !clCompanyName.trim()}
+              className={`text-xs sm:text-sm font-bold py-2.5 h-11 px-5 shadow-md transition-all duration-300 relative overflow-hidden ${
+                generateCoverLetter.isPending
+                  ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white cursor-not-allowed shadow-purple-500/20"
+                  : "bg-primary hover:opacity-95 text-primary-foreground shadow-primary/10"
+              }`}
             >
-              {generateCoverLetter.isPending ? "Generating..." : "Generate Cover Letter"}
+              {generateCoverLetter.isPending && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
+                  animate={{
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                  }}
+                  style={{ backgroundSize: "200% 200%" }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {generateCoverLetter.isPending ? (
+                  <>
+                    <motion.svg
+                      className="h-4.5 w-4.5 text-white"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        className="opacity-25"
+                      />
+                      <motion.circle
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeDasharray="56"
+                        initial={{ strokeDashoffset: 56, rotate: 0 }}
+                        animate={{ 
+                          strokeDashoffset: [56, 14, 56],
+                          rotate: [0, 360, 720]
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    </motion.svg>
+                    <span>Generating Cover Letter...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" /> Generate Cover Letter
+                  </>
+                )}
+              </span>
             </Button>
             <Button variant="outline" onClick={() => setCreateCoverLetterOpen(false)}>
               Cancel

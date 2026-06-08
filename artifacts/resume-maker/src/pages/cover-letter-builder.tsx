@@ -70,6 +70,7 @@ import { SEO } from "@/components/shared/SEO";
 import { CoverLetterPreview } from "@/components/resume/CoverLetterPreview";
 import { buildCoverLetterDocx } from "@/lib/build-cover-letter-docx";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
+import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 
 const ACCENT_COLORS = [
   { label: "Classic Black", value: "#1A1A1A" },
@@ -172,6 +173,27 @@ export default function CoverLetterBuilder() {
   const { mutateAsync: runAtsAudit, isPending: isAuditing } = useAuditCoverLetterAts();
   const { mutateAsync: scrapeJob, isPending: isScraping } = useScrapeJobDetails();
   const { mutateAsync: exportPdf, isPending: isExportingPdf } = useExportCoverLetterPdf();
+
+  // AI generation step cycling
+  const [generationStep, setGenerationStep] = useState(0);
+  const generationSteps = useMemo(() => [
+    "Analyzing job description...",
+    "Aligning professional experience...",
+    "Crafting introductory hooks...",
+    "Optimizing tone & vocabulary...",
+    "Finalizing letter layout..."
+  ], []);
+
+  useEffect(() => {
+    if (!isRegenerating) {
+      setGenerationStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setGenerationStep((prev) => (prev < generationSteps.length - 1 ? prev + 1 : prev));
+    }, 2800);
+    return () => clearInterval(interval);
+  }, [isRegenerating, generationSteps]);
 
   // Sync database cover letter data to local state on initial load or version restores
   useEffect(() => {
@@ -659,12 +681,10 @@ export default function CoverLetterBuilder() {
 
   if (isLoadingLetter) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col justify-center items-center gap-4 text-slate-100">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-        <p className="text-sm font-medium tracking-wide text-slate-400">
-          Loading Cover Letter Workspace...
-        </p>
-      </div>
+      <PremiumLoadingScreen
+        title="Loading Cover Letter Workspace..."
+        subtitle="Preparing your professional writing canvas"
+      />
     );
   }
 
@@ -1029,17 +1049,81 @@ export default function CoverLetterBuilder() {
                   <Button
                     onClick={() => handleAiGenerate()}
                     disabled={isRegenerating}
-                    className="w-full bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 text-primary-foreground text-xs sm:text-sm font-bold py-2 shadow-md shadow-primary/10"
+                    className={`w-full text-xs sm:text-sm font-bold py-2.5 h-11 shadow-md transition-all duration-300 relative overflow-hidden ${
+                      isRegenerating
+                        ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white cursor-not-allowed shadow-purple-500/20"
+                        : "bg-gradient-to-r from-primary to-purple-600 hover:opacity-95 text-primary-foreground shadow-primary/10"
+                    }`}
                   >
-                    {isRegenerating ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Generating Letter...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" /> Generate Cover Letter with AI
-                      </>
+                    {isRegenerating && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
+                        animate={{
+                          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                        }}
+                        style={{ backgroundSize: "200% 200%" }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
                     )}
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isRegenerating ? (
+                        <>
+                          <motion.svg
+                            className="h-4.5 w-4.5 text-white"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="9"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              className="opacity-25"
+                            />
+                            <motion.circle
+                              cx="12"
+                              cy="12"
+                              r="9"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeDasharray="56"
+                              initial={{ strokeDashoffset: 56, rotate: 0 }}
+                              animate={{ 
+                                strokeDashoffset: [56, 14, 56],
+                                rotate: [0, 360, 720]
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          </motion.svg>
+                          <AnimatePresence mode="wait">
+                            <motion.span
+                              key={generationStep}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {generationSteps[generationStep]}
+                            </motion.span>
+                          </AnimatePresence>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" /> Generate Cover Letter with AI
+                        </>
+                      )}
+                    </span>
                   </Button>
 
                   <div className="grid grid-cols-3 gap-2">
@@ -1322,6 +1406,116 @@ export default function CoverLetterBuilder() {
 
           {/* Preview canvas */}
           <div className="flex-1 overflow-auto bg-muted/30 flex justify-center p-8 pb-24 md:pb-8 relative">
+            <AnimatePresence>
+              {isRegenerating && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0 bg-background/60 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className="max-w-md w-full bg-card/95 border border-border/80 rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col items-center text-center gap-6"
+                  >
+                    {/* Glowing background animation */}
+                    <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+                    <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+
+                    {/* Circular AI icon group */}
+                    <div className="relative h-20 w-20 flex items-center justify-center">
+                      {/* Rotating outer ring */}
+                      <motion.div
+                        className="absolute inset-0 rounded-full border-2 border-dashed border-primary/45"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                      />
+                      {/* Pulsing inner glow */}
+                      <motion.div
+                        className="absolute h-14 w-14 rounded-full bg-primary/5 flex items-center justify-center"
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      <Sparkles className="h-7 w-7 text-primary relative z-10" />
+                    </div>
+
+                    <div className="space-y-2 relative z-10">
+                      <h4 className="text-base font-bold text-foreground tracking-tight">
+                        AI Tailoring in Progress
+                      </h4>
+                      <p className="text-xs text-muted-foreground max-w-[280px]">
+                        Drafting a custom letter optimized for ATS keywords and tone.
+                      </p>
+                    </div>
+
+                    {/* Circular loading bar indicator */}
+                    <div className="w-full flex flex-col items-center gap-3 relative z-10">
+                      <div className="flex items-center gap-2.5 px-4 py-2 bg-muted/60 rounded-full border border-border/40">
+                        {/* Circular progress loader */}
+                        <motion.svg
+                          className="h-4 w-4 text-primary shrink-0"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            className="opacity-20"
+                          />
+                          <motion.circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeDasharray="56"
+                            initial={{ strokeDashoffset: 56, rotate: 0 }}
+                            animate={{ 
+                              strokeDashoffset: [56, 14, 56],
+                              rotate: [0, 360, 720]
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                        </motion.svg>
+                        <AnimatePresence mode="wait">
+                          <motion.span
+                            key={generationStep}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-xs font-semibold text-primary font-mono tracking-tight"
+                          >
+                            {generationSteps[generationStep]}
+                          </motion.span>
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Dot loading animation */}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div
               className="origin-top"
               style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
