@@ -2449,7 +2449,7 @@ export default function DashboardPage() {
                 id="cl-resume"
                 value={clResumeId}
                 onChange={(e) => setClResumeId(e.target.value ? Number(e.target.value) : "")}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 custom-select"
               >
                 <option value="">-- Select a Resume (Highly Recommended) --</option>
                 {resumeList.map((r) => (
@@ -2545,7 +2545,7 @@ export default function DashboardPage() {
                   id="cl-tone"
                   value={clTone}
                   onChange={(e) => setClTone(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
                 >
                   <option value="professional">Professional</option>
                   <option value="enthusiastic">Enthusiastic</option>
@@ -2561,7 +2561,7 @@ export default function DashboardPage() {
                   id="cl-exp"
                   value={clExpLevel}
                   onChange={(e) => setClExpLevel(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
                 >
                   <option value="entry">Entry-Level</option>
                   <option value="mid">Mid-Level</option>
@@ -2575,7 +2575,7 @@ export default function DashboardPage() {
                   id="cl-template"
                   value={clTemplateId}
                   onChange={(e) => setClTemplateId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
                 >
                   <option value="classic">Classic</option>
                   <option value="modern">Modern</option>
