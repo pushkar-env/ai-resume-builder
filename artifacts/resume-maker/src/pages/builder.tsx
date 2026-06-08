@@ -2191,7 +2191,7 @@ export default function BuilderPage() {
                                     accent={isSelected ? accentColor : getDefaultAccentColor(t.id)}
                                     showWatermark={!isPremiumUser}
                                   />
-                                  {t.isPremium && (
+                                  {t.isPremium && !isPremiumUser && (
                                     <span className="absolute top-1 right-1 bg-amber-500 text-white rounded-full p-1 shadow-md z-10">
                                       <Star className="h-3 w-3 fill-current" />
                                     </span>
