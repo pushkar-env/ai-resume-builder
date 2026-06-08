@@ -226,13 +226,7 @@ export function ResumeThumbnail({
         <div className="absolute inset-0 animate-fade-in">
           <ScaledResumeThumbnailShell
             hostClassName="absolute inset-0 overflow-hidden bg-white [&_.resume-continuous-canvas]:!shadow-none"
-            measureDeps={[
-              resume.id,
-              resume.templateId,
-              resume.updatedAt,
-              fontScale,
-              showWatermark,
-            ]}
+            measureDeps={[]}
           >
             <ResumePreview
               layout="continuous"
@@ -352,13 +346,23 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) {
       const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
-      const threshold = isTouch ? 24 : 8;
+      const threshold = isTouch ? 24 : 5;
       const dist = Math.hypot(
         e.clientX - startPoint.current.x,
         e.clientY - startPoint.current.y,
       );
-      if (dist > threshold) {
-        clearTimeout(longPressTimer.current);
+      if (isTouch) {
+        if (dist > threshold) {
+          clearTimeout(longPressTimer.current);
+        }
+      } else {
+        if (isPointerDownThisCard.current && dist > threshold) {
+          clearTimeout(longPressTimer.current);
+          isDragging.current = true;
+          hasDragged.current = true;
+          dragControls.start(e.nativeEvent);
+          setActiveDragResumeId(resume.id);
+        }
       }
     }
   };
@@ -417,7 +421,14 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
 
   return (
     <motion.div
+      layout
       variants={fadeUp}
+      exit={{
+        opacity: 0,
+        scale: 0.8,
+        y: 60,
+        transition: { duration: 0.25, ease: "easeInOut" }
+      }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
       }`}
@@ -455,6 +466,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
+        dragSnapToOrigin={true}
         onDragStart={() => {
           if (cardRef.current) {
             cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
@@ -597,7 +609,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
             <ResumeThumbnail
               resumeId={resume.id}
               templateId={resume.templateId}
-              isDragging={false}
+              isDragging={isDraggingThis}
               index={index}
             />
           </div>
@@ -865,13 +877,23 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) {
       const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
-      const threshold = isTouch ? 24 : 8;
+      const threshold = isTouch ? 24 : 5;
       const dist = Math.hypot(
         e.clientX - startPoint.current.x,
         e.clientY - startPoint.current.y,
       );
-      if (dist > threshold) {
-        clearTimeout(longPressTimer.current);
+      if (isTouch) {
+        if (dist > threshold) {
+          clearTimeout(longPressTimer.current);
+        }
+      } else {
+        if (isPointerDownThisCard.current && dist > threshold) {
+          clearTimeout(longPressTimer.current);
+          isDragging.current = true;
+          hasDragged.current = true;
+          dragControls.start(e.nativeEvent);
+          setActiveDragCoverLetterId(coverLetter.id);
+        }
       }
     }
   };
@@ -982,7 +1004,14 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   return (
     <motion.div
+      layout
       variants={fadeUp}
+      exit={{
+        opacity: 0,
+        scale: 0.8,
+        y: 60,
+        transition: { duration: 0.25, ease: "easeInOut" }
+      }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
       }`}
@@ -1020,6 +1049,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
+        dragSnapToOrigin={true}
         onDragStart={() => {
           if (cardRef.current) {
             cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
@@ -1160,24 +1190,36 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
         >
           {/* Cover Letter Thumbnail / Preview container */}
           <div className="h-[220px] w-full border-b border-border/40 relative overflow-hidden shrink-0 isolate pointer-events-none bg-slate-50 flex items-center justify-center">
-            <div className="absolute top-4 scale-[0.17] origin-top">
-              <CoverLetterPreview
-                content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
-                senderName={senderName}
-                senderEmail={senderEmail}
-                senderPhone={senderPhone}
-                senderLocation={senderLocation}
-                recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
-                companyName={coverLetter.companyName || "Company Name"}
-                companyLocation={coverLetter.companyLocation || ""}
-                jobTitle={coverLetter.jobTitle || "Job Title"}
-                templateId={coverLetter.templateId || "classic"}
-                accentColor={accentColor}
-                fontFamily={fontFamily}
-                zoom={1}
-                showWatermark={showWatermark}
-              />
-            </div>
+            {isDraggingThis ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-primary/5 text-primary/60 border-2 border-dashed border-primary/15 transition-all duration-300">
+                <FileText
+                  className="h-10 w-10 mb-2 animate-bounce"
+                  style={{ animationDuration: "2s" }}
+                />
+                <span className="text-[10px] font-bold tracking-wider uppercase select-none opacity-70">
+                  Holding Document
+                </span>
+              </div>
+            ) : (
+              <div className="absolute top-4 scale-[0.17] origin-top">
+                <CoverLetterPreview
+                  content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
+                  senderName={senderName}
+                  senderEmail={senderEmail}
+                  senderPhone={senderPhone}
+                  senderLocation={senderLocation}
+                  recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
+                  companyName={coverLetter.companyName || "Company Name"}
+                  companyLocation={coverLetter.companyLocation || ""}
+                  jobTitle={coverLetter.jobTitle || "Job Title"}
+                  templateId={coverLetter.templateId || "classic"}
+                  accentColor={accentColor}
+                  fontFamily={fontFamily}
+                  zoom={1}
+                  showWatermark={showWatermark}
+                />
+              </div>
+            )}
           </div>
 
           <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none">
@@ -2014,32 +2056,34 @@ export default function DashboardPage() {
               </motion.div>
 
               {/* Existing Resumes */}
-              {resumeList.map((resume, index) => (
-                <DashboardResumeCard
-                  key={resume.id}
-                  resume={resume}
-                  fadeUp={fadeUp}
-                  coarsePointer={coarsePointer}
-                  navigate={navigate}
-                  setRenameTitle={setRenameTitle}
-                  setRenameId={(id) => {
-                    setRenameType("resume");
-                    setRenameId(id);
-                  }}
-                  setDeleteId={(id) => {
-                    setDeleteType("resume");
-                    setDeleteId(id);
-                  }}
-                  deleteId={deleteId}
-                  handleDuplicateRequest={handleDuplicateRequest}
-                  isDraggingThis={activeDragResumeId === resume.id}
-                  setActiveDragResumeId={setActiveDragResumeId}
-                  setIsOverTrash={setIsOverTrash}
-                  onDragDelete={handleDragDeleteResume}
-                  index={index}
-                  onCreateCoverLetter={handleCreateCoverLetterFromResume}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {resumeList.map((resume, index) => (
+                  <DashboardResumeCard
+                    key={resume.id}
+                    resume={resume}
+                    fadeUp={fadeUp}
+                    coarsePointer={coarsePointer}
+                    navigate={navigate}
+                    setRenameTitle={setRenameTitle}
+                    setRenameId={(id) => {
+                      setRenameType("resume");
+                      setRenameId(id);
+                    }}
+                    setDeleteId={(id) => {
+                      setDeleteType("resume");
+                      setDeleteId(id);
+                    }}
+                    deleteId={deleteId}
+                    handleDuplicateRequest={handleDuplicateRequest}
+                    isDraggingThis={activeDragResumeId === resume.id}
+                    setActiveDragResumeId={setActiveDragResumeId}
+                    setIsOverTrash={setIsOverTrash}
+                    onDragDelete={handleDragDeleteResume}
+                    index={index}
+                    onCreateCoverLetter={handleCreateCoverLetterFromResume}
+                  />
+                ))}
+              </AnimatePresence>
             </motion.div>
           )
         ) : (
@@ -2072,32 +2116,34 @@ export default function DashboardPage() {
               </motion.div>
 
               {/* Cover Letters List */}
-              {coverLetterList.map((cl, idx) => (
-                <DashboardCoverLetterCard
-                  key={cl.id}
-                  coverLetter={cl}
-                  fadeUp={fadeUp}
-                  coarsePointer={coarsePointer}
-                  navigate={navigate}
-                  setRenameTitle={setRenameTitle}
-                  setRenameId={(id) => {
-                    setRenameType("cover-letter");
-                    setRenameId(id);
-                  }}
-                  setDeleteId={(id) => {
-                    setDeleteType("cover-letter");
-                    setDeleteId(id);
-                  }}
-                  deleteId={deleteId}
-                  handleDuplicateRequest={handleDuplicateCoverLetterRequest}
-                  index={idx}
-                  user={user}
-                  isDraggingThis={activeDragCoverLetterId === cl.id}
-                  setActiveDragCoverLetterId={setActiveDragCoverLetterId}
-                  setIsOverTrash={setIsOverTrash}
-                  onDragDelete={handleDragDeleteCoverLetter}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {coverLetterList.map((cl, idx) => (
+                  <DashboardCoverLetterCard
+                    key={cl.id}
+                    coverLetter={cl}
+                    fadeUp={fadeUp}
+                    coarsePointer={coarsePointer}
+                    navigate={navigate}
+                    setRenameTitle={setRenameTitle}
+                    setRenameId={(id) => {
+                      setRenameType("cover-letter");
+                      setRenameId(id);
+                    }}
+                    setDeleteId={(id) => {
+                      setDeleteType("cover-letter");
+                      setDeleteId(id);
+                    }}
+                    deleteId={deleteId}
+                    handleDuplicateRequest={handleDuplicateCoverLetterRequest}
+                    index={idx}
+                    user={user}
+                    isDraggingThis={activeDragCoverLetterId === cl.id}
+                    setActiveDragCoverLetterId={setActiveDragCoverLetterId}
+                    setIsOverTrash={setIsOverTrash}
+                    onDragDelete={handleDragDeleteCoverLetter}
+                  />
+                ))}
+              </AnimatePresence>
             </motion.div>
           )
         )}

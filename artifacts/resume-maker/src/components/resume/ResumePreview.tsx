@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
@@ -3662,7 +3662,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 /* ═══════════════════════════════════════════════════════════
    Main ResumePreview — route to correct template
 ═══════════════════════════════════════════════════════════ */
-export function ResumePreview({
+export const ResumePreview = memo(function ResumePreview({
   resume,
   accentColor,
   fontScale = 1,
@@ -3983,4 +3983,4 @@ export function ResumePreview({
       )}
     </div>
   );
-}
+});
