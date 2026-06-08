@@ -14,7 +14,8 @@ import {
 import { useThumbnailMeasure } from "@/hooks/use-thumbnail-scale";
 
 const SCALED_LAYER_STYLE = {
-  WebkitFontSmoothing: "subpixel-antialiased" as const,
+  WebkitFontSmoothing: "antialiased" as const,
+  MozOsxFontSmoothing: "grayscale" as const,
   pointerEvents: "none" as const,
   textRendering: "geometricPrecision" as const,
 };
@@ -36,12 +37,18 @@ export function ScaledResumeThumbnailShell({
   const [fitScale, setFitScale] = useState(0.36);
   const [viewportH, setViewportH] = useState(THUMBNAIL_DEFAULT_VIEWPORT_H_PX);
 
+  const lastDimensionsRef = useRef({ w: 0, h: 0 });
+
   const remeasure = useCallback(() => {
     const host = hostRef.current;
     if (!host) return;
     const w = host.clientWidth;
     const h = host.clientHeight;
     if (w <= 0 || h <= 0) return;
+    if (w === lastDimensionsRef.current.w && h === lastDimensionsRef.current.h) {
+      return;
+    }
+    lastDimensionsRef.current = { w, h };
     const scale = computeTemplateGalleryScale(w);
     setFitScale(scale);
     setViewportH(computeGalleryViewportHeight(h, scale));

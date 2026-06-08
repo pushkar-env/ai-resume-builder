@@ -417,6 +417,26 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
     }
   };
 
+  useEffect(() => {
+    const handleWindowPointerUp = () => {
+      clearTimeout(longPressTimer.current);
+      isPointerDownThisCard.current = false;
+      if (isDragging.current) {
+        isDragging.current = false;
+        setActiveDragResumeId(null);
+        setIsOverTrash(false);
+        currentOverTrash.current = false;
+      }
+    };
+
+    window.addEventListener("pointerup", handleWindowPointerUp);
+    window.addEventListener("pointercancel", handleWindowPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", handleWindowPointerUp);
+      window.removeEventListener("pointercancel", handleWindowPointerUp);
+    };
+  }, []);
+
   const isDeleting = deleteId === resume.id;
 
   return (
@@ -440,8 +460,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: "transform",
-        transform: "translateZ(0)",
+        willChange: isDraggingThis ? "transform" : "auto",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -606,6 +625,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         onClick={handleClick}
       >
         <Card
+          draggable="false"
+          onDragStart={(e) => e.preventDefault()}
           className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
             isDraggingThis
               ? "border-primary/60 bg-background/90 backdrop-blur-md cursor-grabbing touch-none z-10"
@@ -931,6 +952,26 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
     }
   };
 
+  useEffect(() => {
+    const handleWindowPointerUp = () => {
+      clearTimeout(longPressTimer.current);
+      isPointerDownThisCard.current = false;
+      if (isDragging.current) {
+        isDragging.current = false;
+        setActiveDragCoverLetterId(null);
+        setIsOverTrash(false);
+        currentOverTrash.current = false;
+      }
+    };
+
+    window.addEventListener("pointerup", handleWindowPointerUp);
+    window.addEventListener("pointercancel", handleWindowPointerUp);
+    return () => {
+      window.removeEventListener("pointerup", handleWindowPointerUp);
+      window.removeEventListener("pointercancel", handleWindowPointerUp);
+    };
+  }, []);
+
   const handleClick = (e: React.MouseEvent) => {
     if (wasDraggableDuringTouch.current || hasDragged.current) {
       wasDraggableDuringTouch.current = false;
@@ -1030,8 +1071,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
       }`}
       style={{
         zIndex: isDraggingThis ? 50 : 1,
-        willChange: "transform",
-        transform: "translateZ(0)",
+        willChange: isDraggingThis ? "transform" : "auto",
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -1196,6 +1236,8 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
         onClick={handleClick}
       >
         <Card
+          draggable="false"
+          onDragStart={(e) => e.preventDefault()}
           className={`h-full flex flex-col group border-border relative overflow-hidden select-none shadow transition-[box-shadow,border-color] duration-300 hover:shadow-xl hover:border-primary/45 ${
             isDraggingThis
               ? "border-primary/60 bg-background/90 backdrop-blur-md cursor-grabbing touch-none z-10"
@@ -1215,7 +1257,14 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                 </span>
               </div>
             ) : (
-              <div className="absolute top-4 scale-[0.17] origin-top">
+              <div
+                className="absolute top-4 origin-top"
+                style={{
+                  transform: "scale(0.17)",
+                  WebkitFontSmoothing: "antialiased",
+                  MozOsxFontSmoothing: "grayscale",
+                }}
+              >
                 <CoverLetterPreview
                   content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
                   senderName={senderName}
