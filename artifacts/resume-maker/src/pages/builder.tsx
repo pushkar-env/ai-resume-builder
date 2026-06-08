@@ -961,7 +961,7 @@ export default function BuilderPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [atsPanelOpen, setAtsPanelOpen] = useState(false);
   const [isOptimizingWorkflow, setIsOptimizingWorkflow] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"sections" | "edit" | "preview">(
+  const [mobileTab, setMobileTabRaw] = useState<"sections" | "edit" | "preview">(
     "sections",
   );
   const [clearAllOpen, setClearAllOpen] = useState(false);
@@ -1514,6 +1514,44 @@ export default function BuilderPage() {
     templateId,
     localSections,
   ]);
+
+  /**
+   * Mobile tab switch — commit any in-flight IME composition / focused input,
+   * then flush the debounced save, before actually toggling the visible panel.
+   *
+   * Why this is needed:
+   * On mobile soft keyboards (especially iOS), switching away from the edit
+   * panel hides the input via CSS (`display:none`). The browser cancels any
+   * active IME composition without firing a final `onChange`, so the last
+   * character(s) the user typed are silently lost. By blurring the active
+   * element first, we force the composition to commit and its `onChange` to
+   * fire *before* the panel is hidden.
+   */
+  const switchMobileTab = useCallback(
+    (tab: "sections" | "edit" | "preview") => {
+      // 1. Blur the active element to commit any pending IME composition.
+      //    This forces the browser to fire compositionend → onChange
+      //    while the input is still visible in the DOM.
+      const active = document.activeElement;
+      if (
+        active &&
+        active !== document.body &&
+        typeof (active as HTMLElement).blur === "function"
+      ) {
+        (active as HTMLElement).blur();
+      }
+
+      // 2. Use rAF to let the blur-triggered onChange propagate through
+      //    React's state update cycle before we switch tabs. This ensures
+      //    localSections has the latest value when the preview renders.
+      requestAnimationFrame(() => {
+        setMobileTabRaw(tab);
+        // 3. Flush any pending debounced save so the server is in sync.
+        flushSave();
+      });
+    },
+    [flushSave],
+  );
   const handleSectionContentChange = useCallback(
     (sectionId: number, content: SectionContent) => {
       setLocalSections((prev) => {
@@ -1880,7 +1918,7 @@ export default function BuilderPage() {
         }}
         onAtsScoreClick={() => {
           setActiveSidebarMode("ats");
-          if (window.innerWidth < 1024) setMobileTab("edit");
+          if (window.innerWidth < 1024) setMobileTabRaw("edit");
         }}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
@@ -2019,7 +2057,7 @@ export default function BuilderPage() {
                     variant="ghost"
                     size="sm"
                     className="lg:hidden h-8 w-8 p-0"
-                    onClick={() => setMobileTab("sections")}
+                    onClick={() => setMobileTabRaw("sections")}
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
@@ -2067,7 +2105,7 @@ export default function BuilderPage() {
                     <button
                       onClick={() => {
                         setActiveSidebarMode("design");
-                        setMobileTab("edit");
+                        setMobileTabRaw("edit");
                       }}
                       className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
                         activeSidebarMode === "design" ? "border-primary/50 bg-primary/[0.02]" : ""
@@ -2090,7 +2128,7 @@ export default function BuilderPage() {
                           return;
                         }
                         setActiveSidebarMode("ats");
-                        setMobileTab("edit");
+                        setMobileTabRaw("edit");
                       }}
                       className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left relative ${
                         activeSidebarMode === "ats" ? "border-primary/50 bg-primary/[0.02]" : ""
@@ -2142,7 +2180,7 @@ export default function BuilderPage() {
                                 onSelect={() => {
                                   setActiveSidebarMode("content");
                                   setActiveSectionId(s.id);
-                                  setMobileTab("edit");
+                                  setMobileTabRaw("edit");
                                 }}
                               />
                             );
@@ -3107,21 +3145,21 @@ export default function BuilderPage() {
         {/* Mobile Bottom Navigation */}
         <div className="lg:hidden absolute bottom-0 left-0 right-0 h-14 bg-background border-t border-border flex items-center justify-around z-50">
           <button
-            onClick={() => setMobileTab("sections")}
+            onPointerDown={() => switchMobileTab("sections")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${mobileTab === "sections" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <LayoutTemplate className="h-4 w-4 mb-0.5" />
             Sections
           </button>
           <button
-            onClick={() => setMobileTab("edit")}
+            onPointerDown={() => switchMobileTab("edit")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium border-l border-r border-border transition-colors ${mobileTab === "edit" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <FileText className="h-4 w-4 mb-0.5" />
             Edit
           </button>
           <button
-            onClick={() => setMobileTab("preview")}
+            onPointerDown={() => switchMobileTab("preview")}
             className={`flex flex-col items-center justify-center w-full h-full text-[10px] font-medium transition-colors ${mobileTab === "preview" ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-muted"}`}
           >
             <Zap className="h-4 w-4 mb-0.5" />
