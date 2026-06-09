@@ -1335,7 +1335,7 @@ export default function CoverLetterBuilder() {
                       <SelectItem key={t.id} value={t.id}>
                         <div className="flex items-center justify-between w-full gap-2">
                           <span>{t.name}</span>
-                          {t.isPremium && (
+                          {t.isPremium && !isPremiumUser && (
                             <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500 shrink-0 ml-1" />
                           )}
                         </div>
