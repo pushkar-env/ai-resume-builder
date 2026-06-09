@@ -6,6 +6,7 @@ import {
   Paragraph,
   TextRun,
   convertInchesToTwip,
+  convertMillimetersToTwip,
 } from "docx";
 import { parseCoverLetterContent } from "../components/resume/CoverLetterPreview";
 
@@ -278,10 +279,27 @@ export async function buildCoverLetterDocx(
   const doc = new Document({
     creator: "ResumeSensei",
     title: sanitizeWordText(data.title || "Cover Letter").slice(0, 255),
+    subject: "Professional cover letter",
+    description: "Professional cover letter created with ResumeSensei",
+    keywords: "cover letter, job application, professional correspondence",
+    styles: {
+      default: {
+        document: {
+          run: { font, size: runSize },
+          paragraph: {
+            spacing: { line: 276 },
+          },
+        },
+      },
+    },
     sections: [
       {
         properties: {
           page: {
+            size: {
+              width: convertMillimetersToTwip(210),
+              height: convertMillimetersToTwip(297),
+            },
             margin: {
               top: convertInchesToTwip(1),
               right: convertInchesToTwip(1),

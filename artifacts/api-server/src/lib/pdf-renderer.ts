@@ -98,6 +98,16 @@ async function withTimeout<T>(
 }
 
 async function configurePage(page: Page): Promise<void> {
+  await page.setJavaScriptEnabled(false);
+  await page.setRequestInterception(true);
+  page.on("request", (request) => {
+    const url = request.url();
+    if (url === "about:blank" || url.startsWith("data:")) {
+      void request.continue();
+      return;
+    }
+    void request.abort("blockedbyclient");
+  });
   await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
   await page.emulateMediaType("print");
 }
@@ -118,6 +128,49 @@ async function waitForFonts(page: Page): Promise<void> {
   ).catch(() => undefined);
 }
 
+async function waitForImagesAndLayout(page: Page): Promise<void> {
+  await withTimeout(
+    page.evaluate(async () => {
+      type ExportImage = {
+        complete: boolean;
+        addEventListener: (
+          type: string,
+          listener: () => void,
+          options?: { once?: boolean },
+        ) => void;
+        decode?: () => Promise<void>;
+      };
+      const runtime = globalThis as unknown as {
+        document?: { images?: ArrayLike<ExportImage> };
+        requestAnimationFrame?: (callback: () => void) => number;
+      };
+      const images = Array.from(runtime.document?.images ?? []);
+      await Promise.all(
+        images.map(async (image) => {
+          if (!image.complete) {
+            await new Promise<void>((resolve) => {
+              image.addEventListener("load", () => resolve(), { once: true });
+              image.addEventListener("error", () => resolve(), { once: true });
+            });
+          }
+          if (image.decode) {
+            await image.decode().catch(() => undefined);
+          }
+        }),
+      );
+
+      const raf = runtime.requestAnimationFrame;
+      if (raf) {
+        await new Promise<void>((resolve) =>
+          raf(() => raf(() => resolve())),
+        );
+      }
+    }),
+    PDF_FONT_WAIT_MS,
+    "Image and layout loading",
+  ).catch(() => undefined);
+}
+
 async function renderPdfOnPage(page: Page, html: string): Promise<Buffer> {
   await configurePage(page);
 
@@ -131,12 +184,15 @@ async function renderPdfOnPage(page: Page, html: string): Promise<Buffer> {
   );
 
   await waitForFonts(page);
+  await waitForImagesAndLayout(page);
 
   const pdfBuffer = await withTimeout(
     page.pdf({
       format: "A4",
       printBackground: true,
       preferCSSPageSize: true,
+      tagged: true,
+      outline: true,
       margin: { top: 0, bottom: 0, left: 0, right: 0 },
     }),
     PDF_RENDER_TIMEOUT_MS,

@@ -50,9 +50,26 @@ export const RESUME_PDF_EXPORT_CSS = `
     background: white;
     width: 210mm;
     overflow: visible;
+    color-scheme: light;
   }
   body {
     display: block;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures contextual;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  img, svg {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  img {
+    image-rendering: auto;
+  }
+  p, li {
+    orphans: 2;
+    widows: 2;
   }
   [data-resume-export-target],
   .resume-paged-view {

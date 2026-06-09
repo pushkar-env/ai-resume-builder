@@ -9,6 +9,7 @@ import {
   Paragraph,
   TextRun,
   convertInchesToTwip,
+  convertMillimetersToTwip,
 } from "docx";
 import { TEMPLATE_DEFAULT_SKILL_STYLES } from "./template-config";
 
@@ -285,6 +286,9 @@ function sectionHeading(text: string, accent: string, font: string): Paragraph {
   const color = hexToWordColor(accent);
   return new Paragraph({
     spacing: { before: 280, after: 120 },
+    keepNext: true,
+    keepLines: true,
+    widowControl: true,
     border: {
       bottom: { color: "CCCCCC", style: BorderStyle.SINGLE, size: 6, space: 1 },
     },
@@ -329,6 +333,8 @@ export async function buildResumeDocxBlob(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 120 },
+      keepNext: true,
+      keepLines: true,
       children: [
         new TextRun({
           text: sanitizeWordText(str(personal.name) || "Resume"),
@@ -346,6 +352,8 @@ export async function buildResumeDocxBlob(
       new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 160 },
+        keepNext: true,
+        keepLines: true,
         children: [
           new TextRun({
             text: sanitizeWordText(role),
@@ -393,6 +401,8 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 200, after: 40 },
+          keepNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: sanitizeWordText(str(e.title)),
@@ -410,6 +420,8 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { after: 100 },
+          keepNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: sanitizeWordText(companyAndDates),
@@ -470,6 +482,8 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 80, after: 40 },
+          keepNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: sanitizeWordText(str(e.school)),
@@ -485,6 +499,8 @@ export async function buildResumeDocxBlob(
         body.push(
           new Paragraph({
             spacing: { after: 40 },
+            keepNext: true,
+            keepLines: true,
             children: [
               new TextRun({
                 text: sanitizeWordText(parts.join(", ")),
@@ -579,6 +595,8 @@ export async function buildResumeDocxBlob(
       body.push(
         new Paragraph({
           spacing: { before: 120, after: 60 },
+          keepNext: true,
+          keepLines: true,
           children: [
             new TextRun({
               text: sanitizeWordText(str(pr.name)),
@@ -658,8 +676,21 @@ export async function buildResumeDocxBlob(
   }
 
   const doc = new Document({
-    creator: "AI Resume Builder",
+    creator: "ResumeSensei",
     title: sanitizeWordText(resume.title || "Resume").slice(0, 255),
+    subject: "Professional resume",
+    description: "ATS-friendly professional resume created with ResumeSensei",
+    keywords: "resume, curriculum vitae, professional experience, skills",
+    styles: {
+      default: {
+        document: {
+          run: { font, size: 22 },
+          paragraph: {
+            spacing: { line: 276 },
+          },
+        },
+      },
+    },
     numbering: {
       config: [
         {
@@ -687,6 +718,10 @@ export async function buildResumeDocxBlob(
       {
         properties: {
           page: {
+            size: {
+              width: convertMillimetersToTwip(210),
+              height: convertMillimetersToTwip(297),
+            },
             margin: {
               top: convertInchesToTwip(0.65),
               right: convertInchesToTwip(0.7),
