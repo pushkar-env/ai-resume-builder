@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,8 @@ import {
   Sliders,
   Check,
   Star,
+  Move,
+  RotateCcw,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -109,6 +111,11 @@ const EXPERIENCE_LEVELS = [
   { value: "executive", label: "Director / VP / Executive" },
 ];
 
+const COVER_LETTER_WIDTH = 794;
+const COVER_LETTER_HEIGHT = 1123;
+const MIN_PREVIEW_ZOOM = 0.3;
+const MAX_PREVIEW_ZOOM = 2;
+
 export default function CoverLetterBuilder() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
@@ -147,8 +154,17 @@ export default function CoverLetterBuilder() {
   const [localTone, setLocalTone] = useState("professional");
   const [localExperienceLevel, setLocalExperienceLevel] = useState("mid");
 
-  // Preview zoom factor
-  const [zoom, setZoom] = useState(0.75);
+  // Preview canvas state
+  const [zoom, setZoom] = useState(0.65);
+  const [previewPan, setPreviewPan] = useState({ x: 0, y: 24 });
+  const [isPreviewDragging, setIsPreviewDragging] = useState(false);
+  const previewViewportRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef(zoom);
+  const previewPanRef = useRef(previewPan);
+  const activePointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const lastGestureCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const lastPinchDistanceRef = useRef<number | null>(null);
+  const hasPositionedPreviewRef = useRef(false);
 
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallTitle, setPaywallTitle] = useState("Premium Template");
@@ -313,18 +329,274 @@ export default function CoverLetterBuilder() {
     }
   }, [coverLetter, linkedResume, hasLoadedInitial, user]);
 
-  // Initialize responsive zoom factor based on viewport width
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (window.innerWidth < 640) {
-        setZoom(0.42);
-      } else if (window.innerWidth < 1024) {
-        setZoom(0.6);
-      } else {
-        setZoom(0.75);
+  const commitPreviewTransform = useCallback(
+    (nextZoom: number, nextPan: { x: number; y: number }) => {
+      const viewport = previewViewportRef.current;
+      const clampedZoom = Math.min(MAX_PREVIEW_ZOOM, Math.max(MIN_PREVIEW_ZOOM, nextZoom));
+      let clampedPan = nextPan;
+
+      if (viewport) {
+        const { width, height } = viewport.getBoundingClientRect();
+        const scaledWidth = COVER_LETTER_WIDTH * clampedZoom;
+        const scaledHeight = COVER_LETTER_HEIGHT * clampedZoom;
+        const visibleEdge = Math.min(96, Math.max(48, Math.min(width, height) * 0.18));
+
+        clampedPan = {
+          x: Math.min(width - visibleEdge, Math.max(visibleEdge - scaledWidth, nextPan.x)),
+          y: Math.min(height - visibleEdge, Math.max(visibleEdge - scaledHeight, nextPan.y)),
+        };
       }
+
+      zoomRef.current = clampedZoom;
+      previewPanRef.current = clampedPan;
+      setZoom(clampedZoom);
+      setPreviewPan(clampedPan);
+    },
+    [],
+  );
+
+  const fitPreviewToViewport = useCallback(() => {
+    const viewport = previewViewportRef.current;
+    if (!viewport) return;
+
+    const { width, height } = viewport.getBoundingClientRect();
+    if (!width || !height) return;
+
+    const padding = width < 640 ? 24 : 40;
+    const fittedZoom = Math.min(
+      0.72,
+      Math.max(
+        MIN_PREVIEW_ZOOM,
+        Math.min(
+          (width - padding * 2) / COVER_LETTER_WIDTH,
+          (height - padding * 2) / COVER_LETTER_HEIGHT,
+        ),
+      ),
+    );
+
+    commitPreviewTransform(fittedZoom, {
+      x: (width - COVER_LETTER_WIDTH * fittedZoom) / 2,
+      y: Math.max(padding, (height - COVER_LETTER_HEIGHT * fittedZoom) / 2),
+    });
+    hasPositionedPreviewRef.current = true;
+  }, [commitPreviewTransform]);
+
+  const zoomPreviewAt = useCallback(
+    (nextZoom: number, anchor?: { x: number; y: number }) => {
+      const viewport = previewViewportRef.current;
+      const currentZoom = zoomRef.current;
+      const currentPan = previewPanRef.current;
+      const point =
+        anchor ??
+        (viewport
+          ? {
+              x: viewport.clientWidth / 2,
+              y: viewport.clientHeight / 2,
+            }
+          : { x: 0, y: 0 });
+      const clampedZoom = Math.min(MAX_PREVIEW_ZOOM, Math.max(MIN_PREVIEW_ZOOM, nextZoom));
+      const contentX = (point.x - currentPan.x) / currentZoom;
+      const contentY = (point.y - currentPan.y) / currentZoom;
+
+      commitPreviewTransform(clampedZoom, {
+        x: point.x - contentX * clampedZoom,
+        y: point.y - contentY * clampedZoom,
+      });
+    },
+    [commitPreviewTransform],
+  );
+
+  useEffect(() => {
+    const viewport = previewViewportRef.current;
+    if (!viewport) return;
+
+    const observer = new ResizeObserver(() => {
+      if (!hasPositionedPreviewRef.current) {
+        fitPreviewToViewport();
+        return;
+      }
+      commitPreviewTransform(zoomRef.current, previewPanRef.current);
+    });
+
+    observer.observe(viewport);
+    fitPreviewToViewport();
+    return () => observer.disconnect();
+  }, [commitPreviewTransform, fitPreviewToViewport]);
+
+  useEffect(() => {
+    if (activeMobileTab === "preview") {
+      requestAnimationFrame(() => {
+        if (!hasPositionedPreviewRef.current) fitPreviewToViewport();
+      });
     }
+  }, [activeMobileTab, fitPreviewToViewport]);
+
+  const getPreviewPoint = useCallback((clientX: number, clientY: number) => {
+    const rect = previewViewportRef.current?.getBoundingClientRect();
+    return rect
+      ? { x: clientX - rect.left, y: clientY - rect.top }
+      : { x: clientX, y: clientY };
   }, []);
+
+  const handlePreviewPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0 && event.pointerType === "mouse") return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      activePointersRef.current.set(
+        event.pointerId,
+        getPreviewPoint(event.clientX, event.clientY),
+      );
+
+      const points = Array.from(activePointersRef.current.values());
+      if (points.length === 1) {
+        lastGestureCenterRef.current = points[0];
+        lastPinchDistanceRef.current = null;
+      } else {
+        const [first, second] = points;
+        lastGestureCenterRef.current = {
+          x: (first.x + second.x) / 2,
+          y: (first.y + second.y) / 2,
+        };
+        lastPinchDistanceRef.current = Math.hypot(
+          second.x - first.x,
+          second.y - first.y,
+        );
+      }
+      setIsPreviewDragging(true);
+    },
+    [getPreviewPoint],
+  );
+
+  const handlePreviewPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!activePointersRef.current.has(event.pointerId)) return;
+      event.preventDefault();
+      activePointersRef.current.set(
+        event.pointerId,
+        getPreviewPoint(event.clientX, event.clientY),
+      );
+
+      const points = Array.from(activePointersRef.current.values());
+      if (points.length >= 2) {
+        const [first, second] = points;
+        const center = {
+          x: (first.x + second.x) / 2,
+          y: (first.y + second.y) / 2,
+        };
+        const distance = Math.max(
+          1,
+          Math.hypot(second.x - first.x, second.y - first.y),
+        );
+        const previousCenter = lastGestureCenterRef.current ?? center;
+        const previousDistance = lastPinchDistanceRef.current ?? distance;
+        const currentZoom = zoomRef.current;
+        const currentPan = previewPanRef.current;
+        const contentX = (previousCenter.x - currentPan.x) / currentZoom;
+        const contentY = (previousCenter.y - currentPan.y) / currentZoom;
+        const nextZoom = currentZoom * (distance / previousDistance);
+
+        commitPreviewTransform(nextZoom, {
+          x: center.x - contentX * nextZoom,
+          y: center.y - contentY * nextZoom,
+        });
+        lastGestureCenterRef.current = center;
+        lastPinchDistanceRef.current = distance;
+        return;
+      }
+
+      const point = points[0];
+      const previousPoint = lastGestureCenterRef.current ?? point;
+      commitPreviewTransform(zoomRef.current, {
+        x: previewPanRef.current.x + point.x - previousPoint.x,
+        y: previewPanRef.current.y + point.y - previousPoint.y,
+      });
+      lastGestureCenterRef.current = point;
+    },
+    [commitPreviewTransform, getPreviewPoint],
+  );
+
+  const handlePreviewPointerEnd = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      activePointersRef.current.delete(event.pointerId);
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      const points = Array.from(activePointersRef.current.values());
+      if (points.length === 0) {
+        lastGestureCenterRef.current = null;
+        lastPinchDistanceRef.current = null;
+        setIsPreviewDragging(false);
+      } else {
+        lastGestureCenterRef.current = points[0];
+        lastPinchDistanceRef.current = null;
+      }
+    },
+    [],
+  );
+
+  const handlePreviewWheel = useCallback(
+    (event: React.WheelEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      if (event.ctrlKey || event.metaKey) {
+        const anchor = getPreviewPoint(event.clientX, event.clientY);
+        zoomPreviewAt(zoomRef.current * Math.exp(-event.deltaY * 0.0025), anchor);
+        return;
+      }
+
+      commitPreviewTransform(zoomRef.current, {
+        x: previewPanRef.current.x - event.deltaX,
+        y: previewPanRef.current.y - event.deltaY,
+      });
+    },
+    [commitPreviewTransform, getPreviewPoint, zoomPreviewAt],
+  );
+
+  const handlePreviewKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const panStep = event.shiftKey ? 80 : 32;
+      const panBy = (x: number, y: number) => {
+        commitPreviewTransform(zoomRef.current, {
+          x: previewPanRef.current.x + x,
+          y: previewPanRef.current.y + y,
+        });
+      };
+
+      switch (event.key) {
+        case "ArrowLeft":
+          event.preventDefault();
+          panBy(panStep, 0);
+          break;
+        case "ArrowRight":
+          event.preventDefault();
+          panBy(-panStep, 0);
+          break;
+        case "ArrowUp":
+          event.preventDefault();
+          panBy(0, panStep);
+          break;
+        case "ArrowDown":
+          event.preventDefault();
+          panBy(0, -panStep);
+          break;
+        case "+":
+        case "=":
+          event.preventDefault();
+          zoomPreviewAt(zoomRef.current + 0.1);
+          break;
+        case "-":
+        case "_":
+          event.preventDefault();
+          zoomPreviewAt(zoomRef.current - 0.1);
+          break;
+        case "0":
+          event.preventDefault();
+          fitPreviewToViewport();
+          break;
+      }
+    },
+    [commitPreviewTransform, fitPreviewToViewport, zoomPreviewAt],
+  );
 
   // Track user edits after initial load is done
   useEffect(() => {
@@ -713,7 +985,7 @@ export default function CoverLetterBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground">
       <SEO
         title={`${localTitle || "Cover Letter Builder"} | ResumeSensei`}
         description="Create, edit, and optimize your cover letter using AI assistant."
@@ -797,14 +1069,14 @@ export default function CoverLetterBuilder() {
       </header>
 
       {/* Main Workspace split screen */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex items-start">
         {/* LEFT COLUMN: Input form & AI dashboard */}
         <div
-          className={`w-full md:w-1/2 flex flex-col border-r border-border/50 bg-background ${
-            activeMobileTab === "edit" ? "flex" : "hidden md:flex"
+          className={`w-full md:w-1/2 border-r border-border/50 bg-background ${
+            activeMobileTab === "edit" ? "block" : "hidden md:block"
           }`}
         >
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+          <div className="px-4 sm:px-6 py-6">
             <div className="space-y-8 max-w-xl mx-auto pb-24 md:pb-12">
               
               {/* Profile Linkage & Job Scraper */}
@@ -1301,8 +1573,8 @@ export default function CoverLetterBuilder() {
 
         {/* RIGHT COLUMN: Style controls & Live A4 preview canvas */}
         <div
-          className={`w-full md:w-1/2 flex flex-col bg-muted/30 overflow-hidden ${
-            activeMobileTab === "preview" ? "flex" : "hidden md:flex"
+          className={`w-full md:w-1/2 md:sticky md:top-[65px] md:self-start bg-muted/30 overflow-hidden ${
+            activeMobileTab === "preview" ? "block" : "hidden md:block"
           }`}
         >
           {/* Style toolbar */}
@@ -1409,26 +1681,41 @@ export default function CoverLetterBuilder() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/85 rounded"
-                onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                onClick={() => zoomPreviewAt(zoom - 0.1)}
+                aria-label="Zoom out"
+                title="Zoom out"
               >
                 <Minimize2 className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-[10px] font-bold font-mono px-1 w-9 text-center text-foreground">
+              <span className="text-[10px] font-bold font-mono px-1 w-10 text-center text-foreground">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/85 rounded"
-                onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
+                onClick={() => zoomPreviewAt(zoom + 0.1)}
+                aria-label="Zoom in"
+                title="Zoom in"
               >
                 <Maximize2 className="h-3.5 w-3.5" />
+              </Button>
+              <div className="h-4 w-px bg-border mx-0.5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-background/85 rounded"
+                onClick={fitPreviewToViewport}
+                aria-label="Fit cover letter to preview"
+                title="Fit to preview"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
 
           {/* Preview canvas */}
-          <div className="flex-1 overflow-auto bg-muted/30 flex justify-center p-8 pb-24 md:pb-8 relative">
+          <div className="h-[clamp(430px,calc(100svh-245px),620px)] sm:h-[clamp(500px,calc(100svh-230px),700px)] md:h-[clamp(560px,calc(100vh-170px),760px)] bg-gradient-to-br from-muted/50 via-muted/25 to-background p-3 sm:p-5 pb-3 sm:pb-5 relative">
             <AnimatePresence>
               {isRegenerating && (
                 <motion.div
@@ -1540,26 +1827,55 @@ export default function CoverLetterBuilder() {
             </AnimatePresence>
 
             <div
-              className="origin-top"
-              style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
+              ref={previewViewportRef}
+              className={`relative h-full w-full overflow-hidden rounded-2xl border border-border/70 bg-[radial-gradient(circle_at_center,hsl(var(--muted-foreground)/0.09)_1px,transparent_1px)] bg-[length:18px_18px] shadow-[inset_0_1px_0_hsl(var(--background)/0.8),0_18px_50px_-28px_rgba(15,23,42,0.45)] select-none touch-none overscroll-none ${
+                isPreviewDragging ? "cursor-grabbing" : "cursor-grab"
+              }`}
+              onPointerDown={handlePreviewPointerDown}
+              onPointerMove={handlePreviewPointerMove}
+              onPointerUp={handlePreviewPointerEnd}
+              onPointerCancel={handlePreviewPointerEnd}
+              onWheel={handlePreviewWheel}
+              onKeyDown={handlePreviewKeyDown}
+              tabIndex={0}
+              role="application"
+              aria-label="Interactive cover letter preview. Drag or use arrow keys to pan. Pinch, use plus and minus, or use the controls to zoom. Press zero to fit."
             >
-              <div data-resume-export-target="true">
-                <CoverLetterPreview
-                  content={localContent}
-                  senderName={localSenderName}
-                  senderEmail={localSenderEmail}
-                  senderPhone={localSenderPhone}
-                  senderLocation={localSenderLocation}
-                  recipientName={localHiringManager}
-                  companyName={localCompanyName}
-                  companyLocation={localLocation}
-                  jobTitle={localJobTitle}
-                  templateId={localTemplateId}
-                  accentColor={localAccentColor}
-                  fontFamily={localFontFamily}
-                  zoom={1} // Keep raw zoom as 1 inside scale transform wrapper
-                  showWatermark={showWatermark}
-                />
+              <div className="pointer-events-none absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/85 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-sm backdrop-blur-md">
+                <Move className="h-3 w-3" />
+                <span className="hidden sm:inline">Drag to explore</span>
+                <span className="sm:hidden">Drag</span>
+                <span className="text-border">|</span>
+                <span>Pinch to zoom</span>
+              </div>
+
+              <div
+                className="absolute left-0 top-0 will-change-transform"
+                style={{
+                  width: COVER_LETTER_WIDTH,
+                  height: COVER_LETTER_HEIGHT,
+                  transform: `translate3d(${previewPan.x}px, ${previewPan.y}px, 0) scale(${zoom})`,
+                  transformOrigin: "top left",
+                }}
+              >
+                <div data-resume-export-target="true">
+                  <CoverLetterPreview
+                    content={localContent}
+                    senderName={localSenderName}
+                    senderEmail={localSenderEmail}
+                    senderPhone={localSenderPhone}
+                    senderLocation={localSenderLocation}
+                    recipientName={localHiringManager}
+                    companyName={localCompanyName}
+                    companyLocation={localLocation}
+                    jobTitle={localJobTitle}
+                    templateId={localTemplateId}
+                    accentColor={localAccentColor}
+                    fontFamily={localFontFamily}
+                    zoom={1}
+                    showWatermark={showWatermark}
+                  />
+                </div>
               </div>
             </div>
           </div>
