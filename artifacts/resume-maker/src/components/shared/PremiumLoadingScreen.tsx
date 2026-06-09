@@ -17,6 +17,19 @@ const loadingDotTransition = {
   ease: "easeInOut" as const,
 };
 
+function WritingLine({ scale, delay = 0 }: { scale: number; delay?: number }) {
+  return (
+    <div className="h-1.5 w-full overflow-hidden rounded-full">
+      <motion.div
+        className="h-full w-full origin-left rounded-full bg-primary/25"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: scale }}
+        transition={{ ...writingLineTransition, delay }}
+      />
+    </div>
+  );
+}
+
 export function PremiumLoadingScreen({
   title = "Loading...",
   subtitle,
@@ -54,30 +67,9 @@ export function PremiumLoadingScreen({
 
             {/* Writing Lines inside the document */}
             <div className="absolute top-9 left-6 right-6 space-y-3">
-              <motion.div
-                className="h-1.5 bg-primary/25 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: "55%" }}
-                transition={writingLineTransition}
-              />
-              <motion.div
-                className="h-1.5 bg-primary/25 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: "70%" }}
-                transition={{
-                  delay: 0.2,
-                  ...writingLineTransition,
-                }}
-              />
-              <motion.div
-                className="h-1.5 bg-primary/25 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: "85%" }}
-                transition={{
-                  delay: 0.4,
-                  ...writingLineTransition,
-                }}
-              />
+              <WritingLine scale={0.55} />
+              <WritingLine scale={0.7} delay={0.2} />
+              <WritingLine scale={0.85} delay={0.4} />
             </div>
 
             {/* Bobbing/Writing Pencil */}
