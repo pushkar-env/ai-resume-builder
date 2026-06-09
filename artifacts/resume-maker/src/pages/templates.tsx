@@ -146,12 +146,15 @@ export default function TemplatesPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {(creating || createResume.isPending) && (
-        <PremiumLoadingScreen
-          title="Creating your resume"
-          subtitle="Applying template and sample sections"
-        />
-      )}
+      <AnimatePresence>
+        {(creating || createResume.isPending) && (
+          <PremiumLoadingScreen
+            key="template-create-loading"
+            title="Creating your resume"
+            subtitle="Applying template and sample sections"
+          />
+        )}
+      </AnimatePresence>
       <SEO
         title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."
@@ -198,18 +201,21 @@ export default function TemplatesPage() {
           ))}
         </div>
 
-        {isLoading ? (
-          <PremiumLoadingScreen
-            title="Loading templates"
-            subtitle="Fetching premium designs"
-          />
-        ) : (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-          >
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <PremiumLoadingScreen
+              key="templates-loading"
+              title="Loading templates"
+              subtitle="Fetching premium designs"
+            />
+          ) : (
+            <motion.div
+              key="templates-content"
+              initial="hidden"
+              animate="visible"
+              variants={stagger}
+              className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+            >
             {filtered.map((template) => {
               const cfg = TEMPLATE_CONFIG[template.id] ?? {
                 accent: "#000000",
@@ -319,8 +325,9 @@ export default function TemplatesPage() {
                 </motion.div>
               );
             })}
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {filtered.length === 0 && !isLoading && (
           <div className="text-center py-16 text-muted-foreground">

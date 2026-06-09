@@ -1982,24 +1982,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {(createResume.isPending || importResume.isPending || generateCoverLetter.isPending) && (
-        <PremiumLoadingScreen
-          title={
-            importResume.isPending
-              ? "Importing your resume"
-              : generateCoverLetter.isPending
-                ? "Generating your Cover Letter"
-                : "Creating your resume"
-          }
-          subtitle={
-            importResume.isPending
-              ? "Extracting and structuring content with AI"
-              : generateCoverLetter.isPending
-                ? "Tailoring tone and content to match job requirements..."
-                : "Setting up sections and template"
-          }
-        />
-      )}
+      <AnimatePresence>
+        {(createResume.isPending ||
+          importResume.isPending ||
+          generateCoverLetter.isPending) && (
+          <PremiumLoadingScreen
+            key="dashboard-action-loading"
+            title={
+              importResume.isPending
+                ? "Importing your resume"
+                : generateCoverLetter.isPending
+                  ? "Generating your Cover Letter"
+                  : "Creating your resume"
+            }
+            subtitle={
+              importResume.isPending
+                ? "Extracting and structuring content with AI"
+                : generateCoverLetter.isPending
+                  ? "Tailoring tone and content to match job requirements..."
+                  : "Setting up sections and template"
+            }
+          />
+        )}
+      </AnimatePresence>
       <SEO
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
@@ -2055,14 +2060,17 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {activeTab === "resumes" ? (
+        <AnimatePresence mode="wait">
+          {activeTab === "resumes" ? (
           resumesLoading ? (
             <PremiumLoadingScreen
+              key="dashboard-resumes-loading"
               title="Fetching your resumes"
               subtitle="Preparing your dashboard"
             />
           ) : (
             <motion.div
+              key="dashboard-resumes-content"
               initial="hidden"
               animate="visible"
               variants={stagger}
@@ -2154,14 +2162,15 @@ export default function DashboardPage() {
               </AnimatePresence>
             </motion.div>
           )
-        ) : (
-          coverLettersLoading ? (
+        ) : coverLettersLoading ? (
             <PremiumLoadingScreen
+              key="dashboard-cover-letters-loading"
               title="Fetching your cover letters"
               subtitle="Preparing your dashboard"
             />
           ) : (
             <motion.div
+              key="dashboard-cover-letters-content"
               initial="hidden"
               animate="visible"
               variants={stagger}
@@ -2213,8 +2222,8 @@ export default function DashboardPage() {
                 ))}
               </AnimatePresence>
             </motion.div>
-          )
-        )}
+          )}
+        </AnimatePresence>
       </main>
 
       <AppFooter />

@@ -1,5 +1,8 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Pen, File } from "lucide-react";
+
+let hasPlayedLoadingIntro = false;
 
 export function PremiumLoadingScreen({
   title = "Loading...",
@@ -8,13 +11,27 @@ export function PremiumLoadingScreen({
   title?: string;
   subtitle?: string;
 }) {
+  const shouldPlayIntro = useRef(!hasPlayedLoadingIntro);
+
+  useEffect(() => {
+    hasPlayedLoadingIntro = true;
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+    <motion.div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+      initial={shouldPlayIntro.current ? { opacity: 0 } : { opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 0.985, filter: "blur(4px)" }}
+      transition={{ duration: 0.28, ease: "easeInOut" }}
+    >
       <div className="relative flex flex-col items-center">
         {/* Animated Icon Group */}
         <div className="relative mb-10 flex items-center justify-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={
+              shouldPlayIntro.current ? { opacity: 0, scale: 0.8 } : false
+            }
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
             className="relative"
@@ -27,35 +44,32 @@ export function PremiumLoadingScreen({
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "55%" }}
+                animate={{ width: ["0%", "55%", "0%"] }}
                 transition={{
                   duration: 1.2,
                   repeat: Infinity,
-                  repeatType: "reverse",
                   ease: "easeInOut",
                 }}
               />
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "70%" }}
+                animate={{ width: ["0%", "70%", "0%"] }}
                 transition={{
                   duration: 1.2,
                   delay: 0.2,
                   repeat: Infinity,
-                  repeatType: "reverse",
                   ease: "easeInOut",
                 }}
               />
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: "85%" }}
+                animate={{ width: ["0%", "85%", "0%"] }}
                 transition={{
                   duration: 1.2,
                   delay: 0.4,
                   repeat: Infinity,
-                  repeatType: "reverse",
                   ease: "easeInOut",
                 }}
               />
@@ -82,7 +96,7 @@ export function PremiumLoadingScreen({
 
         {/* Text */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={shouldPlayIntro.current ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="text-center"
@@ -113,6 +127,6 @@ export function PremiumLoadingScreen({
           )}
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

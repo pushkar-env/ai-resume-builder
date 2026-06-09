@@ -1,12 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  ClerkProvider,
-  SignIn,
-  SignUp,
-  Show,
-  useClerk,
-  useAuth,
-} from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, useClerk, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
@@ -21,6 +14,7 @@ import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { clearAllToasts } from "@/hooks/use-toast";
 import LandingPage from "@/pages/landing";
 import DashboardPage from "@/pages/dashboard";
@@ -133,16 +127,68 @@ function SignUpPage() {
 }
 
 function HomeRedirect() {
-  return (
-    <>
-      <Show when="signed-in">
-        <Redirect to="/dashboard" />
-      </Show>
-      <Show when="signed-out">
-        <LandingPage />
-      </Show>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return <AuthLoadingFallback />;
+  }
+
+  return isSignedIn ? <Redirect to="/dashboard" /> : <LandingPage />;
+}
+
+function AuthLoadingFallback() {
+  const path = stripBase(window.location.pathname);
+
+  if (path.startsWith("/dashboard")) {
+    return (
+      <PremiumLoadingScreen
+        title="Fetching your resumes"
+        subtitle="Preparing your dashboard"
+      />
+    );
+  }
+
+  if (path.startsWith("/builder")) {
+    return <PremiumLoadingScreen title="Setting up your workspace" />;
+  }
+
+  if (path.startsWith("/cover-letter-builder")) {
+    return (
+      <PremiumLoadingScreen
+        title="Loading Cover Letter Workspace..."
+        subtitle="Preparing your professional writing canvas"
+      />
+    );
+  }
+
+  if (path.startsWith("/templates")) {
+    return (
+      <PremiumLoadingScreen
+        title="Loading templates"
+        subtitle="Fetching premium designs"
+      />
+    );
+  }
+
+  if (path.startsWith("/billing")) {
+    return (
+      <PremiumLoadingScreen
+        title="Loading billing"
+        subtitle="Checking your subscription"
+      />
+    );
+  }
+
+  if (path.startsWith("/settings")) {
+    return (
+      <PremiumLoadingScreen
+        title="Loading settings"
+        subtitle="Preparing your account"
+      />
+    );
+  }
+
+  return <PremiumLoadingScreen title="Loading..." />;
 }
 
 function ProtectedRoute({
@@ -150,16 +196,17 @@ function ProtectedRoute({
 }: {
   component: React.ComponentType;
 }) {
-  return (
-    <>
-      <Show when="signed-in">
-        <Component />
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/" />
-      </Show>
-    </>
-  );
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return <AuthLoadingFallback />;
+  }
+
+  if (!isSignedIn) {
+    return <Redirect to="/" />;
+  }
+
+  return <Component />;
 }
 
 function ClerkAuthTokenInitializer() {
@@ -356,7 +403,10 @@ function App() {
           {/* Protected routes redirect to home in E2E mode */}
           <Route path="/dashboard" component={() => <Redirect to="/" />} />
           <Route path="/builder/:id" component={() => <Redirect to="/" />} />
-          <Route path="/cover-letter-builder/:id" component={() => <Redirect to="/" />} />
+          <Route
+            path="/cover-letter-builder/:id"
+            component={() => <Redirect to="/" />}
+          />
           <Route path="/templates" component={() => <Redirect to="/" />} />
           <Route path="/billing" component={() => <Redirect to="/" />} />
           <Route path="/settings/*?" component={() => <Redirect to="/" />} />
