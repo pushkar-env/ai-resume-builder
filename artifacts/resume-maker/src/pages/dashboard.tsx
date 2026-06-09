@@ -235,8 +235,14 @@ export function ResumeThumbnail({
                 resume.accentColor ?? getDefaultAccentColor(resume.templateId)
               }
               fontScale={fontScale}
-              fontColor={resume.fontColor ?? (resume.templateId === "midnight" ? "#f9fafb" : "#111827")}
-              backgroundColor={resume.backgroundColor ?? (resume.templateId === "midnight" ? "#0d1117" : "#ffffff")}
+              fontColor={
+                resume.fontColor ??
+                (resume.templateId === "midnight" ? "#f9fafb" : "#111827")
+              }
+              backgroundColor={
+                resume.backgroundColor ??
+                (resume.templateId === "midnight" ? "#0d1117" : "#ffffff")
+              }
               showWatermark={showWatermark}
             />
           </ScaledResumeThumbnailShell>
@@ -302,7 +308,10 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       setResumeMenuOpen(false);
     };
 
-    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    window.addEventListener("scroll", handleScroll, {
+      capture: true,
+      passive: true,
+    });
     return () => {
       window.removeEventListener("scroll", handleScroll, { capture: true });
     };
@@ -454,7 +463,7 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
       exit={{
         opacity: 0,
         scale: 0.85,
-        transition: { duration: 0.2, ease: "easeOut" }
+        transition: { duration: 0.2, ease: "easeOut" },
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
@@ -496,7 +505,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
         dragSnapToOrigin={true}
         onDragStart={() => {
           if (cardRef.current) {
-            cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
+            cardInitialRectRef.current =
+              cardRef.current.getBoundingClientRect();
           }
         }}
         onDrag={(event, info) => {
@@ -510,7 +520,10 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
             if ((event as any).touches && (event as any).touches.length > 0) {
               pointerX = (event as any).touches[0].clientX;
               pointerY = (event as any).touches[0].clientY;
-            } else if ((event as any).changedTouches && (event as any).changedTouches.length > 0) {
+            } else if (
+              (event as any).changedTouches &&
+              (event as any).changedTouches.length > 0
+            ) {
               pointerX = (event as any).changedTouches[0].clientX;
               pointerY = (event as any).changedTouches[0].clientY;
             } else {
@@ -534,7 +547,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
             const cardLeft = cardInitialRectRef.current.left + info.offset.x;
             const cardRight = cardInitialRectRef.current.right + info.offset.x;
             const cardTop = cardInitialRectRef.current.top + info.offset.y;
-            const cardBottom = cardInitialRectRef.current.bottom + info.offset.y;
+            const cardBottom =
+              cardInitialRectRef.current.bottom + info.offset.y;
 
             // Hysteresis padding: card must penetrate 20px to activate, 0px to deactivate
             const cardPadding = currentOver ? 0 : -20;
@@ -548,12 +562,11 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
 
           // Check if the pointer is within a generous box of the trash bin
           const pointerPadding = currentOver ? 48 : 24;
-          const pointerOver = (
+          const pointerOver =
             pointerX >= trashLeft - pointerPadding &&
             pointerX <= trashRight + pointerPadding &&
             pointerY >= trashTop - pointerPadding &&
-            pointerY <= trashBottom + pointerPadding
-          );
+            pointerY <= trashBottom + pointerPadding;
 
           // Over is true if either the card intersects or the pointer hovers over the bin area
           const over = cardOver || pointerOver;
@@ -600,7 +613,8 @@ const DashboardResumeCard = memo(function DashboardResumeCard({
                     y: -6,
                     scale: 1,
                     rotate: 0,
-                    boxShadow: "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
+                    boxShadow:
+                      "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
                     transition: previewCardHoverTransition,
                   }
                 : {
@@ -862,7 +876,10 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
       setMenuOpen(false);
     };
 
-    window.addEventListener("scroll", handleScroll, { capture: true, passive: true });
+    window.addEventListener("scroll", handleScroll, {
+      capture: true,
+      passive: true,
+    });
     return () => {
       window.removeEventListener("scroll", handleScroll, { capture: true });
     };
@@ -1008,7 +1025,9 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
   // Resolve personal info fallbacks from linked resume
   let resolvedName = (coverLetter as any).senderName || "";
   if (!resolvedName && linkedResume?.sections) {
-    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    const personalSection = linkedResume.sections.find(
+      (s) => s.type === "personal",
+    );
     if (personalSection?.content) {
       const c = personalSection.content as any;
       resolvedName = c.name || c.fullName || "";
@@ -1018,17 +1037,24 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   let resolvedEmail = (coverLetter as any).senderEmail || "";
   if (!resolvedEmail && linkedResume?.sections) {
-    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    const personalSection = linkedResume.sections.find(
+      (s) => s.type === "personal",
+    );
     if (personalSection?.content) {
       const c = personalSection.content as any;
       resolvedEmail = c.email || "";
     }
   }
-  const senderEmail = resolvedEmail || user?.primaryEmailAddress?.emailAddress || "your.email@example.com";
+  const senderEmail =
+    resolvedEmail ||
+    user?.primaryEmailAddress?.emailAddress ||
+    "your.email@example.com";
 
   let resolvedPhone = (coverLetter as any).senderPhone || "";
   if (!resolvedPhone && linkedResume?.sections) {
-    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    const personalSection = linkedResume.sections.find(
+      (s) => s.type === "personal",
+    );
     if (personalSection?.content) {
       const c = personalSection.content as any;
       resolvedPhone = c.phone || "";
@@ -1038,7 +1064,9 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
   let resolvedLocation = (coverLetter as any).senderLocation || "";
   if (!resolvedLocation && linkedResume?.sections) {
-    const personalSection = linkedResume.sections.find((s) => s.type === "personal");
+    const personalSection = linkedResume.sections.find(
+      (s) => s.type === "personal",
+    );
     if (personalSection?.content) {
       const c = personalSection.content as any;
       resolvedLocation = c.location || "";
@@ -1047,7 +1075,8 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
   const senderLocation = resolvedLocation || "";
 
   // Accent color fallbacks
-  const accentColor = coverLetter.accentColor || linkedResume?.accentColor || "#1e3a8a";
+  const accentColor =
+    coverLetter.accentColor || linkedResume?.accentColor || "#1e3a8a";
   const fontFamily = coverLetter.fontFamily || "sans";
   const showWatermark = false;
 
@@ -1066,7 +1095,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
       exit={{
         opacity: 0,
         scale: 0.85,
-        transition: { duration: 0.2, ease: "easeOut" }
+        transition: { duration: 0.2, ease: "easeOut" },
       }}
       className={`h-full relative select-none no-touch-callout ${
         isDraggingThis ? "touch-none" : "touch-pan-y"
@@ -1108,7 +1137,8 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
         dragSnapToOrigin={true}
         onDragStart={() => {
           if (cardRef.current) {
-            cardInitialRectRef.current = cardRef.current.getBoundingClientRect();
+            cardInitialRectRef.current =
+              cardRef.current.getBoundingClientRect();
           }
         }}
         onDrag={(event, info) => {
@@ -1122,7 +1152,10 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
             if ((event as any).touches && (event as any).touches.length > 0) {
               pointerX = (event as any).touches[0].clientX;
               pointerY = (event as any).touches[0].clientY;
-            } else if ((event as any).changedTouches && (event as any).changedTouches.length > 0) {
+            } else if (
+              (event as any).changedTouches &&
+              (event as any).changedTouches.length > 0
+            ) {
               pointerX = (event as any).changedTouches[0].clientX;
               pointerY = (event as any).changedTouches[0].clientY;
             } else {
@@ -1146,7 +1179,8 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
             const cardLeft = cardInitialRectRef.current.left + info.offset.x;
             const cardRight = cardInitialRectRef.current.right + info.offset.x;
             const cardTop = cardInitialRectRef.current.top + info.offset.y;
-            const cardBottom = cardInitialRectRef.current.bottom + info.offset.y;
+            const cardBottom =
+              cardInitialRectRef.current.bottom + info.offset.y;
 
             // Hysteresis padding: card must penetrate 20px to activate, 0px to deactivate
             const cardPadding = currentOver ? 0 : -20;
@@ -1160,12 +1194,11 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
 
           // Check if the pointer is within a generous box of the trash bin
           const pointerPadding = currentOver ? 48 : 24;
-          const pointerOver = (
+          const pointerOver =
             pointerX >= trashLeft - pointerPadding &&
             pointerX <= trashRight + pointerPadding &&
             pointerY >= trashTop - pointerPadding &&
-            pointerY <= trashBottom + pointerPadding
-          );
+            pointerY <= trashBottom + pointerPadding;
 
           // Over is true if either the card intersects or the pointer hovers over the bin area
           const over = cardOver || pointerOver;
@@ -1212,7 +1245,8 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                     y: -6,
                     scale: 1,
                     rotate: 0,
-                    boxShadow: "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
+                    boxShadow:
+                      "0 14px 24px -6px rgba(0,0,0,0.12), 0 6px 12px -4px rgba(0,0,0,0.08)",
                     transition: previewCardHoverTransition,
                   }
                 : {
@@ -1262,15 +1296,25 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
               <div className="absolute inset-0 animate-fade-in">
                 <ScaledResumeThumbnailShell
                   hostClassName="absolute inset-0 overflow-hidden bg-white [&_.a4-page]:!shadow-none rounded-t-xl"
-                  measureDeps={[coverLetter.id, coverLetter.templateId, accentColor, fontFamily]}
+                  measureDeps={[
+                    coverLetter.id,
+                    coverLetter.templateId,
+                    accentColor,
+                    fontFamily,
+                  ]}
                 >
                   <CoverLetterPreview
-                    content={coverLetter.generatedContent || "Dear Hiring Manager,\n\nI am writing to express my interest..."}
+                    content={
+                      coverLetter.generatedContent ||
+                      "Dear Hiring Manager,\n\nI am writing to express my interest..."
+                    }
                     senderName={senderName}
                     senderEmail={senderEmail}
                     senderPhone={senderPhone}
                     senderLocation={senderLocation}
-                    recipientName={coverLetter.hiringManagerName || "Hiring Manager"}
+                    recipientName={
+                      coverLetter.hiringManagerName || "Hiring Manager"
+                    }
                     companyName={coverLetter.companyName || "Company Name"}
                     companyLocation={coverLetter.companyLocation || ""}
                     jobTitle={coverLetter.jobTitle || "Job Title"}
@@ -1294,7 +1338,9 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                 <p className="text-xs text-muted-foreground truncate mb-2">
                   {coverLetter.jobTitle && coverLetter.companyName
                     ? `${coverLetter.jobTitle} at ${coverLetter.companyName}`
-                    : coverLetter.jobTitle || coverLetter.companyName || "Draft"}
+                    : coverLetter.jobTitle ||
+                      coverLetter.companyName ||
+                      "Draft"}
                 </p>
                 <span className="inline-block text-[11px] px-2.5 py-0.5 rounded-md font-medium bg-emerald-50 text-emerald-700 capitalize">
                   {coverLetter.templateId || "Classic"} Template
@@ -1317,7 +1363,9 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
                     variant="ghost"
                     size="sm"
                     className={`dropdown-menu-trigger h-10 w-10 min-h-10 min-w-10 md:h-7 md:w-7 md:min-h-0 md:min-w-0 p-0 absolute top-3 right-3 md:top-4 md:right-4 bg-background/80 backdrop-blur-sm shadow-sm md:shadow-none focus-visible:ring-0 focus:outline-none [-webkit-tap-highlight-color:transparent] touch-manipulation z-25 transition-opacity duration-200 ${
-                      coarsePointer ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      coarsePointer
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100"
                     }`}
                     onClick={(e) => e.stopPropagation()}
                     onPointerDown={(e) => {
@@ -1439,17 +1487,23 @@ export default function DashboardPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const coarsePointer = useCoarsePointer();
-  const [activeTab, setActiveTab] = useState<"resumes" | "cover-letters">(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get("tab");
-    return tab === "cover-letters" ? "cover-letters" : "resumes";
-  });
+  const [activeTab, setActiveTab] = useState<"resumes" | "cover-letters">(
+    () => {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      return tab === "cover-letters" ? "cover-letters" : "resumes";
+    },
+  );
   const [createOpen, setCreateOpen] = useState(false);
   const [createCoverLetterOpen, setCreateCoverLetterOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [deleteType, setDeleteType] = useState<"resume" | "cover-letter">("resume");
+  const [deleteType, setDeleteType] = useState<"resume" | "cover-letter">(
+    "resume",
+  );
   const [renameId, setRenameId] = useState<number | null>(null);
-  const [renameType, setRenameType] = useState<"resume" | "cover-letter">("resume");
+  const [renameType, setRenameType] = useState<"resume" | "cover-letter">(
+    "resume",
+  );
   const [newTitle, setNewTitle] = useState("My Resume");
   const [renameTitle, setRenameTitle] = useState("");
   const [startWithSampleContent, setStartWithSampleContent] = useState(true);
@@ -1457,12 +1511,14 @@ export default function DashboardPage() {
   const [activeDragResumeId, setActiveDragResumeId] = useState<number | null>(
     null,
   );
-  const [activeDragCoverLetterId, setActiveDragCoverLetterId] = useState<number | null>(
-    null,
-  );
+  const [activeDragCoverLetterId, setActiveDragCoverLetterId] = useState<
+    number | null
+  >(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [isDeletedTrashPop, setIsDeletedTrashPop] = useState(false);
-  const [optimisticallyDeletedIds, setOptimisticallyDeletedIds] = useState<number[]>([]);
+  const [optimisticallyDeletedIds, setOptimisticallyDeletedIds] = useState<
+    number[]
+  >([]);
 
   // Canvas particle burst refs & loop
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1478,7 +1534,7 @@ export default function DashboardPage() {
     queryClient.invalidateQueries({
       predicate: (query) =>
         typeof query.queryKey[0] === "string" &&
-        query.queryKey[0].startsWith("/api/resumes")
+        query.queryKey[0].startsWith("/api/resumes"),
     });
   }, []);
 
@@ -1501,7 +1557,8 @@ export default function DashboardPage() {
     if (currentTab !== activeTab) {
       params.set("tab", activeTab);
       const newSearch = params.toString();
-      const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+      const newPath =
+        window.location.pathname + (newSearch ? `?${newSearch}` : "");
       window.history.replaceState(null, "", newPath);
     }
   }, [activeTab]);
@@ -1541,7 +1598,12 @@ export default function DashboardPage() {
         gravity: 0.16,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 0.15,
-        shape: Math.random() > 0.45 ? "sparkle" : (Math.random() > 0.45 ? "circle" : "square"),
+        shape:
+          Math.random() > 0.45
+            ? "sparkle"
+            : Math.random() > 0.45
+              ? "circle"
+              : "square",
       });
     }
 
@@ -1720,7 +1782,9 @@ export default function DashboardPage() {
     mutation: {
       onSuccess: async (data, variables) => {
         setDeleteId(null);
-        await queryClient.invalidateQueries({ queryKey: getListResumesQueryKey() });
+        await queryClient.invalidateQueries({
+          queryKey: getListResumesQueryKey(),
+        });
         setOptimisticallyDeletedIds((prev) =>
           prev.filter((id) => id !== variables.id),
         );
@@ -1735,7 +1799,8 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: coverLetters, isLoading: coverLettersLoading } = useListCoverLetters();
+  const { data: coverLetters, isLoading: coverLettersLoading } =
+    useListCoverLetters();
   const coverLetterList = useMemo(() => {
     const list = Array.isArray(coverLetters) ? coverLetters : [];
     const sorted = [...list].sort(
@@ -1749,7 +1814,9 @@ export default function DashboardPage() {
     mutation: {
       onSuccess: async (data, variables) => {
         setDeleteId(null);
-        await queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        await queryClient.invalidateQueries({
+          queryKey: getListCoverLettersQueryKey(),
+        });
         setOptimisticallyDeletedIds((prev) =>
           prev.filter((id) => id !== variables.id),
         );
@@ -1759,7 +1826,10 @@ export default function DashboardPage() {
         setOptimisticallyDeletedIds((prev) =>
           prev.filter((id) => id !== variables.id),
         );
-        toast({ title: "Failed to delete cover letter", variant: "destructive" });
+        toast({
+          title: "Failed to delete cover letter",
+          variant: "destructive",
+        });
       },
     },
   });
@@ -1767,12 +1837,17 @@ export default function DashboardPage() {
   const duplicateCoverLetter = useDuplicateCoverLetter({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getListCoverLettersQueryKey(),
+        });
         toast({ title: "Cover letter duplicated" });
       },
       onError: () => {
-        toast({ title: "Failed to duplicate cover letter", variant: "destructive" });
-      }
+        toast({
+          title: "Failed to duplicate cover letter",
+          variant: "destructive",
+        });
+      },
     },
   });
 
@@ -1786,19 +1861,26 @@ export default function DashboardPage() {
   const updateCoverLetter = useUpdateCoverLetter({
     mutation: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getListCoverLettersQueryKey(),
+        });
         setRenameId(null);
         toast({ title: "Cover letter renamed" });
       },
       onError: () =>
-        toast({ title: "Failed to rename cover letter", variant: "destructive" }),
+        toast({
+          title: "Failed to rename cover letter",
+          variant: "destructive",
+        }),
     },
   });
 
   const generateCoverLetter = useGenerateCoverLetter({
     mutation: {
       onSuccess: (data) => {
-        queryClient.invalidateQueries({ queryKey: getListCoverLettersQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey: getListCoverLettersQueryKey(),
+        });
         toast({ title: "Cover letter generated successfully" });
         setCreateCoverLetterOpen(false);
         if (clTitle.trim() && clTitle !== "My Cover Letter") {
@@ -1812,8 +1894,8 @@ export default function DashboardPage() {
           description: error?.message || "Unknown error occurred",
           variant: "destructive",
         });
-      }
-    }
+      },
+    },
   });
 
   const handleDragDeleteResume = useCallback(
@@ -1941,21 +2023,24 @@ export default function DashboardPage() {
   const [clCustomInstructions, setClCustomInstructions] = useState("");
   const [clTemplateId, setClTemplateId] = useState("classic");
 
-  const handleCreateCoverLetterFromResume = useCallback((resumeId: number, resumeTitle: string) => {
-    setActiveTab("cover-letters");
-    setClResumeId(resumeId);
-    setClTitle(`Cover Letter - ${resumeTitle}`);
-    setClJobTitle("");
-    setClCompanyName("");
-    setClHiringManager("");
-    setClCompanyLocation("");
-    setClJobDescription("");
-    setClJobUrl("");
-    setClTone("professional");
-    setClExpLevel("mid");
-    setClCustomInstructions("");
-    setCreateCoverLetterOpen(true);
-  }, []);
+  const handleCreateCoverLetterFromResume = useCallback(
+    (resumeId: number, resumeTitle: string) => {
+      setActiveTab("cover-letters");
+      setClResumeId(resumeId);
+      setClTitle(`Cover Letter - ${resumeTitle}`);
+      setClJobTitle("");
+      setClCompanyName("");
+      setClHiringManager("");
+      setClCompanyLocation("");
+      setClJobDescription("");
+      setClJobUrl("");
+      setClTone("professional");
+      setClExpLevel("mid");
+      setClCustomInstructions("");
+      setCreateCoverLetterOpen(true);
+    },
+    [],
+  );
 
   const scrapeJob = useScrapeJobDetails({
     mutation: {
@@ -1968,11 +2053,12 @@ export default function DashboardPage() {
       onError: (err: any) => {
         toast({
           title: "Failed to scrape job URL",
-          description: err?.message || "Please paste the job description manually.",
+          description:
+            err?.message || "Please paste the job description manually.",
           variant: "destructive",
         });
-      }
-    }
+      },
+    },
   });
 
   const handleScrapeJobUrl = () => {
@@ -2028,7 +2114,9 @@ export default function DashboardPage() {
             <button
               onClick={() => setActiveTab("resumes")}
               className={`relative px-4 py-2 text-xs font-semibold rounded-lg transition-colors z-10 duration-200 flex items-center gap-2 ${
-                activeTab === "resumes" ? "text-indigo-600 font-bold" : "text-slate-600 hover:text-slate-950"
+                activeTab === "resumes"
+                  ? "text-indigo-600 font-bold"
+                  : "text-slate-600 hover:text-slate-950"
               }`}
             >
               <FileText className="h-3.5 w-3.5" />
@@ -2044,7 +2132,9 @@ export default function DashboardPage() {
             <button
               onClick={() => setActiveTab("cover-letters")}
               className={`relative px-4 py-2 text-xs font-semibold rounded-lg transition-colors z-10 duration-200 flex items-center gap-2 ${
-                activeTab === "cover-letters" ? "text-indigo-600 font-bold" : "text-slate-600 hover:text-slate-950"
+                activeTab === "cover-letters"
+                  ? "text-indigo-600 font-bold"
+                  : "text-slate-600 hover:text-slate-950"
               }`}
             >
               <FileText className="h-3.5 w-3.5" />
@@ -2062,107 +2152,107 @@ export default function DashboardPage() {
 
         <AnimatePresence mode="wait">
           {activeTab === "resumes" ? (
-          resumesLoading ? (
-            <PremiumLoadingScreen
-              key="dashboard-resumes-loading"
-              title="Fetching your resumes"
-              subtitle="Preparing your dashboard"
-            />
-          ) : (
-            <motion.div
-              key="dashboard-resumes-content"
-              initial="hidden"
-              animate="visible"
-              variants={stagger}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
-            >
-              {/* Create New Card */}
-              <motion.div variants={fadeUp}>
-                <div
-                  onClick={handleCreateRequest}
-                  className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
-                >
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                    <Plus className="h-5 w-5 text-primary" />
+            resumesLoading ? (
+              <PremiumLoadingScreen
+                key="dashboard-resumes-loading"
+                title="Fetching your resumes"
+                subtitle="Preparing your dashboard"
+              />
+            ) : (
+              <motion.div
+                key="dashboard-resumes-content"
+                initial="hidden"
+                animate="visible"
+                variants={stagger}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full"
+              >
+                {/* Create New Card */}
+                <motion.div variants={fadeUp}>
+                  <div
+                    onClick={handleCreateRequest}
+                    className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Plus className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-medium text-sm">Create New Resume</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Start from a blank template
+                    </p>
                   </div>
-                  <h3 className="font-medium text-sm">Create New Resume</h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Start from a blank template
-                  </p>
-                </div>
-              </motion.div>
+                </motion.div>
 
-              {/* Import Card */}
-              <motion.div variants={fadeUp}>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleFileChange}
-                />
-                <div
-                  onClick={handleImportClick}
-                  className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
+                {/* Import Card */}
+                <motion.div variants={fadeUp}>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={handleFileChange}
+                  />
+                  <div
+                    onClick={handleImportClick}
+                    className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
                     ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
                   `}
-                >
-                  {importResume.isPending ? (
-                    <>
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                        <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                      </div>
-                      <h3 className="font-medium text-sm">Importing...</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Extracting with AI
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <FileUp className="h-5 w-5 text-primary" />
-                      </div>
-                      <h3 className="font-medium text-sm">Import Resume</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Upload PDF or DOCX
-                      </p>
-                    </>
-                  )}
-                </div>
-              </motion.div>
+                  >
+                    {importResume.isPending ? (
+                      <>
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                        </div>
+                        <h3 className="font-medium text-sm">Importing...</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Extracting with AI
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                          <FileUp className="h-5 w-5 text-primary" />
+                        </div>
+                        <h3 className="font-medium text-sm">Import Resume</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Upload PDF or DOCX
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </motion.div>
 
-              {/* Existing Resumes */}
-              <AnimatePresence mode="popLayout">
-                {resumeList.map((resume, index) => (
-                  <DashboardResumeCard
-                    key={resume.id}
-                    resume={resume}
-                    fadeUp={fadeUp}
-                    coarsePointer={coarsePointer}
-                    navigate={navigate}
-                    setRenameTitle={setRenameTitle}
-                    setRenameId={(id) => {
-                      setRenameType("resume");
-                      setRenameId(id);
-                    }}
-                    setDeleteId={(id) => {
-                      setDeleteType("resume");
-                      setDeleteId(id);
-                    }}
-                    deleteId={deleteId}
-                    handleDuplicateRequest={handleDuplicateRequest}
-                    isDraggingThis={activeDragResumeId === resume.id}
-                    setActiveDragResumeId={setActiveDragResumeId}
-                    setIsOverTrash={setIsOverTrash}
-                    onDragDelete={handleDragDeleteResume}
-                    index={index}
-                    onCreateCoverLetter={handleCreateCoverLetterFromResume}
-                  />
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          )
-        ) : coverLettersLoading ? (
+                {/* Existing Resumes */}
+                <AnimatePresence mode="popLayout">
+                  {resumeList.map((resume, index) => (
+                    <DashboardResumeCard
+                      key={resume.id}
+                      resume={resume}
+                      fadeUp={fadeUp}
+                      coarsePointer={coarsePointer}
+                      navigate={navigate}
+                      setRenameTitle={setRenameTitle}
+                      setRenameId={(id) => {
+                        setRenameType("resume");
+                        setRenameId(id);
+                      }}
+                      setDeleteId={(id) => {
+                        setDeleteType("resume");
+                        setDeleteId(id);
+                      }}
+                      deleteId={deleteId}
+                      handleDuplicateRequest={handleDuplicateRequest}
+                      isDraggingThis={activeDragResumeId === resume.id}
+                      setActiveDragResumeId={setActiveDragResumeId}
+                      setIsOverTrash={setIsOverTrash}
+                      onDragDelete={handleDragDeleteResume}
+                      index={index}
+                      onCreateCoverLetter={handleCreateCoverLetterFromResume}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            )
+          ) : coverLettersLoading ? (
             <PremiumLoadingScreen
               key="dashboard-cover-letters-loading"
               title="Fetching your cover letters"
@@ -2185,7 +2275,9 @@ export default function DashboardPage() {
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <Plus className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="font-medium text-sm text-slate-900">Generate Cover Letter</h3>
+                  <h3 className="font-medium text-sm text-slate-900">
+                    Generate Cover Letter
+                  </h3>
                   <p className="text-xs text-muted-foreground mt-1">
                     AI-tailored to any job description
                   </p>
@@ -2230,7 +2322,9 @@ export default function DashboardPage() {
 
       {/* Bottom Trash Zone */}
       <AnimatePresence>
-        {(activeDragResumeId !== null || activeDragCoverLetterId !== null || isDeletedTrashPop) && (
+        {(activeDragResumeId !== null ||
+          activeDragCoverLetterId !== null ||
+          isDeletedTrashPop) && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -2241,16 +2335,19 @@ export default function DashboardPage() {
             <motion.div
               ref={trashBinRef}
               animate={{
-                scale: isDeletedTrashPop ? 1.4 : (isOverTrash ? 1.25 : 1),
-                borderColor: isOverTrash || isDeletedTrashPop
-                  ? "rgba(244, 63, 94, 0.6)"
-                  : "rgba(71, 85, 105, 0.4)",
-                backgroundColor: isOverTrash || isDeletedTrashPop
-                  ? "rgba(76, 5, 25, 0.95)"
-                  : "rgba(15, 23, 42, 0.85)",
-                boxShadow: isOverTrash || isDeletedTrashPop
-                  ? "0 0 30px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.2)"
-                  : "0 10px 30px rgba(0, 0, 0, 0.25)",
+                scale: isDeletedTrashPop ? 1.4 : isOverTrash ? 1.25 : 1,
+                borderColor:
+                  isOverTrash || isDeletedTrashPop
+                    ? "rgba(244, 63, 94, 0.6)"
+                    : "rgba(71, 85, 105, 0.4)",
+                backgroundColor:
+                  isOverTrash || isDeletedTrashPop
+                    ? "rgba(76, 5, 25, 0.95)"
+                    : "rgba(15, 23, 42, 0.85)",
+                boxShadow:
+                  isOverTrash || isDeletedTrashPop
+                    ? "0 0 30px rgba(244, 63, 94, 0.4), inset 0 0 12px rgba(244, 63, 94, 0.2)"
+                    : "0 10px 30px rgba(0, 0, 0, 0.25)",
               }}
               transition={{ type: "spring", stiffness: 350, damping: 22 }}
               style={{
@@ -2378,7 +2475,9 @@ export default function DashboardPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename {renameType === "resume" ? "resume" : "cover letter"}</DialogTitle>
+            <DialogTitle>
+              Rename {renameType === "resume" ? "resume" : "cover letter"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -2387,7 +2486,11 @@ export default function DashboardPage() {
                 id="rename"
                 value={renameTitle}
                 onChange={(e) => setRenameTitle(e.target.value)}
-                placeholder={renameType === "resume" ? "e.g. Software Engineer Resume" : "e.g. Cover Letter for Stripe"}
+                placeholder={
+                  renameType === "resume"
+                    ? "e.g. Software Engineer Resume"
+                    : "e.g. Cover Letter for Stripe"
+                }
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && renameId !== null) {
                     if (renameType === "resume") {
@@ -2426,9 +2529,19 @@ export default function DashboardPage() {
                   }
                 }
               }}
-              disabled={(renameType === "resume" ? updateResume.isPending : updateCoverLetter.isPending) || !renameTitle.trim()}
+              disabled={
+                (renameType === "resume"
+                  ? updateResume.isPending
+                  : updateCoverLetter.isPending) || !renameTitle.trim()
+              }
             >
-              {(renameType === "resume" ? updateResume.isPending : updateCoverLetter.isPending) ? "Renaming..." : "Save changes"}
+              {(
+                renameType === "resume"
+                  ? updateResume.isPending
+                  : updateCoverLetter.isPending
+              )
+                ? "Renaming..."
+                : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2443,12 +2556,15 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle>Generate Tailored Cover Letter</DialogTitle>
             <DialogDescription>
-              AI will analyze your resume and target job listing to write a personalized, high-conversion cover letter.
+              AI will analyze your resume and target job listing to write a
+              personalized, high-conversion cover letter.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2 text-slate-800">
             <div className="space-y-2">
-              <Label htmlFor="cl-title" className="text-slate-700 font-medium">Document Title</Label>
+              <Label htmlFor="cl-title" className="text-slate-700 font-medium">
+                Document Title
+              </Label>
               <Input
                 id="cl-title"
                 value={clTitle}
@@ -2458,14 +2574,20 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cl-resume" className="text-slate-700 font-medium">Reference Resume</Label>
+              <Label htmlFor="cl-resume" className="text-slate-700 font-medium">
+                Reference Resume
+              </Label>
               <select
                 id="cl-resume"
                 value={clResumeId}
-                onChange={(e) => setClResumeId(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  setClResumeId(e.target.value ? Number(e.target.value) : "")
+                }
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 custom-select"
               >
-                <option value="">-- Select a Resume (Highly Recommended) --</option>
+                <option value="">
+                  -- Select a Resume (Highly Recommended) --
+                </option>
                 {resumeList.map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.title}
@@ -2475,11 +2597,18 @@ export default function DashboardPage() {
             </div>
 
             <div className="border-t border-border pt-4 mt-2">
-              <h4 className="text-sm font-semibold mb-3 text-slate-900">Job Details</h4>
-              
+              <h4 className="text-sm font-semibold mb-3 text-slate-900">
+                Job Details
+              </h4>
+
               <div className="flex gap-2 mb-3 items-end">
                 <div className="flex-1 space-y-1.5">
-                  <Label htmlFor="cl-url" className="text-slate-700 font-medium">Scrape Job Posting URL (Optional)</Label>
+                  <Label
+                    htmlFor="cl-url"
+                    className="text-slate-700 font-medium"
+                  >
+                    Scrape Job Posting URL (Optional)
+                  </Label>
                   <Input
                     id="cl-url"
                     value={clJobUrl}
@@ -2487,19 +2616,28 @@ export default function DashboardPage() {
                     placeholder="https://linkedin.com/jobs/view/... or any job site"
                   />
                 </div>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="secondary"
                   disabled={!clJobUrl || scrapeJob.isPending}
                   onClick={handleScrapeJobUrl}
                 >
-                  {scrapeJob.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Scrape"}
+                  {scrapeJob.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Scrape"
+                  )}
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="cl-job-title" className="text-slate-700 font-medium">Job Title</Label>
+                  <Label
+                    htmlFor="cl-job-title"
+                    className="text-slate-700 font-medium"
+                  >
+                    Job Title
+                  </Label>
                   <Input
                     id="cl-job-title"
                     value={clJobTitle}
@@ -2508,7 +2646,12 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="cl-company" className="text-slate-700 font-medium">Company Name</Label>
+                  <Label
+                    htmlFor="cl-company"
+                    className="text-slate-700 font-medium"
+                  >
+                    Company Name
+                  </Label>
                   <Input
                     id="cl-company"
                     value={clCompanyName}
@@ -2520,7 +2663,12 @@ export default function DashboardPage() {
 
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="cl-hiring-manager" className="text-slate-700 font-medium">Hiring Manager (Optional)</Label>
+                  <Label
+                    htmlFor="cl-hiring-manager"
+                    className="text-slate-700 font-medium"
+                  >
+                    Hiring Manager (Optional)
+                  </Label>
                   <Input
                     id="cl-hiring-manager"
                     value={clHiringManager}
@@ -2529,7 +2677,12 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="cl-location" className="text-slate-700 font-medium">Company Location (Optional)</Label>
+                  <Label
+                    htmlFor="cl-location"
+                    className="text-slate-700 font-medium"
+                  >
+                    Company Location (Optional)
+                  </Label>
                   <Input
                     id="cl-location"
                     value={clCompanyLocation}
@@ -2540,7 +2693,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="cl-desc" className="text-slate-700 font-medium">Job Description</Label>
+                <Label htmlFor="cl-desc" className="text-slate-700 font-medium">
+                  Job Description
+                </Label>
                 <textarea
                   id="cl-desc"
                   rows={4}
@@ -2554,7 +2709,9 @@ export default function DashboardPage() {
 
             <div className="border-t border-border pt-4 mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col justify-between h-full gap-1.5">
-                <Label htmlFor="cl-tone" className="text-slate-700 font-medium">Tone</Label>
+                <Label htmlFor="cl-tone" className="text-slate-700 font-medium">
+                  Tone
+                </Label>
                 <select
                   id="cl-tone"
                   value={clTone}
@@ -2570,7 +2727,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col justify-between h-full gap-1.5">
-                <Label htmlFor="cl-exp" className="text-slate-700 font-medium">Exp. Level</Label>
+                <Label htmlFor="cl-exp" className="text-slate-700 font-medium">
+                  Exp. Level
+                </Label>
                 <select
                   id="cl-exp"
                   value={clExpLevel}
@@ -2584,7 +2743,12 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col justify-between h-full gap-1.5">
-                <Label htmlFor="cl-template" className="text-slate-700 font-medium">Template Style</Label>
+                <Label
+                  htmlFor="cl-template"
+                  className="text-slate-700 font-medium"
+                >
+                  Template Style
+                </Label>
                 <select
                   id="cl-template"
                   value={clTemplateId}
@@ -2603,7 +2767,12 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="cl-instructions" className="text-slate-700 font-medium">Custom Instructions (Optional)</Label>
+              <Label
+                htmlFor="cl-instructions"
+                className="text-slate-700 font-medium"
+              >
+                Custom Instructions (Optional)
+              </Label>
               <textarea
                 id="cl-instructions"
                 rows={2}
@@ -2615,11 +2784,15 @@ export default function DashboardPage() {
             </div>
           </div>
           <DialogFooter className="flex-col gap-2 sm:flex-row mt-4">
-             <Button
+            <Button
               onClick={() => {
                 generateCoverLetter.mutate({
                   data: {
-                    flowType: clJobUrl ? "jobUrl" : (clResumeId ? "resume" : "jobDescription"),
+                    flowType: clJobUrl
+                      ? "jobUrl"
+                      : clResumeId
+                        ? "resume"
+                        : "jobDescription",
                     resumeId: clResumeId || undefined,
                     jobTitle: clJobTitle,
                     companyName: clCompanyName,
@@ -2630,10 +2803,15 @@ export default function DashboardPage() {
                     experienceLevel: clExpLevel,
                     customInstructions: clCustomInstructions || undefined,
                     jobUrl: clJobUrl || undefined,
-                  }
+                  },
                 });
               }}
-              disabled={generateCoverLetter.isPending || !clTitle.trim() || !clJobTitle.trim() || !clCompanyName.trim()}
+              disabled={
+                generateCoverLetter.isPending ||
+                !clTitle.trim() ||
+                !clJobTitle.trim() ||
+                !clCompanyName.trim()
+              }
               className={`text-xs sm:text-sm font-bold py-2.5 h-11 px-5 shadow-md transition-all duration-300 relative overflow-hidden ${
                 generateCoverLetter.isPending
                   ? "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white cursor-not-allowed shadow-purple-500/20"
@@ -2680,14 +2858,14 @@ export default function DashboardPage() {
                         strokeLinecap="round"
                         strokeDasharray="56"
                         initial={{ strokeDashoffset: 56, rotate: 0 }}
-                        animate={{ 
+                        animate={{
                           strokeDashoffset: [56, 14, 56],
-                          rotate: [0, 360, 720]
+                          rotate: [0, 360, 720],
                         }}
                         transition={{
                           duration: 1.5,
                           repeat: Infinity,
-                          ease: "easeInOut"
+                          ease: "easeInOut",
                         }}
                       />
                     </motion.svg>
@@ -2700,7 +2878,10 @@ export default function DashboardPage() {
                 )}
               </span>
             </Button>
-            <Button variant="outline" onClick={() => setCreateCoverLetterOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCreateCoverLetterOpen(false)}
+            >
               Cancel
             </Button>
           </DialogFooter>
@@ -2714,10 +2895,13 @@ export default function DashboardPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {deleteType === "resume" ? "resume" : "cover letter"}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete {deleteType === "resume" ? "resume" : "cover letter"}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. Your {deleteType === "resume" ? "resume" : "cover letter"} and all its content will
-              be permanently deleted.
+              This action cannot be undone. Your{" "}
+              {deleteType === "resume" ? "resume" : "cover letter"} and all its
+              content will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

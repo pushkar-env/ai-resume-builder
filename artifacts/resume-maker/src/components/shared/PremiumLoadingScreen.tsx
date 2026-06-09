@@ -4,6 +4,19 @@ import { Pen, File } from "lucide-react";
 
 let hasPlayedLoadingIntro = false;
 
+const writingLineTransition = {
+  duration: 1.65,
+  repeat: Infinity,
+  repeatType: "reverse" as const,
+  ease: "easeInOut" as const,
+};
+
+const loadingDotTransition = {
+  duration: 1.35,
+  repeat: Infinity,
+  ease: "easeInOut" as const,
+};
+
 export function PremiumLoadingScreen({
   title = "Loading...",
   subtitle,
@@ -44,33 +57,25 @@ export function PremiumLoadingScreen({
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: ["0%", "55%", "0%"] }}
-                transition={{
-                  duration: 1.2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                animate={{ width: "55%" }}
+                transition={writingLineTransition}
               />
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: ["0%", "70%", "0%"] }}
+                animate={{ width: "70%" }}
                 transition={{
-                  duration: 1.2,
                   delay: 0.2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                  ...writingLineTransition,
                 }}
               />
               <motion.div
                 className="h-1.5 bg-primary/25 rounded-full"
                 initial={{ width: 0 }}
-                animate={{ width: ["0%", "85%", "0%"] }}
+                animate={{ width: "85%" }}
                 transition={{
-                  duration: 1.2,
                   delay: 0.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                  ...writingLineTransition,
                 }}
               />
             </div>
@@ -111,17 +116,20 @@ export function PremiumLoadingScreen({
           )}
           {!subtitle && (
             <div className="flex items-center justify-center gap-1.5 mt-4">
-              <span
-                className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"
-                style={{ animationDelay: "0ms" }}
+              <motion.span
+                className="w-2 h-2 rounded-full bg-primary/60"
+                animate={{ y: [0, -5, 0, 5, 0] }}
+                transition={loadingDotTransition}
               />
-              <span
-                className="w-2 h-2 rounded-full bg-primary/80 animate-bounce"
-                style={{ animationDelay: "150ms" }}
+              <motion.span
+                className="w-2 h-2 rounded-full bg-primary/80"
+                animate={{ y: [0, -5, 0, 5, 0] }}
+                transition={{ delay: 0.15, ...loadingDotTransition }}
               />
-              <span
-                className="w-2 h-2 rounded-full bg-primary animate-bounce"
-                style={{ animationDelay: "300ms" }}
+              <motion.span
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{ y: [0, -5, 0, 5, 0] }}
+                transition={{ delay: 0.3, ...loadingDotTransition }}
               />
             </div>
           )}

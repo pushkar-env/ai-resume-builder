@@ -216,115 +216,115 @@ export default function TemplatesPage() {
               variants={stagger}
               className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
             >
-            {filtered.map((template) => {
-              const cfg = TEMPLATE_CONFIG[template.id] ?? {
-                accent: "#000000",
-                bg: "#f8fafc",
-              };
-              const isSelected = selected === template.id;
-              const isHovered = hoveredId === template.id;
-              const catClass =
-                CATEGORY_COLORS[template.category ?? ""] ??
-                "bg-gray-100 text-gray-600";
+              {filtered.map((template) => {
+                const cfg = TEMPLATE_CONFIG[template.id] ?? {
+                  accent: "#000000",
+                  bg: "#f8fafc",
+                };
+                const isSelected = selected === template.id;
+                const isHovered = hoveredId === template.id;
+                const catClass =
+                  CATEGORY_COLORS[template.category ?? ""] ??
+                  "bg-gray-100 text-gray-600";
 
-              return (
-                <motion.div
-                  key={template.id}
-                  variants={fadeUp}
-                  transition={previewCardHoverTransition}
-                  whileHover={
-                    coarsePointer
-                      ? undefined
-                      : {
-                          ...previewCardWhileHover,
-                          transition: previewCardHoverTransition,
-                        }
-                  }
-                  whileTap={previewCardWhileTap}
-                  className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-[box-shadow,border-color] duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
-                    isSelected
-                      ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10"
-                      : "border-border hover:border-primary/45 hover:shadow-xl"
-                  }`}
-                  onClick={() => setSelected(isSelected ? null : template.id)}
-                  onMouseEnter={() => setHoveredId(template.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                >
-                  {/* Premium badge */}
-                  {template.isPremium && !isPremiumUser && (
-                    <ProBadge
-                      size="sm"
-                      className="absolute top-2.5 right-2.5 z-20"
-                    />
-                  )}
-
-                  {/* Selected checkmark */}
-                  {isSelected && (
-                    <div className="absolute top-2.5 left-2.5 z-20 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md">
-                      <Check className="h-3.5 w-3.5 text-white" />
-                    </div>
-                  )}
-
-                  {/* Real resume preview as thumbnail */}
-                  <div
-                    className="relative overflow-hidden"
-                    style={{ aspectRatio: "3/4", background: cfg.bg }}
+                return (
+                  <motion.div
+                    key={template.id}
+                    variants={fadeUp}
+                    transition={previewCardHoverTransition}
+                    whileHover={
+                      coarsePointer
+                        ? undefined
+                        : {
+                            ...previewCardWhileHover,
+                            transition: previewCardHoverTransition,
+                          }
+                    }
+                    whileTap={previewCardWhileTap}
+                    className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-[box-shadow,border-color] duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10"
+                        : "border-border hover:border-primary/45 hover:shadow-xl"
+                    }`}
+                    onClick={() => setSelected(isSelected ? null : template.id)}
+                    onMouseEnter={() => setHoveredId(template.id)}
+                    onMouseLeave={() => setHoveredId(null)}
                   >
-                    <TemplateThumbnail
-                      templateId={template.id}
-                      accent={cfg.accent}
-                      showWatermark={user?.publicMetadata?.isPremium !== true}
-                    />
+                    {/* Premium badge */}
+                    {template.isPremium && !isPremiumUser && (
+                      <ProBadge
+                        size="sm"
+                        className="absolute top-2.5 right-2.5 z-20"
+                      />
+                    )}
 
-                    {/* Gradient hint overlay (very subtle) */}
-                    <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none bg-gradient-to-t from-black/10 to-transparent" />
+                    {/* Selected checkmark */}
+                    {isSelected && (
+                      <div className="absolute top-2.5 left-2.5 z-20 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                      </div>
+                    )}
 
-                    {/* Hover overlay with CTA */}
-                    <motion.div
-                      className={`absolute inset-0 flex items-center justify-center z-10 ${!isHovered ? "pointer-events-none" : ""}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: isHovered ? 1 : 0 }}
-                      transition={{ duration: 0.16, ease: "easeOut" }}
-                      style={{ background: "rgba(0,0,0,0.52)" }}
+                    {/* Real resume preview as thumbnail */}
+                    <div
+                      className="relative overflow-hidden"
+                      style={{ aspectRatio: "3/4", background: cfg.bg }}
                     >
-                      <button
-                        type="button"
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-white/35 bg-white/10 hover:bg-white/18 transition-[transform,colors] duration-200 ease-out backdrop-blur-sm ${
-                          isHovered ? "translate-y-0" : "translate-y-1.5"
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void handleUseTemplate(template.id);
-                        }}
-                      >
-                        Use template <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    </motion.div>
-                  </div>
+                      <TemplateThumbnail
+                        templateId={template.id}
+                        accent={cfg.accent}
+                        showWatermark={user?.publicMetadata?.isPremium !== true}
+                      />
 
-                  {/* Info */}
-                  <div className="p-3.5 bg-background">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-sm text-foreground truncate">
-                          {template.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                          {template.description}
-                        </p>
+                      {/* Gradient hint overlay (very subtle) */}
+                      <div className="absolute inset-x-0 bottom-0 h-12 pointer-events-none bg-gradient-to-t from-black/10 to-transparent" />
+
+                      {/* Hover overlay with CTA */}
+                      <motion.div
+                        className={`absolute inset-0 flex items-center justify-center z-10 ${!isHovered ? "pointer-events-none" : ""}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        transition={{ duration: 0.16, ease: "easeOut" }}
+                        style={{ background: "rgba(0,0,0,0.52)" }}
+                      >
+                        <button
+                          type="button"
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-white/35 bg-white/10 hover:bg-white/18 transition-[transform,colors] duration-200 ease-out backdrop-blur-sm ${
+                            isHovered ? "translate-y-0" : "translate-y-1.5"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleUseTemplate(template.id);
+                          }}
+                        >
+                          Use template <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </motion.div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-3.5 bg-background">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-sm text-foreground truncate">
+                            {template.name}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                            {template.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${catClass}`}
+                        >
+                          {template.category}
+                        </span>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-1.5">
-                      <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${catClass}`}
-                      >
-                        {template.category}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>
