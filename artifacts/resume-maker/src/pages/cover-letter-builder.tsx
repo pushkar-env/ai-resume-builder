@@ -1069,10 +1069,10 @@ export default function CoverLetterBuilder() {
       </header>
 
       {/* Main Workspace split screen */}
-      <div className="flex items-start">
+      <div className="flex items-start md:h-[calc(100svh-65px)] md:min-h-0 md:overflow-hidden">
         {/* LEFT COLUMN: Input form & AI dashboard */}
         <div
-          className={`w-full md:w-1/2 border-r border-border/50 bg-background ${
+          className={`w-full md:h-full md:w-1/2 md:min-h-0 md:overflow-y-auto md:overscroll-contain border-r border-border/50 bg-background ${
             activeMobileTab === "edit" ? "block" : "hidden md:block"
           }`}
         >
@@ -1573,12 +1573,12 @@ export default function CoverLetterBuilder() {
 
         {/* RIGHT COLUMN: Style controls & Live A4 preview canvas */}
         <div
-          className={`w-full md:w-1/2 md:sticky md:top-[65px] md:self-start bg-muted/30 overflow-hidden ${
-            activeMobileTab === "preview" ? "block" : "hidden md:block"
+          className={`w-full md:flex md:h-full md:w-1/2 md:min-h-0 md:flex-col bg-muted/30 overflow-hidden ${
+            activeMobileTab === "preview" ? "block" : "hidden md:flex"
           }`}
         >
           {/* Style toolbar */}
-          <div className="bg-card border-b border-border/50 p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div className="shrink-0 bg-card border-b border-border/50 p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
             <div className="flex flex-wrap items-center gap-3">
               {/* Template Select */}
               <div className="space-y-0.5">
@@ -1715,7 +1715,7 @@ export default function CoverLetterBuilder() {
           </div>
 
           {/* Preview canvas */}
-          <div className="h-[clamp(430px,calc(100svh-245px),620px)] sm:h-[clamp(500px,calc(100svh-230px),700px)] md:h-[clamp(560px,calc(100vh-170px),760px)] bg-gradient-to-br from-muted/50 via-muted/25 to-background p-3 sm:p-5 pb-3 sm:pb-5 relative">
+          <div className="h-[clamp(430px,calc(100svh-245px),620px)] sm:h-[clamp(500px,calc(100svh-230px),700px)] md:h-auto md:min-h-0 md:flex-1 bg-gradient-to-br from-muted/50 via-muted/25 to-background p-3 sm:p-5 pb-3 sm:pb-5 relative">
             <AnimatePresence>
               {isRegenerating && (
                 <motion.div
