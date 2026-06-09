@@ -79,27 +79,6 @@
   }
 }
 
-@keyframes loading-writing-line {
-  0% {
-    transform: scaleX(0);
-  }
-  50% {
-    transform: scaleX(var(--loading-line-scale));
-  }
-  100% {
-    transform: scaleX(0);
-  }
-}
-
-.loading-writing-line {
-  animation-duration: 3.3s;
-  animation-iteration-count: infinite;
-  animation-name: loading-writing-line;
-  animation-timing-function: ease-in-out;
-  transform: scaleX(0);
-  will-change: transform;
-}
-
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0, 0, 0, 0.1);
