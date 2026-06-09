@@ -1,15 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { motion } from "framer-motion";
 import { Pen, File } from "lucide-react";
 
 let hasPlayedLoadingIntro = false;
+let writingAnimationStartedAt: number | null = null;
 
-const writingLineTransition = {
-  duration: 3.3,
-  repeat: Infinity,
-  ease: "easeInOut" as const,
-  times: [0, 0.5, 1],
-};
+const writingLineCycleSeconds = 3.3;
 
 const loadingDotTransition = {
   duration: 1.35,
@@ -18,19 +14,32 @@ const loadingDotTransition = {
 };
 
 function WritingLine({ scale, delay = 0 }: { scale: number; delay?: number }) {
+  const animationStartedAt = getWritingAnimationStartedAt();
+  const now =
+    typeof performance === "undefined" ? Date.now() : performance.now();
+  const elapsedSeconds = (now - animationStartedAt) / 1000;
+  const phaseOffset = elapsedSeconds % writingLineCycleSeconds;
+
   return (
     <div
       className="h-1.5 overflow-hidden rounded-full"
       style={{ width: `${scale * 100}%` }}
     >
-      <motion.div
-        className="h-full w-full origin-left rounded-full bg-primary/25"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: [0, 1, 0] }}
-        transition={{ ...writingLineTransition, delay }}
+      <div
+        className="loading-writing-line-fill h-full w-full origin-left rounded-full bg-primary/25"
+        style={{ animationDelay: `${delay - phaseOffset}s` } as CSSProperties}
       />
     </div>
   );
+}
+
+function getWritingAnimationStartedAt() {
+  if (writingAnimationStartedAt == null) {
+    writingAnimationStartedAt =
+      typeof performance === "undefined" ? Date.now() : performance.now();
+  }
+
+  return writingAnimationStartedAt;
 }
 
 export function PremiumLoadingScreen({
