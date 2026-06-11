@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -148,6 +149,7 @@ export default function CoverLetterBuilder() {
   const [localClosing, setLocalClosing] = useState("");
   const [localSignature, setLocalSignature] = useState("");
   const [localShowSignatureDesign, setLocalShowSignatureDesign] = useState(true);
+  const [localFontSize, setLocalFontSize] = useState<number>(16);
 
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -245,6 +247,7 @@ export default function CoverLetterBuilder() {
       let initialClosing = "";
       let initialSignature = "";
       let initialShowSignatureDesign = true;
+      let initialFontSize = 16;
 
       try {
         const parsedJson = JSON.parse(rawContent);
@@ -254,6 +257,7 @@ export default function CoverLetterBuilder() {
           initialClosing = parsedJson.closing || "";
           initialSignature = parsedJson.signature || "";
           initialShowSignatureDesign = parsedJson.showSignatureDesign !== undefined ? parsedJson.showSignatureDesign : true;
+          initialFontSize = parsedJson.fontSize !== undefined ? Number(parsedJson.fontSize) : 16;
         } else {
           throw new Error("Not JSON");
         }
@@ -288,6 +292,7 @@ export default function CoverLetterBuilder() {
       setLocalClosing(initialClosing);
       setLocalSignature(initialSignature);
       setLocalShowSignatureDesign(initialShowSignatureDesign);
+      setLocalFontSize(initialFontSize);
 
       setLocalCustomInstructions(coverLetter.customInstructions || "");
       
@@ -396,9 +401,10 @@ export default function CoverLetterBuilder() {
       closing: localClosing,
       signature: localSignature,
       showSignatureDesign: localShowSignatureDesign,
+      fontSize: localFontSize,
     });
     setLocalContent(serializedJson);
-  }, [localDate, localBody, localClosing, localSignature, localShowSignatureDesign, hasLoadedInitial]);
+  }, [localDate, localBody, localClosing, localSignature, localShowSignatureDesign, localFontSize, hasLoadedInitial]);
 
   const commitPreviewTransform = useCallback(
     (nextZoom: number, nextPan: { x: number; y: number }) => {
@@ -691,6 +697,7 @@ export default function CoverLetterBuilder() {
     localClosing,
     localSignature,
     localShowSignatureDesign,
+    localFontSize,
   ]);
 
   // Debounced auto-save effect
@@ -1835,6 +1842,21 @@ export default function CoverLetterBuilder() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Font Size adjustment */}
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-muted-foreground block font-semibold uppercase">Font Size ({localFontSize}px)</span>
+                <div className="flex items-center gap-2 h-8 w-32 px-1">
+                  <Slider
+                    min={12}
+                    max={20}
+                    step={0.5}
+                    value={[localFontSize]}
+                    onValueChange={(val) => setLocalFontSize(val[0])}
+                    className="w-full cursor-pointer"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Zoom Controls */}
@@ -2037,6 +2059,7 @@ export default function CoverLetterBuilder() {
                     zoom={1}
                     showWatermark={showWatermark}
                     showSignatureDesign={localShowSignatureDesign}
+                    fontSize={localFontSize}
                   />
                 </div>
               </div>

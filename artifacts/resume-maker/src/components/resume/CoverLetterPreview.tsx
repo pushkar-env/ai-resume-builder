@@ -18,6 +18,7 @@ interface CoverLetterPreviewProps {
   zoom?: number;
   showWatermark?: boolean;
   showSignatureDesign?: boolean;
+  fontSize?: number;
 }
 
 export interface ParsedCoverLetter {
@@ -82,6 +83,7 @@ export interface ParsedCoverLetter {
   date: string;
   subject: string;
   showSignatureDesign?: boolean;
+  fontSize?: number;
 }
 
 export function parseCoverLetterContent(
@@ -146,7 +148,8 @@ export function parseCoverLetterContent(
         senderEmail: senderEmail || "",
         senderPhone: senderPhone || "",
         senderLocation: senderLocation || "",
-        showSignatureDesign: parsedJson.showSignatureDesign !== undefined ? parsedJson.showSignatureDesign : true
+        showSignatureDesign: parsedJson.showSignatureDesign !== undefined ? parsedJson.showSignatureDesign : true,
+        fontSize: parsedJson.fontSize !== undefined ? Number(parsedJson.fontSize) : undefined
       };
     }
   } catch {
@@ -396,6 +399,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
   zoom = 1,
   showWatermark = false,
   showSignatureDesign,
+  fontSize,
 }) => {
   const finalFontClass = useMemo(() => {
     if (fontFamily === "serif") return "font-serif";
@@ -421,6 +425,8 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
     return p;
   }, [content, recipientName, senderName, senderEmail, senderPhone, senderLocation, companyName, companyLocation, jobTitle, showSignatureDesign]);
 
+  const activeFontSize = fontSize || parsed.fontSize || 16;
+
   const dateStr = useMemo(() => {
     return new Date().toLocaleDateString("en-US", {
       month: "long",
@@ -433,46 +439,42 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
     return content ? content.split(/\s+/).filter(Boolean).length : 0;
   }, [content]);
 
-  // Premium dynamic scaling parameters based on word count to prevent page overflow
+  // Premium dynamic scaling parameters based on both font size and word count to prevent page overflow
   const scale = useMemo(() => {
-    if (wordCount > 340) {
-      return {
-        bodyFont: "text-[13px] leading-normal",
-        paragraphSpacing: "space-y-2",
-        padding: "pt-5 pb-5 px-8",
-        headerMargin: "mb-3 mt-0",
-        itemMargin: "mb-2",
-        footerMargin: "mt-3 pt-2 border-t",
-        footerMarginNoBorder: "mt-3",
-        subjectMargin: "mb-2",
-        salutationMargin: "mb-2",
-      };
-    } else if (wordCount > 270) {
-      return {
-        bodyFont: "text-[14px] leading-normal",
-        paragraphSpacing: "space-y-3",
-        padding: "pt-7 pb-7 px-9",
-        headerMargin: "mb-4 mt-0",
-        itemMargin: "mb-3",
-        footerMargin: "mt-5 pt-3 border-t",
-        footerMarginNoBorder: "mt-5",
-        subjectMargin: "mb-3.5",
-        salutationMargin: "mb-3",
-      };
-    } else {
-      return {
-        bodyFont: "text-[15px] leading-relaxed",
-        paragraphSpacing: "space-y-4.5",
-        padding: "pt-9 pb-9 px-10",
-        headerMargin: "mb-6 mt-1",
-        itemMargin: "mb-5",
-        footerMargin: "mt-7 pt-4 border-t",
-        footerMarginNoBorder: "mt-7",
-        subjectMargin: "mb-5",
-        salutationMargin: "mb-4",
-      };
-    }
-  }, [wordCount]);
+    const fs = activeFontSize;
+    
+    // Relative text sizes
+    const textXs = `text-[${Math.max(9, Math.round(fs * 0.78))}px]`;
+    const textSm = `text-[${Math.max(10, Math.round(fs * 0.90))}px]`;
+    const textBase = `text-[${fs}px]`;
+    const textLg = `text-[${Math.round(fs * 1.15)}px]`;
+    const textXl = `text-[${Math.round(fs * 1.35)}px]`;
+    const text2xl = `text-[${Math.round(fs * 1.65)}px]`;
+    const text3xl = `text-[${Math.round(fs * 2.0)}px]`;
+
+    // Space / Padding scales based on both font size and word count to ensure single-page fit
+    const isLarge = fs >= 17.5 || wordCount > 320;
+    const isMedium = fs >= 15.5 || wordCount > 250;
+
+    return {
+      xs: textXs,
+      sm: textSm,
+      base: textBase,
+      lg: textLg,
+      xl: textXl,
+      xxl: text2xl,
+      xxxl: text3xl,
+      bodyFont: `${textBase} leading-relaxed`,
+      paragraphSpacing: isLarge ? "space-y-2.5" : isMedium ? "space-y-3.5" : "space-y-4.5",
+      padding: isLarge ? "pt-5 pb-5 px-7" : isMedium ? "pt-7 pb-7 px-9" : "pt-10 pb-10 px-10",
+      headerMargin: isLarge ? "mb-2.5 mt-0" : isMedium ? "mb-4.5 mt-0" : "mb-6.5 mt-1",
+      itemMargin: isLarge ? "mb-2" : isMedium ? "mb-3.5" : "mb-5",
+      footerMargin: isLarge ? "mt-3 pt-2.5 border-t" : isMedium ? "mt-5 pt-3.5 border-t" : "mt-8.5 pt-4.5 border-t",
+      footerMarginNoBorder: isLarge ? "mt-3" : isMedium ? "mt-5" : "mt-8.5",
+      subjectMargin: isLarge ? "mb-2.5" : "mb-4",
+      salutationMargin: isLarge ? "mb-2" : "mb-4",
+    };
+  }, [wordCount, activeFontSize]);
 
   const renderedTemplate = useMemo(() => {
     switch (templateId) {
@@ -1050,7 +1052,7 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
 
   return (
     <div
-      className="a4-page relative bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)] print:mb-0 print:shadow-none"
+      className="a4-page relative bg-white shadow-[0_4px_40px_rgba(0,0,0,0.12)] print:mb-0 print:shadow-none cover-letter-preview-root"
       style={{
         width: 794,
         height: 1123,
@@ -1059,6 +1061,32 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
         transformOrigin: "top center",
       }}
     >
+      <style>{`
+        .cover-letter-preview-root {
+          font-size: ${activeFontSize}px;
+        }
+        .cover-letter-preview-root .text-xs {
+          font-size: ${Math.max(9, Math.round(activeFontSize * 0.78))}px !important;
+        }
+        .cover-letter-preview-root .text-sm {
+          font-size: ${Math.max(10, Math.round(activeFontSize * 0.90))}px !important;
+        }
+        .cover-letter-preview-root .text-base {
+          font-size: ${activeFontSize}px !important;
+        }
+        .cover-letter-preview-root .text-lg {
+          font-size: ${Math.round(activeFontSize * 1.15)}px !important;
+        }
+        .cover-letter-preview-root .text-xl {
+          font-size: ${Math.round(activeFontSize * 1.35)}px !important;
+        }
+        .cover-letter-preview-root .text-2xl {
+          font-size: ${Math.round(activeFontSize * 1.65)}px !important;
+        }
+        .cover-letter-preview-root .text-3xl {
+          font-size: ${Math.round(activeFontSize * 2.0)}px !important;
+        }
+      `}</style>
       <div className={`h-full w-full relative ${finalFontClass}`}>
         {renderedTemplate}
       </div>
