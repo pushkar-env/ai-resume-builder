@@ -735,7 +735,26 @@ router.post(
         return;
       }
 
-      const contentToAudit = letter.generatedContent || "";
+      let contentToAudit = letter.generatedContent || "";
+      try {
+        const parsedJson = JSON.parse(contentToAudit);
+        if (parsedJson && (parsedJson.body !== undefined || parsedJson.closing !== undefined)) {
+          const dateLine = parsedJson.date ? `${parsedJson.date}\n\n` : "";
+          const recipientLine = letter.hiringManagerName ? `${letter.hiringManagerName}\n` : "";
+          const companyLine = letter.companyName ? `${letter.companyName}\n` : "";
+          const locationLine = letter.companyLocation ? `${letter.companyLocation}\n` : "";
+          const subjectLine = letter.jobTitle ? `Subject: Application for ${letter.jobTitle}\n\n` : "";
+          const salutationLine = letter.hiringManagerName ? `Dear ${letter.hiringManagerName},\n\n` : "Dear Hiring Manager,\n\n";
+          const bodyText = parsedJson.body || "";
+          const closingText = parsedJson.closing ? `\n\n${parsedJson.closing}\n` : "";
+          const signatureText = parsedJson.signature ? `${parsedJson.signature}` : "";
+          
+          contentToAudit = `${dateLine}${recipientLine}${companyLine}${locationLine}\n${subjectLine}${salutationLine}${bodyText}${closingText}${signatureText}`;
+        }
+      } catch {
+        // Fallback: use raw plain text
+      }
+
       const audit = await auditCoverLetterAts(
         contentToAudit,
         parsed.data.jobDescription,

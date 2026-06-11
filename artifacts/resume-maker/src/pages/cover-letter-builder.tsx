@@ -70,7 +70,7 @@ import {
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
-import { CoverLetterPreview } from "@/components/resume/CoverLetterPreview";
+import { CoverLetterPreview, parseCoverLetterContent } from "@/components/resume/CoverLetterPreview";
 import { buildCoverLetterDocx } from "@/lib/build-cover-letter-docx";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
@@ -142,6 +142,12 @@ export default function CoverLetterBuilder() {
   const [localSenderEmail, setLocalSenderEmail] = useState("");
   const [localSenderPhone, setLocalSenderPhone] = useState("");
   const [localSenderLocation, setLocalSenderLocation] = useState("");
+
+  const [localDate, setLocalDate] = useState("");
+  const [localBody, setLocalBody] = useState("");
+  const [localClosing, setLocalClosing] = useState("");
+  const [localSignature, setLocalSignature] = useState("");
+  const [localShowSignatureDesign, setLocalShowSignatureDesign] = useState(true);
 
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -230,7 +236,59 @@ export default function CoverLetterBuilder() {
       setLocalHiringManager(coverLetter.hiringManagerName || "");
       setLocalLocation(coverLetter.companyLocation || "");
       setLocalJobDescription(coverLetter.jobDescription || "");
-      setLocalContent(coverLetter.generatedContent || "");
+      
+      const rawContent = coverLetter.generatedContent || "";
+      setLocalContent(rawContent);
+      
+      let initialDate = "";
+      let initialBody = "";
+      let initialClosing = "";
+      let initialSignature = "";
+      let initialShowSignatureDesign = true;
+
+      try {
+        const parsedJson = JSON.parse(rawContent);
+        if (parsedJson && (parsedJson.body !== undefined || parsedJson.closing !== undefined || parsedJson.signature !== undefined)) {
+          initialDate = parsedJson.date || "";
+          initialBody = parsedJson.body || "";
+          initialClosing = parsedJson.closing || "";
+          initialSignature = parsedJson.signature || "";
+          initialShowSignatureDesign = parsedJson.showSignatureDesign !== undefined ? parsedJson.showSignatureDesign : true;
+        } else {
+          throw new Error("Not JSON");
+        }
+      } catch {
+        const parsed = parseCoverLetterContent(
+          rawContent,
+          coverLetter.hiringManagerName || "Hiring Manager",
+          (coverLetter as any).senderName || user?.fullName || "Your Name",
+          (coverLetter as any).senderEmail || user?.primaryEmailAddress?.emailAddress || "email@example.com",
+          (coverLetter as any).senderPhone,
+          (coverLetter as any).senderLocation,
+          coverLetter.companyName,
+          coverLetter.companyLocation,
+          coverLetter.jobTitle
+        );
+        initialDate = parsed.date;
+        initialBody = parsed.salutation 
+          ? `${parsed.salutation}\n\n${parsed.paragraphs.join("\n\n")}` 
+          : parsed.paragraphs.join("\n\n");
+        initialClosing = parsed.signOff;
+        initialSignature = parsed.senderName;
+        initialShowSignatureDesign = parsed.showSignatureDesign !== undefined ? parsed.showSignatureDesign : true;
+      }
+
+      const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+      if (!initialDate || initialDate.toLowerCase() === "[date]" || initialDate.trim() === "") {
+        initialDate = today;
+      }
+
+      setLocalDate(initialDate);
+      setLocalBody(initialBody);
+      setLocalClosing(initialClosing);
+      setLocalSignature(initialSignature);
+      setLocalShowSignatureDesign(initialShowSignatureDesign);
+
       setLocalCustomInstructions(coverLetter.customInstructions || "");
       
       // Determine font family from cover letter or default to sans
@@ -328,6 +386,19 @@ export default function CoverLetterBuilder() {
       setHasLoadedInitial(true);
     }
   }, [coverLetter, linkedResume, hasLoadedInitial, user]);
+
+  // Serialize states to JSON for generatedContent auto-saving
+  useEffect(() => {
+    if (!hasLoadedInitial) return;
+    const serializedJson = JSON.stringify({
+      date: localDate,
+      body: localBody,
+      closing: localClosing,
+      signature: localSignature,
+      showSignatureDesign: localShowSignatureDesign,
+    });
+    setLocalContent(serializedJson);
+  }, [localDate, localBody, localClosing, localSignature, localShowSignatureDesign, hasLoadedInitial]);
 
   const commitPreviewTransform = useCallback(
     (nextZoom: number, nextPan: { x: number; y: number }) => {
@@ -598,7 +669,6 @@ export default function CoverLetterBuilder() {
     [commitPreviewTransform, fitPreviewToViewport, zoomPreviewAt],
   );
 
-  // Track user edits after initial load is done
   useEffect(() => {
     if (!hasLoadedInitial) return;
     setIsDirty(true);
@@ -616,6 +686,11 @@ export default function CoverLetterBuilder() {
     localSenderEmail,
     localSenderPhone,
     localSenderLocation,
+    localDate,
+    localBody,
+    localClosing,
+    localSignature,
+    localShowSignatureDesign,
   ]);
 
   // Debounced auto-save effect
@@ -806,7 +881,42 @@ export default function CoverLetterBuilder() {
         },
       });
       if (res?.generatedContent) {
-        setLocalContent(res.generatedContent);
+        const parsed = parseCoverLetterContent(
+          res.generatedContent,
+          localHiringManager || "Hiring Manager",
+          localSenderName || "Your Name",
+          localSenderEmail,
+          localSenderPhone,
+          localSenderLocation,
+          localCompanyName,
+          localLocation,
+          localJobTitle
+        );
+        
+        const bodyTextWithSalutation = parsed.salutation 
+          ? `${parsed.salutation}\n\n${parsed.paragraphs.join("\n\n")}` 
+          : parsed.paragraphs.join("\n\n");
+
+        const serialized = JSON.stringify({
+          date: parsed.date,
+          body: bodyTextWithSalutation,
+          closing: parsed.signOff,
+          signature: parsed.senderName,
+          showSignatureDesign: localShowSignatureDesign
+        });
+        
+        setLocalDate(parsed.date);
+        setLocalBody(bodyTextWithSalutation);
+        setLocalClosing(parsed.signOff);
+        setLocalSignature(parsed.senderName);
+        setLocalContent(serialized);
+        
+        await updateLetter({
+          id: coverLetterId,
+          data: {
+            generatedContent: serialized,
+          }
+        });
       }
       refetchLetter();
       refetchVersions();
@@ -1240,23 +1350,75 @@ export default function CoverLetterBuilder() {
                 </div>
               </div>
 
-              {/* Cover Letter Content Body */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Letter Body Copy
-                  </h3>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {localContent.split(/\s+/).filter(Boolean).length} words
-                  </span>
+              {/* Cover Letter Content Sections */}
+              <div className="space-y-5 border-t border-border/50 pt-6">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" /> Letter Content Sections
+                </h3>
+
+                <div className="space-y-4 bg-muted/30 border border-border/50 rounded-2xl p-4 shadow-inner">
+                  {/* Date Field */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground">Date</Label>
+                    <Input
+                      placeholder="e.g. June 11, 2026"
+                      value={localDate}
+                      onChange={(e) => setLocalDate(e.target.value)}
+                      className="bg-background border-border text-xs"
+                    />
+                  </div>
+
+                  {/* Letter Body / Paragraphs */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-xs font-semibold text-foreground">Letter Body / Paragraphs</Label>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {localBody.split(/\s+/).filter(Boolean).length} words
+                      </span>
+                    </div>
+                    <Textarea
+                      value={localBody}
+                      onChange={(e) => setLocalBody(e.target.value)}
+                      rows={10}
+                      className="bg-background border-border text-xs leading-relaxed"
+                      placeholder="Type the paragraphs of your letter here..."
+                    />
+                  </div>
+
+                  {/* Closing & Signature Side-by-Side */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-foreground">Closing Sign-off</Label>
+                      <Input
+                        placeholder="e.g. Sincerely,"
+                        value={localClosing}
+                        onChange={(e) => setLocalClosing(e.target.value)}
+                        className="bg-background border-border text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1.5 flex flex-col justify-between">
+                      <div>
+                        <Label className="text-xs font-semibold text-foreground">Signature Name</Label>
+                        <Input
+                          placeholder="e.g. John Doe"
+                          value={localSignature}
+                          onChange={(e) => setLocalSignature(e.target.value)}
+                          className="bg-background border-border text-xs mt-1"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 mt-2 pt-0.5">
+                        <Switch
+                          id="show-signature-design"
+                          checked={localShowSignatureDesign}
+                          onCheckedChange={setLocalShowSignatureDesign}
+                        />
+                        <Label htmlFor="show-signature-design" className="text-[10px] font-medium text-muted-foreground cursor-pointer select-none">
+                          Show styled signature
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <Textarea
-                  value={localContent}
-                  onChange={(e) => setLocalContent(e.target.value)}
-                  rows={12}
-                  className="bg-background border-border text-xs font-mono leading-relaxed"
-                  placeholder="Dear Hiring Manager..."
-                />
               </div>
 
               {/* AI Toolbox */}
@@ -1874,6 +2036,7 @@ export default function CoverLetterBuilder() {
                     fontFamily={localFontFamily}
                     zoom={1}
                     showWatermark={showWatermark}
+                    showSignatureDesign={localShowSignatureDesign}
                   />
                 </div>
               </div>

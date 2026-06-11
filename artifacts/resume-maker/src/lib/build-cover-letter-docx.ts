@@ -60,15 +60,28 @@ export async function buildCoverLetterDocx(
   const runSize = 22; // 11pt
   const body: Paragraph[] = [];
 
-  // 1. Sender Info (Header)
-  if (data.sender.name) {
+  // 1. Parse Content
+  const parsed = parseCoverLetterContent(
+    data.generatedContent,
+    data.recipient.hiringManagerName || "Hiring Manager",
+    data.sender.name || "Your Name",
+    data.sender.email,
+    data.sender.phone,
+    data.sender.location,
+    data.recipient.companyName,
+    data.recipient.companyLocation,
+    data.jobTitle
+  );
+
+  // 2. Sender Info (Header)
+  if (parsed.senderName) {
     body.push(
       new Paragraph({
         alignment: AlignmentType.LEFT,
         spacing: { after: 60 },
         children: [
           new TextRun({
-            text: sanitizeWordText(data.sender.name),
+            text: sanitizeWordText(parsed.senderName),
             bold: true,
             size: 28, // 14pt
             font,
@@ -80,9 +93,9 @@ export async function buildCoverLetterDocx(
   }
 
   const contactParts: string[] = [];
-  if (data.sender.email) contactParts.push(data.sender.email);
-  if (data.sender.phone) contactParts.push(data.sender.phone);
-  if (data.sender.location) contactParts.push(data.sender.location);
+  if (parsed.senderEmail) contactParts.push(parsed.senderEmail);
+  if (parsed.senderPhone) contactParts.push(parsed.senderPhone);
+  if (parsed.senderLocation) contactParts.push(parsed.senderLocation);
 
   if (contactParts.length > 0) {
     body.push(
@@ -101,79 +114,30 @@ export async function buildCoverLetterDocx(
     );
   }
 
-  // 2. Date
-  const dateStr = new Date().toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  body.push(
-    new Paragraph({
-      spacing: { after: 200 },
-      children: [
-        new TextRun({
-          text: dateStr,
-          size: runSize,
-          font,
-        }),
-      ],
-    }),
-  );
+  // 3. Date
+  if (parsed.date) {
+    body.push(
+      new Paragraph({
+        spacing: { after: 200 },
+        children: [
+          new TextRun({
+            text: sanitizeWordText(parsed.date),
+            size: runSize,
+            font,
+          }),
+        ],
+      }),
+    );
+  }
 
-  // 3. Recipient Info
-  const recipientName = data.recipient.hiringManagerName || "Hiring Manager";
-  body.push(
-    new Paragraph({
-      spacing: { after: 60 },
-      children: [
-        new TextRun({
-          text: sanitizeWordText(recipientName),
-          bold: true,
-          size: runSize,
-          font,
-        }),
-      ],
-    }),
-  );
-
-  if (data.recipient.companyName) {
+  // 4. Recipient Info
+  if (parsed.recipientName) {
     body.push(
       new Paragraph({
         spacing: { after: 60 },
         children: [
           new TextRun({
-            text: sanitizeWordText(data.recipient.companyName),
-            size: runSize,
-            font,
-          }),
-        ],
-      }),
-    );
-  }
-
-  if (data.recipient.companyLocation) {
-    body.push(
-      new Paragraph({
-        spacing: { after: 240 },
-        children: [
-          new TextRun({
-            text: sanitizeWordText(data.recipient.companyLocation),
-            size: runSize,
-            font,
-          }),
-        ],
-      }),
-    );
-  }
-
-  // 4. Subject Line
-  if (data.jobTitle) {
-    body.push(
-      new Paragraph({
-        spacing: { after: 240 },
-        children: [
-          new TextRun({
-            text: `Subject: Application for ${data.jobTitle}${data.recipient.companyName ? ` at ${data.recipient.companyName}` : ""}`,
+            text: sanitizeWordText(parsed.recipientName),
             bold: true,
             size: runSize,
             font,
@@ -183,15 +147,52 @@ export async function buildCoverLetterDocx(
     );
   }
 
-  // 5. Parse Content
-  const parsed = parseCoverLetterContent(
-    data.generatedContent,
-    data.recipient.hiringManagerName || "Hiring Manager",
-    data.sender.name || "Your Name",
-    data.sender.email,
-    data.sender.phone,
-    data.sender.location
-  );
+  if (parsed.companyName) {
+    body.push(
+      new Paragraph({
+        spacing: { after: 60 },
+        children: [
+          new TextRun({
+            text: sanitizeWordText(parsed.companyName),
+            size: runSize,
+            font,
+          }),
+        ],
+      }),
+    );
+  }
+
+  if (parsed.companyLocation) {
+    body.push(
+      new Paragraph({
+        spacing: { after: 240 },
+        children: [
+          new TextRun({
+            text: sanitizeWordText(parsed.companyLocation),
+            size: runSize,
+            font,
+          }),
+        ],
+      }),
+    );
+  }
+
+  // 5. Subject Line
+  if (parsed.subject) {
+    body.push(
+      new Paragraph({
+        spacing: { after: 240 },
+        children: [
+          new TextRun({
+            text: `Subject: ${sanitizeWordText(parsed.subject)}`,
+            bold: true,
+            size: runSize,
+            font,
+          }),
+        ],
+      }),
+    );
+  }
 
   // 6. Salutation
   body.push(
