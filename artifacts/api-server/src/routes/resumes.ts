@@ -456,8 +456,8 @@ Resume text:
       }
 
       // Default template configuration
-      const templateId = "silicon-valley";
-      const accentColor = "#000000";
+      const templateId = "ats-clean";
+      const accentColor = "#1f2937";
       const defaultFonts: Record<string, string> = {
         "silicon-valley": "Merriweather, serif",
         faang: "Manrope, sans-serif",
