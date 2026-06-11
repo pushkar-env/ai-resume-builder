@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/sheet";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { ProButton } from "@/components/shared/ProButton";
+import { ThemeToggle } from "./ThemeToggle";
 
 const appNavLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -98,6 +99,7 @@ export function Navbar() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 min-[380px]:gap-2 sm:gap-3">
+            <ThemeToggle />
             {/* Mobile Menu */}
             <div className="lg:hidden flex items-center">
               <Sheet>
@@ -353,7 +355,8 @@ export function LandingNavbar() {
               Resume<span className="text-primary font-black">sensei</span>
             </span>
           </Link>
-          <div className="flex shrink-0 items-center justify-end">
+          <div className="flex shrink-0 items-center justify-end gap-2.5">
+            <ThemeToggle />
             <Button
               size="sm"
               asChild
@@ -547,6 +550,7 @@ export function BuilderNavbar({
             )}
           </button>
         )}
+        <ThemeToggle />
         <Button
           size="sm"
           variant="outline"

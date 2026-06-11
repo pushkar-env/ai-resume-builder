@@ -4,6 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <meta name="theme-color" content="#000848" />
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme');
+          var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          var activeTheme = theme || 'system';
+          if (activeTheme === 'system') {
+            activeTheme = systemTheme;
+          }
+          if (activeTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="robots" content="index, follow" />
     <title>Resumesensei | AI Resume Builder &amp; ATS Resume Checker</title>
     <meta name="description" content="Create an ATS-friendly resume with AI writing help, 12 templates, live A4 preview, and PDF, DOCX & JSON export on the free plan. Pro from ₹99/month for unlimited resumes and full AI." />

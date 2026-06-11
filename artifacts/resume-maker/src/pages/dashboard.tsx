@@ -1332,7 +1332,7 @@ const DashboardCoverLetterCard = memo(function DashboardCoverLetterCard({
           <CardContent className="p-5 flex-1 flex flex-col bg-card relative z-10 pointer-events-none rounded-b-xl">
             <div className="flex items-start justify-between mb-auto pointer-events-auto">
               <div className="flex-1 min-w-0 pr-14 md:pr-6 pointer-events-none">
-                <h3 className="font-semibold text-base truncate mb-1 text-slate-900">
+                <h3 className="font-semibold text-base truncate mb-1 text-slate-900 dark:text-slate-100">
                   {coverLetter.title}
                 </h3>
                 <p className="text-xs text-muted-foreground truncate mb-2">
@@ -2099,7 +2099,7 @@ export default function DashboardPage() {
       <main className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 bg-clip-text text-transparent dark:from-white dark:to-slate-300">
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 bg-clip-text text-transparent dark:from-white dark:via-indigo-200 dark:to-violet-200">
               {activeTab === "resumes" ? "My Resumes" : "My Cover Letters"}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -2275,7 +2275,7 @@ export default function DashboardPage() {
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <Plus className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="font-medium text-sm text-slate-900">
+                  <h3 className="font-medium text-sm text-slate-900 dark:text-slate-100">
                     Generate Cover Letter
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -2560,9 +2560,9 @@ export default function DashboardPage() {
               personalized, high-conversion cover letter.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2 text-slate-800">
+          <div className="space-y-4 py-2 text-slate-800 dark:text-slate-100">
             <div className="space-y-2">
-              <Label htmlFor="cl-title" className="text-slate-700 font-medium">
+              <Label htmlFor="cl-title" className="text-slate-700 dark:text-slate-200 font-medium">
                 Document Title
               </Label>
               <Input
@@ -2574,7 +2574,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cl-resume" className="text-slate-700 font-medium">
+              <Label htmlFor="cl-resume" className="text-slate-700 dark:text-slate-200 font-medium">
                 Reference Resume
               </Label>
               <select
@@ -2583,7 +2583,7 @@ export default function DashboardPage() {
                 onChange={(e) =>
                   setClResumeId(e.target.value ? Number(e.target.value) : "")
                 }
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 custom-select"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 custom-select text-slate-900 dark:text-slate-100"
               >
                 <option value="">
                   -- Select a Resume (Highly Recommended) --
@@ -2597,7 +2597,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="border-t border-border pt-4 mt-2">
-              <h4 className="text-sm font-semibold mb-3 text-slate-900">
+              <h4 className="text-sm font-semibold mb-3 text-slate-900 dark:text-slate-100">
                 Job Details
               </h4>
 
@@ -2605,7 +2605,7 @@ export default function DashboardPage() {
                 <div className="flex-1 space-y-1.5">
                   <Label
                     htmlFor="cl-url"
-                    className="text-slate-700 font-medium"
+                    className="text-slate-700 dark:text-slate-200 font-medium"
                   >
                     Scrape Job Posting URL (Optional)
                   </Label>
@@ -2634,7 +2634,7 @@ export default function DashboardPage() {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="cl-job-title"
-                    className="text-slate-700 font-medium"
+                    className="text-slate-700 dark:text-slate-200 font-medium"
                   >
                     Job Title
                   </Label>
@@ -2648,7 +2648,7 @@ export default function DashboardPage() {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="cl-company"
-                    className="text-slate-700 font-medium"
+                    className="text-slate-700 dark:text-slate-200 font-medium"
                   >
                     Company Name
                   </Label>
@@ -2665,7 +2665,7 @@ export default function DashboardPage() {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="cl-hiring-manager"
-                    className="text-slate-700 font-medium"
+                    className="text-slate-700 dark:text-slate-200 font-medium"
                   >
                     Hiring Manager (Optional)
                   </Label>
@@ -2679,7 +2679,7 @@ export default function DashboardPage() {
                 <div className="space-y-1.5">
                   <Label
                     htmlFor="cl-location"
-                    className="text-slate-700 font-medium"
+                    className="text-slate-700 dark:text-slate-200 font-medium"
                   >
                     Company Location (Optional)
                   </Label>
@@ -2693,7 +2693,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="cl-desc" className="text-slate-700 font-medium">
+                <Label htmlFor="cl-desc" className="text-slate-700 dark:text-slate-200 font-medium">
                   Job Description
                 </Label>
                 <textarea
@@ -2702,21 +2702,21 @@ export default function DashboardPage() {
                   value={clJobDescription}
                   onChange={(e) => setClJobDescription(e.target.value)}
                   placeholder="Paste the job description keywords, requirements, and responsibilities here..."
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-slate-900 dark:text-slate-100"
                 />
               </div>
             </div>
 
             <div className="border-t border-border pt-4 mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="flex flex-col justify-between h-full gap-1.5">
-                <Label htmlFor="cl-tone" className="text-slate-700 font-medium">
+                <Label htmlFor="cl-tone" className="text-slate-700 dark:text-slate-200 font-medium">
                   Tone
                 </Label>
                 <select
                   id="cl-tone"
                   value={clTone}
                   onChange={(e) => setClTone(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select text-slate-900 dark:text-slate-100"
                 >
                   <option value="professional">Professional</option>
                   <option value="enthusiastic">Enthusiastic</option>
@@ -2727,14 +2727,14 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col justify-between h-full gap-1.5">
-                <Label htmlFor="cl-exp" className="text-slate-700 font-medium">
+                <Label htmlFor="cl-exp" className="text-slate-700 dark:text-slate-200 font-medium">
                   Exp. Level
                 </Label>
                 <select
                   id="cl-exp"
                   value={clExpLevel}
                   onChange={(e) => setClExpLevel(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select text-slate-900 dark:text-slate-100"
                 >
                   <option value="entry">Entry-Level</option>
                   <option value="mid">Mid-Level</option>
@@ -2745,7 +2745,7 @@ export default function DashboardPage() {
               <div className="flex flex-col justify-between h-full gap-1.5">
                 <Label
                   htmlFor="cl-template"
-                  className="text-slate-700 font-medium"
+                  className="text-slate-700 dark:text-slate-200 font-medium"
                 >
                   Template Style
                 </Label>
@@ -2753,7 +2753,7 @@ export default function DashboardPage() {
                   id="cl-template"
                   value={clTemplateId}
                   onChange={(e) => setClTemplateId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 custom-select text-slate-900 dark:text-slate-100"
                 >
                   <option value="classic">Classic</option>
                   <option value="modern">Modern</option>
@@ -2769,7 +2769,7 @@ export default function DashboardPage() {
             <div className="space-y-1.5">
               <Label
                 htmlFor="cl-instructions"
-                className="text-slate-700 font-medium"
+                className="text-slate-700 dark:text-slate-200 font-medium"
               >
                 Custom Instructions (Optional)
               </Label>
@@ -2779,7 +2779,7 @@ export default function DashboardPage() {
                 value={clCustomInstructions}
                 onChange={(e) => setClCustomInstructions(e.target.value)}
                 placeholder="e.g. Focus on my experience with cloud systems. Keep the introduction short."
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-slate-900 dark:text-slate-100"
               />
             </div>
           </div>
