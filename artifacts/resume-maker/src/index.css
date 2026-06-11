@@ -779,3 +779,30 @@
 .rich-text-container.has-actions-2 .ql-toolbar.ql-snow {
   padding-right: 66px !important;
 }
+
+/* Custom High-Contrast Text Insertion Cursor & Caret Fix */
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+input[type="password"],
+input:not([type]),
+textarea,
+[contenteditable="true"],
+[contenteditable="true"] *,
+.ql-editor,
+.ql-editor * {
+  /* High-contrast I-beam cursor with a black center and a white outline to ensure excellent visibility on both light and dark backgrounds */
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20' viewBox='0 0 16 20'%3E%3Cpath d='M4 2h8M8 2v16M4 18h8' stroke='white' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Cpath d='M4 2h8M8 2v16M4 18h8' stroke='black' stroke-width='1.2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 8 10, text !important;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+.ql-editor {
+  /* Ensure the blinking caret matches the theme foreground color (dark in light mode, light in dark mode) */
+  caret-color: hsl(var(--foreground)) !important;
+}
+
