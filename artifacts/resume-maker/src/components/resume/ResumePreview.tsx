@@ -2222,24 +2222,32 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
 
   const SH = ({ label }: { label: string }) => (
-    <div className="mt-6 resume-section-header">
+    <div className="mt-4.5 resume-section-header">
       <p
-        className="text-[13.5px] font-black uppercase tracking-wide"
+        className="text-[12px] font-black uppercase tracking-wider"
         style={{ color }}
       >
         {label}
       </p>
-      <div className="h-px mt-1 mb-3" style={{ background: color }} />
+      <div className="h-px mt-0.5 mb-2" style={{ background: color }} />
     </div>
   );
 
   return (
     <div className="px-8 py-7" style={{ fontFamily: font }}>
-      <div className="text-center mb-4">
-        <h1 className="text-[32px] font-black text-gray-950">
+      <div className="text-center mb-3">
+        <h1 className="text-[28px] font-black text-gray-950 leading-tight">
           {str(p.name) || "Your Name"}
         </h1>
-        <p className="text-[10px] text-gray-700 mt-1">
+        {roleOf(p) && (
+          <p
+            className="text-[12.5px] font-bold tracking-wider uppercase mt-0.5"
+            style={{ color }}
+          >
+            {roleOf(p)}
+          </p>
+        )}
+        <p className="text-[10px] text-gray-600 mt-1">
           {contactValues(p, color).map((v, i) => (
             <span key={i}>
               {i > 0 && "  |  "}
@@ -2258,7 +2266,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
         </div>
       )}
       {exp.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
               {i === 0 && <SH label="Work Experience" />}
@@ -2335,7 +2343,7 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
         </div>
       )}
       {projects.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {projects.map((pr, i) => (
             <div
               key={i}
