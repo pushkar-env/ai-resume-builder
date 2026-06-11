@@ -2099,6 +2099,29 @@ export default function BuilderPage() {
               {/* Mobile Dashboard View */}
               {mobileTab === "sections" && window.innerWidth < 1024 ? (
                 <div className="p-4 space-y-4 lg:hidden">
+                  {/* Quick Dashboard Navigation & Clear Data Actions */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate("/dashboard")}
+                      className="h-10 gap-2 text-xs font-semibold border-border bg-card hover:bg-muted/40 text-muted-foreground hover:text-foreground rounded-xl transition-all shadow-sm flex items-center justify-center"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+                      Dashboard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setClearAllOpen(true)}
+                      className="h-10 gap-2 text-xs font-semibold border-border bg-card text-rose-500 hover:text-rose-600 hover:bg-rose-500/5 rounded-xl transition-all shadow-sm flex items-center justify-center"
+                      disabled={localSections.length === 0}
+                    >
+                      <Eraser className="h-3.5 w-3.5 shrink-0" />
+                      Clear Data
+                    </Button>
+                  </div>
+
                   {/* System Quick Cards (Design & ATS Auditor) */}
                   <div className="grid grid-cols-2 gap-3">
                     {/* Design Card */}
@@ -2867,7 +2890,13 @@ export default function BuilderPage() {
                   variant="ghost"
                   size="sm"
                   className="gap-1.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      setMobileTabRaw("sections");
+                    } else {
+                      navigate("/dashboard");
+                    }
+                  }}
                 >
                   <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
                   <span>Back</span>
