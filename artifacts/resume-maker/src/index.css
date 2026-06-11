@@ -92,7 +92,7 @@
 }
 
 .loading-writing-line-fill {
-  animation: loading-writing-line-fill 3.3s ease-in-out infinite;
+  animation: loading-writing-line-fill 3.3s linear infinite;
   transform: scaleX(0);
   will-change: transform;
 }

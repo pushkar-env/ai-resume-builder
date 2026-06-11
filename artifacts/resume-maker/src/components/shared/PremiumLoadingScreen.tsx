@@ -14,11 +14,17 @@ const loadingDotTransition = {
 };
 
 function WritingLine({ scale, delay = 0 }: { scale: number; delay?: number }) {
-  const animationStartedAt = getWritingAnimationStartedAt();
-  const now =
-    typeof performance === "undefined" ? Date.now() : performance.now();
-  const elapsedSeconds = (now - animationStartedAt) / 1000;
-  const phaseOffset = elapsedSeconds % writingLineCycleSeconds;
+  const phaseOffsetRef = useRef<number | null>(null);
+
+  if (phaseOffsetRef.current === null) {
+    const animationStartedAt = getWritingAnimationStartedAt();
+    const now =
+      typeof performance === "undefined" ? Date.now() : performance.now();
+    const elapsedSeconds = (now - animationStartedAt) / 1000;
+    phaseOffsetRef.current = elapsedSeconds % writingLineCycleSeconds;
+  }
+
+  const phaseOffset = phaseOffsetRef.current;
 
   return (
     <div
