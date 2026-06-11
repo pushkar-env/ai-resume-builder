@@ -67,14 +67,14 @@ export function Navbar() {
           <div className="flex min-w-0 items-center gap-3 sm:gap-6 lg:gap-8">
             <Link
               href={brandHref}
-              className="flex shrink-0 items-center gap-1.5 min-[380px]:gap-2 text-foreground transition-opacity hover:opacity-90"
+              className="flex items-center gap-1 min-[340px]:gap-1.5 min-[380px]:gap-2 text-foreground transition-opacity hover:opacity-90 min-w-0"
             >
               <img
                 src={`${import.meta.env.BASE_URL}bluemascot.svg`}
                 alt="Resumesensei mascot"
-                className="h-8 w-8 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 object-contain shrink-0"
+                className="h-7 w-7 min-[340px]:h-8 min-[340px]:w-8 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 object-contain shrink-0"
               />
-              <span className="text-lg min-[380px]:text-xl font-extrabold tracking-tight sm:text-2xl">
+              <span className="text-sm min-[340px]:text-base min-[380px]:text-xl font-extrabold tracking-tight sm:text-2xl truncate">
                 Resume<span className="text-primary font-black">sensei</span>
               </span>
             </Link>
