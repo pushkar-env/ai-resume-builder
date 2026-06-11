@@ -321,7 +321,10 @@ export function Navbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive cursor-pointer"
-                      onClick={() => signOut()}
+                      onClick={() => {
+                        sessionStorage.setItem("is_signing_out", "true");
+                        void signOut();
+                      }}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign out
@@ -581,7 +584,10 @@ export function BuilderNavbar({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive cursor-pointer"
-                onClick={() => signOut()}
+                onClick={() => {
+                  sessionStorage.setItem("is_signing_out", "true");
+                  void signOut();
+                }}
               >
                 Sign out
               </DropdownMenuItem>

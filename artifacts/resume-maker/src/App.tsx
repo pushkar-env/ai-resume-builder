@@ -147,6 +147,29 @@ function HomeRedirect() {
 function AuthLoadingFallback() {
   const path = stripBase(window.location.pathname);
 
+  if (sessionStorage.getItem("is_signing_out") === "true") {
+    return (
+      <PremiumLoadingScreen
+        title="Signing out"
+        subtitle="Securing your session"
+      />
+    );
+  }
+
+  // If loading auth status on a public route, do NOT show the heavy loading screen
+  const isPublicRoute =
+    path === "/" ||
+    path.startsWith("/pricing") ||
+    path.startsWith("/privacy") ||
+    path.startsWith("/terms") ||
+    path.startsWith("/contact") ||
+    path.startsWith("/sign-in") ||
+    path.startsWith("/sign-up");
+
+  if (isPublicRoute) {
+    return null;
+  }
+
   if (path.startsWith("/dashboard")) {
     return (
       <PremiumLoadingScreen
@@ -218,15 +241,19 @@ function ProtectedRoute({
 }
 
 function ClerkAuthTokenInitializer() {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
-    if (isSignedIn) {
-      setAuthTokenGetter(() => getToken());
-    } else {
-      setAuthTokenGetter(null);
+    if (isLoaded) {
+      if (isSignedIn) {
+        setAuthTokenGetter(() => getToken());
+      } else {
+        setAuthTokenGetter(null);
+        // Clean up the sign-out flag once Clerk is loaded and user is signed out
+        sessionStorage.removeItem("is_signing_out");
+      }
     }
-  }, [getToken, isSignedIn]);
+  }, [getToken, isSignedIn, isLoaded]);
 
   return null;
 }
