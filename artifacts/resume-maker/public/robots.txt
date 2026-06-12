@@ -1,12 +1,12 @@
 User-agent: *
 Allow: /
-Allow: /pricing
-Allow: /templates
-Allow: /contact
 
-# Prevent crawling of private/dynamic routes
+# Prevent crawling of private/auth-walled routes
 Disallow: /dashboard
 Disallow: /builder/
+Disallow: /cover-letter-builder/
+Disallow: /templates
+Disallow: /billing
 Disallow: /settings
 Disallow: /api/
 

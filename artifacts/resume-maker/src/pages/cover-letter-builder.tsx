@@ -1104,8 +1104,9 @@ export default function CoverLetterBuilder() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
-        title={`${localTitle || "Cover Letter Builder"} | ResumeSensei`}
+        title={`${localTitle || "Cover Letter Builder"} | Resumesensei`}
         description="Create, edit, and optimize your cover letter using AI assistant."
+        robots="noindex, nofollow"
       />
 
       {/* Glassmorphic Navbar */}

@@ -187,6 +187,7 @@ export default function BillingPage() {
       <SEO
         title="Billing | Resumesensei"
         description="View plan status, manage subscription, and choose the best Resumesensei pricing."
+        robots="noindex, nofollow"
       />
       <Navbar />
 

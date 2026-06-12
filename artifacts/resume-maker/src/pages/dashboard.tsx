@@ -2094,6 +2094,7 @@ export default function DashboardPage() {
       <SEO
         title="Dashboard | Resumesensei"
         description="Manage your AI-powered resumes and access premium templates."
+        robots="noindex, nofollow"
       />
       <Navbar />
       <main className="flex-1 min-h-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10">

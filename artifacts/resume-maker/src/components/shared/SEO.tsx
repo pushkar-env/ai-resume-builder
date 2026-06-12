@@ -132,7 +132,7 @@ export function brandJsonLdCore(): Record<string, unknown>[] {
         "Build an ATS-friendly resume with AI guidance, 12 templates, live A4 preview, and PDF, DOCX, and JSON export.",
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "en-US",
-      alternateName: ["Resume Sensei", "ResumeSensei", "resumesensei.com"],
+      alternateName: ["Resume Sensei", "ResumeSensei"],
     },
   ];
 }

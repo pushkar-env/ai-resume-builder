@@ -1906,6 +1906,7 @@ export default function BuilderPage() {
       <SEO
         title={`${resume?.title || "Untitled Resume"} - Editor | Resumesensei`}
         description="Edit your professional resume with real-time AI suggestions."
+        robots="noindex, nofollow"
       />
       <BuilderNavbar
         title={resume?.title ?? ""}

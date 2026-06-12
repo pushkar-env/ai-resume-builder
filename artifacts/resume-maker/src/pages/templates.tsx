@@ -159,6 +159,7 @@ export default function TemplatesPage() {
         title="Resume Templates | Resumesensei"
         description="Browse our collection of professional, ATS-optimized resume templates. From minimal to executive, find the perfect design for your career."
         canonicalUrl={`${SITE_URL}/templates`}
+        robots="noindex, nofollow"
       />
       <Navbar />
 
