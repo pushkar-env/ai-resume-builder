@@ -3,6 +3,8 @@ import {
   text,
   timestamp,
   jsonb,
+  boolean,
+  integer,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -16,6 +18,36 @@ export const userProfilesTable = pgTable("user_profiles", {
   jobTitle: text("job_title"),
   location: text("location"),
   socials: jsonb("socials").$type<{ label: string; url: string }[]>().default([]),
+  aboutMe: text("about_me"),
+  yearsOfExperience: integer("years_of_experience"),
+  experience: jsonb("experience").$type<{
+    company: string;
+    title: string;
+    startDate: string;
+    endDate: string;
+    location: string;
+    description: string;
+    currentlyWorking: boolean;
+    bullets?: string[];
+  }[]>().default([]),
+  skills: jsonb("skills").$type<string[]>().default([]),
+  projects: jsonb("projects").$type<{
+    name: string;
+    description: string;
+    technologiesUsed?: string;
+    url?: string;
+    github?: string;
+    bullets?: string[];
+  }[]>().default([]),
+  certifications: jsonb("certifications").$type<{
+    name: string;
+    issuer: string;
+    date: string;
+    credentialUrl?: string;
+  }[]>().default([]),
+  onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
+  onboardingSkipped: boolean("onboarding_skipped").default(false).notNull(),
+  onboardingProgress: integer("onboarding_progress").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

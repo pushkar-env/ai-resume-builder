@@ -1675,7 +1675,6 @@ components:
           type: string
       required:
         - html
-
     UserProfile:
       type: object
       properties:
@@ -1697,6 +1696,34 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProfileSocial"
+        aboutMe:
+          type: string
+          nullable: true
+        yearsOfExperience:
+          type: integer
+          nullable: true
+        experience:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileExperience"
+        skills:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileProject"
+        certifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileCertification"
+        onboardingCompleted:
+          type: boolean
+        onboardingSkipped:
+          type: boolean
+        onboardingProgress:
+          type: integer
         createdAt:
           type: string
           format: date-time
@@ -1717,6 +1744,59 @@ components:
         - label
         - url
 
+    ProfileExperience:
+      type: object
+      properties:
+        company:
+          type: string
+        title:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        currentlyWorking:
+          type: boolean
+      required:
+        - company
+        - title
+
+    ProfileProject:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        technologiesUsed:
+          type: string
+        url:
+          type: string
+        github:
+          type: string
+      required:
+        - name
+        - description
+
+    ProfileCertification:
+      type: object
+      properties:
+        name:
+          type: string
+        issuer:
+          type: string
+        date:
+          type: string
+        credentialUrl:
+          type: string
+      required:
+        - name
+        - issuer
+
     UpdateUserProfileBody:
       type: object
       properties:
@@ -1736,4 +1816,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProfileSocial"
-
+        aboutMe:
+          type: string
+          nullable: true
+        yearsOfExperience:
+          type: integer
+          nullable: true
+        experience:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileExperience"
+        skills:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileProject"
+        certifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileCertification"
+        onboardingCompleted:
+          type: boolean
+        onboardingSkipped:
+          type: boolean
+        onboardingProgress:
+          type: integer

@@ -404,6 +404,7 @@ router.post(
           location: profile.location || "",
           photo: profile.photo || "",
           socials: (profile.socials as any[]) || [],
+          website: profile.socials?.find(s => s.label.toLowerCase() === "portfolio" || s.label.toLowerCase() === "website")?.url || ""
         };
       } else {
         try {
@@ -423,6 +424,76 @@ router.post(
             ...s,
             content: personalContent,
           };
+        }
+        if (profile) {
+          if (s.type === "summary") {
+            return {
+              ...s,
+              content: { text: profile.aboutMe || "" },
+            };
+          }
+          if (s.type === "experience") {
+            const mappedExperience = (profile.experience || []).map((exp: any) => {
+              let bullets = Array.isArray(exp.bullets) ? exp.bullets : [];
+              if (bullets.length === 0 && exp.description) {
+                bullets = (exp.description || "")
+                  .split(/\r?\n/)
+                  .map((line: string) => line.replace(/^[•\-\*\s]+/, "").trim())
+                  .filter(Boolean);
+              }
+              return {
+                title: exp.title || "",
+                company: exp.company || "",
+                location: exp.location || "",
+                startDate: exp.startDate || "",
+                endDate: exp.endDate || "",
+                bullets: bullets.length > 0 ? bullets : [exp.description || ""],
+              };
+            });
+            return {
+              ...s,
+              content: { items: mappedExperience },
+            };
+          }
+          if (s.type === "skills") {
+            const mappedSkills = (profile.skills || []).map((skillName: string) => ({
+              name: skillName,
+              level: 90,
+            }));
+            return {
+              ...s,
+              content: { items: mappedSkills },
+            };
+          }
+          if (s.type === "projects") {
+            const mappedProjects = (profile.projects || []).map((proj: any) => {
+              let description = proj.description || "";
+              if (Array.isArray(proj.bullets) && proj.bullets.length > 0) {
+                description = "<ul>" + proj.bullets.map((b: string) => `<li>${b}</li>`).join("") + "</ul>";
+              }
+              return {
+                name: proj.name || "",
+                description: description,
+                url: proj.url || proj.github || "",
+              };
+            });
+            return {
+              ...s,
+              content: { items: mappedProjects },
+            };
+          }
+          if (s.type === "certifications") {
+            const mappedCertifications = (profile.certifications || []).map((cert: any) => ({
+              name: cert.name || "",
+              issuer: cert.issuer || "",
+              date: cert.date || "",
+              credentialUrl: cert.credentialUrl || "",
+            }));
+            return {
+              ...s,
+              content: { items: mappedCertifications },
+            };
+          }
         }
         return s;
       });

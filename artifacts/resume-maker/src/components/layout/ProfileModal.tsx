@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useUser } from "@clerk/react";
 import {
   useGetProfile,
@@ -40,6 +40,8 @@ import {
   Globe,
   Sparkles,
   Briefcase,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -73,27 +75,88 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
   const [photo, setPhoto] = useState("");
   const [socials, setSocials] = useState<ProfileSocial[]>([]);
 
+  // States for detecting unsaved changes and confirmation modal
+  const [initialData, setInitialData] = useState<any>(null);
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+  const hasInitializedRef = useRef(false);
+
   // Social input state
   const [selectedPlatform, setSelectedPlatform] = useState("github");
   const [socialUrl, setSocialUrl] = useState("");
 
   // Set initial state from fetched profile or Clerk fallbacks
   useEffect(() => {
-    if (profile) {
-      setName(profile.name || "");
-      setJobTitle(profile.jobTitle || "");
-      setLocation(profile.location || "");
-      setEmail(profile.email || "");
-      setPhone(profile.phone || "");
-      setPhoto(profile.photo || "");
-      setSocials(profile.socials || []);
-    } else if (clerkUser) {
-      setName(`${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim());
-      setEmail(clerkUser.emailAddresses[0]?.emailAddress || "");
-      setPhone(clerkUser.phoneNumbers[0]?.phoneNumber || "");
-      setPhoto(clerkUser.imageUrl || "");
+    if (open) {
+      if (!hasInitializedRef.current && (profile || clerkUser)) {
+        const initialName = profile?.name || (clerkUser ? `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() : "");
+        const initialJobTitle = profile?.jobTitle || "";
+        const initialLocation = profile?.location || "";
+        const initialEmail = profile?.email || (clerkUser ? clerkUser.emailAddresses[0]?.emailAddress || "" : "");
+        const initialPhone = profile?.phone || (clerkUser ? clerkUser.phoneNumbers[0]?.phoneNumber || "" : "");
+        const initialPhoto = profile?.photo || (clerkUser ? clerkUser.imageUrl || "" : "");
+        const initialSocials = profile?.socials || [];
+
+        const initial = {
+          name: initialName,
+          jobTitle: initialJobTitle,
+          location: initialLocation,
+          email: initialEmail,
+          phone: initialPhone,
+          photo: initialPhoto,
+          socials: initialSocials,
+        };
+
+        setName(initialName);
+        setJobTitle(initialJobTitle);
+        setLocation(initialLocation);
+        setEmail(initialEmail);
+        setPhone(initialPhone);
+        setPhoto(initialPhoto);
+        setSocials(initialSocials);
+        setInitialData(initial);
+
+        // If profile is loaded, we can mark as initialized. Otherwise, wait until profile is loaded.
+        if (profile) {
+          hasInitializedRef.current = true;
+        }
+      }
+    } else {
+      hasInitializedRef.current = false;
+      setInitialData(null);
+      setShowConfirmClose(false);
     }
   }, [profile, clerkUser, open]);
+
+  const hasUnsavedChanges = () => {
+    if (!initialData) return false;
+    const socialsChanged = JSON.stringify(socials) !== JSON.stringify(initialData.socials);
+    return (
+      name.trim() !== initialData.name.trim() ||
+      jobTitle.trim() !== initialData.jobTitle.trim() ||
+      location.trim() !== initialData.location.trim() ||
+      email.trim() !== initialData.email.trim() ||
+      phone.trim() !== initialData.phone.trim() ||
+      photo !== initialData.photo ||
+      socialsChanged
+    );
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      if (hasUnsavedChanges()) {
+        setShowConfirmClose(true);
+      } else {
+        onOpenChange(false);
+      }
+    } else {
+      onOpenChange(true);
+    }
+  };
+
+  const handleDiscard = () => {
+    setShowConfirmClose(false);
+    onOpenChange(false);
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,8 +250,19 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-xl border border-border/80 shadow-2xl p-0 overflow-hidden rounded-xl">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-4xl bg-background/95 backdrop-blur-xl border border-border/80 shadow-2xl p-0 overflow-hidden rounded-xl [&>button]:hidden">
+        {/* Custom Cancel/Close Button */}
+        <div className="absolute right-4 top-4 z-50">
+          <button
+            type="button"
+            onClick={() => handleOpenChange(false)}
+            className="rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 border border-border/40 bg-background/50 backdrop-blur-sm transition-all hover:scale-105 duration-200 shadow-sm flex items-center justify-center"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Cancel</span>
+          </button>
+        </div>
         <DialogHeader className="p-6 pb-2 border-b border-border/60">
           <DialogTitle className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
             <User className="h-5 w-5 text-primary" /> My Profile
@@ -527,7 +601,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/60 shrink-0">
               <Button
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleOpenChange(false)}
                 className="h-9 text-xs"
               >
                 Cancel
@@ -543,6 +617,52 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
           </div>
         </div>
       </DialogContent>
+
+      {/* Unsaved Changes Confirmation Dialog */}
+      <Dialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>
+        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border border-border/80 shadow-2xl p-6 rounded-xl overflow-hidden relative">
+          <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-amber-500/10 blur-[60px]" />
+          
+          <DialogHeader className="space-y-3">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold tracking-tight text-center text-foreground">
+              Unsaved Changes
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs text-center leading-relaxed">
+              You have made modifications to your profile. Would you like to save your changes before closing?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6 pt-4 border-t border-border/40 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmClose(false)}
+              className="text-xs h-9 order-2 sm:order-1 flex-1 sm:flex-initial"
+            >
+              Keep Editing
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleDiscard}
+              className="text-xs h-9 text-destructive hover:bg-destructive/10 hover:text-destructive order-3 sm:order-2 flex-1 sm:flex-initial"
+            >
+              Discard
+            </Button>
+            <Button
+              onClick={() => {
+                setShowConfirmClose(false);
+                handleSave();
+              }}
+              disabled={updateProfileMutation.isPending}
+              className="text-xs h-9 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/95 hover:to-purple-600/95 text-white order-1 sm:order-3 shadow-md shadow-primary/10 flex-1 sm:flex-initial"
+            >
+              Save & Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

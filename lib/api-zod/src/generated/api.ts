@@ -33,6 +33,46 @@ export const GetProfileResponse = zod.object({
       }),
     )
     .optional(),
+  aboutMe: zod.string().nullish(),
+  yearsOfExperience: zod.number().nullish(),
+  experience: zod
+    .array(
+      zod.object({
+        company: zod.string(),
+        title: zod.string(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        location: zod.string().optional(),
+        description: zod.string().optional(),
+        currentlyWorking: zod.boolean().optional(),
+      }),
+    )
+    .optional(),
+  skills: zod.array(zod.string()).optional(),
+  projects: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        description: zod.string(),
+        technologiesUsed: zod.string().optional(),
+        url: zod.string().optional(),
+        github: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  certifications: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        issuer: zod.string(),
+        date: zod.string().optional(),
+        credentialUrl: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  onboardingCompleted: zod.boolean().optional(),
+  onboardingSkipped: zod.boolean().optional(),
+  onboardingProgress: zod.number().optional(),
   createdAt: zod.coerce.date().optional(),
   updatedAt: zod.coerce.date().optional(),
 });
@@ -55,6 +95,46 @@ export const UpdateProfileBody = zod.object({
       }),
     )
     .optional(),
+  aboutMe: zod.string().nullish(),
+  yearsOfExperience: zod.number().nullish(),
+  experience: zod
+    .array(
+      zod.object({
+        company: zod.string(),
+        title: zod.string(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        location: zod.string().optional(),
+        description: zod.string().optional(),
+        currentlyWorking: zod.boolean().optional(),
+      }),
+    )
+    .optional(),
+  skills: zod.array(zod.string()).optional(),
+  projects: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        description: zod.string(),
+        technologiesUsed: zod.string().optional(),
+        url: zod.string().optional(),
+        github: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  certifications: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        issuer: zod.string(),
+        date: zod.string().optional(),
+        credentialUrl: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  onboardingCompleted: zod.boolean().optional(),
+  onboardingSkipped: zod.boolean().optional(),
+  onboardingProgress: zod.number().optional(),
 });
 
 export const UpdateProfileResponse = zod.object({
@@ -73,6 +153,46 @@ export const UpdateProfileResponse = zod.object({
       }),
     )
     .optional(),
+  aboutMe: zod.string().nullish(),
+  yearsOfExperience: zod.number().nullish(),
+  experience: zod
+    .array(
+      zod.object({
+        company: zod.string(),
+        title: zod.string(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        location: zod.string().optional(),
+        description: zod.string().optional(),
+        currentlyWorking: zod.boolean().optional(),
+      }),
+    )
+    .optional(),
+  skills: zod.array(zod.string()).optional(),
+  projects: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        description: zod.string(),
+        technologiesUsed: zod.string().optional(),
+        url: zod.string().optional(),
+        github: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  certifications: zod
+    .array(
+      zod.object({
+        name: zod.string(),
+        issuer: zod.string(),
+        date: zod.string().optional(),
+        credentialUrl: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  onboardingCompleted: zod.boolean().optional(),
+  onboardingSkipped: zod.boolean().optional(),
+  onboardingProgress: zod.number().optional(),
   createdAt: zod.coerce.date().optional(),
   updatedAt: zod.coerce.date().optional(),
 });

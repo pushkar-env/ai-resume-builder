@@ -365,6 +365,31 @@ export interface ProfileSocial {
   url: string;
 }
 
+export interface ProfileExperience {
+  company: string;
+  title: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  description?: string;
+  currentlyWorking?: boolean;
+}
+
+export interface ProfileProject {
+  name: string;
+  description: string;
+  technologiesUsed?: string;
+  url?: string;
+  github?: string;
+}
+
+export interface ProfileCertification {
+  name: string;
+  issuer: string;
+  date?: string;
+  credentialUrl?: string;
+}
+
 export interface UserProfile {
   userId: string;
   name?: string;
@@ -374,6 +399,15 @@ export interface UserProfile {
   jobTitle?: string;
   location?: string;
   socials?: ProfileSocial[];
+  aboutMe?: string | null;
+  yearsOfExperience?: number | null;
+  experience?: ProfileExperience[];
+  skills?: string[];
+  projects?: ProfileProject[];
+  certifications?: ProfileCertification[];
+  onboardingCompleted?: boolean;
+  onboardingSkipped?: boolean;
+  onboardingProgress?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -386,6 +420,15 @@ export interface UpdateUserProfileBody {
   jobTitle?: string;
   location?: string;
   socials?: ProfileSocial[];
+  aboutMe?: string | null;
+  yearsOfExperience?: number | null;
+  experience?: ProfileExperience[];
+  skills?: string[];
+  projects?: ProfileProject[];
+  certifications?: ProfileCertification[];
+  onboardingCompleted?: boolean;
+  onboardingSkipped?: boolean;
+  onboardingProgress?: number;
 }
 
 export type GetAtsScoreParams = {

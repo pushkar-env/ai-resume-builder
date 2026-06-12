@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, useClerk, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn, dark } from "@clerk/themes";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, useGetProfile } from "@workspace/api-client-react";
 import {
   Switch,
   Route,
@@ -27,6 +27,8 @@ import PricingPage from "@/pages/pricing";
 import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
 import NotFound from "@/pages/not-found";
+import OnboardingPage from "@/pages/onboarding";
+import ProfilePage from "@/pages/profile";
 import { ThemeProvider, useTheme } from "next-themes";
 
 const clerkPubKey = publishableKeyFromHost(
@@ -222,12 +224,48 @@ function AuthLoadingFallback() {
   return <PremiumLoadingScreen title="Loading..." />;
 }
 
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const [location, setLocation] = useLocation();
+  const { data: profile, isLoading } = useGetProfile();
+
+  console.log("OnboardingGuard render:", {
+    isLoading,
+    location,
+    onboardingCompleted: profile?.onboardingCompleted,
+    onboardingSkipped: profile?.onboardingSkipped,
+    profile
+  });
+
+  useEffect(() => {
+    if (profile && !isLoading) {
+      const path = stripBase(location);
+      console.log("OnboardingGuard useEffect check:", {
+        path,
+        onboardingCompleted: profile.onboardingCompleted,
+        onboardingSkipped: profile.onboardingSkipped,
+        shouldRedirect: path !== "/onboarding" && !profile.onboardingCompleted && !profile.onboardingSkipped
+      });
+      if (path !== "/onboarding" && !profile.onboardingCompleted && !profile.onboardingSkipped) {
+        console.log("OnboardingGuard redirecting to /onboarding");
+        setLocation("/onboarding");
+      }
+    }
+  }, [profile, isLoading, location, setLocation]);
+
+  if (isLoading) {
+    return <PremiumLoadingScreen title="Checking profile..." />;
+  }
+
+  return <>{children}</>;
+}
+
 function ProtectedRoute({
   component: Component,
 }: {
   component: React.ComponentType;
 }) {
   const { isLoaded, isSignedIn } = useAuth();
+  const [location] = useLocation();
 
   if (!isLoaded) {
     return <AuthLoadingFallback />;
@@ -237,7 +275,16 @@ function ProtectedRoute({
     return <Redirect to="/" />;
   }
 
-  return <Component />;
+  const path = stripBase(location);
+  if (path === "/onboarding") {
+    return <Component />;
+  }
+
+  return (
+    <OnboardingGuard>
+      <Component />
+    </OnboardingGuard>
+  );
 }
 
 function ClerkAuthTokenInitializer() {
@@ -325,6 +372,14 @@ function AppRouter() {
       <Route
         path="/dashboard"
         component={() => <ProtectedRoute component={DashboardPage} />}
+      />
+      <Route
+        path="/onboarding"
+        component={() => <ProtectedRoute component={OnboardingPage} />}
+      />
+      <Route
+        path="/profile"
+        component={() => <ProtectedRoute component={ProfilePage} />}
       />
       <Route
         path="/builder/:id"
@@ -439,6 +494,8 @@ function App() {
             />
             {/* Protected routes redirect to home in E2E mode */}
             <Route path="/dashboard" component={() => <Redirect to="/" />} />
+            <Route path="/onboarding" component={() => <Redirect to="/" />} />
+            <Route path="/profile" component={() => <Redirect to="/" />} />
             <Route path="/builder/:id" component={() => <Redirect to="/" />} />
             <Route
               path="/cover-letter-builder/:id"
