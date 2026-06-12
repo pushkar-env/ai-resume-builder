@@ -188,13 +188,15 @@ export function Navbar() {
                       >
                         <Link href="/sign-in">Sign in</Link>
                       </Button>
-                      <Button
-                        size="sm"
-                        className="w-full justify-center"
-                        asChild
-                      >
-                        <Link href="/sign-up">Get started free</Link>
-                      </Button>
+                      {location !== "/pricing" && (
+                        <Button
+                          size="sm"
+                          className="w-full justify-center"
+                          asChild
+                        >
+                          <Link href="/sign-up">Get started free</Link>
+                        </Button>
+                      )}
                     </div>
                   ) : null}
                   <div className="mt-6 border-t border-border pt-4">
@@ -234,9 +236,11 @@ export function Navbar() {
                 <Button variant="ghost" size="sm" className="h-8" asChild>
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
-                <Button size="sm" className="h-8" asChild>
-                  <Link href="/sign-up">Get started</Link>
-                </Button>
+                {location !== "/pricing" && (
+                  <Button size="sm" className="h-8" asChild>
+                    <Link href="/sign-up">Get started</Link>
+                  </Button>
+                )}
               </div>
             ) : null}
             {user && (

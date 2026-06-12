@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Check, Star, Shield, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,17 @@ export default function PricingPage() {
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
+
+  const proCardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (proCardRef.current) {
+        proCardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleUpgrade = async () => {
     if (!user) {
@@ -144,18 +155,39 @@ export default function PricingPage() {
       </div>
 
       <main className="flex-1 mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="max-w-3xl mx-auto mb-10 rounded-2xl border border-border/80 bg-muted/30 px-4 py-4 sm:px-6 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+        {/* Value Propositions Micro-Grid */}
+        <div className="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-12">
+          {/* Card 1: Whitelabel */}
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted/20 p-5 flex flex-col items-start transition-all hover:bg-muted/30 hover:border-border">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500 mb-3.5">
+              <Shield className="h-4 w-4" />
+            </div>
+            <h4 className="text-sm font-semibold text-foreground mb-1">100% Whitelabel</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Remove all watermarks and brand footprints to secure complete ownership of your narrative.
+            </p>
           </div>
-          <div className="min-w-0 flex-1 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              Own your career narrative.
-            </span>{" "}
-            While our free plan includes all essential features with a subtle
-            brand watermark, upgrading to Pro removes all branding—ensuring your
-            resume is 100% yours, ATS-optimized, and fully ready to impress
-            recruiters.
+
+          {/* Card 2: ATS Auditor */}
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted/20 p-5 flex flex-col items-start transition-all hover:bg-muted/30 hover:border-border">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 mb-3.5">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <h4 className="text-sm font-semibold text-foreground mb-1">ATS Optimized</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Leverage the integrated AI ATS Auditor to align formatting and text with recruitment systems.
+            </p>
+          </div>
+
+          {/* Card 3: Recruiter Ready */}
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted/20 p-5 flex flex-col items-start transition-all hover:bg-muted/30 hover:border-border">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 mb-3.5">
+              <Check className="h-4 w-4" />
+            </div>
+            <h4 className="text-sm font-semibold text-foreground mb-1">Recruiter Ready</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Deploy unlimited polished, high-converting resumes and cover letters styled to win interviews.
+            </p>
           </div>
         </div>
 
@@ -246,7 +278,10 @@ export default function PricingPage() {
           </div>
 
           {/* Pro Plan */}
-          <div className="rounded-3xl border-2 border-primary bg-primary/5 p-8 shadow-xl relative flex flex-col h-full justify-between">
+          <div
+            ref={proCardRef}
+            className="rounded-3xl border-2 border-primary bg-primary/5 p-8 shadow-xl relative flex flex-col h-full justify-between"
+          >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-md">
               Most Popular
             </div>

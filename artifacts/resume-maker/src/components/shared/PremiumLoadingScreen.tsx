@@ -28,11 +28,11 @@ function WritingLine({ scale, delay = 0 }: { scale: number; delay?: number }) {
 
   return (
     <div
-      className="h-1.5 overflow-hidden rounded-full"
+      className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800/40"
       style={{ width: `${scale * 100}%` }}
     >
       <div
-        className="loading-writing-line-fill h-full w-full origin-left rounded-full bg-primary/25"
+        className="loading-writing-line-fill h-full w-full origin-left rounded-full bg-gradient-to-r from-indigo-500/80 to-violet-500/80 dark:from-indigo-400/70 dark:to-violet-400/70"
         style={{ animationDelay: `${delay - phaseOffset}s` } as CSSProperties}
       />
     </div>
@@ -81,7 +81,7 @@ export function PremiumLoadingScreen({
             className="relative"
           >
             {/* Blank Document Background */}
-            <File className="w-24 h-28 text-muted-foreground/20 stroke-[1]" />
+            <File className="w-24 h-28 text-slate-300/80 dark:text-slate-700/60 stroke-[1.5]" />
 
             {/* Writing Lines inside the document */}
             <div className="absolute top-9 left-6 right-6 space-y-3">

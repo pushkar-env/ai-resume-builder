@@ -2919,7 +2919,7 @@ export default function BuilderPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 h-8 text-xs font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
+                      className="hidden lg:flex gap-1.5 h-8 text-xs font-medium hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-all shadow-sm"
                       onClick={() => setClearAllOpen(true)}
                       disabled={localSections.length === 0}
                     >
