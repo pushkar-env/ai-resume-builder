@@ -3,6 +3,7 @@ import {
   clipAiInput,
 } from "./resume-ai-chat";
 import { compactSectionsForOptimize } from "./resume-ai-serialize";
+import { logger } from "./logger";
 
 type SectionRow = {
   id: number;
@@ -319,5 +320,41 @@ export async function optimizeResumeWithAi(
     .join("\n");
 
   return { sections: mergedSections, summary };
+}
+
+/**
+ * Rephrase detailed or ambiguous target job titles into a general & relevant job title.
+ */
+export async function rephraseJobTitle(
+  jobTitle: string,
+  jobDescription?: string,
+): Promise<string> {
+  if (!jobTitle.trim()) return "";
+
+  const jdBlock = jobDescription ? `Job Description:\n"""${clipAiInput(jobDescription, 1000)}"""\n\n` : "";
+  const prompt = `${jdBlock}You are a professional resume writer and recruitment assistant.
+Your task is to rephrase detailed, ambiguous, or overly specific target job titles into a clean, general, and industry-standard job title for the resume.
+
+Guidelines:
+1. Simplify complex/detailed titles by removing company-specific teams, divisions, departments, or internal projects (e.g. "Software Development Engineer - Amazon Photos" -> "Software Development Engineer" or "Software Engineer").
+2. Rephrase confusingly structured titles into a standard format (e.g. "Engineering Division - , AI Research - Vice President" -> "Vice President, AI Research" or "Vice President of AI Research").
+3. Retain the level of seniority (e.g. Lead, Senior, Vice President, Director, Junior) if explicit in the title.
+4. Keep the job title concise (typically 2-4 words).
+5. If the title is already simple, standard, and relevant, return it unchanged.
+6. Output ONLY a JSON object with a single key "jobTitle" containing the rephrased string. Example format: {"jobTitle": "Software Development Engineer"}
+
+Current Job Title to process: "${jobTitle}"`;
+
+  try {
+    const result = await completeResumeAiJson<{ jobTitle: string }>(
+      prompt,
+      "rephrase-job-title",
+      "standard",
+    );
+    return (result?.jobTitle || jobTitle).trim();
+  } catch (err) {
+    logger.error({ error: err, jobTitle }, "Failed to rephrase job title, using fallback");
+    return jobTitle;
+  }
 }
 

@@ -66,7 +66,7 @@ export async function scrapeJobUrl(url: string) {
     const prompt = `
 You are a job description scraper assistant. Below is the raw text content extracted from a job posting web page.
 Please analyze the text and extract the following details as a JSON object:
-- jobTitle: The title of the job role (e.g. "Software Engineer").
+- jobTitle: The exact title of the job role as it appears on the web page. Do NOT generalize, simplify, or rephrase the title (e.g., if the web page lists the title as "Software Development Engineer - Amazon Photos" or "Engineering Division - , AI Research - Vice President", extract that full string exactly; do not shorten it or change it in any way).
 - companyName: The name of the company hiring.
 - location: The location of the job (e.g. "San Francisco, CA" or "Remote").
 - description: The core job description/requirements, cleaned up (no side bar navigation links, no cookie policies, no advertisement text, just the actual job description text).

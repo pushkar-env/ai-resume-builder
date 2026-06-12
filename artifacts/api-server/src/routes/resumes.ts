@@ -32,7 +32,7 @@ import {
 } from "../lib/resume-ai-chat";
 import { sendAiRouteError } from "../lib/ai-route-error";
 import { formatSectionsForAiAnalysis } from "../lib/resume-ai-serialize";
-import { optimizeResumeWithAi } from "../lib/optimize-resume-ai";
+import { optimizeResumeWithAi, rephraseJobTitle } from "../lib/optimize-resume-ai";
 import { renderResumePdf } from "../lib/pdf-renderer";
 
 const upload = multer({
@@ -1399,6 +1399,41 @@ router.post(
             eq(resumeSectionsTable.resumeId, resume.id),
           ),
         );
+    }
+
+    // Rephrase target job title if present and detailed/ambiguous
+    const personalSection = sections.find((s) => s.type === "personal");
+    if (personalSection) {
+      const currentJobTitle = (personalSection.content as any)?.jobTitle || "";
+      if (currentJobTitle.trim()) {
+        try {
+          const rephrased = await rephraseJobTitle(currentJobTitle, jobDescription);
+          if (rephrased && rephrased.trim() !== currentJobTitle.trim()) {
+            const updatedContent = {
+              ...(personalSection.content as Record<string, unknown>),
+              jobTitle: rephrased.trim(),
+            };
+            await db
+              .update(resumeSectionsTable)
+              .set({
+                content: updatedContent,
+                updatedAt: new Date(),
+              })
+              .where(
+                and(
+                  eq(resumeSectionsTable.id, personalSection.id),
+                  eq(resumeSectionsTable.resumeId, resume.id),
+                ),
+              );
+            logger.info(
+              { resumeId: resume.id, original: currentJobTitle, rephrased },
+              "Rephrased target job title during resume optimization"
+            );
+          }
+        } catch (rephraseErr) {
+          logger.error({ error: rephraseErr, resumeId: resume.id }, "Failed to rephrase job title during optimization");
+        }
+      }
     }
 
     // Bump resume timestamp and reset saved ATS score since content has changed completely
