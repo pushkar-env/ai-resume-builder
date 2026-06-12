@@ -15,6 +15,69 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * @summary Get user profile details
+ */
+export const GetProfileResponse = zod.object({
+  userId: zod.string(),
+  name: zod.string().optional(),
+  email: zod.string().optional(),
+  phone: zod.string().optional(),
+  photo: zod.string().optional(),
+  jobTitle: zod.string().optional(),
+  location: zod.string().optional(),
+  socials: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        url: zod.string(),
+      }),
+    )
+    .optional(),
+  createdAt: zod.coerce.date().optional(),
+  updatedAt: zod.coerce.date().optional(),
+});
+
+/**
+ * @summary Update user profile details
+ */
+export const UpdateProfileBody = zod.object({
+  name: zod.string().optional(),
+  email: zod.string().optional(),
+  phone: zod.string().optional(),
+  photo: zod.string().optional(),
+  jobTitle: zod.string().optional(),
+  location: zod.string().optional(),
+  socials: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        url: zod.string(),
+      }),
+    )
+    .optional(),
+});
+
+export const UpdateProfileResponse = zod.object({
+  userId: zod.string(),
+  name: zod.string().optional(),
+  email: zod.string().optional(),
+  phone: zod.string().optional(),
+  photo: zod.string().optional(),
+  jobTitle: zod.string().optional(),
+  location: zod.string().optional(),
+  socials: zod
+    .array(
+      zod.object({
+        label: zod.string(),
+        url: zod.string(),
+      }),
+    )
+    .optional(),
+  createdAt: zod.coerce.date().optional(),
+  updatedAt: zod.coerce.date().optional(),
+});
+
+/**
  * @summary List all resumes for the authenticated user
  */
 export const ListResumesResponseItem = zod.object({
@@ -44,6 +107,8 @@ export const ListResumesResponse = zod.array(ListResumesResponseItem);
 /**
  * @summary Create a new resume
  */
+export const createResumeBodyPrefillTypeDefault = `starter`;
+
 export const CreateResumeBody = zod.object({
   title: zod.string(),
   templateId: zod.string(),
@@ -56,6 +121,12 @@ export const CreateResumeBody = zod.object({
     .optional()
     .describe(
       "When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template.",
+    ),
+  prefillType: zod
+    .enum(["starter", "personal", "empty"])
+    .default(createResumeBodyPrefillTypeDefault)
+    .describe(
+      "How to populate the new resume. 'starter' uses default seeded content, 'personal' uses the user's saved profile details, 'empty' leaves sections blank.",
     ),
 });
 

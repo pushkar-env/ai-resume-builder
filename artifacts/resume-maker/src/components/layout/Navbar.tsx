@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useUser, useClerk, useAuth } from "@clerk/react";
 import { Link, useLocation } from "wouter";
 import {
@@ -17,9 +18,11 @@ import {
   Lock,
   Tags,
   Loader2,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ProfileModal } from "./ProfileModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +58,7 @@ export function Navbar() {
   const { isSignedIn, isLoaded } = useAuth();
   const { signOut } = useClerk();
   const [location] = useLocation();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const showAppNav = isLoaded && isSignedIn;
   const navLinks = showAppNav ? appNavLinks : publicNavLinks;
@@ -310,6 +314,13 @@ export function Navbar() {
                         Templates
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setProfileOpen(true)}
+                      className="cursor-pointer"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      My Profile
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/settings" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
@@ -335,6 +346,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
               </>
             )}
           </div>
@@ -378,7 +390,7 @@ export function LandingNavbar() {
   );
 }
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 export function BuilderNavbar({
   title,

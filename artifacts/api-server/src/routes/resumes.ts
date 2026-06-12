@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { db, resumesTable, resumeSectionsTable } from "@workspace/db";
+import { db, resumesTable, resumeSectionsTable, userProfilesTable } from "@workspace/db";
 import {
   CreateResumeBody,
   UpdateResumeBody,
@@ -367,7 +367,66 @@ router.post(
       .returning();
 
     const startPrefilled = parsed.data.startPrefilled !== false;
-    const sectionBlueprint = startPrefilled ? SEEDED_SECTIONS : EMPTY_SECTIONS;
+    const prefillType = (parsed.data as any).prefillType ?? (startPrefilled ? "starter" : "empty");
+
+    let sectionBlueprint: any[] = SEEDED_SECTIONS;
+    if (prefillType === "empty") {
+      sectionBlueprint = EMPTY_SECTIONS;
+    } else if (prefillType === "personal") {
+      const [profile] = await db
+        .select()
+        .from(userProfilesTable)
+        .where(eq(userProfilesTable.userId, userId));
+
+      let personalContent = {
+        name: "",
+        jobTitle: "",
+        title: "",
+        email: "",
+        phone: "",
+        location: "",
+        photo: "",
+        socials: [] as any[],
+        website: "",
+        nationality: "",
+        dateOfBirth: "",
+        languages: "",
+      };
+
+      if (profile) {
+        personalContent = {
+          ...personalContent,
+          name: profile.name || "",
+          jobTitle: profile.jobTitle || "",
+          title: profile.jobTitle || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          location: profile.location || "",
+          photo: profile.photo || "",
+          socials: (profile.socials as any[]) || [],
+        };
+      } else {
+        try {
+          const clerkUser = await clerkClient.users.getUser(userId);
+          personalContent.name = `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim();
+          personalContent.email = clerkUser.emailAddresses[0]?.emailAddress || "";
+          personalContent.phone = clerkUser.phoneNumbers[0]?.phoneNumber || "";
+          personalContent.photo = clerkUser.imageUrl || "";
+        } catch (err) {
+          logger.error({ err }, "Failed to fetch Clerk user fallback for personal prefill");
+        }
+      }
+
+      sectionBlueprint = SEEDED_SECTIONS.map((s) => {
+        if (s.type === "personal") {
+          return {
+            ...s,
+            content: personalContent,
+          };
+        }
+        return s;
+      });
+    }
 
     const sectionsToInsert = sectionBlueprint.map((s) => ({
       ...s,

@@ -20,6 +20,8 @@ tags:
     description: Dashboard analytics
   - name: cover-letters
     description: Cover letter management
+  - name: profile
+    description: User profile management
 
 paths:
   /healthz:
@@ -34,6 +36,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get user profile details
+      responses:
+        "200":
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update user profile details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfileBody"
+      responses:
+        "200":
+          description: Updated user profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /resumes:
     get:
@@ -1024,6 +1074,11 @@ components:
         startPrefilled:
           type: boolean
           description: When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template.
+        prefillType:
+          type: string
+          enum: [starter, personal, empty]
+          default: starter
+          description: How to populate the new resume. 'starter' uses default seeded content, 'personal' uses the user's saved profile details, 'empty' leaves sections blank.
       required:
         - title
         - templateId
@@ -1620,3 +1675,65 @@ components:
           type: string
       required:
         - html
+
+    UserProfile:
+      type: object
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        photo:
+          type: string
+        jobTitle:
+          type: string
+        location:
+          type: string
+        socials:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileSocial"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - userId
+
+    ProfileSocial:
+      type: object
+      properties:
+        label:
+          type: string
+        url:
+          type: string
+      required:
+        - label
+        - url
+
+    UpdateUserProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        photo:
+          type: string
+        jobTitle:
+          type: string
+        location:
+          type: string
+        socials:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileSocial"
+

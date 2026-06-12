@@ -74,6 +74,18 @@ export interface ResumeDetail {
   sections: ResumeSection[];
 }
 
+/**
+ * How to populate the new resume. 'starter' uses default seeded content, 'personal' uses the user's saved profile details, 'empty' leaves sections blank.
+ */
+export type CreateResumeBodyPrefillType =
+  (typeof CreateResumeBodyPrefillType)[keyof typeof CreateResumeBodyPrefillType];
+
+export const CreateResumeBodyPrefillType = {
+  starter: "starter",
+  personal: "personal",
+  empty: "empty",
+} as const;
+
 export interface CreateResumeBody {
   title: string;
   templateId: string;
@@ -83,6 +95,8 @@ export interface CreateResumeBody {
   backgroundColor?: string;
   /** When true (default), new resume sections include sample starter content. When false, sections are empty shells for the template. */
   startPrefilled?: boolean;
+  /** How to populate the new resume. 'starter' uses default seeded content, 'personal' uses the user's saved profile details, 'empty' leaves sections blank. */
+  prefillType?: CreateResumeBodyPrefillType;
 }
 
 export interface ImportResumeBody {
@@ -344,6 +358,34 @@ export interface ScrapeJobResult {
 
 export interface ExportPdfBody {
   html: string;
+}
+
+export interface ProfileSocial {
+  label: string;
+  url: string;
+}
+
+export interface UserProfile {
+  userId: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  photo?: string;
+  jobTitle?: string;
+  location?: string;
+  socials?: ProfileSocial[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UpdateUserProfileBody {
+  name?: string;
+  email?: string;
+  phone?: string;
+  photo?: string;
+  jobTitle?: string;
+  location?: string;
+  socials?: ProfileSocial[];
 }
 
 export type GetAtsScoreParams = {
