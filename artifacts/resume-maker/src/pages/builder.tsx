@@ -961,6 +961,26 @@ export default function BuilderPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [atsPanelOpen, setAtsPanelOpen] = useState(false);
   const [isOptimizingWorkflow, setIsOptimizingWorkflow] = useState(false);
+  const [progressStep, setProgressStep] = useState(0);
+  const progressSteps = useMemo(() => [
+    "Analyzing target job description...",
+    "Aligning resume summary with requirements...",
+    "Tailoring professional experience...",
+    "Refining target job title & details...",
+    "Optimizing key skills matches...",
+    "Auditing ATS score & final cleanup..."
+  ], []);
+
+  useEffect(() => {
+    if (!isOptimizingWorkflow) return;
+    setProgressStep(0);
+    const interval = setInterval(() => {
+      setProgressStep((prev) => Math.min(prev + 1, progressSteps.length - 1));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isOptimizingWorkflow, progressSteps]);
+
+
   const [mobileTab, setMobileTabRaw] = useState<"sections" | "edit" | "preview">(
     "sections",
   );
@@ -3031,137 +3051,164 @@ export default function BuilderPage() {
 
               {/* Localized Premium Magic Wand Overlay */}
               {isOptimizingWorkflow && (
-                <div className="absolute inset-0 bg-background/85 backdrop-blur-[6px] z-30 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-                  <div className="relative flex flex-col items-center max-w-[280px] sm:max-w-xs">
+                <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-[4px] z-30 flex items-start justify-center p-6 text-center animate-in fade-in duration-300">
+                  {/* Sticky Progress Panel */}
+                  <div className="sticky top-[30vh] mx-auto w-full max-w-[320px] sm:max-w-[345px] rounded-2xl border border-white/20 dark:border-zinc-800 bg-white/75 dark:bg-zinc-900/80 backdrop-blur-xl p-8 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.25)] dark:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.6)] flex flex-col items-center gap-6 overflow-hidden">
                     <div
                       className="absolute -inset-10 blur-2xl pointer-events-none rounded-full"
                       style={{ backgroundImage: "radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)" }}
                     />
                     
-                    {/* Magic Wand & Floating Sparks Animation */}
-                    <div className="relative mb-8 flex items-center justify-center h-20 w-20">
-                      {/* circular pulse rings */}
+                    {/* Glowing Orb & Reverse Rotating Rings Animation */}
+                    <div className="relative w-24 h-24 flex items-center justify-center">
+                      {/* Inner glowing pulse */}
                       <motion.div
-                        className="absolute h-16 w-16 rounded-full border border-primary/30 bg-primary/5"
-                        initial={{ scale: 0.6, opacity: 0 }}
-                        animate={{ scale: 1.4, opacity: [0, 0.4, 0] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeOut",
-                        }}
-                      />
-                      <motion.div
-                        className="absolute h-16 w-16 rounded-full border border-primary/20 bg-primary/5"
-                        initial={{ scale: 0.6, opacity: 0 }}
-                        animate={{ scale: 1.8, opacity: [0, 0.2, 0] }}
-                        transition={{
-                          duration: 2,
-                          delay: 0.7,
-                          repeat: Infinity,
-                          ease: "easeOut",
-                        }}
-                      />
-                      
-                      {/* Sparks */}
-                      <motion.div
-                        className="absolute"
-                        initial={{ x: 8, y: -8, scale: 0, opacity: 0 }}
+                        className="absolute w-14 h-14 rounded-full bg-gradient-to-tr from-primary/30 to-purple-500/30 blur-md"
                         animate={{
-                          x: [8, 28, 35],
-                          y: [-8, -28, -35],
-                          scale: [0, 1.2, 0],
-                          opacity: [0, 1, 0],
+                          scale: [0.8, 1.2, 0.8],
+                          opacity: [0.5, 0.8, 0.5],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+
+                      {/* Spinning Orbit Ring 1 */}
+                      <motion.div
+                        className="absolute w-20 h-20 rounded-full border-2 border-dashed border-primary/40 dark:border-primary/50"
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+
+                      {/* Spinning Orbit Ring 2 */}
+                      <motion.div
+                        className="absolute w-16 h-16 rounded-full border border-dotted border-purple-500/40 dark:border-purple-500/60"
+                        animate={{ rotate: -360 }}
+                        transition={{
+                          duration: 6,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                      />
+
+                      {/* Glowing Core */}
+                      <motion.div
+                        className="relative z-10 w-11 h-11 rounded-full bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary),0.5)]"
+                        animate={{
+                          scale: [0.95, 1.05, 0.95],
                         }}
                         transition={{
                           duration: 1.5,
                           repeat: Infinity,
-                          delay: 0.2,
-                          ease: "easeOut",
+                          ease: "easeInOut",
                         }}
                       >
-                        <Sparkles className="h-4 w-4 text-amber-400 fill-amber-400" />
+                        <Wand2 className="h-5 w-5 text-white" />
                       </motion.div>
-                      
+
+                      {/* Floating Sparkles */}
                       <motion.div
                         className="absolute"
-                        initial={{ x: 12, y: -4, scale: 0, opacity: 0 }}
                         animate={{
-                          x: [12, 32, 40],
-                          y: [-4, -12, -15],
+                          x: [0, 24, 0],
+                          y: [0, -24, 0],
                           scale: [0, 1, 0],
                           opacity: [0, 0.8, 0],
                         }}
                         transition={{
-                          duration: 1.8,
+                          duration: 2.5,
                           repeat: Infinity,
-                          delay: 0.8,
-                          ease: "easeOut",
+                          delay: 0,
+                          ease: "easeInOut",
                         }}
                       >
-                        <Sparkles className="h-3 w-3 text-primary fill-primary" />
+                        <Sparkles className="h-4 w-4 text-amber-400 fill-amber-400" />
                       </motion.div>
 
                       <motion.div
                         className="absolute"
-                        initial={{ x: 4, y: -12, scale: 0, opacity: 0 }}
                         animate={{
-                          x: [4, 12, 15],
-                          y: [-12, -35, -42],
+                          x: [0, -28, 0],
+                          y: [0, 20, 0],
                           scale: [0, 0.8, 0],
-                          opacity: [0, 0.9, 0],
+                          opacity: [0, 0.6, 0],
                         }}
                         transition={{
-                          duration: 1.4,
+                          duration: 3,
                           repeat: Infinity,
-                          delay: 0.5,
-                          ease: "easeOut",
-                        }}
-                      >
-                        <Sparkles className="h-2.5 w-2.5 text-purple-400 fill-purple-400" />
-                      </motion.div>
-
-                      {/* Main Wand */}
-                      <motion.div
-                        animate={{
-                          rotate: [0, -12, 16, -12, 0],
-                          x: [0, -3, 3, -3, 0],
-                          y: [0, -2, 2, -2, 0],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
+                          delay: 0.8,
                           ease: "easeInOut",
                         }}
-                        className="relative z-10 text-primary"
                       >
-                        <Wand2 className="h-10 w-10 drop-shadow-[0_0_10px_rgba(var(--primary),0.4)]" />
+                        <Sparkles className="h-3 w-3 text-purple-400 fill-purple-400" />
+                      </motion.div>
+
+                      <motion.div
+                        className="absolute"
+                        animate={{
+                          x: [0, 20, 0],
+                          y: [0, 24, 0],
+                          scale: [0, 0.9, 0],
+                          opacity: [0, 0.7, 0],
+                        }}
+                        transition={{
+                          duration: 2.2,
+                          repeat: Infinity,
+                          delay: 1.5,
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-primary fill-primary" />
                       </motion.div>
                     </div>
 
-                    {/* Progress details */}
-                    <div className="space-y-3 z-10">
-                      <h4 className="text-sm font-extrabold tracking-tight text-foreground sm:text-base">
-                        {optimizeResumeMutation.isPending ? "Optimizing with AI..." : "Calculating ATS Score..."}
-                      </h4>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed sm:text-xs">
+                    {/* Progress steps & details */}
+                    <div className="space-y-4 z-10 w-full">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                          </span>
+                          <h4 className="text-sm font-bold tracking-tight text-foreground dark:text-zinc-100">
+                            {progressSteps[progressStep]}
+                          </h4>
+                        </div>
+                        <p className="text-[10px] text-primary/85 dark:text-primary/95 font-medium tracking-wide uppercase mt-1">
+                          {optimizeResumeMutation.isPending ? "AI Optimization in progress" : "ATS Evaluation in progress"}
+                        </p>
+                      </div>
+
+                      <p className="text-[11px] text-muted-foreground/90 dark:text-zinc-400 leading-relaxed px-2">
                         {optimizeResumeMutation.isPending
                           ? "AI is tailoring your bullet points, skills, and summary for the job description. This may take up to 30 seconds."
                           : "Analyzing keyword density, achievement quantification, and job alignment. This may take a few seconds."}
                       </p>
                       
-                      {/* Animated gradient progress bar */}
-                      <div className="pt-2">
-                        <div className="h-1 w-28 bg-muted rounded-full overflow-hidden mx-auto sm:w-32">
+                      {/* Premium gradient progress bar container */}
+                      <div className="pt-2 w-full">
+                        <div className="h-1.5 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full bg-gradient-to-r from-primary to-purple-500"
+                            className="h-full bg-gradient-to-r from-primary via-purple-500 to-amber-500"
                             initial={{ width: "0%" }}
-                            animate={{ width: "100%" }}
+                            animate={{
+                              width: `${((progressStep + 1) / progressSteps.length) * 100}%`
+                            }}
                             transition={{
-                              duration: optimizeResumeMutation.isPending ? 25 : 4,
-                              ease: "easeOut",
+                              duration: 1.5,
+                              ease: "easeInOut"
                             }}
                           />
+                        </div>
+                        <div className="flex justify-between text-[9px] text-muted-foreground/85 dark:text-zinc-400 mt-1.5 px-0.5">
+                          <span>Step {progressStep + 1} of {progressSteps.length}</span>
+                          <span>{Math.round(((progressStep + 1) / progressSteps.length) * 100)}%</span>
                         </div>
                       </div>
                     </div>
