@@ -263,7 +263,7 @@ export function BulletListEditor({
       )}
 
       {/* Add New Bullet Controls */}
-      <div className="flex gap-2 items-end">
+      <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
         <AutoResizingTextarea
           value={newBulletText}
           onValueChange={setNewBulletText}
@@ -275,7 +275,7 @@ export function BulletListEditor({
         <Button
           type="button"
           onClick={handleAddBullet}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 gap-1.5 h-[38px] rounded-xl"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 gap-1.5 h-[38px] rounded-xl w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" /> Add
         </Button>

@@ -42,6 +42,8 @@ import {
   Settings,
   Save,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -492,6 +494,36 @@ export default function ProfilePage() {
     { id: "settings", label: "Onboarding Settings", icon: Settings },
   ];
 
+  const touchStartRef = useRef<number | null>(null);
+  const activeTabIndex = TABS.findIndex((t) => t.id === activeTab);
+
+  const handlePrevTab = () => {
+    if (activeTabIndex > 0) {
+      setActiveTab(TABS[activeTabIndex - 1].id);
+    }
+  };
+
+  const handleNextTab = () => {
+    if (activeTabIndex < TABS.length - 1) {
+      setActiveTab(TABS[activeTabIndex + 1].id);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const diff = touchStartRef.current - e.changedTouches[0].clientX;
+    touchStartRef.current = null;
+    if (diff > 60) {
+      handleNextTab();
+    } else if (diff < -60) {
+      handlePrevTab();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       <SEO title="Professional Profile | Resumesensei" description="Edit your professional profile for automated resume prefills." />
@@ -502,14 +534,59 @@ export default function ProfilePage() {
           {/* Left Navigation Sidebar */}
           <aside className="w-full md:w-64 bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 shrink-0 backdrop-blur-xl flex flex-col gap-4">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-3 mb-0 md:mb-4 hidden md:block">Profile Sections</h2>
-            <nav className="flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 -mx-2 px-2 md:mx-0 md:px-0 scrollbar-none shrink-0">
+            
+            {/* Mobile Navigation Header */}
+            <div className="flex md:hidden items-center justify-between w-full bg-slate-950/40 border border-slate-800/50 rounded-xl px-2 py-1.5 shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handlePrevTab}
+                disabled={activeTabIndex === 0}
+                className="h-8 w-8 text-slate-400 hover:text-slate-200 disabled:opacity-30 shrink-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+
+              <div className="flex flex-col items-center gap-0.5 text-center">
+                {(() => {
+                  const activeTabItem = TABS[activeTabIndex];
+                  const ActiveIcon = activeTabItem.icon;
+                  return (
+                    <>
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-200">
+                        <ActiveIcon className="h-3.5 w-3.5 text-indigo-400" />
+                        <span>{activeTabItem.label}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-500 font-medium tracking-wide">
+                        Section {activeTabIndex + 1} of {TABS.length} • Swipe to navigate
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleNextTab}
+                disabled={activeTabIndex === TABS.length - 1}
+                className="h-8 w-8 text-slate-400 hover:text-slate-200 disabled:opacity-30 shrink-0"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Desktop Navigation List */}
+            <nav className="hidden md:flex flex-col gap-1.5">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 md:gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap shrink-0 ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                       activeTab === tab.id
                         ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
@@ -550,7 +627,11 @@ export default function ProfilePage() {
               <span className="sr-only">Close Profile</span>
             </button>
 
-            <section className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 md:p-8 min-h-[500px] relative overflow-hidden backdrop-blur-xl">
+            <section
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 md:p-8 min-h-[500px] relative overflow-hidden backdrop-blur-xl"
+            >
               {/* Ambient lighting elements */}
               <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 h-40 w-40 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -720,7 +801,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="p-bio" className="text-slate-300">Summary / About Me</Label>
+                    <Label htmlFor="p-bio" className="text-slate-300">Summary</Label>
                     <Button
                       type="button"
                       variant="ghost"

@@ -737,7 +737,7 @@ export default function OnboardingPage() {
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="about" className="text-slate-300">Summary / About Me</Label>
+                      <Label htmlFor="about" className="text-slate-300">Summary</Label>
                       <Button
                         type="button"
                         variant="ghost"
