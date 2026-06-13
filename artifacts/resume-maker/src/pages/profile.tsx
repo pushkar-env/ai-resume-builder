@@ -523,7 +523,7 @@ export default function ProfilePage() {
     { id: "settings", label: "Onboarding Settings", icon: Settings },
   ];
 
-  const touchStartRef = useRef<number | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const activeTabIndex = TABS.findIndex((t) => t.id === activeTab);
 
   const handlePrevTab = () => {
@@ -539,17 +539,28 @@ export default function ProfilePage() {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = e.touches[0].clientX;
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartRef.current === null) return;
-    const diff = touchStartRef.current - e.changedTouches[0].clientX;
+    const start = touchStartRef.current;
     touchStartRef.current = null;
-    if (diff > 60) {
-      handleNextTab();
-    } else if (diff < -60) {
-      handlePrevTab();
+
+    const diffX = start.x - e.changedTouches[0].clientX;
+    const diffY = start.y - e.changedTouches[0].clientY;
+
+    // Only switch tabs if the horizontal swipe is greater than 60px
+    // and significantly larger than any vertical swipe/scrolling movement
+    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        handleNextTab();
+      } else {
+        handlePrevTab();
+      }
     }
   };
 
