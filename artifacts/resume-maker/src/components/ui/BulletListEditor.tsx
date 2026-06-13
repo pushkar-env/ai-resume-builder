@@ -1,13 +1,64 @@
 import * as React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, Sparkles, Loader2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useImproveBullet } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { richHtmlToPlainText, plainTextToRichHtml } from "@/lib/ai-rich-text";
+
+interface AutoResizingTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  value: string;
+  onValueChange: (val: string) => void;
+}
+
+const AutoResizingTextarea = React.forwardRef<HTMLTextAreaElement, AutoResizingTextareaProps>(
+  ({ value, onValueChange, className, placeholder, ...props }, ref) => {
+    const internalRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+      const target = internalRef.current;
+      if (!target) return;
+
+      if (typeof ref === "function") {
+        ref(target);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = target;
+      }
+
+      const adjustHeight = () => {
+        target.style.height = "auto";
+        target.style.height = `${target.scrollHeight}px`;
+      };
+
+      adjustHeight();
+      window.addEventListener("resize", adjustHeight);
+      
+      return () => {
+        window.removeEventListener("resize", adjustHeight);
+        if (typeof ref === "function") {
+          ref(null);
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = null;
+        }
+      };
+    }, [value, ref]);
+
+    return (
+      <textarea
+        ref={internalRef}
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder={placeholder}
+        className={className}
+        style={{ resize: "none", overflow: "hidden", ...props.style }}
+        {...props}
+      />
+    );
+  }
+);
+AutoResizingTextarea.displayName = "AutoResizingTextarea";
 
 interface BulletListEditorProps {
   bullets: string[];
@@ -44,7 +95,6 @@ export function BulletListEditor({
           return;
         }
         const updated = [...bullets];
-        // Clean rich HTML if returned
         updated[pendingIndex] = richHtmlToPlainText(data.text);
         onChange(updated);
         setPendingIndex(null);
@@ -70,8 +120,8 @@ export function BulletListEditor({
     setNewBulletText("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleAddBullet();
     }
@@ -140,18 +190,19 @@ export function BulletListEditor({
             return (
               <div
                 key={idx}
-                className="flex items-center gap-2 group bg-slate-950/35 border border-slate-800/80 rounded-xl p-2 transition-all hover:border-slate-700/80"
+                className="flex items-start gap-2 group bg-slate-950/35 border border-slate-800/80 rounded-xl p-2 transition-all hover:border-slate-700/80"
               >
                 <div className="flex-1">
-                  <Input
+                  <AutoResizingTextarea
                     value={bullet}
-                    onChange={(e) => handleUpdateBullet(idx, e.target.value)}
+                    onValueChange={(val) => handleUpdateBullet(idx, val)}
                     placeholder="Describe your achievement..."
-                    className="bg-transparent border-none focus-visible:ring-0 shadow-none h-8 px-1 text-sm text-slate-200 placeholder:text-slate-600"
+                    rows={1}
+                    className="w-full bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 shadow-none px-1 py-1 text-sm text-slate-200 placeholder:text-slate-600 resize-none min-h-[28px] h-auto"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 opacity-80 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-80 md:opacity-0 group-hover:opacity-100 transition-opacity pt-0.5 shrink-0">
                   <Button
                     type="button"
                     variant="ghost"
@@ -210,18 +261,19 @@ export function BulletListEditor({
       )}
 
       {/* Add New Bullet Controls */}
-      <div className="flex gap-2">
-        <Input
+      <div className="flex gap-2 items-end">
+        <AutoResizingTextarea
           value={newBulletText}
-          onChange={(e) => setNewBulletText(e.target.value)}
+          onValueChange={setNewBulletText}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="bg-slate-950 border-slate-800 text-sm text-slate-200"
+          rows={1}
+          className="flex-grow w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 min-h-[38px] h-auto"
         />
         <Button
           type="button"
           onClick={handleAddBullet}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 gap-1.5"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 gap-1.5 h-[38px] rounded-xl"
         >
           <Plus className="h-4 w-4" /> Add
         </Button>

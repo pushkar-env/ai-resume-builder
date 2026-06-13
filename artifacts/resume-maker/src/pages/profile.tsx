@@ -630,40 +630,56 @@ export default function ProfilePage() {
 
                 <div className="border-t border-slate-800/80 pt-5">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Links & Portfolio</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="p-li" className="text-slate-300">LinkedIn URL</Label>
-                      <Input
-                        id="p-li"
-                        placeholder="linkedin.com/in/janedoe"
-                        value={socials.find(s => s.label.toLowerCase() === "linkedin")?.url || ""}
-                        onChange={(e) => {
-                          const newSocials = socials.filter(s => s.label.toLowerCase() !== "linkedin");
-                          if (e.target.value.trim()) {
-                            newSocials.push({ label: "LinkedIn", url: e.target.value });
-                          }
-                          setSocials(newSocials);
-                        }}
-                        className="bg-slate-950 border-slate-800"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="p-web" className="text-slate-300">Portfolio Website</Label>
-                      <Input
-                        id="p-web"
-                        placeholder="janedoe.dev"
-                        value={socials.find(s => s.label.toLowerCase() === "portfolio" || s.label.toLowerCase() === "website")?.url || ""}
-                        onChange={(e) => {
-                          const newSocials = socials.filter(s => s.label.toLowerCase() !== "portfolio" && s.label.toLowerCase() !== "website");
-                          if (e.target.value.trim()) {
-                            newSocials.push({ label: "Portfolio", url: e.target.value });
-                          }
-                          setSocials(newSocials);
-                        }}
-                        className="bg-slate-950 border-slate-800"
-                      />
-                    </div>
+                  <div className="space-y-3">
+                    {socials.map((s, i) => (
+                      <div key={i} className="flex gap-2 items-center">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+                          <Input
+                            value={s.label}
+                            placeholder="Label (e.g. LinkedIn, GitHub)"
+                            onChange={(e) => {
+                              const next = socials.map((item, idx) => idx === i ? { ...item, label: e.target.value } : item);
+                              setSocials(next);
+                            }}
+                            className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                          <Input
+                            value={s.url}
+                            placeholder="https://..."
+                            onChange={(e) => {
+                              const next = socials.map((item, idx) => idx === i ? { ...item, url: e.target.value } : item);
+                              setSocials(next);
+                            }}
+                            className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const next = socials.filter((_, idx) => idx !== i);
+                            setSocials(next);
+                          }}
+                          className="h-9 w-9 text-slate-500 hover:text-red-400 hover:bg-red-950/20 shrink-0"
+                          title="Remove Link"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const next = [...socials, { label: "", url: "" }];
+                        setSocials(next);
+                      }}
+                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200"
+                    >
+                      <Plus className="h-4 w-4" /> Add Link
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1010,23 +1026,7 @@ export default function ProfilePage() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label className="text-xs text-slate-400">Technologies Used</Label>
-                            <Input
-                              value={proj.technologiesUsed}
-                              onChange={(e) => {
-                                const updated = [...projects];
-                                updated[idx] = { ...updated[idx], technologiesUsed: e.target.value };
-                                setProjects(updated);
-                              }}
-                              placeholder="Next.js, Python, Flask"
-                              className="bg-slate-950 border-slate-800"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-slate-400">App URL</Label>
+                            <Label className="text-xs text-slate-400">Project URL</Label>
                             <Input
                               value={proj.url}
                               onChange={(e) => {
@@ -1035,20 +1035,6 @@ export default function ProfilePage() {
                                 setProjects(updated);
                               }}
                               placeholder="https://..."
-                              className="bg-slate-950 border-slate-800"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-slate-400">GitHub URL</Label>
-                            <Input
-                              value={proj.github}
-                              onChange={(e) => {
-                                const updated = [...projects];
-                                updated[idx] = { ...updated[idx], github: e.target.value };
-                                setProjects(updated);
-                              }}
-                              placeholder="https://github.com/..."
                               className="bg-slate-950 border-slate-800"
                             />
                           </div>

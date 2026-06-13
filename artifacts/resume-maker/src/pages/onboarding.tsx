@@ -512,20 +512,19 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       <SEO title="Onboarding | Resumesensei" description="Set up your Resumesensei profile." robots="noindex, nofollow" />
 
-      {/* Top Navigation & Progress Bar */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-6 py-4 flex flex-col gap-3">
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-3">
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+            <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
               Resumesensei
             </span>
-            <span className="text-xs bg-indigo-950 border border-indigo-500/30 text-indigo-400 font-semibold px-2 py-0.5 rounded-full">
+            <span className="hidden sm:inline-flex text-xs bg-indigo-950 border border-indigo-500/30 text-indigo-400 font-semibold px-2 py-0.5 rounded-full">
               Onboarding
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white" onClick={handleSkip}>
+            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white px-2.5 sm:px-3 text-xs sm:text-sm" onClick={handleSkip}>
               Skip For Now
             </Button>
           </div>
@@ -639,40 +638,56 @@ export default function OnboardingPage() {
 
                   <div className="border-t border-slate-800/80 pt-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Links & Portfolio</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="linkedin" className="text-slate-300">LinkedIn URL</Label>
-                        <Input
-                          id="linkedin"
-                          placeholder="linkedin.com/in/janedoe"
-                          value={socials.find(s => s.label.toLowerCase() === "linkedin")?.url || ""}
-                          onChange={(e) => {
-                            const newSocials = socials.filter(s => s.label.toLowerCase() !== "linkedin");
-                            if (e.target.value.trim()) {
-                              newSocials.push({ label: "LinkedIn", url: e.target.value });
-                            }
-                            handleFieldChange(setSocials, "socials", newSocials);
-                          }}
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label htmlFor="portfolio" className="text-slate-300">Portfolio Website</Label>
-                        <Input
-                          id="portfolio"
-                          placeholder="janedoe.dev"
-                          value={socials.find(s => s.label.toLowerCase() === "portfolio" || s.label.toLowerCase() === "website")?.url || ""}
-                          onChange={(e) => {
-                            const newSocials = socials.filter(s => s.label.toLowerCase() !== "portfolio" && s.label.toLowerCase() !== "website");
-                            if (e.target.value.trim()) {
-                              newSocials.push({ label: "Portfolio", url: e.target.value });
-                            }
-                            handleFieldChange(setSocials, "socials", newSocials);
-                          }}
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
-                        />
-                      </div>
+                    <div className="space-y-3">
+                      {socials.map((s, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+                            <Input
+                              value={s.label}
+                              placeholder="Label (e.g. LinkedIn, GitHub)"
+                              onChange={(e) => {
+                                const next = socials.map((item, idx) => idx === i ? { ...item, label: e.target.value } : item);
+                                handleFieldChange(setSocials, "socials", next);
+                              }}
+                              className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <Input
+                              value={s.url}
+                              placeholder="https://..."
+                              onChange={(e) => {
+                                const next = socials.map((item, idx) => idx === i ? { ...item, url: e.target.value } : item);
+                                handleFieldChange(setSocials, "socials", next);
+                              }}
+                              className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const next = socials.filter((_, idx) => idx !== i);
+                              handleFieldChange(setSocials, "socials", next);
+                            }}
+                            className="h-9 w-9 text-slate-500 hover:text-red-400 hover:bg-red-950/20 shrink-0"
+                            title="Remove Link"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const next = [...socials, { label: "", url: "" }];
+                          handleFieldChange(setSocials, "socials", next);
+                        }}
+                        className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200"
+                      >
+                        <Plus className="h-4 w-4" /> Add Link
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1071,7 +1086,7 @@ export default function OnboardingPage() {
                             <Trash2 className="h-4 w-4" />
                           </button>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <Label className="text-xs text-slate-400">Project Name</Label>
                               <Input
@@ -1087,22 +1102,6 @@ export default function OnboardingPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Technologies Used</Label>
-                              <Input
-                                value={proj.technologiesUsed}
-                                onChange={(e) => {
-                                  const updated = [...projects];
-                                  updated[idx].technologiesUsed = e.target.value;
-                                  handleFieldChange(setProjects, "projects", updated);
-                                }}
-                                placeholder="Next.js, Tailwind, Prisma, PostgreSQL"
-                                className="bg-slate-950 border-slate-800"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
                               <Label className="text-xs text-slate-400">Project URL (optional)</Label>
                               <Input
                                 value={proj.url}
@@ -1112,20 +1111,6 @@ export default function OnboardingPage() {
                                   handleFieldChange(setProjects, "projects", updated);
                                 }}
                                 placeholder="my-app.com"
-                                className="bg-slate-950 border-slate-800"
-                              />
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">GitHub URL (optional)</Label>
-                              <Input
-                                value={proj.github}
-                                onChange={(e) => {
-                                  const updated = [...projects];
-                                  updated[idx].github = e.target.value;
-                                  handleFieldChange(setProjects, "projects", updated);
-                                }}
-                                placeholder="github.com/myusername/project-repo"
                                 className="bg-slate-950 border-slate-800"
                               />
                             </div>
