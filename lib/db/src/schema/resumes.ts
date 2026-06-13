@@ -36,6 +36,8 @@ export const resumesTable = pgTable("resumes", {
   atsFeedback: jsonb("ats_feedback"),
   atsUpdatedAt: timestamp("ats_updated_at", { withTimezone: true }),
   atsJobDescription: text("ats_job_description"),
+  atsJobUrl: text("ats_job_url"),
+  atsJobTitle: text("ats_job_title"),
 });
 
 export const resumeSectionsTable = pgTable("resume_sections", {

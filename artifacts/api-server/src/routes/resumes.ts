@@ -937,6 +937,10 @@ router.patch(
       updateData.atsUpdatedAt = resumeFields.atsUpdatedAt ? new Date(resumeFields.atsUpdatedAt) : null;
     if (resumeFields.atsJobDescription !== undefined)
       updateData.atsJobDescription = resumeFields.atsJobDescription;
+    if (resumeFields.atsJobUrl !== undefined)
+      updateData.atsJobUrl = resumeFields.atsJobUrl;
+    if (resumeFields.atsJobTitle !== undefined)
+      updateData.atsJobTitle = resumeFields.atsJobTitle;
 
     const hasResumeFieldUpdates = Object.keys(updateData).length > 0;
     const hasSectionPayload = !!(sections && sections.length > 0);
@@ -1273,7 +1277,7 @@ router.get(
     const skillsSection = sections.find((s) => s.type === "skills");
     const skillsContent = skillsSection?.content as any;
 
-    const targetJobTitle = personalContent?.jobTitle || resume.title || "Professional";
+    const targetJobTitle = resume.atsJobTitle || personalContent?.jobTitle || resume.title || "Professional";
     const skillsList = Array.isArray(skillsContent?.items)
       ? skillsContent.items.map((i: any) => i.name || i).join(", ")
       : "";

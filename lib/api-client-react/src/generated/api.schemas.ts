@@ -35,6 +35,8 @@ export interface Resume {
   atsFeedback?: string[] | null;
   atsUpdatedAt?: string | null;
   atsJobDescription?: string | null;
+  atsJobUrl?: string | null;
+  atsJobTitle?: string | null;
 }
 
 export type ResumeSectionContent = { [key: string]: unknown };
@@ -71,6 +73,8 @@ export interface ResumeDetail {
   atsFeedback?: string[] | null;
   atsUpdatedAt?: string | null;
   atsJobDescription?: string | null;
+  atsJobUrl?: string | null;
+  atsJobTitle?: string | null;
   sections: ResumeSection[];
 }
 
@@ -130,6 +134,8 @@ export interface UpdateResumeBody {
   atsFeedback?: string[] | null;
   atsUpdatedAt?: string | null;
   atsJobDescription?: string | null;
+  atsJobUrl?: string | null;
+  atsJobTitle?: string | null;
 }
 
 export type ExportResumeBodyFormat =

@@ -221,6 +221,8 @@ export const ListResumesResponseItem = zod.object({
   atsFeedback: zod.array(zod.string()).nullish(),
   atsUpdatedAt: zod.coerce.date().nullish(),
   atsJobDescription: zod.string().nullish(),
+  atsJobUrl: zod.string().nullish(),
+  atsJobTitle: zod.string().nullish(),
 });
 export const ListResumesResponse = zod.array(ListResumesResponseItem);
 
@@ -285,6 +287,8 @@ export const GetResumeResponse = zod.object({
   atsFeedback: zod.array(zod.string()).nullish(),
   atsUpdatedAt: zod.coerce.date().nullish(),
   atsJobDescription: zod.string().nullish(),
+  atsJobUrl: zod.string().nullish(),
+  atsJobTitle: zod.string().nullish(),
   sections: zod.array(
     zod.object({
       id: zod.number(),
@@ -331,6 +335,8 @@ export const UpdateResumeBody = zod.object({
   atsFeedback: zod.array(zod.string()).nullish(),
   atsUpdatedAt: zod.coerce.date().nullish(),
   atsJobDescription: zod.string().nullish(),
+  atsJobUrl: zod.string().nullish(),
+  atsJobTitle: zod.string().nullish(),
 });
 
 export const UpdateResumeResponse = zod.object({
@@ -354,6 +360,8 @@ export const UpdateResumeResponse = zod.object({
   atsFeedback: zod.array(zod.string()).nullish(),
   atsUpdatedAt: zod.coerce.date().nullish(),
   atsJobDescription: zod.string().nullish(),
+  atsJobUrl: zod.string().nullish(),
+  atsJobTitle: zod.string().nullish(),
   sections: zod.array(
     zod.object({
       id: zod.number(),
@@ -452,6 +460,8 @@ export const OptimizeResumeResponse = zod.object({
     atsFeedback: zod.array(zod.string()).nullish(),
     atsUpdatedAt: zod.coerce.date().nullish(),
     atsJobDescription: zod.string().nullish(),
+    atsJobUrl: zod.string().nullish(),
+    atsJobTitle: zod.string().nullish(),
     sections: zod.array(
       zod.object({
         id: zod.number(),
@@ -509,6 +519,8 @@ export const GetDashboardStatsResponse = zod.object({
       atsFeedback: zod.array(zod.string()).nullish(),
       atsUpdatedAt: zod.coerce.date().nullish(),
       atsJobDescription: zod.string().nullish(),
+      atsJobUrl: zod.string().nullish(),
+      atsJobTitle: zod.string().nullish(),
     }),
   ),
   resumesByTemplate: zod.array(

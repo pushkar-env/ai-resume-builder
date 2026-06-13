@@ -1153,14 +1153,7 @@ export default function BuilderPage() {
     return dbJd === currentJd;
   }, [resume?.atsScore, resume?.atsJobDescription, scannedJobDescription]);
 
-  // Initialize job description from resume details
-  useEffect(() => {
-    if (resume?.atsJobDescription && !jobDescriptionText && !scannedJobDescription) {
-      const trimmedJd = resume.atsJobDescription.trim();
-      setJobDescriptionText(trimmedJd);
-      setScannedJobDescription(trimmedJd);
-    }
-  }, [resume?.atsJobDescription, resumeId]);
+
 
   const { data: atsScoreData, isFetching: isAtsFetching, error: atsScanError } = useGetAtsScore(
     resumeId,
@@ -1354,6 +1347,38 @@ export default function BuilderPage() {
   const saveSeqRef = useRef(0);
   const latestSaveSeqRef = useRef(0);
 
+  const localSectionsRef = useRef(localSections);
+  const accentColorRef = useRef(accentColor);
+  const fontFamilyRef = useRef(fontFamily);
+  const templateIdRef = useRef(templateId);
+  const fontColorRef = useRef(fontColor);
+  const backgroundColorRef = useRef(backgroundColor);
+  const jobUrlTextRef = useRef(jobUrlText);
+  const jobDescriptionTextRef = useRef(jobDescriptionText);
+
+  useEffect(() => { localSectionsRef.current = localSections; }, [localSections]);
+  useEffect(() => { accentColorRef.current = accentColor; }, [accentColor]);
+  useEffect(() => { fontFamilyRef.current = fontFamily; }, [fontFamily]);
+  useEffect(() => { templateIdRef.current = templateId; }, [templateId]);
+  useEffect(() => { fontColorRef.current = fontColor; }, [fontColor]);
+  useEffect(() => { backgroundColorRef.current = backgroundColor; }, [backgroundColor]);
+  useEffect(() => { jobUrlTextRef.current = jobUrlText; }, [jobUrlText]);
+  useEffect(() => { jobDescriptionTextRef.current = jobDescriptionText; }, [jobDescriptionText]);
+
+  const latestSavePayloadRef = useRef<{
+    sections: Section[];
+    accentColor: string;
+    fontFamily: string;
+    templateId: string;
+    fontColor: string;
+    backgroundColor: string;
+    atsJobUrl: string | null;
+    atsJobTitle: string | null;
+    atsJobDescription: string | null;
+  } | null>(null);
+
+
+
   // Only initialize local state the first time this resume loads (not on every save/re-fetch).
   // Preserve the user's currently selected section whenever it still exists.
   useEffect(() => {
@@ -1382,6 +1407,12 @@ export default function BuilderPage() {
         }
         return nextSections[0].id;
       });
+
+      // Initialize ATS fields
+      const trimmedJd = (resume.atsJobDescription || "").trim();
+      setJobDescriptionText(trimmedJd);
+      setScannedJobDescription(trimmedJd);
+      setJobUrlText(resume.atsJobUrl || "");
 
       // Initialize or load scanned content text cache for isAtsOutdated logic
       const serialContent = serializeResumeTextContent(nextSections);
@@ -1437,32 +1468,66 @@ export default function BuilderPage() {
 
   const scheduleSave = useCallback(
     (
-      sections: Section[],
-      accent: string,
-      font: string,
-      template: string,
-      fColor: string,
-      bColor: string,
+      sections?: Section[],
+      accent?: string,
+      font?: string,
+      template?: string,
+      fColor?: string,
+      bColor?: string,
+      atsUrl?: string,
+      atsDesc?: string,
     ) => {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       const seq = ++saveSeqRef.current;
       latestSaveSeqRef.current = seq;
+
+      const currentSections = sections !== undefined ? sections : localSectionsRef.current;
+      const currentAccent = accent !== undefined ? accent : accentColorRef.current;
+      const currentFont = font !== undefined ? font : fontFamilyRef.current;
+      const currentTemplate = template !== undefined ? template : templateIdRef.current;
+      const currentFontColor = fColor !== undefined ? fColor : fontColorRef.current;
+      const currentBgColor = bColor !== undefined ? bColor : backgroundColorRef.current;
+      const targetUrl = atsUrl !== undefined ? atsUrl : jobUrlTextRef.current;
+      const targetDesc = atsDesc !== undefined ? atsDesc : jobDescriptionTextRef.current;
+
+      const personalSection = currentSections.find((s) => s.type === "personal");
+      const currentJobTitle = (personalSection?.content as any)?.jobTitle || "";
+
+      latestSavePayloadRef.current = {
+        sections: currentSections,
+        accentColor: currentAccent,
+        fontFamily: currentFont,
+        templateId: currentTemplate,
+        fontColor: currentFontColor,
+        backgroundColor: currentBgColor,
+        atsJobUrl: targetUrl || null,
+        atsJobTitle: currentJobTitle || null,
+        atsJobDescription: targetDesc || null,
+      };
+
       saveTimeoutRef.current = setTimeout(() => {
+        const payload = latestSavePayloadRef.current;
+        if (!payload) return;
+        latestSavePayloadRef.current = null;
+
         updateResume.mutate(
           {
             id: resumeId,
             data: {
-              accentColor: accent,
-              fontFamily: font,
-              fontColor: fColor,
-              backgroundColor: bColor,
-              templateId: template,
-              sections: sections.map((s) => ({
+              accentColor: payload.accentColor,
+              fontFamily: payload.fontFamily,
+              fontColor: payload.fontColor,
+              backgroundColor: payload.backgroundColor,
+              templateId: payload.templateId,
+              sections: payload.sections.map((s) => ({
                 id: s.id,
                 content: s.content as Record<string, unknown>,
                 displayOrder: s.displayOrder,
                 isVisible: s.isVisible,
               })),
+              atsJobUrl: payload.atsJobUrl,
+              atsJobTitle: payload.atsJobTitle,
+              atsJobDescription: payload.atsJobDescription,
             },
           },
           {
@@ -1482,32 +1547,40 @@ export default function BuilderPage() {
         );
       }, 800);
     },
-    [resumeId, updateResume],
+    [resumeId, updateResume, toast],
   );
 
   const flushSave = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
+    }
+
+    const payload = latestSavePayloadRef.current;
+    if (payload) {
+      latestSavePayloadRef.current = null;
       
       const seq = ++saveSeqRef.current;
       latestSaveSeqRef.current = seq;
-      
+
       updateResume.mutate(
         {
           id: resumeId,
           data: {
-            accentColor,
-            fontFamily,
-            fontColor,
-            backgroundColor,
-            templateId,
-            sections: localSections.map((s) => ({
+            accentColor: payload.accentColor,
+            fontFamily: payload.fontFamily,
+            fontColor: payload.fontColor,
+            backgroundColor: payload.backgroundColor,
+            templateId: payload.templateId,
+            sections: payload.sections.map((s) => ({
               id: s.id,
               content: s.content as Record<string, unknown>,
               displayOrder: s.displayOrder,
               isVisible: s.isVisible,
             })),
+            atsJobUrl: payload.atsJobUrl,
+            atsJobTitle: payload.atsJobTitle,
+            atsJobDescription: payload.atsJobDescription,
           },
         },
         {
@@ -1524,16 +1597,19 @@ export default function BuilderPage() {
         }
       );
     }
-  }, [
-    resumeId,
-    updateResume,
-    accentColor,
-    fontFamily,
-    fontColor,
-    backgroundColor,
-    templateId,
-    localSections,
-  ]);
+  }, [resumeId, updateResume, toast]);
+
+  // Flush any pending save on unmount
+  const flushSaveRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    flushSaveRef.current = flushSave;
+  }, [flushSave]);
+
+  useEffect(() => {
+    return () => {
+      flushSaveRef.current();
+    };
+  }, []);
 
   /**
    * Mobile tab switch — commit any in-flight IME composition / focused input,
@@ -1842,10 +1918,12 @@ export default function BuilderPage() {
         description: "Successfully fetched job posting details.",
       });
 
+      const nextDesc = result.description || "";
       if (result.description) {
         setJobDescriptionText(result.description);
       }
 
+      let nextSections = localSections;
       if (result.jobTitle) {
         const personalSection = localSections.find((s) => s.type === "personal");
         if (personalSection) {
@@ -1854,13 +1932,28 @@ export default function BuilderPage() {
             ...currentContent,
             jobTitle: result.jobTitle,
           };
-          handleSectionContentChange(personalSection.id, updatedContent);
+          nextSections = localSections.map((s) =>
+            s.id === personalSection.id ? { ...s, content: updatedContent } : s
+          );
+          setLocalSections(nextSections);
+          bumpPreviewRevision();
           toast({
             title: "Updated Target Job Role",
             description: `Set target role to "${result.jobTitle}".`,
           });
         }
       }
+
+      scheduleSave(
+        nextSections,
+        accentColor,
+        fontFamily,
+        templateId,
+        fontColor,
+        backgroundColor,
+        jobUrlText.trim(),
+        nextDesc,
+      );
 
     } catch (err: any) {
       toast({
@@ -1869,7 +1962,19 @@ export default function BuilderPage() {
         variant: "destructive",
       });
     }
-  }, [jobUrlText, scrapeJob, localSections, handleSectionContentChange, toast]);
+  }, [
+    jobUrlText,
+    scrapeJob,
+    localSections,
+    accentColor,
+    fontFamily,
+    templateId,
+    fontColor,
+    backgroundColor,
+    scheduleSave,
+    bumpPreviewRevision,
+    toast,
+  ]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -2442,7 +2547,19 @@ export default function BuilderPage() {
                                 type="url"
                                 placeholder="Paste LinkedIn, Indeed, or job listing URL..."
                                 value={jobUrlText}
-                                onChange={(e) => setJobUrlText(e.target.value)}
+                                onChange={(e) => {
+                                  setJobUrlText(e.target.value);
+                                  scheduleSave(
+                                    localSections,
+                                    accentColor,
+                                    fontFamily,
+                                    templateId,
+                                    fontColor,
+                                    backgroundColor,
+                                    e.target.value,
+                                    jobDescriptionText
+                                  );
+                                }}
                                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                               />
                               <Button
@@ -2500,7 +2617,19 @@ export default function BuilderPage() {
 
                           <textarea
                             value={jobDescriptionText}
-                            onChange={(e) => setJobDescriptionText(e.target.value)}
+                            onChange={(e) => {
+                              setJobDescriptionText(e.target.value);
+                              scheduleSave(
+                                localSections,
+                                accentColor,
+                                fontFamily,
+                                templateId,
+                                fontColor,
+                                backgroundColor,
+                                jobUrlText,
+                                e.target.value
+                              );
+                            }}
                             placeholder="Paste the target job description here to calculate a tailored ATS compatibility score and get optimized keywords/suggestions..."
                             className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y leading-relaxed"
                           />
@@ -2519,7 +2648,19 @@ export default function BuilderPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setJobDescriptionText("")}
+                                onClick={() => {
+                                  setJobDescriptionText("");
+                                  scheduleSave(
+                                    localSections,
+                                    accentColor,
+                                    fontFamily,
+                                    templateId,
+                                    fontColor,
+                                    backgroundColor,
+                                    jobUrlText,
+                                    ""
+                                  );
+                                }}
                                 disabled={isAtsFetching}
                                 className="h-9 text-xs px-3 hover:bg-muted"
                               >

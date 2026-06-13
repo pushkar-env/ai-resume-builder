@@ -937,6 +937,12 @@ components:
         atsJobDescription:
           type: string
           nullable: true
+        atsJobUrl:
+          type: string
+          nullable: true
+        atsJobTitle:
+          type: string
+          nullable: true
       required:
         - id
         - userId
@@ -1007,6 +1013,12 @@ components:
           format: date-time
           nullable: true
         atsJobDescription:
+          type: string
+          nullable: true
+        atsJobUrl:
+          type: string
+          nullable: true
+        atsJobTitle:
           type: string
           nullable: true
         sections:
@@ -1137,6 +1149,12 @@ components:
           format: date-time
           nullable: true
         atsJobDescription:
+          type: string
+          nullable: true
+        atsJobUrl:
+          type: string
+          nullable: true
+        atsJobTitle:
           type: string
           nullable: true
 
