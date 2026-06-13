@@ -45,6 +45,15 @@ export const userProfilesTable = pgTable("user_profiles", {
     date: string;
     credentialUrl?: string;
   }[]>().default([]),
+  education: jsonb("education").$type<{
+    school: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+    gpa: string;
+    gpaMode: string;
+  }[]>().default([]),
   onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
   onboardingSkipped: boolean("onboarding_skipped").default(false).notNull(),
   onboardingProgress: integer("onboarding_progress").default(0).notNull(),

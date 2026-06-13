@@ -35,15 +35,17 @@ import {
   FolderGit,
   Award,
   User as UserIcon,
+  GraduationCap,
 } from "lucide-react";
 
 const STEPS = [
   { id: 1, name: "Personal Info", icon: UserIcon },
   { id: 2, name: "Professional Summary", icon: Compass },
   { id: 3, name: "Work Experience", icon: Briefcase },
-  { id: 4, name: "Skills", icon: Wrench },
-  { id: 5, name: "Projects", icon: FolderGit },
-  { id: 6, name: "Certifications", icon: Award },
+  { id: 4, name: "Education", icon: GraduationCap },
+  { id: 5, name: "Skills", icon: Wrench },
+  { id: 6, name: "Projects", icon: FolderGit },
+  { id: 7, name: "Certifications", icon: Award },
 ];
 
 export default function OnboardingPage() {
@@ -112,6 +114,18 @@ export default function OnboardingPage() {
       description: string;
       currentlyWorking: boolean;
       bullets?: string[];
+    }[]
+  >([]);
+
+  const [education, setEducation] = useState<
+    {
+      school: string;
+      degree: string;
+      field: string;
+      startDate: string;
+      endDate: string;
+      gpa: string;
+      gpaMode: string;
     }[]
   >([]);
 
@@ -185,6 +199,17 @@ export default function OnboardingPage() {
                 .filter(Boolean)
         }))
       );
+      setEducation(
+        ((profile.education as any[]) || []).map(edu => ({
+          school: edu.school || "",
+          degree: edu.degree || "",
+          field: edu.field || "",
+          startDate: edu.startDate || "",
+          endDate: edu.endDate || "",
+          gpa: edu.gpa || "",
+          gpaMode: edu.gpaMode || "gpa",
+        }))
+      );
       setSkills(profile.skills || []);
       setProjects(
         ((profile.projects as any[]) || []).map(proj => ({
@@ -232,6 +257,7 @@ export default function OnboardingPage() {
           yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
           aboutMe,
           experience,
+          education,
           skills,
           projects,
           certifications,
@@ -297,6 +323,7 @@ export default function OnboardingPage() {
         yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
         aboutMe,
         experience,
+        education,
         skills,
         projects,
         certifications,
@@ -324,6 +351,7 @@ export default function OnboardingPage() {
         yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
         aboutMe,
         experience,
+        education,
         skills,
         projects,
         certifications,
@@ -346,6 +374,7 @@ export default function OnboardingPage() {
         yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
         aboutMe,
         experience,
+        education,
         skills,
         projects,
         certifications,
@@ -376,6 +405,7 @@ export default function OnboardingPage() {
         yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
         aboutMe,
         experience,
+        education,
         skills,
         projects,
         certifications,
@@ -945,8 +975,193 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 4: Skills */}
+              {/* Step 4: Education */}
               {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold tracking-tight">Education</h2>
+                      <p className="text-slate-400 text-sm mt-1">Add details about your educational credentials.</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200 w-full sm:w-auto"
+                      onClick={() => {
+                        const newEdu = [
+                          ...education,
+                          {
+                            school: "",
+                            degree: "",
+                            field: "",
+                            startDate: "",
+                            endDate: "",
+                            gpa: "",
+                            gpaMode: "gpa",
+                          },
+                        ];
+                        handleFieldChange(setEducation, "education", newEdu);
+                      }}
+                    >
+                      <Plus className="h-4 w-4" /> Add Education
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
+                    {education.length === 0 ? (
+                      <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
+                        <GraduationCap className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                        <p className="text-slate-400 text-sm">No education items added yet.</p>
+                        <Button
+                          variant="link"
+                          className="text-indigo-400 mt-1"
+                          onClick={() => {
+                            setEducation([
+                              {
+                                school: "",
+                                degree: "",
+                                field: "",
+                                startDate: "",
+                                endDate: "",
+                                gpa: "",
+                                gpaMode: "gpa",
+                              },
+                            ]);
+                          }}
+                        >
+                          Add your first education item
+                        </Button>
+                      </div>
+                    ) : (
+                      education.map((edu, idx) => (
+                        <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = education.filter((_, i) => i !== idx);
+                              handleFieldChange(setEducation, "education", updated);
+                            }}
+                            className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">School / University</Label>
+                              <Input
+                                value={edu.school}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].school = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder="MIT"
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">Degree</Label>
+                              <Input
+                                value={edu.degree}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].degree = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder="B.S. Computer Science"
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">Field of Study</Label>
+                              <Input
+                                value={edu.field}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].field = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder="Artificial Intelligence"
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">Start Date</Label>
+                              <Input
+                                value={edu.startDate}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].startDate = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder="2018"
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">End Date (or Expected)</Label>
+                              <Input
+                                value={edu.endDate}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].endDate = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder="2022"
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">Grade System</Label>
+                              <select
+                                value={edu.gpaMode || "gpa"}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].gpaMode = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 h-10 text-sm text-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                              >
+                                <option value="gpa">GPA</option>
+                                <option value="percentage">Percentage (%)</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-slate-400">
+                                {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
+                              </Label>
+                              <Input
+                                value={edu.gpa}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx].gpa = e.target.value;
+                                  handleFieldChange(setEducation, "education", updated);
+                                }}
+                                placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
+                                className="bg-slate-950 border-slate-800"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 5: Skills */}
+              {currentStep === 5 && (
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold tracking-tight">Key Skills</h2>
@@ -1042,8 +1257,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 5: Projects */}
-              {currentStep === 5 && (
+              {/* Step 6: Projects */}
+              {currentStep === 6 && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -1146,8 +1361,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 6: Certifications */}
-              {currentStep === 6 && (
+              {/* Step 7: Certifications */}
+              {currentStep === 7 && (
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>

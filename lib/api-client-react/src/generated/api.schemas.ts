@@ -396,6 +396,16 @@ export interface ProfileCertification {
   credentialUrl?: string;
 }
 
+export interface ProfileEducation {
+  school: string;
+  degree: string;
+  field?: string;
+  startDate?: string;
+  endDate?: string;
+  gpa?: string;
+  gpaMode?: string;
+}
+
 export interface UserProfile {
   userId: string;
   name?: string;
@@ -411,6 +421,7 @@ export interface UserProfile {
   skills?: string[];
   projects?: ProfileProject[];
   certifications?: ProfileCertification[];
+  education?: ProfileEducation[];
   onboardingCompleted?: boolean;
   onboardingSkipped?: boolean;
   onboardingProgress?: number;
@@ -432,6 +443,7 @@ export interface UpdateUserProfileBody {
   skills?: string[];
   projects?: ProfileProject[];
   certifications?: ProfileCertification[];
+  education?: ProfileEducation[];
   onboardingCompleted?: boolean;
   onboardingSkipped?: boolean;
   onboardingProgress?: number;

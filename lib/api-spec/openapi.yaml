@@ -1736,6 +1736,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProfileCertification"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileEducation"
         onboardingCompleted:
           type: boolean
         onboardingSkipped:
@@ -1815,6 +1819,27 @@ components:
         - name
         - issuer
 
+    ProfileEducation:
+      type: object
+      properties:
+        school:
+          type: string
+        degree:
+          type: string
+        field:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        gpa:
+          type: string
+        gpaMode:
+          type: string
+      required:
+        - school
+        - degree
+
     UpdateUserProfileBody:
       type: object
       properties:
@@ -1856,6 +1881,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProfileCertification"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileEducation"
         onboardingCompleted:
           type: boolean
         onboardingSkipped:

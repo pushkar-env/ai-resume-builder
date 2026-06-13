@@ -70,6 +70,19 @@ export const GetProfileResponse = zod.object({
       }),
     )
     .optional(),
+  education: zod
+    .array(
+      zod.object({
+        school: zod.string(),
+        degree: zod.string(),
+        field: zod.string().optional(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        gpa: zod.string().optional(),
+        gpaMode: zod.string().optional(),
+      }),
+    )
+    .optional(),
   onboardingCompleted: zod.boolean().optional(),
   onboardingSkipped: zod.boolean().optional(),
   onboardingProgress: zod.number().optional(),
@@ -132,6 +145,19 @@ export const UpdateProfileBody = zod.object({
       }),
     )
     .optional(),
+  education: zod
+    .array(
+      zod.object({
+        school: zod.string(),
+        degree: zod.string(),
+        field: zod.string().optional(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        gpa: zod.string().optional(),
+        gpaMode: zod.string().optional(),
+      }),
+    )
+    .optional(),
   onboardingCompleted: zod.boolean().optional(),
   onboardingSkipped: zod.boolean().optional(),
   onboardingProgress: zod.number().optional(),
@@ -187,6 +213,19 @@ export const UpdateProfileResponse = zod.object({
         issuer: zod.string(),
         date: zod.string().optional(),
         credentialUrl: zod.string().optional(),
+      }),
+    )
+    .optional(),
+  education: zod
+    .array(
+      zod.object({
+        school: zod.string(),
+        degree: zod.string(),
+        field: zod.string().optional(),
+        startDate: zod.string().optional(),
+        endDate: zod.string().optional(),
+        gpa: zod.string().optional(),
+        gpaMode: zod.string().optional(),
       }),
     )
     .optional(),

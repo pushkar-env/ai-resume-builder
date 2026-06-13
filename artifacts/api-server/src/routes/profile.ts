@@ -57,6 +57,7 @@ router.get(
       aboutMe: profile?.aboutMe || "",
       yearsOfExperience: profile?.yearsOfExperience ?? null,
       experience: profile?.experience || [],
+      education: profile?.education || [],
       skills: profile?.skills || [],
       projects: profile?.projects || [],
       certifications: profile?.certifications || [],
@@ -131,6 +132,17 @@ router.put(
           credentialUrl: cert.credentialUrl ?? "",
         }));
       }
+      if (parsed.data.education !== undefined) {
+        updateData.education = parsed.data.education.map((edu) => ({
+          school: edu.school ?? "",
+          degree: edu.degree ?? "",
+          field: edu.field ?? "",
+          startDate: edu.startDate ?? "",
+          endDate: edu.endDate ?? "",
+          gpa: edu.gpa ?? "",
+          gpaMode: edu.gpaMode ?? "gpa",
+        }));
+      }
       if (parsed.data.onboardingCompleted !== undefined) updateData.onboardingCompleted = parsed.data.onboardingCompleted;
       if (parsed.data.onboardingSkipped !== undefined) updateData.onboardingSkipped = parsed.data.onboardingSkipped;
       if (parsed.data.onboardingProgress !== undefined) updateData.onboardingProgress = parsed.data.onboardingProgress;
@@ -175,6 +187,15 @@ router.put(
           issuer: cert.issuer ?? "",
           date: cert.date ?? "",
           credentialUrl: cert.credentialUrl ?? "",
+        })) as any,
+        education: (parsed.data.education ?? []).map((edu) => ({
+          school: edu.school ?? "",
+          degree: edu.degree ?? "",
+          field: edu.field ?? "",
+          startDate: edu.startDate ?? "",
+          endDate: edu.endDate ?? "",
+          gpa: edu.gpa ?? "",
+          gpaMode: edu.gpaMode ?? "gpa",
         })) as any,
         onboardingCompleted: parsed.data.onboardingCompleted ?? false,
         onboardingSkipped: parsed.data.onboardingSkipped ?? false,

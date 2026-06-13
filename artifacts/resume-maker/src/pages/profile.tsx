@@ -44,6 +44,7 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -144,6 +145,18 @@ export default function ProfilePage() {
     }[]
   >([]);
 
+  const [education, setEducation] = useState<
+    {
+      school: string;
+      degree: string;
+      field: string;
+      startDate: string;
+      endDate: string;
+      gpa: string;
+      gpaMode: string;
+    }[]
+  >([]);
+
   // States for detecting unsaved changes and confirmation modal
   const [initialData, setInitialData] = useState<any>(null);
   const [showConfirmClose, setShowConfirmClose] = useState(false);
@@ -191,6 +204,15 @@ export default function ProfilePage() {
               .filter(Boolean)
       }));
       const initialCertifications = (profile.certifications as any[]) || [];
+      const initialEducation = ((profile.education as any[]) || []).map(edu => ({
+        school: edu.school || "",
+        degree: edu.degree || "",
+        field: edu.field || "",
+        startDate: edu.startDate || "",
+        endDate: edu.endDate || "",
+        gpa: edu.gpa || "",
+        gpaMode: edu.gpaMode || "gpa",
+      }));
 
       setName(initialName);
       setEmail(initialEmail);
@@ -202,6 +224,7 @@ export default function ProfilePage() {
       setYearsOfExperience(initialYears);
       setAboutMe(initialAbout);
       setExperience(initialExperience);
+      setEducation(initialEducation);
       setSkills(initialSkills);
       setProjects(initialProjects);
       setCertifications(initialCertifications);
@@ -217,6 +240,7 @@ export default function ProfilePage() {
         yearsOfExperience: initialYears,
         aboutMe: initialAbout,
         experience: initialExperience,
+        education: initialEducation,
         skills: initialSkills,
         projects: initialProjects,
         certifications: initialCertifications,
@@ -262,6 +286,7 @@ export default function ProfilePage() {
     // Compare arrays/objects
     if (JSON.stringify(socials) !== JSON.stringify(initialData.socials)) return true;
     if (JSON.stringify(experience) !== JSON.stringify(initialData.experience)) return true;
+    if (JSON.stringify(education) !== JSON.stringify(initialData.education)) return true;
     if (JSON.stringify(skills) !== JSON.stringify(initialData.skills)) return true;
     if (JSON.stringify(projects) !== JSON.stringify(initialData.projects)) return true;
     if (JSON.stringify(certifications) !== JSON.stringify(initialData.certifications)) return true;
@@ -304,6 +329,7 @@ export default function ProfilePage() {
           yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
           aboutMe,
           experience,
+          education,
           skills,
           projects,
           certifications,
@@ -322,6 +348,7 @@ export default function ProfilePage() {
             yearsOfExperience,
             aboutMe,
             experience,
+            education,
             skills,
             projects,
             certifications,
@@ -349,6 +376,7 @@ export default function ProfilePage() {
         yearsOfExperience: typeof yearsOfExperience === "number" ? yearsOfExperience : null,
         aboutMe,
         experience,
+        education,
         skills,
         projects,
         certifications,
@@ -488,6 +516,7 @@ export default function ProfilePage() {
     { id: "personal", label: "Personal Details", icon: User },
     { id: "summary", label: "Professional Summary", icon: Compass },
     { id: "experience", label: "Work Experience", icon: Briefcase },
+    { id: "education", label: "Education", icon: GraduationCap },
     { id: "skills", label: "Skills", icon: Wrench },
     { id: "projects", label: "Projects", icon: FolderGit },
     { id: "certifications", label: "Certifications", icon: Award },
@@ -975,6 +1004,168 @@ export default function ProfilePage() {
                             placeholder="e.g. Optimized database performance, decreasing query latency by 30%"
                             label="Description / Key Achievements"
                           />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Education */}
+            {activeTab === "education" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold tracking-tight">Education</h3>
+                    <p className="text-xs text-slate-400 mt-1">Manage school, university, and academic details.</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 border-slate-700 hover:bg-slate-800 w-full sm:w-auto"
+                    onClick={() => {
+                      setEducation([
+                        ...education,
+                        {
+                          school: "",
+                          degree: "",
+                          field: "",
+                          startDate: "",
+                          endDate: "",
+                          gpa: "",
+                          gpaMode: "gpa",
+                        },
+                      ]);
+                    }}
+                  >
+                    <Plus className="h-4 w-4" /> Add Education
+                  </Button>
+                </div>
+
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
+                  {education.length === 0 ? (
+                    <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
+                      <GraduationCap className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-slate-400 text-sm">No education items added yet.</p>
+                    </div>
+                  ) : (
+                    education.map((edu, idx) => (
+                      <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                        <button
+                          type="button"
+                          onClick={() => setEducation(education.filter((_, i) => i !== idx))}
+                          className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">School / University</Label>
+                            <Input
+                              value={edu.school}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], school: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder="MIT"
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">Degree</Label>
+                            <Input
+                              value={edu.degree}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], degree: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder="B.S. Computer Science"
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">Field of Study</Label>
+                            <Input
+                              value={edu.field}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], field: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder="Artificial Intelligence"
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">Start Date</Label>
+                            <Input
+                              value={edu.startDate}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], startDate: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder="2018"
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">End Date (or Expected)</Label>
+                            <Input
+                              value={edu.endDate}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], endDate: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder="2022"
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">Grade System</Label>
+                            <select
+                              value={edu.gpaMode || "gpa"}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], gpaMode: e.target.value };
+                                setEducation(updated);
+                              }}
+                              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 h-10 text-sm text-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                            >
+                              <option value="gpa">GPA</option>
+                              <option value="percentage">Percentage (%)</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs text-slate-400">
+                              {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
+                            </Label>
+                            <Input
+                              value={edu.gpa}
+                              onChange={(e) => {
+                                const updated = [...education];
+                                updated[idx] = { ...updated[idx], gpa: e.target.value };
+                                setEducation(updated);
+                              }}
+                              placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
+                              className="bg-slate-950 border-slate-800"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))

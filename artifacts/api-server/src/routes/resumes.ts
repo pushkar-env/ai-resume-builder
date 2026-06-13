@@ -494,6 +494,21 @@ router.post(
               content: { items: mappedCertifications },
             };
           }
+          if (s.type === "education") {
+            const mappedEducation = (profile.education || []).map((edu: any) => ({
+              school: edu.school || "",
+              degree: edu.degree || "",
+              field: edu.field || "",
+              startDate: edu.startDate || "",
+              endDate: edu.endDate || "",
+              gpa: edu.gpa || "",
+              gpaMode: edu.gpaMode || "gpa",
+            }));
+            return {
+              ...s,
+              content: { items: mappedEducation },
+            };
+          }
         }
         return s;
       });
