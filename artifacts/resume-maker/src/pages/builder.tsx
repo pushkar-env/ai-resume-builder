@@ -130,6 +130,8 @@ import {
   getListResumesQueryKey,
   type ResumeDetail,
   useScrapeJobDetails,
+  useGenerateCoverLetter,
+  getListCoverLettersQueryKey,
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -933,6 +935,8 @@ export default function BuilderPage() {
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [activeSidebarMode, setActiveSidebarMode] = useState<"content" | "design" | "ats">("content");
   const [localSections, setLocalSections] = useState<Section[]>([]);
+  const personalSection = localSections.find((s) => s.type === "personal");
+  const currentJobTitle = (personalSection?.content as any)?.jobTitle || "";
   const [scannedContentText, setScannedContentText] = useState<string | null>(null);
   const [initialContentText, setInitialContentText] = useState<string | null>(null);
   const [wasInitiallyEmpty, setWasInitiallyEmpty] = useState<boolean>(false);
@@ -1343,6 +1347,39 @@ export default function BuilderPage() {
       // Handle errors per-save attempt to avoid stale failures showing toasts.
     },
   });
+
+  const generateCoverLetter = useGenerateCoverLetter({
+    mutation: {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({
+          queryKey: getListCoverLettersQueryKey(),
+        });
+        toast({ title: "Cover letter generated successfully" });
+        navigate(`/cover-letter-builder/${data.id}`);
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Failed to generate cover letter",
+          description: error?.message || "Unknown error occurred",
+          variant: "destructive",
+        });
+      },
+    },
+  });
+
+  const handleGenerateCoverLetter = useCallback(() => {
+    generateCoverLetter.mutate({
+      data: {
+        flowType: "jobDescription",
+        resumeId: resumeId || undefined,
+        jobTitle: currentJobTitle,
+        jobDescription: jobDescriptionText || undefined,
+        jobUrl: jobUrlText || undefined,
+        tone: "professional",
+        experienceLevel: "mid",
+      },
+    });
+  }, [resumeId, currentJobTitle, jobDescriptionText, jobUrlText, generateCoverLetter]);
 
   const saveSeqRef = useRef(0);
   const latestSaveSeqRef = useRef(0);
@@ -2580,8 +2617,6 @@ export default function BuilderPage() {
                           </div>
 
                           {(() => {
-                            const personalSection = localSections.find((s) => s.type === "personal");
-                            const currentJobTitle = (personalSection?.content as any)?.jobTitle || "";
                             return (
                               <div className="space-y-1.5">
                                 <Label htmlFor="ats-job-title" className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
@@ -2667,6 +2702,23 @@ export default function BuilderPage() {
                                 Clear
                               </Button>
                             )}
+                          </div>
+
+                          <div className="pt-2.5 border-t border-border mt-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={handleGenerateCoverLetter}
+                              disabled={!currentJobTitle.trim() || !jobDescriptionText.trim() || generateCoverLetter.isPending}
+                              className="w-full text-xs h-9 gap-1.5 font-semibold border-violet-200 dark:border-violet-800/60 bg-violet-50/50 hover:bg-violet-100/60 dark:bg-violet-950/20 dark:hover:bg-violet-950/40 text-violet-700 dark:text-violet-300 transition-all shadow-sm"
+                            >
+                              {generateCoverLetter.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3.5 w-3.5" />
+                              )}
+                              Generate Cover Letter
+                            </Button>
                           </div>
                         </div>
 

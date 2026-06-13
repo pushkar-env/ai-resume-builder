@@ -139,6 +139,7 @@ export default function OnboardingPage() {
   >([]);
 
   const isSavingRef = useRef<NodeJS.Timeout | null>(null);
+  const initializedRef = useRef(false);
 
   // Redirect if already completed/skipped onboarding
   useEffect(() => {
@@ -153,9 +154,9 @@ export default function OnboardingPage() {
     }
   }, [profile, setLocation]);
 
-  // Initialize fields from profile on load
   useEffect(() => {
-    if (profile) {
+    if (profile && !initializedRef.current) {
+      initializedRef.current = true;
       setName(profile.name || "");
       setEmail(profile.email || "");
       setPhone(profile.phone || "");
@@ -260,6 +261,10 @@ export default function OnboardingPage() {
   }, [currentStep, name, email, phone, locationStr, photo, socials, jobTitle, yearsOfExperience, aboutMe, experience, skills, projects, certifications]);
 
   const handleNext = () => {
+    if (isSavingRef.current) {
+      clearTimeout(isSavingRef.current);
+      isSavingRef.current = null;
+    }
     if (currentStep === 1) {
       if (!name.trim() || !email.trim()) {
         toast({
@@ -301,6 +306,10 @@ export default function OnboardingPage() {
   };
 
   const handlePrev = () => {
+    if (isSavingRef.current) {
+      clearTimeout(isSavingRef.current);
+      isSavingRef.current = null;
+    }
     const prevStep = currentStep - 1;
     setCurrentStep(prevStep);
     updateProfile({
@@ -1259,22 +1268,22 @@ export default function OnboardingPage() {
           </AnimatePresence>
 
           {/* Navigation buttons */}
-          <div className="flex items-center justify-between border-t border-slate-800/80 pt-6 mt-8">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-0 sm:items-center sm:justify-between border-t border-slate-800/80 pt-6 mt-8">
             <Button
               variant="outline"
               onClick={handlePrev}
               disabled={currentStep === 1}
-              className="border-slate-800 hover:bg-slate-800 text-slate-300"
+              className="border-slate-800 hover:bg-slate-800 text-slate-300 w-full sm:w-auto"
             >
               <ChevronLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
 
             {currentStep < STEPS.length ? (
-              <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg hover:shadow-indigo-500/20">
+              <Button onClick={handleNext} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-lg hover:shadow-indigo-500/20 w-full sm:w-auto">
                 Continue <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <Button onClick={handleFinish} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg hover:shadow-indigo-500/20">
+              <Button onClick={handleFinish} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg hover:shadow-indigo-500/20 w-full sm:w-auto">
                 Finish & Go to Dashboard <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             )}

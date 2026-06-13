@@ -190,65 +190,67 @@ export function BulletListEditor({
             return (
               <div
                 key={idx}
-                className="flex items-start gap-2 group bg-slate-950/35 border border-slate-800/80 rounded-xl p-2 transition-all hover:border-slate-700/80"
+                className="flex flex-col group bg-slate-950/35 border border-slate-800/80 rounded-xl p-2.5 transition-all hover:border-slate-700/80 focus-within:border-indigo-500/40 focus-within:bg-slate-950/50"
               >
-                <div className="flex-1">
+                <div className="w-full">
                   <AutoResizingTextarea
                     value={bullet}
                     onValueChange={(val) => handleUpdateBullet(idx, val)}
                     placeholder="Describe your achievement..."
                     rows={1}
-                    className="w-full bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 shadow-none px-1 py-1 text-sm text-slate-200 placeholder:text-slate-600 resize-none min-h-[28px] h-auto"
+                    className="w-full bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 shadow-none px-2 py-1 text-sm text-slate-200 placeholder:text-slate-600 resize-none min-h-[28px] h-auto"
                   />
                 </div>
 
-                <div className="flex items-center gap-1 opacity-80 md:opacity-0 group-hover:opacity-100 transition-opacity pt-0.5 shrink-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleMoveUp(idx)}
-                    disabled={idx === 0}
-                    className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
-                    title="Move Up"
-                  >
-                    <ArrowUp className="h-3.5 w-3.5" />
-                  </Button>
+                <div className="flex items-center justify-between border-t border-slate-800/30 pt-1.5 mt-1 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:md:opacity-100 transition-all duration-200 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleMoveUp(idx)}
+                      disabled={idx === 0}
+                      className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 disabled:opacity-30 rounded-lg"
+                      title="Move Up"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </Button>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleMoveDown(idx)}
-                    disabled={idx === bullets.length - 1}
-                    className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30"
-                    title="Move Down"
-                  >
-                    <ArrowDown className="h-3.5 w-3.5" />
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleMoveDown(idx)}
+                      disabled={idx === bullets.length - 1}
+                      className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 disabled:opacity-30 rounded-lg"
+                      title="Move Down"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </Button>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleAIImproveBullet(idx)}
-                    disabled={isPending || improveBullet.isPending}
-                    className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 disabled:opacity-50"
-                    title="Polish bullet with AI"
-                  >
-                    {isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleAIImproveBullet(idx)}
+                      disabled={isPending || improveBullet.isPending}
+                      className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 disabled:opacity-50 rounded-lg"
+                      title="Polish bullet with AI"
+                    >
+                      {isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
 
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteBullet(idx)}
-                    className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-950/20"
+                    className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-950/30 rounded-lg"
                     title="Delete Bullet"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
