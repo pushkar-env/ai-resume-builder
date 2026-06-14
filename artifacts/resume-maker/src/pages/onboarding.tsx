@@ -532,14 +532,12 @@ export default function OnboardingPage() {
         },
       }
     );
-  };
-
-  if (isLoading) {
+  };  if (isLoading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-900 text-white">
+      <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
-          <p className="text-sm font-medium text-slate-400">Loading Onboarding Wizard...</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading Onboarding Wizard...</p>
         </div>
       </div>
     );
@@ -548,33 +546,33 @@ export default function OnboardingPage() {
   const progressPercent = (currentStep / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       <SEO title="Onboarding | Resumesensei" description="Set up your Resumesensei profile." robots="noindex, nofollow" />
 
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/60 px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-3">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60 px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-3">
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
               Resumesensei
             </span>
-            <span className="hidden sm:inline-flex text-xs bg-indigo-950 border border-indigo-500/30 text-indigo-400 font-semibold px-2 py-0.5 rounded-full">
+            <span className="hidden sm:inline-flex text-xs bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded-full">
               Onboarding
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white px-2.5 sm:px-3 text-xs sm:text-sm" onClick={handleSkip}>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground px-2.5 sm:px-3 text-xs sm:text-sm" onClick={handleSkip}>
               Skip For Now
             </Button>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto w-full">
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
             <span>Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].name}</span>
             <span>{Math.round(progressPercent)}% Complete</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
               initial={{ width: 0 }}
@@ -587,7 +585,7 @@ export default function OnboardingPage() {
 
       {/* Main wizard step content */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-10 flex flex-col justify-center">
-        <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+        <div className="bg-card/40 border border-border/80 rounded-2xl p-6 md:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden">
           {/* Glassmorphic lighting effect */}
           <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 h-40 w-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -606,13 +604,13 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold tracking-tight">Let's start with your Personal Details</h2>
-                    <p className="text-slate-400 text-sm mt-1">This information will populate your resume header by default.</p>
+                    <p className="text-muted-foreground text-sm mt-1">This information will populate your resume header by default.</p>
                   </div>
 
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     {/* Photo Uploader */}
                     <div className="flex flex-col items-center gap-2 shrink-0">
-                      <div className="h-24 w-24 rounded-full border border-slate-700 overflow-hidden bg-slate-800 flex items-center justify-center text-xl font-bold text-slate-400">
+                      <div className="h-24 w-24 rounded-full border border-border overflow-hidden bg-muted flex items-center justify-center text-xl font-bold text-muted-foreground">
                         {photo ? (
                           <img src={photo} alt="Profile" className="h-full w-full object-cover" />
                         ) : (
@@ -621,7 +619,7 @@ export default function OnboardingPage() {
                       </div>
                       <label className="cursor-pointer">
                         <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-                        <span className="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1 rounded-md flex items-center gap-1">
+                        <span className="text-xs bg-muted hover:bg-muted/80 border border-border text-foreground px-3 py-1 rounded-md flex items-center gap-1">
                           <Upload className="h-3 w-3" /> Upload Photo
                         </span>
                       </label>
@@ -629,54 +627,54 @@ export default function OnboardingPage() {
 
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="name" className="text-slate-300">Full Name <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="name" className="text-foreground/80">Full Name <span className="text-red-500">*</span></Label>
                         <Input
                           id="name"
                           value={name}
                           onChange={(e) => handleFieldChange(setName, "name", e.target.value)}
                           placeholder="Jane Doe"
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                          className="bg-background border-input focus:border-primary focus:ring-primary"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="email" className="text-slate-300">Email Address <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="email" className="text-foreground/80">Email Address <span className="text-red-500">*</span></Label>
                         <Input
                           id="email"
                           type="email"
                           value={email}
                           onChange={(e) => handleFieldChange(setEmail, "email", e.target.value)}
                           placeholder="jane.doe@example.com"
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                          className="bg-background border-input focus:border-primary focus:ring-primary"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="phone" className="text-slate-300">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-foreground/80">Phone Number</Label>
                         <Input
                           id="phone"
                           value={phone}
                           onChange={(e) => handleFieldChange(setPhone, "phone", e.target.value)}
                           placeholder="+1 (555) 000-0000"
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                          className="bg-background border-input focus:border-primary focus:ring-primary"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="location" className="text-slate-300">Location (City, State)</Label>
+                        <Label htmlFor="location" className="text-foreground/80">Location (City, State)</Label>
                         <Input
                           id="location"
                           value={locationStr}
                           onChange={(e) => handleFieldChange(setLocationStr, "location", e.target.value)}
                           placeholder="San Francisco, CA"
-                          className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                          className="bg-background border-input focus:border-primary focus:ring-primary"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-800/80 pt-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Links & Portfolio</h3>
+                  <div className="border-t border-border/80 pt-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Links & Portfolio</h3>
                     <div className="space-y-3">
                       {socials.map((s, i) => (
                         <div key={i} className="flex gap-2 items-center">
@@ -688,7 +686,7 @@ export default function OnboardingPage() {
                                 const next = socials.map((item, idx) => idx === i ? { ...item, label: e.target.value } : item);
                                 handleFieldChange(setSocials, "socials", next);
                               }}
-                              className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="bg-background border-input text-sm focus:border-primary focus:ring-primary"
                             />
                             <Input
                               value={s.url}
@@ -697,7 +695,7 @@ export default function OnboardingPage() {
                                 const next = socials.map((item, idx) => idx === i ? { ...item, url: e.target.value } : item);
                                 handleFieldChange(setSocials, "socials", next);
                               }}
-                              className="bg-slate-950 border-slate-800 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                              className="bg-background border-input text-sm focus:border-primary focus:ring-primary"
                             />
                           </div>
                           <Button
@@ -708,7 +706,7 @@ export default function OnboardingPage() {
                               const next = socials.filter((_, idx) => idx !== i);
                               handleFieldChange(setSocials, "socials", next);
                             }}
-                            className="h-9 w-9 text-slate-500 hover:text-red-400 hover:bg-red-950/20 shrink-0"
+                            className="h-9 w-9 text-muted-foreground/80 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
                             title="Remove Link"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -723,7 +721,7 @@ export default function OnboardingPage() {
                           const next = [...socials, { label: "", url: "" }];
                           handleFieldChange(setSocials, "socials", next);
                         }}
-                        className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200"
+                        className="gap-1.5 border-border hover:bg-muted text-foreground"
                       >
                         <Plus className="h-4 w-4" /> Add Link
                       </Button>
@@ -737,42 +735,42 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold tracking-tight">Your Professional Summary</h2>
-                    <p className="text-slate-400 text-sm mt-1">Briefly outline your profile, role, and professional expertise.</p>
+                    <p className="text-muted-foreground text-sm mt-1">Briefly outline your profile, role, and professional expertise.</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="jobTitle" className="text-slate-300">Desired Job Title</Label>
+                      <Label htmlFor="jobTitle" className="text-foreground/80">Desired Job Title</Label>
                       <Input
                         id="jobTitle"
                         value={jobTitle}
                         onChange={(e) => handleFieldChange(setJobTitle, "jobTitle", e.target.value)}
                         placeholder="Staff Software Engineer"
-                        className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                        className="bg-background border-input focus:border-primary focus:ring-primary"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="years" className="text-slate-300">Years of Experience</Label>
+                      <Label htmlFor="years" className="text-foreground/80">Years of Experience</Label>
                       <Input
                         id="years"
                         type="number"
                         value={yearsOfExperience}
                         onChange={(e) => handleFieldChange(setYearsOfExperience, "yearsOfExperience", e.target.value ? parseInt(e.target.value) : "")}
                         placeholder="5"
-                        className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500"
+                        className="bg-background border-input focus:border-primary focus:ring-primary"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="about" className="text-slate-300">Summary</Label>
+                      <Label htmlFor="about" className="text-foreground/80">Summary</Label>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/30 gap-1"
+                        className="text-indigo-650 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 gap-1"
                         onClick={handleAISummary}
                         disabled={generateSummary.isPending}
                       >
@@ -790,13 +788,13 @@ export default function OnboardingPage() {
                       value={aboutMe}
                       onChange={(e) => handleFieldChange(setAboutMe, "aboutMe", e.target.value)}
                       placeholder="Write a brief professional summary or let the AI write one for you based on your job title and skills..."
-                      className="bg-slate-950 border-slate-800 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
+                      className="bg-background border-input focus:border-primary focus:ring-primary resize-none"
                     />
                   </div>
 
-                  <div className="bg-slate-950/40 border border-slate-800/50 rounded-lg p-4">
-                    <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">AI Summary Suggestions</h4>
-                    <p className="text-xs text-slate-500 italic">
+                  <div className="bg-card/40 border border-border/50 rounded-lg p-4">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">AI Summary Suggestions</h4>
+                    <p className="text-xs text-muted-foreground/60 italic">
                       "Dedicated professional with a proven track record of designing scalable cloud solutions, streamlining microservices, and leading high-performing engineering teams to deliver impactful products."
                     </p>
                   </div>
@@ -809,12 +807,12 @@ export default function OnboardingPage() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight">Work Experience</h2>
-                      <p className="text-slate-400 text-sm mt-1">Add details about your professional journey.</p>
+                      <p className="text-muted-foreground text-sm mt-1">Add details about your professional journey.</p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200 w-full sm:w-auto"
+                      className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
                         const newExp = [
                           ...experience,
@@ -838,12 +836,12 @@ export default function OnboardingPage() {
 
                   <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
                     {experience.length === 0 ? (
-                      <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
-                        <Briefcase className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-slate-400 text-sm">No work experiences added yet.</p>
+                      <div className="text-center py-10 bg-muted/10 border border-dashed border-border rounded-xl">
+                        <Briefcase className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">No work experiences added yet.</p>
                         <Button
                           variant="link"
-                          className="text-indigo-400 mt-1"
+                          className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
                             setExperience([
                               {
@@ -863,21 +861,21 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       experience.map((exp, idx) => (
-                        <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
                           <button
                             type="button"
                             onClick={() => {
                               const updated = experience.filter((_, i) => i !== idx);
                               handleFieldChange(setExperience, "experience", updated);
                             }}
-                            className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Job Title</Label>
+                              <Label className="text-xs text-muted-foreground">Job Title</Label>
                               <Input
                                 value={exp.title}
                                 onChange={(e) => {
@@ -886,12 +884,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
                                 placeholder="Software Engineer"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Company Name</Label>
+                              <Label className="text-xs text-muted-foreground">Company Name</Label>
                               <Input
                                 value={exp.company}
                                 onChange={(e) => {
@@ -900,14 +898,14 @@ export default function OnboardingPage() {
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
                                 placeholder="Acme Corp"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Start Date</Label>
+                              <Label className="text-xs text-muted-foreground">Start Date</Label>
                               <Input
                                 value={exp.startDate}
                                 onChange={(e) => {
@@ -916,12 +914,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
                                 placeholder="Jan 2021"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">End Date</Label>
+                              <Label className="text-xs text-muted-foreground">End Date</Label>
                               <Input
                                 value={exp.endDate}
                                 disabled={exp.currentlyWorking}
@@ -931,7 +929,7 @@ export default function OnboardingPage() {
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
                                 placeholder={exp.currentlyWorking ? "Present" : "Dec 2023"}
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
@@ -948,7 +946,7 @@ export default function OnboardingPage() {
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
                               />
-                              <Label htmlFor={`curr-${idx}`} className="text-xs text-slate-400 cursor-pointer">
+                              <Label htmlFor={`curr-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
                                 I currently work here
                               </Label>
                             </div>
@@ -981,12 +979,12 @@ export default function OnboardingPage() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight">Education</h2>
-                      <p className="text-slate-400 text-sm mt-1">Add details about your educational credentials.</p>
+                      <p className="text-muted-foreground text-sm mt-1">Add details about your educational credentials.</p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200 w-full sm:w-auto"
+                      className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
                         const newEdu = [
                           ...education,
@@ -1009,12 +1007,12 @@ export default function OnboardingPage() {
 
                   <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
                     {education.length === 0 ? (
-                      <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
-                        <GraduationCap className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-slate-400 text-sm">No education items added yet.</p>
+                      <div className="text-center py-10 bg-muted/10 border border-dashed border-border rounded-xl">
+                        <GraduationCap className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">No education items added yet.</p>
                         <Button
                           variant="link"
-                          className="text-indigo-400 mt-1"
+                          className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
                             setEducation([
                               {
@@ -1034,21 +1032,21 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       education.map((edu, idx) => (
-                        <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
                           <button
                             type="button"
                             onClick={() => {
                               const updated = education.filter((_, i) => i !== idx);
                               handleFieldChange(setEducation, "education", updated);
                             }}
-                            className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">School / University</Label>
+                              <Label className="text-xs text-muted-foreground">School / University</Label>
                               <Input
                                 value={edu.school}
                                 onChange={(e) => {
@@ -1057,12 +1055,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder="MIT"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Degree</Label>
+                              <Label className="text-xs text-muted-foreground">Degree</Label>
                               <Input
                                 value={edu.degree}
                                 onChange={(e) => {
@@ -1071,14 +1069,14 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder="B.S. Computer Science"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Field of Study</Label>
+                              <Label className="text-xs text-muted-foreground">Field of Study</Label>
                               <Input
                                 value={edu.field}
                                 onChange={(e) => {
@@ -1087,12 +1085,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder="Artificial Intelligence"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Start Date</Label>
+                              <Label className="text-xs text-muted-foreground">Start Date</Label>
                               <Input
                                 value={edu.startDate}
                                 onChange={(e) => {
@@ -1101,12 +1099,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder="2018"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">End Date (or Expected)</Label>
+                              <Label className="text-xs text-muted-foreground">End Date (or Expected)</Label>
                               <Input
                                 value={edu.endDate}
                                 onChange={(e) => {
@@ -1115,14 +1113,14 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder="2022"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
 
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Grade System</Label>
+                              <Label className="text-xs text-muted-foreground">Grade System</Label>
                               <select
                                 value={edu.gpaMode || "gpa"}
                                 onChange={(e) => {
@@ -1130,7 +1128,7 @@ export default function OnboardingPage() {
                                   updated[idx].gpaMode = e.target.value;
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 h-10 text-sm text-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm text-foreground focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                               >
                                 <option value="gpa">GPA</option>
                                 <option value="percentage">Percentage (%)</option>
@@ -1138,7 +1136,7 @@ export default function OnboardingPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">
+                              <Label className="text-xs text-muted-foreground">
                                 {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
                               </Label>
                               <Input
@@ -1149,7 +1147,7 @@ export default function OnboardingPage() {
                                   handleFieldChange(setEducation, "education", updated);
                                 }}
                                 placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
@@ -1165,11 +1163,11 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-2xl font-bold tracking-tight">Key Skills</h2>
-                    <p className="text-slate-400 text-sm mt-1">Specify your key skills. Type skill and press Enter to add chip.</p>
+                    <p className="text-muted-foreground text-sm mt-1">Specify your key skills. Type skill and press Enter to add chip.</p>
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="skill-input" className="text-slate-300">Add Skills</Label>
+                    <Label htmlFor="skill-input" className="text-foreground/80">Add Skills</Label>
                     <div className="flex gap-2">
                       <Input
                         id="skill-input"
@@ -1187,7 +1185,7 @@ export default function OnboardingPage() {
                           }
                         }}
                         placeholder="React, TypeScript, AWS, Project Management..."
-                        className="bg-slate-950 border-slate-800"
+                        className="bg-background border-input"
                       />
                       <Button
                         type="button"
@@ -1207,14 +1205,14 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Skills Chips */}
-                  <div className="flex flex-wrap gap-2 min-h-12 p-3 bg-slate-950/40 border border-slate-800 rounded-xl">
+                  <div className="flex flex-wrap gap-2 min-h-12 p-3 bg-card/40 border border-border rounded-xl">
                     {skills.length === 0 ? (
-                      <span className="text-xs text-slate-500 italic">No skills added yet. Click some suggestions below.</span>
+                      <span className="text-xs text-muted-foreground/60 italic">No skills added yet. Click some suggestions below.</span>
                     ) : (
                       skills.map((skill, idx) => (
                         <div
                           key={idx}
-                          className="bg-indigo-950/50 border border-indigo-500/30 text-indigo-300 text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+                          className="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-500/30 text-indigo-650 dark:text-indigo-300 text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
                         >
                           <span>{skill}</span>
                           <button
@@ -1223,7 +1221,7 @@ export default function OnboardingPage() {
                               const nextSkills = skills.filter((_, i) => i !== idx);
                               handleFieldChange(setSkills, "skills", nextSkills);
                             }}
-                            className="text-indigo-400 hover:text-indigo-200"
+                            className="text-indigo-650 dark:text-indigo-400 hover:text-indigo-850 dark:hover:text-indigo-200"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -1234,7 +1232,7 @@ export default function OnboardingPage() {
 
                   {/* Suggestions list */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Popular Suggestions</h4>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Popular Suggestions</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {["Unity", "Unreal Engine", "C#", "C++", "TypeScript", "React", "Python", "Node.js", "AI Engineering", "Machine Learning"].map(
                         (sug) => (
@@ -1246,7 +1244,7 @@ export default function OnboardingPage() {
                               const nextSkills = [...skills, sug];
                               handleFieldChange(setSkills, "skills", nextSkills);
                             }}
-                            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="text-xs bg-muted hover:bg-muted/80 text-foreground border border-border px-2.5 py-1 rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             + {sug}
                           </button>
@@ -1263,12 +1261,12 @@ export default function OnboardingPage() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight">Key Projects</h2>
-                      <p className="text-slate-400 text-sm mt-1">Showcase your best engineering and creative projects.</p>
+                      <p className="text-muted-foreground text-sm mt-1">Showcase your best engineering and creative projects.</p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200 w-full sm:w-auto"
+                      className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
                         const newProjs = [
                           ...projects,
@@ -1283,12 +1281,12 @@ export default function OnboardingPage() {
 
                   <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
                     {projects.length === 0 ? (
-                      <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
-                        <FolderGit className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-slate-400 text-sm">No projects added yet.</p>
+                      <div className="text-center py-10 bg-muted/10 border border-dashed border-border rounded-xl">
+                        <FolderGit className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">No projects added yet.</p>
                         <Button
                           variant="link"
-                          className="text-indigo-400 mt-1"
+                          className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
                             setProjects([{ name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] }]);
                           }}
@@ -1298,21 +1296,21 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       projects.map((proj, idx) => (
-                        <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
                           <button
                             type="button"
                             onClick={() => {
                               const updated = projects.filter((_, i) => i !== idx);
                               handleFieldChange(setProjects, "projects", updated);
                             }}
-                            className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
 
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Project Name</Label>
+                              <Label className="text-xs text-muted-foreground">Project Name</Label>
                               <Input
                                 value={proj.name}
                                 onChange={(e) => {
@@ -1321,12 +1319,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setProjects, "projects", updated);
                                 }}
                                 placeholder="E-Commerce API Service"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Project URL (optional)</Label>
+                              <Label className="text-xs text-muted-foreground">Project URL (optional)</Label>
                               <Input
                                 value={proj.url}
                                 onChange={(e) => {
@@ -1335,7 +1333,7 @@ export default function OnboardingPage() {
                                   handleFieldChange(setProjects, "projects", updated);
                                 }}
                                 placeholder="my-app.com"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
@@ -1367,12 +1365,12 @@ export default function OnboardingPage() {
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                       <h2 className="text-2xl font-bold tracking-tight">Certifications</h2>
-                      <p className="text-slate-400 text-sm mt-1">Specify your professional certificates and credentials.</p>
+                      <p className="text-muted-foreground text-sm mt-1">Specify your professional certificates and credentials.</p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-200 w-full sm:w-auto"
+                      className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
                         const newCerts = [
                           ...certifications,
@@ -1387,12 +1385,12 @@ export default function OnboardingPage() {
 
                   <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
                     {certifications.length === 0 ? (
-                      <div className="text-center py-10 bg-slate-950/30 border border-dashed border-slate-800 rounded-xl">
-                        <Award className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-                        <p className="text-slate-400 text-sm">No certifications added yet.</p>
+                      <div className="text-center py-10 bg-muted/10 border border-dashed border-border rounded-xl">
+                        <Award className="h-8 w-8 text-muted-foreground/60 mx-auto mb-2" />
+                        <p className="text-muted-foreground text-sm">No certifications added yet.</p>
                         <Button
                           variant="link"
-                          className="text-indigo-400 mt-1"
+                          className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
                             setCertifications([{ name: "", issuer: "", date: "", credentialUrl: "" }]);
                           }}
@@ -1402,21 +1400,21 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       certifications.map((cert, idx) => (
-                        <div key={idx} className="bg-slate-950/40 border border-slate-800 rounded-xl p-4 space-y-4 relative">
+                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
                           <button
                             type="button"
                             onClick={() => {
                               const updated = certifications.filter((_, i) => i !== idx);
                               handleFieldChange(setCertifications, "certifications", updated);
                             }}
-                            className="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition-colors"
+                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Certification Name</Label>
+                              <Label className="text-xs text-muted-foreground">Certification Name</Label>
                               <Input
                                 value={cert.name}
                                 onChange={(e) => {
@@ -1425,12 +1423,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setCertifications, "certifications", updated);
                                 }}
                                 placeholder="AWS Certified Solutions Architect"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Issuing Organization</Label>
+                              <Label className="text-xs text-muted-foreground">Issuing Organization</Label>
                               <Input
                                 value={cert.issuer}
                                 onChange={(e) => {
@@ -1439,14 +1437,14 @@ export default function OnboardingPage() {
                                   handleFieldChange(setCertifications, "certifications", updated);
                                 }}
                                 placeholder="Amazon Web Services"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Issue Date</Label>
+                              <Label className="text-xs text-muted-foreground">Issue Date</Label>
                               <Input
                                 value={cert.date}
                                 onChange={(e) => {
@@ -1455,12 +1453,12 @@ export default function OnboardingPage() {
                                   handleFieldChange(setCertifications, "certifications", updated);
                                 }}
                                 placeholder="August 2023"
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-slate-400">Credential URL (optional)</Label>
+                              <Label className="text-xs text-muted-foreground">Credential URL (optional)</Label>
                               <Input
                                 value={cert.credentialUrl}
                                 onChange={(e) => {
@@ -1469,7 +1467,7 @@ export default function OnboardingPage() {
                                   handleFieldChange(setCertifications, "certifications", updated);
                                 }}
                                 placeholder="aws.amazon.com/verify/..."
-                                className="bg-slate-950 border-slate-800"
+                                className="bg-background border-input"
                               />
                             </div>
                           </div>
@@ -1483,12 +1481,12 @@ export default function OnboardingPage() {
           </AnimatePresence>
 
           {/* Navigation buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-0 sm:items-center sm:justify-between border-t border-slate-800/80 pt-6 mt-8">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-0 sm:items-center sm:justify-between border-t border-border/80 pt-6 mt-8">
             <Button
               variant="outline"
               onClick={handlePrev}
               disabled={currentStep === 1}
-              className="border-slate-800 hover:bg-slate-800 text-slate-300 w-full sm:w-auto"
+              className="border-border hover:bg-muted text-foreground w-full sm:w-auto"
             >
               <ChevronLeft className="mr-2 h-4 w-4" /> Previous
             </Button>

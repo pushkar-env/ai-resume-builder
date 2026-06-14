@@ -274,13 +274,13 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-0 h-[560px]">
           {/* Left Panel: Live CV Preview Card */}
-          <div className="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 p-6 flex flex-col justify-between text-white border-r border-border/40 relative overflow-hidden">
+          <div className="md:col-span-2 bg-gradient-to-br from-indigo-50/50 via-sky-50/50 to-indigo-100/50 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950 p-6 flex flex-col justify-between text-foreground dark:text-white border-r border-border/40 relative overflow-hidden">
             {/* Ambient glows */}
             <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-purple-500/10 blur-[80px]" />
             <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/15 blur-[80px]" />
 
             <div className="space-y-6 z-10">
-              <span className="text-[10px] font-bold tracking-widest text-indigo-400 uppercase bg-indigo-950/60 border border-indigo-500/20 px-2 py-1 rounded-full w-max block">
+              <span className="text-[10px] font-bold tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-500/20 px-2 py-1 rounded-full w-max block">
                 LIVE CV PREVIEW
               </span>
 
@@ -289,7 +289,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-5 shadow-xl space-y-4"
+                className="bg-background/80 dark:bg-white/5 backdrop-blur-lg border border-border dark:border-white/10 rounded-xl p-5 shadow-xl space-y-4"
               >
                 <div className="flex items-center gap-4">
                   {/* Photo with gradient ring */}
@@ -298,37 +298,37 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                       <img
                         src={photo}
                         alt={name || "User Avatar"}
-                        className="h-full w-full object-cover rounded-full bg-slate-800"
+                        className="h-full w-full object-cover rounded-full bg-muted"
                       />
                     ) : (
-                      <div className="h-full w-full rounded-full bg-slate-800 flex items-center justify-center text-white text-lg font-semibold">
+                      <div className="h-full w-full rounded-full bg-muted flex items-center justify-center text-foreground dark:text-white text-lg font-semibold">
                         {name ? name.charAt(0).toUpperCase() : <User className="h-6 w-6 text-muted-foreground" />}
                       </div>
                     )}
                   </div>
                   <div className="space-y-0.5 min-w-0">
-                    <h3 className="font-semibold text-base tracking-tight truncate">
+                    <h3 className="font-semibold text-base tracking-tight truncate text-foreground dark:text-white">
                       {name || "Your Name"}
                     </h3>
-                    <p className="text-xs text-indigo-300 font-medium flex items-center gap-1 truncate">
+                    <p className="text-xs text-indigo-600 dark:text-indigo-300 font-medium flex items-center gap-1 truncate">
                       <Briefcase className="h-3 w-3 inline" /> {jobTitle || "Job Title"}
                     </p>
-                    <p className="text-[10px] text-slate-400 flex items-center gap-0.5 truncate">
+                    <p className="text-[10px] text-muted-foreground dark:text-slate-400 flex items-center gap-0.5 truncate">
                       <MapPin className="h-2.5 w-2.5 inline" /> {location || "City, Country"}
                     </p>
                   </div>
                 </div>
 
-                <div className="h-px bg-white/10 my-2" />
+                <div className="h-px bg-border dark:bg-white/10 my-2" />
 
                 {/* Contact info list */}
-                <div className="space-y-1.5 text-xs text-slate-300">
+                <div className="space-y-1.5 text-xs text-muted-foreground dark:text-slate-300">
                   <div className="flex items-center gap-2 truncate">
-                    <Mail className="h-3 w-3 text-indigo-400 shrink-0" />
+                    <Mail className="h-3 w-3 text-indigo-500 dark:text-indigo-400 shrink-0" />
                     <span className="truncate">{email || "email@example.com"}</span>
                   </div>
                   <div className="flex items-center gap-2 truncate">
-                    <Phone className="h-3 w-3 text-indigo-400 shrink-0" />
+                    <Phone className="h-3 w-3 text-indigo-500 dark:text-indigo-400 shrink-0" />
                     <span>{phone || "+1 (555) 000-0000"}</span>
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/5 px-2 py-0.5 rounded-full text-[10px] text-slate-200 transition-colors"
+                            className="flex items-center gap-1 bg-muted dark:bg-white/10 hover:bg-muted/80 dark:hover:bg-white/20 border border-border dark:border-white/5 px-2 py-0.5 rounded-full text-[10px] text-foreground dark:text-slate-200 transition-colors"
                           >
                             <IconComponent className="h-2.5 w-2.5" />
                             <span>{social.label}</span>
@@ -358,8 +358,8 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
               </motion.div>
             </div>
 
-            <div className="text-[10px] text-slate-400 z-10 flex items-center gap-1 bg-slate-950/40 p-2 rounded-lg border border-white/5">
-              <Sparkles className="h-3 w-3 text-amber-400 shrink-0" />
+            <div className="text-[10px] text-muted-foreground dark:text-slate-400 z-10 flex items-center gap-1 bg-muted/50 dark:bg-slate-950/40 p-2 rounded-lg border border-border dark:border-white/5">
+              <Sparkles className="h-3 w-3 text-amber-500 dark:text-amber-400 shrink-0" />
               <span>This data syncs directly with the 'Personal Details' section of newly pre-filled resumes.</span>
             </div>
           </div>

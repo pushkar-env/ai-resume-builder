@@ -178,19 +178,19 @@ export function BulletListEditor({
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <Label className="text-xs text-slate-400 font-semibold">{label}</Label>
-        <span className="text-[10px] text-slate-500">{bullets.length} bullet points</span>
+        <Label className="text-xs text-muted-foreground font-semibold">{label}</Label>
+        <span className="text-[10px] text-muted-foreground/80">{bullets.length} bullet points</span>
       </div>
 
       {/* Existing Bullets List */}
       {bullets.length > 0 && (
-        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
           {bullets.map((bullet, idx) => {
             const isPending = pendingIndex === idx;
             return (
               <div
                 key={idx}
-                className="flex flex-col group bg-slate-950/35 border border-slate-800/80 rounded-xl p-2.5 transition-all hover:border-slate-700/80 focus-within:border-indigo-500/40 focus-within:bg-slate-950/50"
+                className="flex flex-col group bg-muted/15 border border-border/80 rounded-xl p-2.5 transition-all hover:border-border/80 focus-within:border-indigo-500/40 focus-within:bg-background/50"
               >
                 <div className="w-full">
                   <AutoResizingTextarea
@@ -198,11 +198,11 @@ export function BulletListEditor({
                     onValueChange={(val) => handleUpdateBullet(idx, val)}
                     placeholder="Describe your achievement..."
                     rows={1}
-                    className="w-full bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 shadow-none px-2 py-1 text-sm text-slate-200 placeholder:text-slate-600 resize-none min-h-[28px] h-auto"
+                    className="w-full bg-transparent border-none focus:outline-none focus:ring-0 focus-visible:ring-0 shadow-none px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground/60 resize-none min-h-[28px] h-auto"
                   />
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-800/30 pt-1.5 mt-1 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:md:opacity-100 transition-all duration-200 shrink-0">
+                <div className="flex items-center justify-between border-t border-border/30 pt-1.5 mt-1 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:md:opacity-100 transition-all duration-200 shrink-0">
                   <div className="flex items-center gap-1.5">
                     <Button
                       type="button"
@@ -210,7 +210,7 @@ export function BulletListEditor({
                       size="icon"
                       onClick={() => handleMoveUp(idx)}
                       disabled={idx === 0}
-                      className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 disabled:opacity-30 rounded-lg"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 rounded-lg"
                       title="Move Up"
                     >
                       <ArrowUp className="h-3.5 w-3.5" />
@@ -222,7 +222,7 @@ export function BulletListEditor({
                       size="icon"
                       onClick={() => handleMoveDown(idx)}
                       disabled={idx === bullets.length - 1}
-                      className="h-7 w-7 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 disabled:opacity-30 rounded-lg"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 rounded-lg"
                       title="Move Down"
                     >
                       <ArrowDown className="h-3.5 w-3.5" />
@@ -234,7 +234,7 @@ export function BulletListEditor({
                       size="icon"
                       onClick={() => handleAIImproveBullet(idx)}
                       disabled={isPending || improveBullet.isPending}
-                      className="h-7 w-7 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 disabled:opacity-50 rounded-lg"
+                      className="h-7 w-7 text-indigo-650 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-350 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 disabled:opacity-50 rounded-lg"
                       title="Polish bullet with AI"
                     >
                       {isPending ? (
@@ -250,7 +250,7 @@ export function BulletListEditor({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDeleteBullet(idx)}
-                    className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-950/30 rounded-lg"
+                    className="h-7 w-7 text-muted-foreground/80 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
                     title="Delete Bullet"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -270,7 +270,7 @@ export function BulletListEditor({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           rows={1}
-          className="flex-grow w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 min-h-[38px] h-auto"
+          className="flex-grow w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 min-h-[38px] h-auto"
         />
         <Button
           type="button"

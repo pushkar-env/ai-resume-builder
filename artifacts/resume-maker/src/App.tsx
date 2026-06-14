@@ -114,7 +114,7 @@ function getClerkAppearance(resolvedTheme: string | undefined) {
 
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 dark:from-[#0B0F14] dark:to-[#171F2B] px-4">
       <SignIn
         routing="path"
         path={`${basePath}/sign-in`}
@@ -126,7 +126,7 @@ function SignInPage() {
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 dark:from-[#0B0F14] dark:to-[#171F2B] px-4">
       <SignUp
         routing="path"
         path={`${basePath}/sign-up`}
