@@ -30,6 +30,80 @@ const GROUP_ORDER: Array<"summary" | "skills" | "experience" | "projects"> = [
   "projects",
 ];
 
+const MAX_ITEMS_PER_OPTIMIZE_CALL = 3;
+
+function sectionItemCount(section: SectionRow): number {
+  const content = section.content as { items?: unknown[] } | null;
+  return Array.isArray(content?.items) ? content.items.length : 0;
+}
+
+function chunkSectionItems(section: SectionRow, maxItems: number): SectionRow[] {
+  const content = section.content as { items?: unknown[] } | null;
+  const items = Array.isArray(content?.items) ? content.items : [];
+  if (items.length <= maxItems) return [section];
+
+  const chunks: SectionRow[] = [];
+  for (let i = 0; i < items.length; i += maxItems) {
+    chunks.push({
+      ...section,
+      content: {
+        ...(content && typeof content === "object" ? content : {}),
+        items: items.slice(i, i + maxItems),
+      },
+    });
+  }
+  return chunks;
+}
+
+type OptimizeBatch = {
+  group: SectionRow[];
+  parentSectionId?: number;
+  chunkIndex?: number;
+};
+
+function expandGroupsForBatching(groups: SectionRow[][]): OptimizeBatch[] {
+  const expanded: OptimizeBatch[] = [];
+  for (const group of groups) {
+    if (
+      group.length === 1 &&
+      (group[0].type === "experience" || group[0].type === "projects") &&
+      sectionItemCount(group[0]) > MAX_ITEMS_PER_OPTIMIZE_CALL
+    ) {
+      const chunks = chunkSectionItems(group[0], MAX_ITEMS_PER_OPTIMIZE_CALL);
+      chunks.forEach((chunk, chunkIndex) => {
+        expanded.push({
+          group: [chunk],
+          parentSectionId: group[0].id,
+          chunkIndex,
+        });
+      });
+      continue;
+    }
+    expanded.push({ group });
+  }
+  return expanded;
+}
+
+function mergeOptimizedSectionChunks(
+  original: SectionRow,
+  chunkResults: Array<{ id: number; type: string; title: string; content: unknown }>,
+): { id: number; type: string; title: string; content: unknown } {
+  const mergedItems: unknown[] = [];
+  for (const chunk of chunkResults) {
+    const content = chunk.content as { items?: unknown[] } | null;
+    if (Array.isArray(content?.items)) {
+      mergedItems.push(...content.items);
+    }
+  }
+
+  return {
+    id: original.id,
+    type: original.type,
+    title: original.title,
+    content: { items: mergedItems },
+  };
+}
+
 function groupSections(sections: SectionRow[]): SectionRow[][] {
   const buckets = new Map<string, SectionRow[]>();
   for (const type of GROUP_ORDER) {
@@ -300,20 +374,62 @@ export async function optimizeResumeWithAi(
   sections: SectionRow[],
   jobDescription: string,
 ): Promise<{ sections: OptimizeGroupResult["sections"]; summary: string }> {
-  const groups = groupSections(sections);
+  const batches = expandGroupsForBatching(groupSections(sections));
+  const batchedOriginals = new Map<number, SectionRow>();
+  for (const section of sections) {
+    if (
+      (section.type === "experience" || section.type === "projects") &&
+      sectionItemCount(section) > MAX_ITEMS_PER_OPTIMIZE_CALL
+    ) {
+      batchedOriginals.set(section.id, section);
+    }
+  }
+
+  const chunkResultsBySectionId = new Map<
+    number,
+    Array<{ chunkIndex: number; section: { id: number; type: string; title: string; content: unknown } }>
+  >();
+
   const results = await Promise.all(
-    groups.map(async (group) => {
+    batches.map(async ({ group, parentSectionId, chunkIndex }) => {
       const result = await optimizeGroup(group, jobDescription);
       const aligned = alignOptimizedSections(group, result.sections || []);
       const sanitized = aligned.map((s) => ({
         ...s,
         content: sanitizeSectionContent(s.type, s.content),
       }));
+
+      if (
+        parentSectionId != null &&
+        chunkIndex != null &&
+        batchedOriginals.has(parentSectionId) &&
+        sanitized[0]
+      ) {
+        const existing = chunkResultsBySectionId.get(parentSectionId) ?? [];
+        existing.push({ chunkIndex, section: sanitized[0] });
+        chunkResultsBySectionId.set(parentSectionId, existing);
+        return { ...result, sections: [], summary: result.summary };
+      }
+
       return { ...result, sections: sanitized };
     }),
   );
 
   const mergedSections = results.flatMap((r) => r.sections ?? []);
+  for (const [sectionId, chunks] of chunkResultsBySectionId) {
+    const original = batchedOriginals.get(sectionId);
+    if (!original || chunks.length === 0) continue;
+
+    const orderedChunks = [...chunks]
+      .sort((a, b) => a.chunkIndex - b.chunkIndex)
+      .map((entry) => entry.section);
+    const merged = mergeOptimizedSectionChunks(original, orderedChunks);
+    mergedSections.push({
+      ...merged,
+      content: sanitizeSectionContent(original.type, merged.content),
+    });
+  }
+
   const summary = results
     .map((r) => r.summary?.trim())
     .filter(Boolean)

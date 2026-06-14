@@ -6,12 +6,60 @@ settings:
 
 catalogs:
   default:
+    '@tailwindcss/vite':
+      specifier: ^4.1.14
+      version: 4.2.1
+    '@tanstack/react-query':
+      specifier: ^5.90.21
+      version: 5.90.21
     '@types/node':
       specifier: 25.3.5
       version: 25.3.5
+    '@types/react':
+      specifier: 19.2.14
+      version: 19.2.14
+    '@types/react-dom':
+      specifier: ^19.2.0
+      version: 19.2.3
+    '@vitejs/plugin-react':
+      specifier: ^5.0.4
+      version: 5.1.4
+    class-variance-authority:
+      specifier: ^0.7.1
+      version: 0.7.1
+    clsx:
+      specifier: ^2.1.1
+      version: 2.1.1
     drizzle-orm:
       specifier: ^0.45.2
       version: 0.45.2
+    framer-motion:
+      specifier: ^12.23.24
+      version: 12.35.1
+    lucide-react:
+      specifier: ^0.545.0
+      version: 0.545.0
+    react:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-dom:
+      specifier: 19.1.0
+      version: 19.1.0
+    tailwind-merge:
+      specifier: ^3.3.1
+      version: 3.5.0
+    tailwindcss:
+      specifier: ^4.1.14
+      version: 4.2.1
+    tsx:
+      specifier: ^4.21.0
+      version: 4.21.0
+    vite:
+      specifier: ^7.3.2
+      version: 7.3.2
+    zod:
+      specifier: ^3.25.76
+      version: 3.25.76
 
 importers:
 
@@ -37,7 +85,7 @@ importers:
         version: 2.1.13(express@5.2.1)
       '@clerk/shared':
         specifier: ^4.10.0
-        version: 4.10.0
+        version: 4.10.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
@@ -58,7 +106,7 @@ importers:
         version: 10.0.0
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.45.2
+        version: 0.45.2(@types/pg@8.18.0)(pg@8.20.0)
       express:
         specifier: ^5
         version: 5.2.1
@@ -68,6 +116,9 @@ importers:
       http-proxy-middleware:
         specifier: ^4.0.0
         version: 4.0.0
+      jsonrepair:
+        specifier: ^3.14.0
+        version: 3.14.0
       mammoth:
         specifier: ^1.12.0
         version: 1.12.0
@@ -85,7 +136,7 @@ importers:
         version: 10.5.0
       puppeteer:
         specifier: ^25.0.4
-        version: 25.0.4
+        version: 25.0.4(typescript@5.9.3)
       razorpay:
         specifier: ^2.9.6
         version: 2.9.6
@@ -3206,6 +3257,10 @@ packages:
     resolution: {integrity: sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ==}
     engines: {node: '>=0.10.0'}
 
+  jsonrepair@3.14.0:
+    resolution: {integrity: sha512-tWPGKMZf/8UPim+fcW2EfcQ/d/7aKUrP6IECz9G3Tu6Q5dX0orSleqJ9z6sSw7qrQkjF8/Edo4DvsWBZ8H+HNg==}
+    hasBin: true
+
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
 
@@ -4469,7 +4524,7 @@ snapshots:
   '@clerk/express@2.1.13(express@5.2.1)':
     dependencies:
       '@clerk/backend': 3.4.6
-      '@clerk/shared': 4.10.0
+      '@clerk/shared': 4.10.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       express: 5.2.1
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -4494,14 +4549,6 @@ snapshots:
     optionalDependencies:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
-
-  '@clerk/shared@4.10.0':
-    dependencies:
-      '@tanstack/query-core': 5.100.9
-      dequal: 2.0.3
-      glob-to-regexp: 0.4.1
-      js-cookie: 3.0.5
-      std-env: 3.10.0
 
   '@clerk/shared@4.10.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -6321,12 +6368,14 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  cosmiconfig@9.0.1:
+  cosmiconfig@9.0.1(typescript@5.9.3):
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
       js-yaml: 4.1.1
       parse-json: 5.2.0
+    optionalDependencies:
+      typescript: 5.9.3
 
   cross-spawn@7.0.6:
     dependencies:
@@ -6430,8 +6479,6 @@ snapshots:
       esbuild-register: 3.6.0(esbuild@0.25.12)
     transitivePeerDependencies:
       - supports-color
-
-  drizzle-orm@0.45.2: {}
 
   drizzle-orm@0.45.2(@types/pg@8.18.0)(pg@8.20.0):
     optionalDependencies:
@@ -6944,6 +6991,8 @@ snapshots:
 
   jsonpointer@5.0.1: {}
 
+  jsonrepair@3.14.0: {}
+
   jszip@3.10.1:
     dependencies:
       lie: 3.3.0
@@ -7422,11 +7471,11 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  puppeteer@25.0.4:
+  puppeteer@25.0.4(typescript@5.9.3):
     dependencies:
       '@puppeteer/browsers': 3.0.3
       chromium-bidi: 16.0.1(devtools-protocol@0.0.1608973)
-      cosmiconfig: 9.0.1
+      cosmiconfig: 9.0.1(typescript@5.9.3)
       devtools-protocol: 0.0.1608973
       puppeteer-core: 25.0.4
       typed-query-selector: 2.12.2

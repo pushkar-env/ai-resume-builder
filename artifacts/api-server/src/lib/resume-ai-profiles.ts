@@ -51,8 +51,8 @@ export const RESUME_AI_PROFILES: Record<ResumeAiProfileId, ResumeAiProfile> = {
   },
   "optimize-section": {
     id: "optimize-section",
-    timeoutMs: Number(process.env.RESUME_AI_OPTIMIZE_TIMEOUT_MS) || 38_000,
-    maxOutputTokens: 1_600,
+    timeoutMs: Number(process.env.RESUME_AI_OPTIMIZE_TIMEOUT_MS) || 45_000,
+    maxOutputTokens: Number(process.env.RESUME_AI_OPTIMIZE_MAX_TOKENS) || 3_200,
     temperature: 0.35,
     jsonMode: true,
     maxRetries: 2,

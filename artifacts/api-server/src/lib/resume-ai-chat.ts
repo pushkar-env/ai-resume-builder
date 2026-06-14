@@ -4,6 +4,10 @@ import {
   type ResumeAiProfile,
   type ResumeAiProfileId,
 } from "./resume-ai-profiles";
+import { logger } from "./logger";
+import { isJsonParseError, parseAiJson } from "./resume-ai-json";
+
+export { extractJsonPayload, parseAiJson } from "./resume-ai-json";
 
 /** Fast chat model for resume copy (avoid reasoning models — slow and costly). */
 export const RESUME_AI_MODEL =
@@ -18,6 +22,11 @@ type ChatCompletionResult = {
     message?: { content?: string | null };
     finish_reason?: string | null;
   }>;
+};
+
+export type ResumeAiCompletion = {
+  text: string;
+  finishReason: string | null;
 };
 
 export function clipAiInput(text: string, maxChars: number): string {
@@ -80,7 +89,7 @@ async function runCompletion(
   prompt: string,
   profile: ResumeAiProfile,
   label: string,
-): Promise<string> {
+): Promise<ResumeAiCompletion> {
   const completion = await withCallTimeout(
     openai.chat.completions.create(
       {
@@ -98,7 +107,10 @@ async function runCompletion(
     label,
   );
 
-  return (completion.choices[0]?.message?.content ?? "").trim();
+  return {
+    text: (completion.choices[0]?.message?.content ?? "").trim(),
+    finishReason: completion.choices[0]?.finish_reason ?? null,
+  };
 }
 
 async function withRetries<T>(
@@ -141,6 +153,21 @@ export async function completeResumeAi(
   label: string,
   options?: CompleteResumeAiOptions,
 ): Promise<string> {
+  const result = await completeResumeAiWithMeta(
+    prompt,
+    maxOutputTokens,
+    label,
+    options,
+  );
+  return result.text;
+}
+
+export async function completeResumeAiWithMeta(
+  prompt: string,
+  maxOutputTokens: number,
+  label: string,
+  options?: CompleteResumeAiOptions,
+): Promise<ResumeAiCompletion> {
   const baseProfile = getAiProfile(options?.profile ?? "standard");
   const profile: ResumeAiProfile = {
     ...baseProfile,
@@ -155,23 +182,6 @@ export async function completeResumeAi(
   );
 }
 
-export function parseAiJson<T>(raw: string, label: string): T {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    throw new Error(`${label}: AI returned empty content`);
-  }
-
-  try {
-    return JSON.parse(trimmed) as T;
-  } catch {
-    const jsonMatch = trimmed.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-    if (!jsonMatch) {
-      throw new Error(`${label}: could not parse JSON from AI response`);
-    }
-    return JSON.parse(jsonMatch[1]) as T;
-  }
-}
-
 export async function completeResumeAiJson<T>(
   prompt: string,
   label: string,
@@ -179,11 +189,56 @@ export async function completeResumeAiJson<T>(
   maxOutputTokens?: number,
 ): Promise<T> {
   const profile = getAiProfile(profileId);
-  const text = await completeResumeAi(
-    prompt,
-    maxOutputTokens ?? profile.maxOutputTokens,
-    label,
-    { profile: profileId, jsonMode: true },
-  );
-  return parseAiJson<T>(text, label);
+  const baseTokens = maxOutputTokens ?? profile.maxOutputTokens;
+  const tokenBudgets = [
+    baseTokens,
+    Math.min(Math.round(baseTokens * 1.35), 4_096),
+    Math.min(Math.round(baseTokens * 1.75), 4_096),
+  ];
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < tokenBudgets.length; attempt++) {
+    const tokens = tokenBudgets[attempt];
+    try {
+      const { text, finishReason } = await completeResumeAiWithMeta(
+        prompt,
+        tokens,
+        label,
+        { profile: profileId, jsonMode: true },
+      );
+
+      if (!text) {
+        throw new Error(`${label}: AI returned empty content`);
+      }
+
+      if (finishReason === "length") {
+        logger.warn(
+          { label, attempt, tokens, textLength: text.length },
+          "AI JSON response truncated by token limit",
+        );
+        throw new Error(`${label}: AI response truncated`);
+      }
+
+      return parseAiJson<T>(text, label);
+    } catch (err) {
+      lastError = err;
+      const canRetry =
+        attempt < tokenBudgets.length - 1 &&
+        (isJsonParseError(err) ||
+          (err instanceof Error && /truncated/i.test(err.message)));
+
+      if (!canRetry) break;
+
+      logger.warn(
+        { label, attempt, nextTokens: tokenBudgets[attempt + 1], error: err },
+        "Retrying AI JSON completion after parse/truncation failure",
+      );
+      await sleep(400 * (attempt + 1));
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`${label}: AI JSON completion failed`);
 }
