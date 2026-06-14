@@ -407,7 +407,7 @@ function CertLine({
         <>
           {" · "}
           <a
-            href={url}
+            href={ensureProto(url)}
             target="_blank"
             rel="noreferrer noopener"
             className="underline underline-offset-2 hover:opacity-80"
@@ -1201,7 +1201,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
                         )}
                         {url && (
                           <a
-                            href={url}
+                            href={ensureProto(url)}
                             target="_blank"
                             rel="noreferrer noopener"
                             className="text-[9.5px] underline mt-0.5 block"
