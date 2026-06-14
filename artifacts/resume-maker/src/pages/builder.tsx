@@ -2666,7 +2666,7 @@ export default function BuilderPage() {
                               );
                             }}
                             placeholder="Paste the target job description here to calculate a tailored ATS compatibility score and get optimized keywords/suggestions..."
-                            className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y leading-relaxed"
+                            className="w-full min-h-[100px] text-xs p-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none leading-relaxed"
                           />
                           <div className="flex gap-2">
                             <Button
