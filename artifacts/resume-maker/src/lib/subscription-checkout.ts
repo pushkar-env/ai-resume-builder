@@ -207,6 +207,7 @@ export type OpenSubscriptionCheckoutParams = {
   customerEmail: string;
   queryClient: QueryClient;
   onPremiumConfirmed: () => void;
+  onVerificationStart?: () => void;
   /** e.g. toast for “still processing” when webhook is slow */
   onStillPending: () => void;
   toastError: (title: string, description?: string) => void;
@@ -230,6 +231,7 @@ export async function openSubscriptionCheckout(
     customerEmail,
     queryClient,
     onPremiumConfirmed,
+    onVerificationStart,
     onStillPending,
     toastError,
   } = params;
@@ -386,6 +388,7 @@ export async function openSubscriptionCheckout(
     image: checkoutImageUrl,
     subscription_id: subscriptionData.id,
     handler(response: Record<string, unknown>) {
+      onVerificationStart?.();
       void processSuccessResponse(response).catch((err) => {
         console.error("[subscription-checkout] handler async error", err);
         void (async () => {

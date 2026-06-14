@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
-import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { SubscriptionStatusDialog } from "@/components/shared/SubscriptionStatusDialog";
 import { DevBillingPanel } from "@/components/shared/DevBillingPanel";
 import { ResumeRenewalFlow } from "@/components/shared/ResumeRenewalFlow";
 import { ProButton } from "@/components/shared/ProButton";
@@ -65,7 +65,8 @@ export default function BillingPage() {
     "monthly",
   );
   const [isCancelling, setIsCancelling] = useState(false);
-  const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
+  const [subscriptionStatusOpen, setSubscriptionStatusOpen] = useState(false);
+  const [subscriptionStatusMode, setSubscriptionStatusMode] = useState<"verifying" | "success">("verifying");
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const { runDevUpgrade } = useDevBillingUpgrade();
 
@@ -121,15 +122,27 @@ export default function BillingPage() {
         customerName: user.fullName || "",
         customerEmail: user.primaryEmailAddress?.emailAddress || "",
         queryClient,
-        onPremiumConfirmed: () => setSubscriptionSuccessOpen(true),
-        onStillPending: () =>
+        onVerificationStart: () => {
+          setIsProcessing(false);
+          setSubscriptionStatusMode("verifying");
+          setSubscriptionStatusOpen(true);
+        },
+        onPremiumConfirmed: () => {
+          setSubscriptionStatusMode("success");
+          setSubscriptionStatusOpen(true);
+        },
+        onStillPending: () => {
+          setSubscriptionStatusOpen(false);
           toast({
             title: "Payment received",
             description:
               "Your bank may take a moment to confirm. Return to this tab or pull to refresh — Pro usually appears within a minute.",
-          }),
-        toastError: (title, description) =>
-          toast({ title, description, variant: "destructive" }),
+          });
+        },
+        toastError: (title, description) => {
+          setSubscriptionStatusOpen(false);
+          toast({ title, description, variant: "destructive" });
+        },
       });
     } catch (error: unknown) {
       const msg =
@@ -148,8 +161,19 @@ export default function BillingPage() {
 
   const handleDevUpgrade = async () => {
     setIsProcessing(true);
+    setSubscriptionStatusMode("verifying");
+    setSubscriptionStatusOpen(true);
     try {
-      await runDevUpgrade(() => setSubscriptionSuccessOpen(true));
+      const success = await runDevUpgrade();
+      if (success) {
+        // Artificial delay of 1.8s so the user can witness the premium step-by-step verification animation
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+        setSubscriptionStatusMode("success");
+      } else {
+        setSubscriptionStatusOpen(false);
+      }
+    } catch (error) {
+      setSubscriptionStatusOpen(false);
     } finally {
       setIsProcessing(false);
     }
@@ -543,9 +567,10 @@ export default function BillingPage() {
 
       <AppFooter />
 
-      <SubscriptionSuccessDialog
-        open={subscriptionSuccessOpen}
-        onOpenChange={setSubscriptionSuccessOpen}
+      <SubscriptionStatusDialog
+        open={subscriptionStatusOpen}
+        onOpenChange={setSubscriptionStatusOpen}
+        status={subscriptionStatusMode}
       />
 
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
