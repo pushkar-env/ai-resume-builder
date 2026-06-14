@@ -92,13 +92,6 @@ export function SubscriptionSuccessDialog({
               View billing
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            className="w-full text-muted-foreground"
-            onClick={() => onOpenChange(false)}
-          >
-            Close
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -2174,7 +2174,7 @@ export default function DashboardPage() {
                 <motion.div variants={fadeUp}>
                   <div
                     onClick={handleCreateRequest}
-                    className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                    className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
                   >
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                       <Plus className="h-5 w-5 text-primary" />
@@ -2197,8 +2197,8 @@ export default function DashboardPage() {
                   />
                   <div
                     onClick={handleImportClick}
-                    className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-border transition-all duration-300 flex flex-col items-center justify-center text-center p-6
-                    ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
+                    className={`h-full min-h-[160px] rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 transition-all duration-300 flex flex-col items-center justify-center text-center p-6
+                    ${importResume.isPending ? "opacity-70 cursor-not-allowed bg-muted/30" : "hover:border-blue-500 dark:hover:border-blue-400 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer group"}
                   `}
                   >
                     {importResume.isPending ? (
@@ -2274,7 +2274,7 @@ export default function DashboardPage() {
               <motion.div variants={fadeUp}>
                 <div
                   onClick={() => setCreateCoverLetterOpen(true)}
-                  className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
+                  className="h-full min-h-[160px] rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group p-6 text-center"
                 >
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <Plus className="h-5 w-5 text-primary" />

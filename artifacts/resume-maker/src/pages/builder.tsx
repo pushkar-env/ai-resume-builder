@@ -2727,7 +2727,6 @@ export default function BuilderPage() {
                           <div className="pt-3 border-t border-border mt-1 space-y-3">
                             <Button
                               size="sm"
-                              variant="secondary"
                               onClick={() => {
                                 flushSave();
                                 if (resume) {
@@ -2768,7 +2767,7 @@ export default function BuilderPage() {
                                 });
                               }}
                               disabled={optimizeResumeMutation.isPending}
-                              className="w-full text-xs h-9 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 font-semibold"
+                              className="w-full text-xs h-9 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:via-indigo-500 hover:to-violet-500 text-white font-semibold shadow-md dark:shadow-indigo-500/20 hover:shadow-lg dark:hover:shadow-indigo-500/30 transition-all duration-300 border-none"
                             >
                               <Sparkles className="h-3.5 w-3.5" />
                               {scannedJobDescription ? "Optimize Resume with AI" : "Improve Resume with AI"}
