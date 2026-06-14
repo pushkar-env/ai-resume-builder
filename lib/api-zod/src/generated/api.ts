@@ -44,6 +44,7 @@ export const GetProfileResponse = zod.object({
         endDate: zod.string().optional(),
         location: zod.string().optional(),
         description: zod.string().optional(),
+        bullets: zod.array(zod.string()).optional(),
         currentlyWorking: zod.boolean().optional(),
       }),
     )
@@ -54,6 +55,7 @@ export const GetProfileResponse = zod.object({
       zod.object({
         name: zod.string(),
         description: zod.string(),
+        bullets: zod.array(zod.string()).optional(),
         technologiesUsed: zod.string().optional(),
         url: zod.string().optional(),
         github: zod.string().optional(),
@@ -119,6 +121,7 @@ export const UpdateProfileBody = zod.object({
         endDate: zod.string().optional(),
         location: zod.string().optional(),
         description: zod.string().optional(),
+        bullets: zod.array(zod.string()).optional(),
         currentlyWorking: zod.boolean().optional(),
       }),
     )
@@ -129,6 +132,7 @@ export const UpdateProfileBody = zod.object({
       zod.object({
         name: zod.string(),
         description: zod.string(),
+        bullets: zod.array(zod.string()).optional(),
         technologiesUsed: zod.string().optional(),
         url: zod.string().optional(),
         github: zod.string().optional(),
@@ -190,6 +194,7 @@ export const UpdateProfileResponse = zod.object({
         endDate: zod.string().optional(),
         location: zod.string().optional(),
         description: zod.string().optional(),
+        bullets: zod.array(zod.string()).optional(),
         currentlyWorking: zod.boolean().optional(),
       }),
     )
@@ -200,6 +205,7 @@ export const UpdateProfileResponse = zod.object({
       zod.object({
         name: zod.string(),
         description: zod.string(),
+        bullets: zod.array(zod.string()).optional(),
         technologiesUsed: zod.string().optional(),
         url: zod.string().optional(),
         github: zod.string().optional(),

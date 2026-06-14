@@ -11,6 +11,7 @@ import {
 } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/BulletListEditor";
 import { Input } from "@/components/ui/input";
@@ -191,12 +192,7 @@ export default function OnboardingPage() {
           location: exp.location || "",
           description: exp.description || "",
           currentlyWorking: !!exp.currentlyWorking,
-          bullets: Array.isArray(exp.bullets)
-            ? exp.bullets
-            : (exp.description || "")
-                .split(/\r?\n/)
-                .map((line: string) => line.replace(/^[•\-\*\s]+/, "").trim())
-                .filter(Boolean)
+          bullets: resolveProfileBullets(exp.bullets, exp.description),
         }))
       );
       setEducation(
@@ -218,12 +214,7 @@ export default function OnboardingPage() {
           technologiesUsed: proj.technologiesUsed || "",
           url: proj.url || "",
           github: proj.github || "",
-          bullets: Array.isArray(proj.bullets)
-            ? proj.bullets
-            : (proj.description || "")
-                .split(/\r?\n/)
-                .map((line: string) => line.replace(/^[•\-\*\s]+/, "").trim())
-                .filter(Boolean)
+          bullets: resolveProfileBullets(proj.bullets, proj.description),
         }))
       );
       setCertifications(
@@ -958,7 +949,7 @@ export default function OnboardingPage() {
                               onChange={(newBullets) => {
                                 const updated = [...experience];
                                 updated[idx].bullets = newBullets;
-                                updated[idx].description = newBullets.join("\n");
+                                updated[idx].description = syncBulletsToDescription(newBullets);
                                 handleFieldChange(setExperience, "experience", updated);
                               }}
                               context={`${exp.title || "Role"} at ${exp.company || "Company"}`}
@@ -1344,7 +1335,7 @@ export default function OnboardingPage() {
                               onChange={(newBullets) => {
                                 const updated = [...projects];
                                 updated[idx].bullets = newBullets;
-                                updated[idx].description = newBullets.join("\n");
+                                updated[idx].description = syncBulletsToDescription(newBullets);
                                 handleFieldChange(setProjects, "projects", updated);
                               }}
                               context={`Project named ${proj.name || "Project"}`}

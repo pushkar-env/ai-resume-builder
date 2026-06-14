@@ -111,6 +111,7 @@ router.put(
           endDate: exp.endDate ?? "",
           location: exp.location ?? "",
           description: exp.description ?? "",
+          bullets: Array.isArray(exp.bullets) ? exp.bullets : [],
           currentlyWorking: !!exp.currentlyWorking,
         }));
       }
@@ -119,6 +120,7 @@ router.put(
         updateData.projects = parsed.data.projects.map((proj) => ({
           name: proj.name ?? "",
           description: proj.description ?? "",
+          bullets: Array.isArray(proj.bullets) ? proj.bullets : [],
           technologiesUsed: proj.technologiesUsed ?? "",
           url: proj.url ?? "",
           github: proj.github ?? "",
@@ -172,12 +174,14 @@ router.put(
           endDate: exp.endDate ?? "",
           location: exp.location ?? "",
           description: exp.description ?? "",
+          bullets: Array.isArray(exp.bullets) ? exp.bullets : [],
           currentlyWorking: !!exp.currentlyWorking,
         })) as any,
         skills: (parsed.data.skills ?? []) as any,
         projects: (parsed.data.projects ?? []).map((proj) => ({
           name: proj.name ?? "",
           description: proj.description ?? "",
+          bullets: Array.isArray(proj.bullets) ? proj.bullets : [],
           technologiesUsed: proj.technologiesUsed ?? "",
           url: proj.url ?? "",
           github: proj.github ?? "",

@@ -378,12 +378,14 @@ export interface ProfileExperience {
   endDate?: string;
   location?: string;
   description?: string;
+  bullets?: string[];
   currentlyWorking?: boolean;
 }
 
 export interface ProfileProject {
   name: string;
   description: string;
+  bullets?: string[];
   technologiesUsed?: string;
   url?: string;
   github?: string;

@@ -10,6 +10,7 @@ import {
 } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/BulletListEditor";
 import { Input } from "@/components/ui/input";
@@ -182,12 +183,7 @@ export default function ProfilePage() {
         location: exp.location || "",
         description: exp.description || "",
         currentlyWorking: !!exp.currentlyWorking,
-        bullets: Array.isArray(exp.bullets)
-          ? exp.bullets
-          : (exp.description || "")
-              .split(/\r?\n/)
-              .map((line: string) => line.replace(/^[•\-\*\s]+/, "").trim())
-              .filter(Boolean)
+        bullets: resolveProfileBullets(exp.bullets, exp.description),
       }));
       const initialSkills = profile.skills || [];
       const initialProjects = ((profile.projects as any[]) || []).map(proj => ({
@@ -196,12 +192,7 @@ export default function ProfilePage() {
         technologiesUsed: proj.technologiesUsed || "",
         url: proj.url || "",
         github: proj.github || "",
-        bullets: Array.isArray(proj.bullets)
-          ? proj.bullets
-          : (proj.description || "")
-              .split(/\r?\n/)
-              .map((line: string) => line.replace(/^[•\-\*\s]+/, "").trim())
-              .filter(Boolean)
+        bullets: resolveProfileBullets(proj.bullets, proj.description),
       }));
       const initialCertifications = (profile.certifications as any[]) || [];
       const initialEducation = ((profile.education as any[]) || []).map(edu => ({
@@ -1007,7 +998,7 @@ export default function ProfilePage() {
                                 updated[idx] = {
                                   ...updated[idx],
                                   bullets: newBullets,
-                                  description: newBullets.join("\n")
+                                  description: syncBulletsToDescription(newBullets)
                                 };
                                 setExperience(updated);
                             }}
@@ -1331,7 +1322,7 @@ export default function ProfilePage() {
                               updated[idx] = {
                                 ...updated[idx],
                                 bullets: newBullets,
-                                description: newBullets.join("\n")
+                                description: syncBulletsToDescription(newBullets)
                               };
                               setProjects(updated);
                             }}

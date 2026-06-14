@@ -1781,6 +1781,10 @@ components:
           type: string
         description:
           type: string
+        bullets:
+          type: array
+          items:
+            type: string
         currentlyWorking:
           type: boolean
       required:
@@ -1794,6 +1798,10 @@ components:
           type: string
         description:
           type: string
+        bullets:
+          type: array
+          items:
+            type: string
         technologiesUsed:
           type: string
         url:
