@@ -102,7 +102,7 @@ function getClerkAppearance(resolvedTheme: string | undefined) {
       formFieldInput: isDark
         ? "border-gray-800 focus:border-violet-500 focus:ring-violet-500 bg-[#0B0F14] text-white"
         : "border-gray-200 focus:border-violet-500 focus:ring-violet-500 bg-white text-gray-900",
-      footerAction: isDark ? "bg-[#111827]" : "bg-gray-50",
+      footerAction: "!bg-transparent",
       dividerLine: isDark ? "bg-gray-800" : "bg-gray-200",
       alert: isDark ? "border border-red-950 bg-red-950/20" : "border border-red-100 bg-red-50",
       otpCodeFieldInput: isDark ? "border-gray-800 text-white" : "border-gray-200 text-gray-900",
