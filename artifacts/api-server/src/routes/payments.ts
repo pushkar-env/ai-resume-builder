@@ -2,6 +2,23 @@ import { Router, type Request, type Response } from "express";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { getAuth, clerkClient } from "@clerk/express";
+import {
+  queuePaymentFailedEmail,
+  queueSubscriptionCancelledEmail,
+  queueSubscriptionEndedEmail,
+  queueSubscriptionRenewalEmail,
+  queueSubscriptionResumedEmail,
+  queueSubscriptionWelcomeEmail,
+  clearSubscriptionEmailDedupe,
+} from "../lib/email";
+import {
+  billingEmailFlags,
+  DEV_MOCK_SUBSCRIPTION_ID,
+  devMockBillingDates,
+  isDevBillingMode,
+  isDevMockSubscription,
+  shouldSendBillingEmail,
+} from "../lib/billing/dev-mode";
 
 const router = Router();
 
@@ -30,6 +47,40 @@ const razorpay = new Razorpay({
   key_id: RAZORPAY_KEY_ID,
   key_secret: RAZORPAY_KEY_SECRET,
 });
+
+function rejectUnlessDevBilling(
+  res: Response,
+): boolean {
+  if (isDevBillingMode()) return false;
+  res.status(404).json({ error: "Not found" });
+  return true;
+}
+
+type SubscriptionMailTiming = {
+  planType?: string;
+  currentEnd?: number;
+  nextBillingAt?: number;
+};
+
+function readSubscriptionTiming(sub: unknown): SubscriptionMailTiming {
+  if (!sub || typeof sub !== "object") return {};
+  const s = sub as {
+    notes?: { planType?: string };
+    current_end?: number;
+    next_billing_at?: number;
+  };
+  return {
+    planType: s.notes?.planType,
+    currentEnd:
+      typeof s.current_end === "number" ? s.current_end : undefined,
+    nextBillingAt:
+      typeof s.next_billing_at === "number"
+        ? s.next_billing_at
+        : typeof s.current_end === "number"
+          ? s.current_end
+          : undefined,
+  };
+}
 
 /**
  * 1. Create Subscription endpoint
@@ -177,6 +228,11 @@ router.post(
 
       const existing = await clerkClient.users.getUser(userId);
       const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+      const wasNewPremium = meta.isPremium !== true;
+      const planType =
+        subscription.notes?.planType ??
+        (meta.planType as string | undefined) ??
+        "monthly";
 
       await clerkClient.users.updateUserMetadata(userId, {
         publicMetadata: {
@@ -184,12 +240,23 @@ router.post(
           isPremium: true,
           subscriptionId: razorpay_subscription_id,
           subscriptionStatus: "active",
-          planType: subscription.notes?.planType ?? meta.planType ?? "monthly",
+          planType,
           premiumSince:
             (meta.premiumSince as string | undefined) ??
             new Date().toISOString(),
         },
       });
+
+      if (wasNewPremium && shouldSendBillingEmail(razorpay_subscription_id)) {
+        const timing = readSubscriptionTiming(subscription);
+        queueSubscriptionWelcomeEmail({
+          userId,
+          subscriptionId: razorpay_subscription_id,
+          planType: timing.planType ?? planType,
+          nextBillingAt: timing.nextBillingAt,
+          ...billingEmailFlags(razorpay_subscription_id),
+        });
+      }
 
       res.json({
         ok: true,
@@ -245,17 +312,19 @@ router.post(
 
       // Cancel at the end of the billing cycle
       let subscriptionStatus = "cancelled";
-      if (subscriptionId !== "sub_dev_mock") {
-        const subscription = await razorpay.subscriptions.cancel(
+      let cancelledSub: unknown = null;
+      if (!isDevMockSubscription(subscriptionId)) {
+        cancelledSub = await razorpay.subscriptions.cancel(
           subscriptionId,
           true,
         );
-        subscriptionStatus = subscription.status;
+        subscriptionStatus = (cancelledSub as { status?: string }).status ?? "cancelled";
       }
 
       // Update clerk metadata to reflect cancelled status (will actually expire at cycle end)
       const existing = await clerkClient.users.getUser(userId);
       const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+      const planType = (meta.planType as string | undefined) ?? "monthly";
       await clerkClient.users.updateUserMetadata(userId, {
         publicMetadata: {
           ...meta,
@@ -264,6 +333,20 @@ router.post(
           subscriptionStatus: "cancelled",
         },
       });
+
+      if (shouldSendBillingEmail(subscriptionId)) {
+        const mockDates = isDevMockSubscription(subscriptionId)
+          ? devMockBillingDates()
+          : null;
+        const timing = readSubscriptionTiming(cancelledSub);
+        queueSubscriptionCancelledEmail({
+          userId,
+          subscriptionId,
+          planType: timing.planType ?? planType,
+          accessUntil: mockDates?.currentEnd ?? timing.currentEnd,
+          ...billingEmailFlags(subscriptionId),
+        });
+      }
 
       return res.json({ success: true, status: subscriptionStatus });
     } catch (error) {
@@ -328,13 +411,27 @@ router.post(
         return;
       }
 
-      if (subscriptionId === "sub_dev_mock") {
+      const planType = (meta.planType as string | undefined) ?? "monthly";
+
+      if (isDevMockSubscription(subscriptionId)) {
         await clerkClient.users.updateUserMetadata(userId, {
           publicMetadata: {
             ...meta,
             subscriptionStatus: "active",
           },
         });
+
+        if (shouldSendBillingEmail(subscriptionId)) {
+          const { nextBillingAt } = devMockBillingDates();
+          queueSubscriptionResumedEmail({
+            userId,
+            subscriptionId,
+            planType,
+            nextBillingAt,
+            ...billingEmailFlags(subscriptionId),
+          });
+        }
+
         res.json({ success: true, providerStatus: "active" });
         return;
       }
@@ -371,13 +468,28 @@ router.post(
         ) => Promise<RpSubscription>;
       };
 
-      const syncClerkActive = async (providerStatus?: string) => {
+      const syncClerkActive = async (
+        providerStatus?: string,
+        providerSub?: unknown,
+      ) => {
         await clerkClient.users.updateUserMetadata(userId, {
           publicMetadata: {
             ...meta,
             subscriptionStatus: "active",
           },
         });
+
+        if (shouldSendBillingEmail(subscriptionId)) {
+          const timing = readSubscriptionTiming(providerSub ?? sub);
+          queueSubscriptionResumedEmail({
+            userId,
+            subscriptionId,
+            planType: timing.planType ?? planType,
+            nextBillingAt: timing.nextBillingAt,
+            ...billingEmailFlags(subscriptionId),
+          });
+        }
+
         res.json({ success: true, providerStatus: providerStatus ?? "active" });
       };
 
@@ -390,7 +502,7 @@ router.post(
             again.status === "active" &&
             again.has_scheduled_changes !== true
           ) {
-            await syncClerkActive(again.status);
+            await syncClerkActive(again.status, again);
             return true;
           }
         } catch {
@@ -404,13 +516,13 @@ router.post(
           const updated = await subs.resume(subscriptionId, {
             resume_at: "now",
           });
-          await syncClerkActive(updated.status);
+          await syncClerkActive(updated.status, updated);
           return;
         }
 
         if (subs.cancelScheduledChanges) {
           const updated = await subs.cancelScheduledChanges(subscriptionId);
-          await syncClerkActive(updated.status);
+          await syncClerkActive(updated.status, updated);
           return;
         }
 
@@ -486,9 +598,12 @@ async function clerkGrantPremium(
   userId: string,
   subscriptionId: string | undefined,
   planType?: string,
-): Promise<void> {
+): Promise<{ wasNewPremium: boolean; resolvedPlanType: string }> {
   const existing = await clerkClient.users.getUser(userId);
   const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+  const wasNewPremium = meta.isPremium !== true;
+  const resolvedPlanType =
+    planType ?? (meta.planType as string | undefined) ?? "monthly";
   await clerkClient.users.updateUserMetadata(userId, {
     publicMetadata: {
       ...meta,
@@ -496,11 +611,12 @@ async function clerkGrantPremium(
       subscriptionId:
         subscriptionId ?? (meta.subscriptionId as string | undefined),
       subscriptionStatus: "active",
-      planType: planType ?? (meta.planType as string | undefined) ?? "monthly",
+      planType: resolvedPlanType,
       premiumSince:
         (meta.premiumSince as string | undefined) ?? new Date().toISOString(),
     },
   });
+  return { wasNewPremium, resolvedPlanType };
 }
 
 /** Cancel-at-period-end: user stays Pro until current_end. */
@@ -524,9 +640,12 @@ async function clerkMarkRenewalCancelled(
 async function clerkRevokePremium(
   userId: string,
   status: string,
-): Promise<void> {
+): Promise<{ hadPremium: boolean; subscriptionId?: string; planType?: string }> {
   const existing = await clerkClient.users.getUser(userId);
   const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+  const hadPremium = meta.isPremium === true;
+  const subscriptionId = meta.subscriptionId as string | undefined;
+  const planType = meta.planType as string | undefined;
   await clerkClient.users.updateUserMetadata(userId, {
     publicMetadata: {
       ...meta,
@@ -535,6 +654,7 @@ async function clerkRevokePremium(
       subscriptionStatus: status,
     },
   });
+  return { hadPremium, subscriptionId, planType };
 }
 
 async function clerkSetSubscriptionStatus(
@@ -608,7 +728,31 @@ router.post(
               ? pay.subscription_id
               : undefined);
           if (userId && subId) {
-            await clerkGrantPremium(userId, subId, sub?.notes?.planType);
+            const { wasNewPremium, resolvedPlanType } = await clerkGrantPremium(
+              userId,
+              subId,
+              sub?.notes?.planType,
+            );
+            if (shouldSendBillingEmail(subId)) {
+              const timing = readSubscriptionTiming(sub);
+              if (wasNewPremium) {
+                queueSubscriptionWelcomeEmail({
+                  userId,
+                  subscriptionId: subId,
+                  planType: timing.planType ?? resolvedPlanType,
+                  nextBillingAt: timing.nextBillingAt,
+                  ...billingEmailFlags(subId),
+                });
+              } else if (eventName === "subscription.charged") {
+                queueSubscriptionRenewalEmail({
+                  userId,
+                  subscriptionId: subId,
+                  planType: timing.planType ?? resolvedPlanType,
+                  nextBillingAt: timing.nextBillingAt,
+                  ...billingEmailFlags(subId),
+                });
+              }
+            }
             console.log(
               `[payments] webhook ${eventName}: premium for user ${userId}`,
             );
@@ -621,6 +765,17 @@ router.post(
           const userId = sub?.notes?.userId;
           if (userId) {
             await clerkSetSubscriptionStatus(userId, "active", true);
+            const subId = sub?.id;
+            if (subId && shouldSendBillingEmail(subId)) {
+              const timing = readSubscriptionTiming(sub);
+              queueSubscriptionResumedEmail({
+                userId,
+                subscriptionId: subId,
+                planType: timing.planType ?? sub?.notes?.planType,
+                nextBillingAt: timing.nextBillingAt,
+                ...billingEmailFlags(subId),
+              });
+            }
             console.log(`[payments] webhook subscription.resumed: ${userId}`);
           }
           break;
@@ -640,6 +795,15 @@ router.post(
           const sub = readSubscriptionEntity(payload);
           const userId = sub?.notes?.userId;
           if (userId) {
+            const subId = sub?.id;
+            if (subId && shouldSendBillingEmail(subId)) {
+              queuePaymentFailedEmail({
+                userId,
+                subscriptionId: subId,
+                planType: sub?.notes?.planType,
+                ...billingEmailFlags(subId),
+              });
+            }
             await clerkRevokePremium(userId, "halted");
             console.log(`[payments] webhook subscription.halted: ${userId}`);
           }
@@ -650,7 +814,21 @@ router.post(
           const sub = readSubscriptionEntity(payload);
           const userId = sub?.notes?.userId;
           if (userId) {
-            await clerkRevokePremium(userId, "completed");
+            const revoked = await clerkRevokePremium(userId, "completed");
+            const subId = revoked.subscriptionId ?? sub?.id;
+            if (
+              revoked.hadPremium &&
+              subId &&
+              shouldSendBillingEmail(subId)
+            ) {
+              queueSubscriptionEndedEmail({
+                userId,
+                subscriptionId: subId,
+                planType: revoked.planType ?? sub?.notes?.planType,
+                reason: "completed",
+                ...billingEmailFlags(subId),
+              });
+            }
             console.log(`[payments] webhook subscription.completed: ${userId}`);
           }
           break;
@@ -673,11 +851,34 @@ router.post(
             stillInPaidPeriod
           ) {
             await clerkMarkRenewalCancelled(userId, sub.id);
+            if (sub.id && shouldSendBillingEmail(sub.id)) {
+              queueSubscriptionCancelledEmail({
+                userId,
+                subscriptionId: sub.id,
+                planType: sub?.notes?.planType,
+                accessUntil: currentEnd || undefined,
+                ...billingEmailFlags(sub.id),
+              });
+            }
             console.log(
               `[payments] webhook subscription.cancelled (renewal stopped, access retained): ${userId}`,
             );
           } else {
-            await clerkRevokePremium(userId, "cancelled");
+            const revoked = await clerkRevokePremium(userId, "cancelled");
+            const subId = revoked.subscriptionId ?? sub?.id;
+            if (
+              revoked.hadPremium &&
+              subId &&
+              shouldSendBillingEmail(subId)
+            ) {
+              queueSubscriptionEndedEmail({
+                userId,
+                subscriptionId: subId,
+                planType: revoked.planType ?? sub?.notes?.planType,
+                reason: "cancelled",
+                ...billingEmailFlags(subId),
+              });
+            }
             console.log(
               `[payments] webhook subscription.cancelled (access ended): ${userId}`,
             );
@@ -704,23 +905,46 @@ router.post(
   "/payments/dev-upgrade",
   requireAuth,
   async (req: Request, res: Response) => {
+    if (rejectUnlessDevBilling(res)) return;
+
     try {
       const userId = (req as any).userId;
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
+      const bodyPlan = (req.body as { planType?: unknown })?.planType;
+      const planType = bodyPlan === "yearly" ? "yearly" : "monthly";
+
+      const existing = await clerkClient.users.getUser(userId);
+      const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+
       await clerkClient.users.updateUserMetadata(userId, {
         publicMetadata: {
+          ...meta,
           isPremium: true,
-          premiumSince: new Date().toISOString(),
-          subscriptionId: "sub_dev_mock",
+          premiumSince:
+            (meta.premiumSince as string | undefined) ??
+            new Date().toISOString(),
+          subscriptionId: DEV_MOCK_SUBSCRIPTION_ID,
           subscriptionStatus: "active",
-          planType: "monthly",
+          planType,
         },
       });
+
+      if (shouldSendBillingEmail(DEV_MOCK_SUBSCRIPTION_ID)) {
+        const { nextBillingAt } = devMockBillingDates();
+        queueSubscriptionWelcomeEmail({
+          userId,
+          subscriptionId: DEV_MOCK_SUBSCRIPTION_ID,
+          planType,
+          nextBillingAt,
+          allowRetest: true,
+        });
+      }
 
       return res.json({
         success: true,
         message: "Developer upgrade successful",
+        emailQueued: shouldSendBillingEmail(DEV_MOCK_SUBSCRIPTION_ID),
       });
     } catch (error) {
       console.error("Dev upgrade error:", error);
@@ -757,14 +981,15 @@ router.get(
       const clerkSubscriptionStatus =
         (user.publicMetadata?.subscriptionStatus as string | undefined) ?? null;
 
-      if (subscriptionId === "sub_dev_mock") {
+      if (isDevMockSubscription(subscriptionId)) {
+        const mockDates = devMockBillingDates();
         return res.json({
-          id: "sub_dev_mock",
+          id: DEV_MOCK_SUBSCRIPTION_ID,
           status: user.publicMetadata.subscriptionStatus || "active",
           plan_id: "plan_mock_monthly",
           current_start: Math.floor(Date.now() / 1000) - 86400,
-          current_end: Math.floor(Date.now() / 1000) + 30 * 86400,
-          next_billing_at: Math.floor(Date.now() / 1000) + 30 * 86400,
+          current_end: mockDates.currentEnd,
+          next_billing_at: mockDates.nextBillingAt,
           notes: { planType: user.publicMetadata.planType || "monthly" },
           short_url: "https://razorpay.com/docs/api/subscriptions/",
           clerkSubscriptionStatus,
@@ -790,12 +1015,35 @@ router.post(
   "/payments/dev-downgrade",
   requireAuth,
   async (req: Request, res: Response) => {
+    if (rejectUnlessDevBilling(res)) return;
+
     try {
       const userId = (req as any).userId;
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
+      const existing = await clerkClient.users.getUser(userId);
+      const meta = (existing.publicMetadata ?? {}) as Record<string, unknown>;
+      const wasPremium = meta.isPremium === true;
+      const subscriptionId = meta.subscriptionId as string | undefined;
+      const planType = (meta.planType as string | undefined) ?? "monthly";
+
+      if (
+        wasPremium &&
+        subscriptionId &&
+        shouldSendBillingEmail(subscriptionId)
+      ) {
+        queueSubscriptionEndedEmail({
+          userId,
+          subscriptionId,
+          planType,
+          reason: "completed",
+          allowRetest: true,
+        });
+      }
+
       await clerkClient.users.updateUserMetadata(userId, {
         publicMetadata: {
+          ...meta,
           isPremium: false,
           premiumSince: null,
           subscriptionId: null,
@@ -803,9 +1051,14 @@ router.post(
         },
       });
 
+      void clearSubscriptionEmailDedupe(userId);
+
       return res.json({
         success: true,
         message: "Developer downgrade successful",
+        emailQueued:
+          wasPremium &&
+          Boolean(subscriptionId && shouldSendBillingEmail(subscriptionId)),
       });
     } catch (error) {
       console.error("Dev downgrade error:", error);

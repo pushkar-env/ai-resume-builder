@@ -29,9 +29,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { SEO } from "@/components/shared/SEO";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { DevBillingPanel } from "@/components/shared/DevBillingPanel";
 import { ResumeRenewalFlow } from "@/components/shared/ResumeRenewalFlow";
 import { ProButton } from "@/components/shared/ProButton";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
+import { useDevBillingUpgrade } from "@/hooks/use-dev-billing-upgrade";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { ProBadge } from "@/components/shared/ProBadge";
 
@@ -65,6 +67,7 @@ export default function BillingPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const { runDevUpgrade } = useDevBillingUpgrade();
 
   const isPremium = user?.publicMetadata?.isPremium === true;
   const subscriptionId = user?.publicMetadata?.subscriptionId as
@@ -138,6 +141,15 @@ export default function BillingPage() {
         description: msg,
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDevUpgrade = async () => {
+    setIsProcessing(true);
+    try {
+      await runDevUpgrade(() => setSubscriptionSuccessOpen(true));
     } finally {
       setIsProcessing(false);
     }
@@ -514,6 +526,11 @@ export default function BillingPage() {
                     </p>
                   </div>
                 )}
+                <DevBillingPanel
+                  isPremium={isPremium}
+                  isProcessing={isProcessing}
+                  onDevUpgrade={() => void handleDevUpgrade()}
+                />
                 <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
                   <Shield className="h-3 w-3" /> Secure checkout via Razorpay
                   (UPI, Cards, Netbanking)

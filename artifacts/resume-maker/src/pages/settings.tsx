@@ -18,6 +18,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { ProButton } from "@/components/shared/ProButton";
 import { SEO } from "@/components/shared/SEO";
+import { isDevBillingUiEnabled } from "@/lib/dev-billing";
 
 function BillingSection() {
   const { user } = useUser();
@@ -86,10 +87,13 @@ function BillingSection() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to downgrade");
+      const payload = (await res.json()) as { emailQueued?: boolean };
       await user?.reload();
       toast({
         title: "Dev Reset Successful",
-        description: "You are now on the Free Plan.",
+        description: payload.emailQueued
+          ? "You are on the Free plan. Check your inbox for the subscription ended email."
+          : "You are now on the Free Plan.",
       });
     } catch (e: any) {
       toast({
@@ -227,7 +231,7 @@ function BillingSection() {
                 </div>
               )}
 
-              {import.meta.env.DEV && (
+              {isDevBillingUiEnabled() && (
                 <Button
                   variant="ghost"
                   size="sm"

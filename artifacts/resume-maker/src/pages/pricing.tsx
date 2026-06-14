@@ -10,9 +10,10 @@ import { SEO } from "@/components/shared/SEO";
 import { FREE_PLAN_FEATURES, PRO_PLAN_FEATURES } from "@/lib/plan-features";
 import { useQueryClient } from "@tanstack/react-query";
 import { SITE_URL } from "@/lib/brand";
-import { getListResumesQueryKey } from "@workspace/api-client-react";
 import { SubscriptionSuccessDialog } from "@/components/shared/SubscriptionSuccessDialog";
+import { DevBillingPanel } from "@/components/shared/DevBillingPanel";
 import { openSubscriptionCheckout } from "@/lib/subscription-checkout";
+import { useDevBillingUpgrade } from "@/hooks/use-dev-billing-upgrade";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { ProButton } from "@/components/shared/ProButton";
 
@@ -27,6 +28,7 @@ export default function PricingPage() {
     "monthly",
   );
   const [subscriptionSuccessOpen, setSubscriptionSuccessOpen] = useState(false);
+  const { runDevUpgrade } = useDevBillingUpgrade();
 
   const isPremium = user?.publicMetadata?.isPremium === true;
 
@@ -87,43 +89,10 @@ export default function PricingPage() {
     }
   };
 
-  // Development bypass (in case test keys aren't working perfectly)
   const handleDevUpgrade = async () => {
     setIsProcessing(true);
     try {
-      const token = await getToken();
-      const apiUrl = import.meta.env.VITE_API_URL || "/api";
-      const res = await fetch(`${apiUrl}/payments/dev-upgrade`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || "Failed to upgrade");
-      }
-      const gt = getToken as (opts?: {
-        skipCache?: boolean;
-      }) => Promise<unknown>;
-      await gt({ skipCache: true }).catch(() => {});
-      await user?.reload();
-      await queryClient.invalidateQueries({
-        queryKey: ["billing-page-subscription"],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["subscription-details"],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: getListResumesQueryKey(),
-      });
-      setSubscriptionSuccessOpen(true);
-    } catch (e: unknown) {
-      console.error(e);
-      const msg = e instanceof Error ? e.message : "Failed to upgrade";
-      toast({
-        title: "Upgrade Error",
-        description: msg,
-        variant: "destructive",
-      });
+      await runDevUpgrade(() => setSubscriptionSuccessOpen(true));
     } finally {
       setIsProcessing(false);
     }
@@ -331,22 +300,18 @@ export default function PricingPage() {
                     text={isProcessing ? "Processing..." : "Upgrade to Pro"}
                     showIcon={!isProcessing}
                   />
-
-                  {/* Safe fallback for testing without keys */}
-                  {import.meta.env.DEV && (
-                    <Button
-                      variant="ghost"
-                      className="w-full text-xs text-muted-foreground"
-                      onClick={handleDevUpgrade}
-                    >
-                      [Dev] Bypass Payment
-                    </Button>
-                  )}
                   <p className="text-center text-sm font-medium text-muted-foreground mt-2">
                     Cancel anytime. No hidden fees.
                   </p>
                 </div>
               )}
+
+              <DevBillingPanel
+                isPremium={isPremium}
+                isProcessing={isProcessing}
+                onDevUpgrade={() => void handleDevUpgrade()}
+              />
+
               <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1.5">
                 <Shield className="h-3 w-3" /> Secure checkout via Razorpay
                 (UPI, Cards, Netbanking)

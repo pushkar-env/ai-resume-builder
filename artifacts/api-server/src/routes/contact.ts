@@ -1,13 +1,13 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { logger } from "../lib/logger";
+import { readEnv } from "../lib/email/env";
+import { escapeHtml, isEmailConfigured, sendResendEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
-const CONTACT_TO_EMAIL =
-  process.env.CONTACT_TO_EMAIL || "support@resumesensei.com";
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-/** Verified sender in Resend (e.g. ResumeSensei <hello@resumesensei.com>). */
-const CONTACT_FROM_EMAIL = process.env.CONTACT_FROM_EMAIL;
+const CONTACT_TO_EMAIL = readEnv("CONTACT_TO_EMAIL") || "support@resumesensei.com";
+/** Support sender for contact-form notifications (separate from billing hello@). */
+const CONTACT_FROM_EMAIL = readEnv("CONTACT_FROM_EMAIL");
 
 const MAX_NAME = 120;
 const MAX_EMAIL = 254;
@@ -47,14 +47,6 @@ function allowRate(ip: string): boolean {
 }
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 type ContactBody = {
   name?: unknown;
@@ -102,9 +94,9 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  if (!RESEND_API_KEY || !CONTACT_FROM_EMAIL) {
+  if (!isEmailConfigured() || !CONTACT_FROM_EMAIL) {
     logger.warn(
-      { hasKey: !!RESEND_API_KEY, hasFrom: !!CONTACT_FROM_EMAIL },
+      { hasKey: isEmailConfigured(), hasFrom: !!CONTACT_FROM_EMAIL },
       "contact: missing RESEND_API_KEY or CONTACT_FROM_EMAIL",
     );
     res.status(503).json({
@@ -122,34 +114,16 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
     <pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(message)}</pre>
   `;
 
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 12_000);
-
   try {
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: CONTACT_FROM_EMAIL,
-        to: [CONTACT_TO_EMAIL],
-        reply_to: email,
-        subject: `[Resumesensei Contact] ${subject}`,
-        html,
-      }),
-      signal: controller.signal,
+    const result = await sendResendEmail({
+      from: CONTACT_FROM_EMAIL,
+      to: [CONTACT_TO_EMAIL],
+      replyTo: email,
+      subject: `[Resumesensei Contact] ${subject}`,
+      html,
     });
 
-    clearTimeout(t);
-
-    if (!resendRes.ok) {
-      const errText = await resendRes.text().catch(() => "");
-      logger.error(
-        { status: resendRes.status, errText: errText.slice(0, 500) },
-        "contact: Resend API error",
-      );
+    if (!result.ok) {
       res
         .status(502)
         .json({
@@ -161,7 +135,6 @@ router.post("/contact", async (req: Request, res: Response): Promise<void> => {
 
     res.status(200).json({ ok: true });
   } catch (e) {
-    clearTimeout(t);
     logger.error({ err: e }, "contact: send failed");
     res
       .status(502)
