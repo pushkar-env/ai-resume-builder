@@ -27,13 +27,18 @@ function readDedupeStore(
 async function claimDedupeKey(
   userId: string,
   dedupeKey: string,
+  pairedKey?: string,
 ): Promise<boolean> {
   try {
     const user = await clerkClient.users.getUser(userId);
     const store = readDedupeStore(
       user.privateMetadata as Record<string, unknown> | undefined,
     );
-    if (store[dedupeKey]) return false;
+    if (store[dedupeKey]) {
+      // Block duplicate sends for the same event (e.g. API + webhook). Allow a new
+      // email when the user toggled cancel/resume since the last claim.
+      if (!pairedKey || !store[pairedKey]) return false;
+    }
 
     const keys = Object.keys(store);
     const trimmed =
@@ -42,6 +47,9 @@ async function claimDedupeKey(
             keys.slice(-(MAX_DEDUPE_KEYS - 1)).map((k) => [k, store[k]!]),
           )
         : { ...store };
+    if (pairedKey) {
+      delete trimmed[pairedKey];
+    }
     trimmed[dedupeKey] = new Date().toISOString();
 
     await clerkClient.users.updateUserMetadata(userId, {
@@ -85,6 +93,7 @@ async function sendToUser(
   },
   tag: string,
   allowRetest = false,
+  pairedDedupeKey?: string,
 ): Promise<void> {
   if (!isBillingEmailConfigured()) {
     logger.warn(
@@ -98,7 +107,7 @@ async function sendToUser(
   if (!billingFrom) return;
 
   if (!allowRetest) {
-    if (!(await claimDedupeKey(userId, dedupeKey))) {
+    if (!(await claimDedupeKey(userId, dedupeKey, pairedDedupeKey))) {
       logger.info({ userId, dedupeKey }, "email: skipped duplicate");
       return;
     }
@@ -177,9 +186,10 @@ export function queueSubscriptionWelcomeEmail(
 export function queueSubscriptionCancelledEmail(
   params: SubscriptionMailParams,
 ): void {
+  const dedupeKey = `cancel:${params.subscriptionId}`;
   void sendToUser(
     params.userId,
-    `cancel:${params.subscriptionId}`,
+    dedupeKey,
     (firstName) =>
       buildCancellationScheduledEmail({
         firstName,
@@ -189,6 +199,7 @@ export function queueSubscriptionCancelledEmail(
       }),
     "subscription_cancelled",
     params.allowRetest,
+    `resumed:${params.subscriptionId}`,
   ).catch((err) =>
     logger.error({ err, userId: params.userId }, "email: cancel failed"),
   );
@@ -197,9 +208,10 @@ export function queueSubscriptionCancelledEmail(
 export function queueSubscriptionResumedEmail(
   params: SubscriptionMailParams,
 ): void {
+  const dedupeKey = `resumed:${params.subscriptionId}`;
   void sendToUser(
     params.userId,
-    `resumed:${params.subscriptionId}`,
+    dedupeKey,
     (firstName) =>
       buildSubscriptionResumedEmail({
         firstName,
@@ -209,6 +221,7 @@ export function queueSubscriptionResumedEmail(
       }),
     "subscription_resumed",
     params.allowRetest,
+    `cancel:${params.subscriptionId}`,
   ).catch((err) =>
     logger.error({ err, userId: params.userId }, "email: resume failed"),
   );
