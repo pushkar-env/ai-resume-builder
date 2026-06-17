@@ -354,7 +354,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/10 to-primary/10 blur-2xl rounded-3xl" />
                 
                 {/* Interactive Mock Workspace */}
-                <div className="rounded-2xl border border-border/80 bg-background/80 p-4 sm:p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
+                <div className="rounded-2xl border border-border/80 bg-card sm:bg-background/80 p-4 sm:p-5 shadow-xl sm:shadow-2xl sm:backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
                   <div className="flex items-center justify-between border-b pb-3 border-border/60">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-red-400" />
@@ -483,7 +483,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/10 to-indigo-500/10 blur-2xl rounded-3xl" />
                 
                 {/* Interactive Mock Workspace */}
-                <div className="rounded-2xl border border-border/80 bg-background/80 p-4 sm:p-5 shadow-2xl backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
+                <div className="rounded-2xl border border-border/80 bg-card sm:bg-background/80 p-4 sm:p-5 shadow-xl sm:shadow-2xl sm:backdrop-blur-sm space-y-4 text-slate-900 dark:text-slate-100 overflow-hidden">
                   <div className="flex items-center justify-between border-b pb-3 border-border/60">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-red-400" />
