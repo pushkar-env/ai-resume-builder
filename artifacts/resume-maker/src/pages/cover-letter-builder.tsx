@@ -26,7 +26,6 @@ import {
   Sliders,
   Check,
   Star,
-  Move,
   RotateCcw,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -2026,14 +2025,6 @@ export default function CoverLetterBuilder() {
               role="application"
               aria-label="Interactive cover letter preview. Drag or use arrow keys to pan. Pinch, use plus and minus, or use the controls to zoom. Press zero to fit."
             >
-              <div className="pointer-events-none absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/85 px-2.5 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-sm backdrop-blur-md">
-                <Move className="h-3 w-3" />
-                <span className="hidden sm:inline">Drag to explore</span>
-                <span className="sm:hidden">Drag</span>
-                <span className="text-border">|</span>
-                <span>Pinch to zoom</span>
-              </div>
-
               <div
                 className="absolute left-0 top-0 will-change-transform"
                 style={{
