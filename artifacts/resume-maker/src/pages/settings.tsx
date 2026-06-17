@@ -11,6 +11,15 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -27,6 +36,7 @@ function BillingSection() {
   const queryClient = useQueryClient();
   const [isCancelling, setIsCancelling] = useState(false);
   const [isDowngrading, setIsDowngrading] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const isPremium = user?.publicMetadata?.isPremium === true;
   const subscriptionId = user?.publicMetadata?.subscriptionId as
@@ -107,12 +117,7 @@ function BillingSection() {
   };
 
   const handleCancel = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to cancel your premium subscription? You will lose access at the end of your billing cycle.",
-      )
-    )
-      return;
+    if (!subscriptionId) return;
 
     setIsCancelling(true);
     try {
@@ -221,7 +226,7 @@ function BillingSection() {
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Button
                     variant="destructive"
-                    onClick={handleCancel}
+                    onClick={() => setCancelDialogOpen(true)}
                     disabled={isCancelling}
                     size="sm"
                     className="w-full sm:w-auto"
@@ -321,6 +326,33 @@ function BillingSection() {
           ) : null}
         </div>
       )}
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel your Pro subscription?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel? You will retain full Pro access
+              until the end of your current billing cycle, but your plan will
+              not automatically renew.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>
+              Keep Pro
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={isCancelling}
+              onClick={() => {
+                void handleCancel().then(() => setCancelDialogOpen(false));
+              }}
+            >
+              {isCancelling ? "Cancelling..." : "Yes, cancel plan"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
