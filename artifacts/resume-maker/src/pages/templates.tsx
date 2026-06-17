@@ -268,6 +268,8 @@ export default function TemplatesPage() {
                     }
                     whileTap={previewCardWhileTap}
                     className={`group relative rounded-2xl border overflow-hidden cursor-pointer transition-[box-shadow,border-color] duration-300 [content-visibility:auto] [contain-intrinsic-size:auto_420px] ${
+                      coarsePointer ? "" : "[will-change:transform]"
+                    } ${
                       isSelected
                         ? "border-primary ring-2 ring-primary/25 shadow-xl shadow-primary/10"
                         : "border-border hover:border-primary/45 hover:shadow-xl"
