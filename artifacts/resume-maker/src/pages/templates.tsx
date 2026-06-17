@@ -358,7 +358,7 @@ export default function TemplatesPage() {
 
       {/* Floating action bar */}
       <AnimatePresence>
-        {selected && (
+        {selected && !creating && !createResume.isPending && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
