@@ -28,6 +28,30 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/**
+ * Radix dialogs / scroll-lock libraries set `pointer-events: none` on
+ * `document.body` while a modal is open and occasionally fail to clear it when a
+ * dialog unmounts mid-animation (a known issue on mobile Safari/Chrome).
+ * Razorpay's checkout sheet is injected onto `document.body` *outside* any React
+ * portal, so a leftover lock makes the sheet appear but silently swallow every
+ * tap. Clear it defensively right before — and shortly after — opening checkout.
+ */
+function releaseBodyInteractionLocks() {
+  if (typeof document === "undefined" || !document.body) return;
+  const clear = () => {
+    if (document.body.style.pointerEvents === "none") {
+      document.body.style.pointerEvents = "";
+    }
+  };
+  clear();
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(clear);
+  }
+  // Razorpay injects its overlay asynchronously; re-clear after it mounts.
+  setTimeout(clear, 250);
+  setTimeout(clear, 800);
+}
+
 /** Clerk session token cache bust — helps after server updates `publicMetadata`. */
 async function reloadClerkUserFresh(
   user: CheckoutUser,
@@ -413,10 +437,21 @@ export async function openSubscriptionCheckout(
       name: customerName,
       email: customerEmail,
     },
+    // Let a failed/declined UPI collect be re-attempted inside the same sheet
+    // instead of tearing the whole flow down — the biggest cause of "UPI failed"
+    // is a single collect-request timeout on the user's bank app.
+    retry: { enabled: true, max_count: 4 },
     theme: { color: "#4f46e5" },
     modal: {
+      // Keep the sheet open so the user can retry; only confirm before an
+      // explicit close so an accidental tap doesn't abort a pending UPI mandate.
+      escape: true,
+      backdropclose: false,
+      confirm_close: true,
       ondismiss: () => {
         detachVisibility?.();
+        // The sheet may have left a scroll-lock behind on the page.
+        releaseBodyInteractionLocks();
       },
     },
   };
@@ -436,6 +471,9 @@ export async function openSubscriptionCheckout(
         "Payment could not be completed.";
       toastError("Payment did not go through", msg);
     });
+    // Ensure the page is interactive before handing off to the Razorpay sheet,
+    // otherwise a leftover modal scroll-lock can make it unclickable on mobile.
+    releaseBodyInteractionLocks();
     paymentObject.open();
   } catch (e) {
     console.error("[subscription-checkout] Razorpay open", e);

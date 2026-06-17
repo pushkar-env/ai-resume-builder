@@ -24,19 +24,28 @@ export function SubscriptionStatusDialog({
   status,
 }: SubscriptionStatusDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
+  // Safety valve: the verifying state is non-dismissible at first (so an
+  // accidental tap can't abort a payment), but we must NEVER trap the user.
+  // After a grace period we surface an explicit escape hatch and allow the
+  // dialog to close — covers slow webhooks / mobile timer throttling where Pro
+  // confirmation may stall after returning from a UPI app.
+  const [canDismiss, setCanDismiss] = useState(false);
 
   // Animate verification steps for a premium look
   useEffect(() => {
     if (!open || status !== "verifying") {
       setActiveStep(0);
+      setCanDismiss(false);
       return;
     }
     const timer1 = setTimeout(() => setActiveStep(1), 1800);
     const timer2 = setTimeout(() => setActiveStep(2), 3500);
+    const dismissTimer = setTimeout(() => setCanDismiss(true), 18000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
+      clearTimeout(dismissTimer);
     };
   }, [open, status]);
 
@@ -51,11 +60,24 @@ export function SubscriptionStatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={(val) => {
-      // Prevent closing when in verifying state to avoid state inconsistencies
-      if (status === "verifying") return;
+      // While verifying, block accidental dismissal until the grace period
+      // elapses — but always allow closing afterwards so the user is never stuck.
+      if (status === "verifying" && !val && !canDismiss) return;
       onOpenChange(val);
     }}>
-      <DialogContent className="sm:max-w-[min(100%,28rem)] max-h-[min(90dvh,640px)] border-primary/20 bg-card p-0 gap-0 shadow-2xl rounded-2xl overflow-hidden flex flex-col">
+      <DialogContent
+        // Suppress the built-in ✕ / Escape / overlay close while we are still
+        // genuinely confirming, so taps don't silently fail. Re-enabled by the
+        // grace timer and surfaced via an explicit "Close" button below.
+        showClose={status !== "verifying" || canDismiss}
+        onEscapeKeyDown={(e) => {
+          if (status === "verifying" && !canDismiss) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (status === "verifying" && !canDismiss) e.preventDefault();
+        }}
+        className="sm:max-w-[min(100%,28rem)] max-h-[min(90dvh,640px)] border-primary/20 bg-card p-0 gap-0 shadow-2xl rounded-2xl overflow-hidden flex flex-col"
+      >
         <AnimatePresence mode="wait">
           {status === "verifying" ? (
             <motion.div
@@ -132,6 +154,26 @@ export function SubscriptionStatusDialog({
                   );
                 })}
               </div>
+
+              {/* Escape hatch — appears only if confirmation is taking unusually
+                  long (slow bank/webhook). Pro still activates in the background;
+                  this just frees the user from a blocking modal. */}
+              {canDismiss && (
+                <div className="mt-8 w-full max-w-xs border-t border-border/50 pt-5 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Taking longer than usual? Your payment is safe — Pro will
+                    appear automatically once your bank confirms.
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-3 text-xs font-semibold"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Close and keep waiting in the background
+                  </Button>
+                </div>
+              )}
             </motion.div>
           ) : (
             <motion.div

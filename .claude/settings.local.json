@@ -27,7 +27,9 @@
       "Bash(findstr \":8080\")",
       "Bash(findstr \"LISTENING\")",
       "Bash(taskkill *)",
-      "Bash(findstr \":4173\")"
+      "Bash(findstr \":4173\")",
+      "Bash(cd /d/AI/ai-resume-builder/artifacts/resume-maker && cat package.json | grep -A 20 '\"scripts\"')",
+      "Bash(npx tsc *)"
     ]
   }
 }
