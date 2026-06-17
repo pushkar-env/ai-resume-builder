@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Sparkles, ArrowRight, Star, User, FileText } from "lucide-react";
+import { Check, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ProBadge } from "@/components/shared/ProBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "@/components/layout/Navbar";
@@ -34,16 +33,7 @@ import {
   previewCardWhileHover,
   previewCardWhileTap,
 } from "@/lib/preview-card-hover";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { CreateResumeDialog } from "@/components/resume/CreateResumeDialog";
 
 import { TEMPLATE_CONFIG } from "@/lib/template-config";
 
@@ -405,115 +395,16 @@ export default function TemplatesPage() {
       </AnimatePresence>
 
       {/* Create Dialog */}
-      <Dialog open={prefillOpen} onOpenChange={setPrefillOpen}>
-        <DialogContent className="max-w-md bg-background border border-border shadow-xl rounded-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold tracking-tight">Create new resume</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Choose a title and select your preferred prefill type for this template.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="template-resume-title" className="text-xs font-semibold">Resume title</Label>
-              <Input
-                id="template-resume-title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="e.g. Software Engineer Resume"
-                className="h-9 text-xs"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newTitle.trim()) {
-                    handleConfirmCreate();
-                  }
-                }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold">Prefill options</Label>
-              <div className="grid grid-cols-1 gap-2.5">
-                {/* Personal Profile Option */}
-                <button
-                  type="button"
-                  onClick={() => setPrefillType("personal")}
-                  className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all relative ${
-                    prefillType === "personal"
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:bg-muted/40"
-                  }`}
-                >
-                  <div className={`mt-0.5 p-1.5 rounded-md ${prefillType === "personal" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <User className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <p className="text-xs font-semibold flex items-center gap-1.5">
-                      Personalized Profile <Badge variant="secondary" className="text-[9px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 border-none h-max shrink-0">Recommended</Badge>
-                    </p>
-                    <p className="text-[10px] text-muted-foreground leading-normal">
-                      Prefills layouts with your saved contact info, location, and social links + standard placeholder tasks.
-                    </p>
-                  </div>
-                </button>
-
-                {/* Standard Sample Option */}
-                <button
-                  type="button"
-                  onClick={() => setPrefillType("starter")}
-                  className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all relative ${
-                    prefillType === "starter"
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:bg-muted/40"
-                  }`}
-                >
-                  <div className={`mt-0.5 p-1.5 rounded-md ${prefillType === "starter" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <p className="text-xs font-semibold">Standard Sample (Alex Morgan)</p>
-                    <p className="text-[10px] text-muted-foreground leading-normal">
-                      Prefills using the default dummy profile. Great for seeing the template design immediately.
-                    </p>
-                  </div>
-                </button>
-
-                {/* Empty Slate Option */}
-                <button
-                  type="button"
-                  onClick={() => setPrefillType("empty")}
-                  className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all relative ${
-                    prefillType === "empty"
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:bg-muted/40"
-                  }`}
-                >
-                  <div className={`mt-0.5 p-1.5 rounded-md ${prefillType === "empty" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <p className="text-xs font-semibold">Blank Slate</p>
-                    <p className="text-[10px] text-muted-foreground leading-normal">
-                      Creates the resume with empty sections. Perfect if you want to paste or type everything from scratch.
-                    </p>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="flex-col gap-2 sm:flex-row border-t border-border/60 pt-4 mt-2">
-            <Button variant="outline" onClick={() => setPrefillOpen(false)} className="h-9 text-xs">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmCreate}
-              disabled={createResume.isPending || creating || !newTitle.trim()}
-              className="h-9 text-xs font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/95 hover:to-purple-600/95"
-            >
-              {createResume.isPending || creating ? "Creating..." : "Create resume"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateResumeDialog
+        open={prefillOpen}
+        onOpenChange={setPrefillOpen}
+        title={newTitle}
+        onTitleChange={setNewTitle}
+        prefillType={prefillType}
+        onPrefillTypeChange={setPrefillType}
+        onConfirm={handleConfirmCreate}
+        isCreating={createResume.isPending || creating}
+      />
 
       <PaywallDialog
         open={showPaywall}
