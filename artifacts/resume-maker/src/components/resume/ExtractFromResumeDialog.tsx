@@ -62,7 +62,7 @@ export function ExtractFromResumeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 overflow-hidden [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
+      <DialogContent className="flex flex-col w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 overflow-hidden [&>button]:z-20 [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
         {/* Ambient glow */}
         <div className="absolute -top-12 -left-10 w-44 h-44 rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
         <div className="absolute -bottom-12 -right-10 w-40 h-40 rounded-full bg-purple-500/10 blur-[70px] pointer-events-none" />
