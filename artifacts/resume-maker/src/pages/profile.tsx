@@ -6,11 +6,14 @@ import {
   useUpdateProfile,
   useGenerateSummary,
   useImproveBullet,
+  useListResumes,
+  useExtractProfileFromResume,
   getGetProfileQueryKey,
 } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
+import { ExtractFromResumeDialog } from "@/components/resume/ExtractFromResumeDialog";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/BulletListEditor";
 import { Input } from "@/components/ui/input";
@@ -46,6 +49,7 @@ import {
   ChevronLeft,
   ChevronRight,
   GraduationCap,
+  FileDown,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -95,6 +99,13 @@ export default function ProfilePage() {
   const improveBullet = useImproveBullet({
     request: createAiQuickRequestOptions(),
   });
+
+  const { data: resumes } = useListResumes();
+  const resumeList = resumes ?? [];
+  const hasResumes = resumeList.length > 0;
+  const [showExtractDialog, setShowExtractDialog] = useState(false);
+  const { mutate: extractFromResume, isPending: isExtracting } =
+    useExtractProfileFromResume();
 
   const [activeTab, setActiveTab] = useState("personal");
 
@@ -383,6 +394,84 @@ export default function ProfilePage() {
     setLocation("/onboarding");
   };
 
+  const handleExtractFromResume = (resumeId: number) => {
+    extractFromResume(
+      { data: { resumeId } },
+      {
+        onSuccess: (data) => {
+          // Populate the form with the extracted fields. Nothing is persisted —
+          // the existing unsaved-changes guard lets the user review then Save.
+          setName(data.name || "");
+          setEmail(data.email || "");
+          setPhone(data.phone || "");
+          setLocationStr(data.location || "");
+          setPhoto(data.photo || "");
+          setSocials((data.socials as { label: string; url: string }[]) || []);
+          setJobTitle(data.jobTitle || "");
+          setYearsOfExperience(
+            typeof data.yearsOfExperience === "number" ? data.yearsOfExperience : "",
+          );
+          setAboutMe(data.aboutMe || "");
+          setExperience(
+            ((data.experience as any[]) || []).map((exp) => ({
+              company: exp.company || "",
+              title: exp.title || "",
+              startDate: exp.startDate || "",
+              endDate: exp.endDate || "",
+              location: exp.location || "",
+              description: exp.description || "",
+              currentlyWorking: !!exp.currentlyWorking,
+              bullets: resolveProfileBullets(exp.bullets, exp.description),
+            })),
+          );
+          setEducation(
+            ((data.education as any[]) || []).map((edu) => ({
+              school: edu.school || "",
+              degree: edu.degree || "",
+              field: edu.field || "",
+              startDate: edu.startDate || "",
+              endDate: edu.endDate || "",
+              gpa: edu.gpa || "",
+              gpaMode: edu.gpaMode || "gpa",
+            })),
+          );
+          setSkills((data.skills as string[]) || []);
+          setProjects(
+            ((data.projects as any[]) || []).map((proj) => ({
+              name: proj.name || "",
+              description: proj.description || "",
+              technologiesUsed: proj.technologiesUsed || "",
+              url: proj.url || "",
+              github: proj.github || "",
+              bullets: resolveProfileBullets(proj.bullets, proj.description),
+            })),
+          );
+          setCertifications(
+            ((data.certifications as any[]) || []).map((cert) => ({
+              name: cert.name || "",
+              issuer: cert.issuer || "",
+              date: cert.date || "",
+              credentialUrl: cert.credentialUrl || "",
+            })),
+          );
+          setShowExtractDialog(false);
+          setActiveTab("personal");
+          toast({
+            title: "Profile populated from resume",
+            description: "Review the imported details, then click Save Profile to keep them.",
+          });
+        },
+        onError: (err: any) => {
+          toast({
+            title: "Extraction failed",
+            description: err?.message || "Could not extract details from that resume.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
+  };
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -631,6 +720,27 @@ export default function ProfilePage() {
             </nav>
 
             <div className="border-t border-border/85 mt-0 md:mt-2 pt-4 px-1 md:px-3 flex flex-col gap-3">
+              <div
+                title={
+                  hasResumes
+                    ? "Auto-fill your profile from one of your resumes"
+                    : "Create a resume first to use this"
+                }
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => setShowExtractDialog(true)}
+                  disabled={!hasResumes || isExtracting}
+                  className="w-full gap-1.5 border-indigo-500/30 bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-300 disabled:opacity-50"
+                >
+                  {isExtracting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                  Extract from Resume
+                </Button>
+              </div>
               <Button
                 onClick={() => handleSave()}
                 disabled={isUpdating}
@@ -1487,6 +1597,15 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      {/* Extract-from-resume picker */}
+      <ExtractFromResumeDialog
+        open={showExtractDialog}
+        onOpenChange={setShowExtractDialog}
+        resumes={resumeList}
+        isExtracting={isExtracting}
+        onConfirm={handleExtractFromResume}
+      />
 
       {/* Unsaved Changes Confirmation Dialog */}
       <Dialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>

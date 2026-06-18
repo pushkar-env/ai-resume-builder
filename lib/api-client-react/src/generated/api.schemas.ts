@@ -451,6 +451,31 @@ export interface UpdateUserProfileBody {
   onboardingProgress?: number;
 }
 
+export interface ExtractFromResumeBody {
+  /** ID of the resume to extract profile fields from */
+  resumeId: number;
+}
+
+/**
+ * Profile fields reshaped from a resume. Mirrors UpdateUserProfileBody so the result can be fed straight into the profile form / update endpoint.
+ */
+export interface ExtractedProfile {
+  name?: string;
+  email?: string;
+  phone?: string;
+  photo?: string;
+  jobTitle?: string;
+  location?: string;
+  socials?: ProfileSocial[];
+  aboutMe?: string | null;
+  yearsOfExperience?: number | null;
+  experience?: ProfileExperience[];
+  skills?: string[];
+  projects?: ProfileProject[];
+  certifications?: ProfileCertification[];
+  education?: ProfileEducation[];
+}
+
 export type GetAtsScoreParams = {
   jobDescription?: string;
   forceScan?: boolean;

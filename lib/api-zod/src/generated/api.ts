@@ -243,6 +243,89 @@ export const UpdateProfileResponse = zod.object({
 });
 
 /**
+ * Deterministically reshapes the sections of an existing resume owned by the user into profile fields. Does not persist anything — the client populates the profile form with the result for the user to review and save.
+ * @summary Extract profile fields from one of the user's existing resumes
+ */
+export const ExtractProfileFromResumeBody = zod.object({
+  resumeId: zod
+    .number()
+    .describe("ID of the resume to extract profile fields from"),
+});
+
+export const ExtractProfileFromResumeResponse = zod
+  .object({
+    name: zod.string().optional(),
+    email: zod.string().optional(),
+    phone: zod.string().optional(),
+    photo: zod.string().optional(),
+    jobTitle: zod.string().optional(),
+    location: zod.string().optional(),
+    socials: zod
+      .array(
+        zod.object({
+          label: zod.string(),
+          url: zod.string(),
+        }),
+      )
+      .optional(),
+    aboutMe: zod.string().nullish(),
+    yearsOfExperience: zod.number().nullish(),
+    experience: zod
+      .array(
+        zod.object({
+          company: zod.string(),
+          title: zod.string(),
+          startDate: zod.string().optional(),
+          endDate: zod.string().optional(),
+          location: zod.string().optional(),
+          description: zod.string().optional(),
+          bullets: zod.array(zod.string()).optional(),
+          currentlyWorking: zod.boolean().optional(),
+        }),
+      )
+      .optional(),
+    skills: zod.array(zod.string()).optional(),
+    projects: zod
+      .array(
+        zod.object({
+          name: zod.string(),
+          description: zod.string(),
+          bullets: zod.array(zod.string()).optional(),
+          technologiesUsed: zod.string().optional(),
+          url: zod.string().optional(),
+          github: zod.string().optional(),
+        }),
+      )
+      .optional(),
+    certifications: zod
+      .array(
+        zod.object({
+          name: zod.string(),
+          issuer: zod.string(),
+          date: zod.string().optional(),
+          credentialUrl: zod.string().optional(),
+        }),
+      )
+      .optional(),
+    education: zod
+      .array(
+        zod.object({
+          school: zod.string(),
+          degree: zod.string(),
+          field: zod.string().optional(),
+          startDate: zod.string().optional(),
+          endDate: zod.string().optional(),
+          gpa: zod.string().optional(),
+          gpaMode: zod.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .describe(
+    "Profile fields reshaped from a resume. Mirrors UpdateUserProfileBody so the result can be fed straight into the profile form \/ update endpoint.",
+  );
+
+/**
  * @summary List all resumes for the authenticated user
  */
 export const ListResumesResponseItem = zod.object({

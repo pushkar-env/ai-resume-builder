@@ -85,6 +85,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /profile/extract-from-resume:
+    post:
+      operationId: extractProfileFromResume
+      tags: [profile]
+      summary: Extract profile fields from one of the user's existing resumes
+      description: >-
+        Deterministically reshapes the sections of an existing resume owned by
+        the user into profile fields. Does not persist anything — the client
+        populates the profile form with the result for the user to review and
+        save.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtractFromResumeBody"
+      responses:
+        "200":
+          description: Profile fields extracted from the resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtractedProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Resume not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /resumes:
     get:
       operationId: listResumes
@@ -1899,3 +1941,61 @@ components:
           type: boolean
         onboardingProgress:
           type: integer
+
+    ExtractFromResumeBody:
+      type: object
+      properties:
+        resumeId:
+          type: integer
+          description: ID of the resume to extract profile fields from
+      required:
+        - resumeId
+
+    ExtractedProfile:
+      type: object
+      description: >-
+        Profile fields reshaped from a resume. Mirrors UpdateUserProfileBody so
+        the result can be fed straight into the profile form / update endpoint.
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        photo:
+          type: string
+        jobTitle:
+          type: string
+        location:
+          type: string
+        socials:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileSocial"
+        aboutMe:
+          type: string
+          nullable: true
+        yearsOfExperience:
+          type: integer
+          nullable: true
+        experience:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileExperience"
+        skills:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileProject"
+        certifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileCertification"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileEducation"

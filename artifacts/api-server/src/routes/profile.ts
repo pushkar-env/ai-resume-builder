@@ -1,9 +1,15 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { eq } from "drizzle-orm";
-import { db, userProfilesTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
+import {
+  db,
+  userProfilesTable,
+  resumesTable,
+  resumeSectionsTable,
+} from "@workspace/db";
 import { getAuth, clerkClient } from "@clerk/express";
-import { UpdateProfileBody } from "@workspace/api-zod";
+import { UpdateProfileBody, ExtractProfileFromResumeBody } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
+import { extractProfileFromResumeSections } from "../lib/extract-profile-from-resume";
 
 const router: IRouter = Router();
 
@@ -213,6 +219,49 @@ router.put(
     }
 
     res.json(profile);
+  }
+);
+
+router.post(
+  "/profile/extract-from-resume",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = (req as any).userId;
+    const parsed = ExtractProfileFromResumeBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    // Ownership check — only the resume's owner may extract from it.
+    const [resume] = await db
+      .select()
+      .from(resumesTable)
+      .where(
+        and(
+          eq(resumesTable.id, parsed.data.resumeId),
+          eq(resumesTable.userId, userId),
+        ),
+      );
+
+    if (!resume) {
+      res.status(404).json({ error: "Resume not found" });
+      return;
+    }
+
+    const sections = await db
+      .select()
+      .from(resumeSectionsTable)
+      .where(eq(resumeSectionsTable.resumeId, resume.id))
+      .orderBy(resumeSectionsTable.displayOrder);
+
+    const extracted = extractProfileFromResumeSections(sections);
+
+    logger.info(
+      { userId, resumeId: resume.id },
+      "Extracted profile fields from resume",
+    );
+    res.json(extracted);
   }
 );
 

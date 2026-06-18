@@ -33,6 +33,8 @@ import type {
   ExportPdfBody,
   ExportResult,
   ExportResumeBody,
+  ExtractFromResumeBody,
+  ExtractedProfile,
   GenerateCoverLetterBody,
   GenerateSummaryBody,
   GetAtsScoreParams,
@@ -298,6 +300,94 @@ export const useUpdateProfile = <
   TContext
 > => {
   return useMutation(getUpdateProfileMutationOptions(options));
+};
+
+/**
+ * Deterministically reshapes the sections of an existing resume owned by the user into profile fields. Does not persist anything — the client populates the profile form with the result for the user to review and save.
+ * @summary Extract profile fields from one of the user's existing resumes
+ */
+export const getExtractProfileFromResumeUrl = () => {
+  return `/api/profile/extract-from-resume`;
+};
+
+export const extractProfileFromResume = async (
+  extractFromResumeBody: ExtractFromResumeBody,
+  options?: RequestInit,
+): Promise<ExtractedProfile> => {
+  return customFetch<ExtractedProfile>(getExtractProfileFromResumeUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(extractFromResumeBody),
+  });
+};
+
+export const getExtractProfileFromResumeMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof extractProfileFromResume>>,
+    TError,
+    { data: BodyType<ExtractFromResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof extractProfileFromResume>>,
+  TError,
+  { data: BodyType<ExtractFromResumeBody> },
+  TContext
+> => {
+  const mutationKey = ["extractProfileFromResume"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof extractProfileFromResume>>,
+    { data: BodyType<ExtractFromResumeBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return extractProfileFromResume(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ExtractProfileFromResumeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof extractProfileFromResume>>
+>;
+export type ExtractProfileFromResumeMutationBody =
+  BodyType<ExtractFromResumeBody>;
+export type ExtractProfileFromResumeMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Extract profile fields from one of the user's existing resumes
+ */
+export const useExtractProfileFromResume = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof extractProfileFromResume>>,
+    TError,
+    { data: BodyType<ExtractFromResumeBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof extractProfileFromResume>>,
+  TError,
+  { data: BodyType<ExtractFromResumeBody> },
+  TContext
+> => {
+  return useMutation(getExtractProfileFromResumeMutationOptions(options));
 };
 
 /**

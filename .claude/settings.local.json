@@ -29,7 +29,10 @@
       "Bash(taskkill *)",
       "Bash(findstr \":4173\")",
       "Bash(cd /d/AI/ai-resume-builder/artifacts/resume-maker && cat package.json | grep -A 20 '\"scripts\"')",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(pnpm --dir lib/api-spec run codegen)",
+      "Bash(pnpm --dir artifacts/api-server run typecheck)",
+      "Bash(pnpm --dir artifacts/resume-maker run typecheck)"
     ]
   }
 }
