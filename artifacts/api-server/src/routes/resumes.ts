@@ -31,8 +31,8 @@ import {
   completeResumeAiJson,
 } from "../lib/resume-ai-chat";
 import { sendAiRouteError } from "../lib/ai-route-error";
-import { formatSectionsForAiAnalysis } from "../lib/resume-ai-serialize";
 import { optimizeResumeWithAi, rephraseJobTitle } from "../lib/optimize-resume-ai";
+import { scoreResumeAts, computeAtsResult, extractJobKeywords } from "../lib/ats-score";
 import { renderResumePdf } from "../lib/pdf-renderer";
 
 const upload = multer({
@@ -1221,191 +1221,48 @@ router.get(
       .from(resumeSectionsTable)
       .where(eq(resumeSectionsTable.resumeId, resume.id));
 
-    let score = 70;
-    let passedChecks: string[] = [];
-    let failedChecks: string[] = [];
-    let feedback: string[] = [];
-
-    const fallbackScoreCalc = () => {
-      passedChecks = [];
-      failedChecks = [];
-      feedback = [];
-
-      const personalSection = sections.find((s) => s.type === "personal");
-      const personalContent = personalSection?.content as any;
-      if (personalContent?.email) passedChecks.push("Contact email present");
-      else failedChecks.push("Missing contact email");
-
-      if (personalContent?.phone) passedChecks.push("Phone number present");
-      else failedChecks.push("Missing phone number");
-
-      const summarySection = sections.find((s) => s.type === "summary");
-      const summaryContent = summarySection?.content as any;
-      if (summaryContent?.text && summaryContent.text.length > 50) {
-        passedChecks.push("Professional summary present");
-      } else {
-        failedChecks.push("Missing or too short professional summary");
-        feedback.push(
-          "Add a compelling professional summary of at least 3-4 sentences",
-        );
-      }
-
-      const expSection = sections.find((s) => s.type === "experience");
-      const expContent = expSection?.content as any;
-      if (expContent?.items && expContent.items.length > 0) {
-        passedChecks.push("Work experience included");
-        const hasQuantified = expContent.items.some((item: any) =>
-          item.bullets?.some((b: string) => /\d/.test(b)),
-        );
-        if (hasQuantified) passedChecks.push("Quantified achievements present");
-        else {
-          failedChecks.push("No quantified achievements");
-          feedback.push(
-            "Add numbers and metrics to your bullet points (e.g., 'Increased sales by 30%')",
-          );
-        }
-      } else {
-        failedChecks.push("Missing work experience");
-      }
-
-      const skillsSection = sections.find((s) => s.type === "skills");
-      const skillsContent = skillsSection?.content as any;
-      if (skillsContent?.items && skillsContent.items.length >= 5) {
-        passedChecks.push("Adequate skills listed");
-      } else {
-        failedChecks.push("Too few skills listed");
-        feedback.push(
-          "List at least 5-10 relevant skills for better ATS matching",
-        );
-      }
-
-      if (resume.title && resume.title.length > 2)
-        passedChecks.push("Resume has a title");
-
-      score = Math.round(
-        (passedChecks.length / (passedChecks.length + failedChecks.length)) * 100,
-      );
-    };
-
-    const personalSection = sections.find((s) => s.type === "personal");
-    const personalContent = personalSection?.content as any;
-    const skillsSection = sections.find((s) => s.type === "skills");
-    const skillsContent = skillsSection?.content as any;
-
-    const targetJobTitle = resume.atsJobTitle || personalContent?.jobTitle || resume.title || "Professional";
-    const skillsList = Array.isArray(skillsContent?.items)
-      ? skillsContent.items.map((i: any) => i.name || i).join(", ")
-      : "";
-
-    const resumeText = formatSectionsForAiAnalysis(sections);
-    const jdBlock =
-      jobDescription && jobDescription.trim().length > 0
-        ? `\nJob description:\n"""${clipAiInput(jobDescription, 3_500)}"""`
-        : "";
-
-    const prompt = `You are an ATS auditor. Score this resume for target role "${targetJobTitle}".
-Skills on resume: ${skillsList || "none"}${jdBlock}
-
-Resume:
-"""
-${resumeText}
-"""
-
-Return JSON: {"score":75,"passedChecks":["..."],"failedChecks":["..."],"feedback":["..."]}
-- score: integer 0-100
-- passedChecks, failedChecks, feedback: 3-5 specific strings each`;
-
-    let parsedResult: {
-      score?: number | string;
-      passedChecks?: unknown[];
-      failedChecks?: unknown[];
-      feedback?: unknown[];
-    } | null = null;
-    try {
-      parsedResult = await completeResumeAiJson(
-        prompt,
-        "ats-score-ai",
-        "ats-score",
-      );
-    } catch (err: any) {
-      logger.error({ error: err }, "AI ATS scoring failed, using rule-based fallback");
-    }
-
     const now = new Date();
 
-    let scoreVal: number | null = null;
-    if (parsedResult) {
-      if (typeof parsedResult.score === "number") {
-        scoreVal = parsedResult.score;
-      } else if (typeof parsedResult.score === "string") {
-        const parsed = parseInt(parsedResult.score, 10);
-        if (!isNaN(parsed)) {
-          scoreVal = parsed;
-        }
-      }
+    // Deterministic, rubric-based scoring: same resume always yields the same
+    // score, and every failed check maps to a specific, actionable fix that the
+    // optimizer addresses. The only AI call is JD keyword extraction (with a
+    // deterministic fallback inside scoreResumeAts).
+    let result;
+    try {
+      result = await scoreResumeAts(sections, jobDescription || "");
+    } catch (err) {
+      logger.error(
+        { error: err, resumeId: resume.id },
+        "ATS scoring failed, computing without JD keywords",
+      );
+      result = computeAtsResult(sections, jobDescription || "", []);
     }
 
-    if (parsedResult && scoreVal !== null) {
-      scoreVal = Math.max(0, Math.min(100, Math.round(scoreVal)));
-      const passedVal = Array.isArray(parsedResult.passedChecks)
-        ? parsedResult.passedChecks.map(String)
-        : [];
-      const failedVal = Array.isArray(parsedResult.failedChecks)
-        ? parsedResult.failedChecks.map(String)
-        : [];
-      const feedbackVal = Array.isArray(parsedResult.feedback)
-        ? parsedResult.feedback.map(String)
-        : [];
+    const { score, passedChecks, failedChecks, feedback } = result;
 
-      await db
-        .update(resumesTable)
-        .set({
-          atsScore: scoreVal,
-          atsPassedChecks: passedVal,
-          atsFailedChecks: failedVal,
-          atsFeedback: feedbackVal,
-          atsUpdatedAt: now,
-          atsJobDescription: jobDescription && jobDescription.trim().length > 0 ? jobDescription.trim() : null,
-        })
-        .where(eq(resumesTable.id, resume.id));
+    await db
+      .update(resumesTable)
+      .set({
+        atsScore: score,
+        atsPassedChecks: passedChecks,
+        atsFailedChecks: failedChecks,
+        atsFeedback: feedback,
+        atsUpdatedAt: now,
+        atsJobDescription:
+          jobDescription && jobDescription.trim().length > 0 ? jobDescription.trim() : null,
+      })
+      .where(eq(resumesTable.id, resume.id));
 
-      res.json(
-        GetAtsScoreResponse.parse({
-          score: scoreVal,
-          maxScore: 100,
-          feedback: feedbackVal,
-          passedChecks: passedVal,
-          failedChecks: failedVal,
-          atsUpdatedAt: now,
-        }),
-      );
-    } else {
-      // Fallback
-      fallbackScoreCalc();
-
-      await db
-        .update(resumesTable)
-        .set({
-          atsScore: score,
-          atsPassedChecks: passedChecks,
-          atsFailedChecks: failedChecks,
-          atsFeedback: feedback,
-          atsUpdatedAt: now,
-          atsJobDescription: jobDescription && jobDescription.trim().length > 0 ? jobDescription.trim() : null,
-        })
-        .where(eq(resumesTable.id, resume.id));
-
-      res.json(
-        GetAtsScoreResponse.parse({
-          score,
-          maxScore: 100,
-          feedback,
-          passedChecks,
-          failedChecks,
-          atsUpdatedAt: now,
-        }),
-      );
-    }
+    res.json(
+      GetAtsScoreResponse.parse({
+        score,
+        maxScore: 100,
+        feedback,
+        passedChecks,
+        failedChecks,
+        atsUpdatedAt: now,
+      }),
+    );
   },
 );
 
@@ -1465,12 +1322,24 @@ router.post(
       return;
     }
 
+    // Pull the same JD keywords the ATS scorer measures so the optimizer
+    // explicitly closes the gaps that lowered the score.
+    let targetKeywords: string[] = [];
+    if (jobDescription.trim().length > 0) {
+      try {
+        targetKeywords = await extractJobKeywords(jobDescription);
+      } catch (err) {
+        logger.warn({ error: err, resumeId: resume.id }, "Failed to extract JD keywords for optimization");
+      }
+    }
+
     let optimizedSections: any[] = [];
     let optimizationSummary = "";
     try {
       const result = await optimizeResumeWithAi(
         sectionsToOptimize,
         jobDescription,
+        { targetKeywords },
       );
       optimizedSections = result.sections;
       optimizationSummary = result.summary;

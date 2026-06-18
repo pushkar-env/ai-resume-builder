@@ -120,15 +120,26 @@ function groupSections(sections: SectionRow[]): SectionRow[][] {
 async function optimizeGroup(
   sections: SectionRow[],
   jobDescription: string,
+  targetKeywords: string[] = [],
 ): Promise<OptimizeGroupResult> {
   const compact = compactSectionsForOptimize(sections);
   const hasJd = jobDescription.trim().length > 0;
   const jdBlock = hasJd
     ? `Target job description:\n"""${clipAiInput(jobDescription, 3_500)}"""\n\n`
     : "";
+  const keywordBlock =
+    targetKeywords.length > 0
+      ? `\nTarget ATS keywords to incorporate where truthful (do NOT fabricate experience): ${targetKeywords.join(", ")}\n`
+      : "";
 
-  const prompt = `${jdBlock}You are an expert resume writer. Optimize ONLY the resume sections in the JSON array below.
+  const prompt = `${jdBlock}You are an expert resume writer optimizing for ATS (Applicant Tracking System) screening. Optimize ONLY the resume sections in the JSON array below.
 ${hasJd ? "Align wording with the job description (keywords, stack, responsibilities) without inventing employers or degrees." : "Make content professional, ATS-friendly, and achievement-focused with quantified bullets where plausible."}
+${keywordBlock}
+ATS optimization goals (apply to every bullet/section):
+- Start each experience bullet with a strong action verb (Led, Built, Drove, Reduced, Designed...). Remove weak phrasing like "responsible for", "worked on", "helped with".
+- Make achievements measurable: add concrete metrics (%, $, time saved, scale, counts) to bullets that lack them wherever plausible — aim for at least half of all bullets quantified.
+- Naturally weave in the relevant target keywords/skills above so the resume matches what the ATS screens for, only where the candidate plausibly has them.
+- Keep the professional summary concise (30-60 words) with the target title and strongest keywords.
 
 Rules:
 - Return JSON: {"sections":[...],"summary":"markdown bullet list of changes"}
@@ -538,7 +549,9 @@ export function reconcileSectionContent(type: string, original: any, optimized: 
 export async function optimizeResumeWithAi(
   sections: SectionRow[],
   jobDescription: string,
+  options: { targetKeywords?: string[] } = {},
 ): Promise<{ sections: OptimizeGroupResult["sections"]; summary: string }> {
+  const targetKeywords = options.targetKeywords ?? [];
   const batches = expandGroupsForBatching(groupSections(sections));
   const batchedOriginals = new Map<number, SectionRow>();
   for (const section of sections) {
@@ -557,7 +570,7 @@ export async function optimizeResumeWithAi(
 
   const results = await Promise.all(
     batches.map(async ({ group, parentSectionId, chunkIndex }) => {
-      const result = await optimizeGroup(group, jobDescription);
+      const result = await optimizeGroup(group, jobDescription, targetKeywords);
       const aligned = alignOptimizedSections(group, result.sections || []);
       const sanitized = aligned.map((s) => ({
         ...s,
