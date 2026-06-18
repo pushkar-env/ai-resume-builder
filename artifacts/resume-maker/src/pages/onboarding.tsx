@@ -12,6 +12,11 @@ import {
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
+import {
+  CollapsibleEditableBlock,
+  BlockPreview,
+} from "@/components/resume/CollapsibleEditableBlock";
+import { useCollapsibleList } from "@/hooks/use-collapsible-list";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/BulletListEditor";
 import { Input } from "@/components/ui/input";
@@ -152,6 +157,12 @@ export default function OnboardingPage() {
       credentialUrl?: string;
     }[]
   >([]);
+
+  // Per-block collapse/expand state (UI only — never persisted).
+  const expCollapse = useCollapsibleList();
+  const eduCollapse = useCollapsibleList();
+  const projCollapse = useCollapsibleList();
+  const certCollapse = useCollapsibleList();
 
   const isSavingRef = useRef<NodeJS.Timeout | null>(null);
   const initializedRef = useRef(false);
@@ -805,6 +816,7 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
+                        expCollapse.handleAdd(experience.length);
                         const newExp = [
                           ...experience,
                           {
@@ -834,6 +846,7 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
+                            expCollapse.handleAdd(0);
                             setExperience([
                               {
                                 company: "",
@@ -852,18 +865,25 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       experience.map((exp, idx) => (
-                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = experience.filter((_, i) => i !== idx);
-                              handleFieldChange(setExperience, "experience", updated);
-                            }}
-                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-
+                        <CollapsibleEditableBlock
+                          key={idx}
+                          expanded={expCollapse.isExpanded(idx)}
+                          onToggle={() => expCollapse.toggle(idx)}
+                          onSave={() => expCollapse.collapse(idx)}
+                          onDelete={() => {
+                            const updated = experience.filter((_, i) => i !== idx);
+                            handleFieldChange(setExperience, "experience", updated);
+                            expCollapse.handleRemove(idx);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={exp.title}
+                              subtitle={exp.company}
+                              meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
+                              placeholder="Untitled role"
+                            />
+                          }
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <Label className="text-xs text-muted-foreground">Job Title</Label>
@@ -957,7 +977,7 @@ export default function OnboardingPage() {
                               label="Description / Key Achievements"
                             />
                           </div>
-                        </div>
+                        </CollapsibleEditableBlock>
                       ))
                     )}
                   </div>
@@ -977,6 +997,7 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
+                        eduCollapse.handleAdd(education.length);
                         const newEdu = [
                           ...education,
                           {
@@ -1005,6 +1026,7 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
+                            eduCollapse.handleAdd(0);
                             setEducation([
                               {
                                 school: "",
@@ -1023,18 +1045,25 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       education.map((edu, idx) => (
-                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = education.filter((_, i) => i !== idx);
-                              handleFieldChange(setEducation, "education", updated);
-                            }}
-                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-
+                        <CollapsibleEditableBlock
+                          key={idx}
+                          expanded={eduCollapse.isExpanded(idx)}
+                          onToggle={() => eduCollapse.toggle(idx)}
+                          onSave={() => eduCollapse.collapse(idx)}
+                          onDelete={() => {
+                            const updated = education.filter((_, i) => i !== idx);
+                            handleFieldChange(setEducation, "education", updated);
+                            eduCollapse.handleRemove(idx);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={[edu.degree, edu.field].filter(Boolean).join(" ")}
+                              subtitle={edu.school}
+                              meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
+                              placeholder="Untitled education"
+                            />
+                          }
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <Label className="text-xs text-muted-foreground">School / University</Label>
@@ -1142,7 +1171,7 @@ export default function OnboardingPage() {
                               />
                             </div>
                           </div>
-                        </div>
+                        </CollapsibleEditableBlock>
                       ))
                     )}
                   </div>
@@ -1259,6 +1288,7 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
+                        projCollapse.handleAdd(projects.length);
                         const newProjs = [
                           ...projects,
                           { name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
@@ -1279,6 +1309,7 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
+                            projCollapse.handleAdd(0);
                             setProjects([{ name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] }]);
                           }}
                         >
@@ -1287,18 +1318,24 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       projects.map((proj, idx) => (
-                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = projects.filter((_, i) => i !== idx);
-                              handleFieldChange(setProjects, "projects", updated);
-                            }}
-                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-
+                        <CollapsibleEditableBlock
+                          key={idx}
+                          expanded={projCollapse.isExpanded(idx)}
+                          onToggle={() => projCollapse.toggle(idx)}
+                          onSave={() => projCollapse.collapse(idx)}
+                          onDelete={() => {
+                            const updated = projects.filter((_, i) => i !== idx);
+                            handleFieldChange(setProjects, "projects", updated);
+                            projCollapse.handleRemove(idx);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={proj.name}
+                              meta={proj.technologiesUsed || proj.url}
+                              placeholder="Untitled project"
+                            />
+                          }
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <Label className="text-xs text-muted-foreground">Project Name</Label>
@@ -1343,7 +1380,7 @@ export default function OnboardingPage() {
                               label="Project Description / Key Accomplishments"
                             />
                           </div>
-                        </div>
+                        </CollapsibleEditableBlock>
                       ))
                     )}
                   </div>
@@ -1363,6 +1400,7 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
+                        certCollapse.handleAdd(certifications.length);
                         const newCerts = [
                           ...certifications,
                           { name: "", issuer: "", date: "", credentialUrl: "" },
@@ -1383,6 +1421,7 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
+                            certCollapse.handleAdd(0);
                             setCertifications([{ name: "", issuer: "", date: "", credentialUrl: "" }]);
                           }}
                         >
@@ -1391,18 +1430,25 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       certifications.map((cert, idx) => (
-                        <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = certifications.filter((_, i) => i !== idx);
-                              handleFieldChange(setCertifications, "certifications", updated);
-                            }}
-                            className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-
+                        <CollapsibleEditableBlock
+                          key={idx}
+                          expanded={certCollapse.isExpanded(idx)}
+                          onToggle={() => certCollapse.toggle(idx)}
+                          onSave={() => certCollapse.collapse(idx)}
+                          onDelete={() => {
+                            const updated = certifications.filter((_, i) => i !== idx);
+                            handleFieldChange(setCertifications, "certifications", updated);
+                            certCollapse.handleRemove(idx);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={cert.name}
+                              subtitle={cert.issuer}
+                              meta={cert.date}
+                              placeholder="Untitled certification"
+                            />
+                          }
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                               <Label className="text-xs text-muted-foreground">Certification Name</Label>
@@ -1462,7 +1508,7 @@ export default function OnboardingPage() {
                               />
                             </div>
                           </div>
-                        </div>
+                        </CollapsibleEditableBlock>
                       ))
                     )}
                   </div>

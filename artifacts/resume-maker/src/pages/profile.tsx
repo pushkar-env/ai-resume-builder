@@ -14,6 +14,11 @@ import { createAiQuickRequestOptions } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
 import { ExtractFromResumeDialog } from "@/components/resume/ExtractFromResumeDialog";
+import {
+  CollapsibleEditableBlock,
+  BlockPreview,
+} from "@/components/resume/CollapsibleEditableBlock";
+import { useCollapsibleList } from "@/hooks/use-collapsible-list";
 import { Button } from "@/components/ui/button";
 import { BulletListEditor } from "@/components/ui/BulletListEditor";
 import { Input } from "@/components/ui/input";
@@ -168,6 +173,12 @@ export default function ProfilePage() {
       gpaMode: string;
     }[]
   >([]);
+
+  // Per-block collapse/expand state (UI only — never persisted).
+  const expCollapse = useCollapsibleList();
+  const eduCollapse = useCollapsibleList();
+  const projCollapse = useCollapsibleList();
+  const certCollapse = useCollapsibleList();
 
   // States for detecting unsaved changes and confirmation modal
   const [initialData, setInitialData] = useState<any>(null);
@@ -984,6 +995,7 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
+                      expCollapse.handleAdd(experience.length);
                       setExperience([
                         ...experience,
                         {
@@ -1011,15 +1023,24 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     experience.map((exp, idx) => (
-                      <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                        <button
-                          type="button"
-                          onClick={() => setExperience(experience.filter((_, i) => i !== idx))}
-                          className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-
+                      <CollapsibleEditableBlock
+                        key={idx}
+                        expanded={expCollapse.isExpanded(idx)}
+                        onToggle={() => expCollapse.toggle(idx)}
+                        onSave={() => expCollapse.collapse(idx)}
+                        onDelete={() => {
+                          setExperience(experience.filter((_, i) => i !== idx));
+                          expCollapse.handleRemove(idx);
+                        }}
+                        preview={
+                          <BlockPreview
+                            title={exp.title}
+                            subtitle={exp.company}
+                            meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
+                            placeholder="Untitled role"
+                          />
+                        }
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Job Title</Label>
@@ -1117,7 +1138,7 @@ export default function ProfilePage() {
                             label="Description / Key Achievements"
                           />
                         </div>
-                      </div>
+                      </CollapsibleEditableBlock>
                     ))
                   )}
                 </div>
@@ -1137,6 +1158,7 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
+                      eduCollapse.handleAdd(education.length);
                       setEducation([
                         ...education,
                         {
@@ -1163,15 +1185,24 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     education.map((edu, idx) => (
-                      <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                        <button
-                          type="button"
-                          onClick={() => setEducation(education.filter((_, i) => i !== idx))}
-                          className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-
+                      <CollapsibleEditableBlock
+                        key={idx}
+                        expanded={eduCollapse.isExpanded(idx)}
+                        onToggle={() => eduCollapse.toggle(idx)}
+                        onSave={() => eduCollapse.collapse(idx)}
+                        onDelete={() => {
+                          setEducation(education.filter((_, i) => i !== idx));
+                          eduCollapse.handleRemove(idx);
+                        }}
+                        preview={
+                          <BlockPreview
+                            title={[edu.degree, edu.field].filter(Boolean).join(" ")}
+                            subtitle={edu.school}
+                            meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
+                            placeholder="Untitled education"
+                          />
+                        }
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">School / University</Label>
@@ -1279,7 +1310,7 @@ export default function ProfilePage() {
                             />
                           </div>
                         </div>
-                      </div>
+                      </CollapsibleEditableBlock>
                     ))
                   )}
                 </div>
@@ -1367,6 +1398,7 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
+                      projCollapse.handleAdd(projects.length);
                       setProjects([
                         ...projects,
                         { name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
@@ -1385,15 +1417,23 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     projects.map((proj, idx) => (
-                      <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                        <button
-                          type="button"
-                          onClick={() => setProjects(projects.filter((_, i) => i !== idx))}
-                          className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-
+                      <CollapsibleEditableBlock
+                        key={idx}
+                        expanded={projCollapse.isExpanded(idx)}
+                        onToggle={() => projCollapse.toggle(idx)}
+                        onSave={() => projCollapse.collapse(idx)}
+                        onDelete={() => {
+                          setProjects(projects.filter((_, i) => i !== idx));
+                          projCollapse.handleRemove(idx);
+                        }}
+                        preview={
+                          <BlockPreview
+                            title={proj.name}
+                            meta={proj.technologiesUsed || proj.url}
+                            placeholder="Untitled project"
+                          />
+                        }
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Project Name</Label>
@@ -1441,7 +1481,7 @@ export default function ProfilePage() {
                             label="Project Description"
                           />
                         </div>
-                      </div>
+                      </CollapsibleEditableBlock>
                     ))
                   )}
                 </div>
@@ -1461,6 +1501,7 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
+                      certCollapse.handleAdd(certifications.length);
                       setCertifications([
                         ...certifications,
                         { name: "", issuer: "", date: "", credentialUrl: "" },
@@ -1479,15 +1520,24 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     certifications.map((cert, idx) => (
-                      <div key={idx} className="bg-card/40 border border-border rounded-xl p-4 space-y-4 relative">
-                        <button
-                          type="button"
-                          onClick={() => setCertifications(certifications.filter((_, i) => i !== idx))}
-                          className="absolute top-3 right-3 text-muted-foreground/80 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-
+                      <CollapsibleEditableBlock
+                        key={idx}
+                        expanded={certCollapse.isExpanded(idx)}
+                        onToggle={() => certCollapse.toggle(idx)}
+                        onSave={() => certCollapse.collapse(idx)}
+                        onDelete={() => {
+                          setCertifications(certifications.filter((_, i) => i !== idx));
+                          certCollapse.handleRemove(idx);
+                        }}
+                        preview={
+                          <BlockPreview
+                            title={cert.name}
+                            subtitle={cert.issuer}
+                            meta={cert.date}
+                            placeholder="Untitled certification"
+                          />
+                        }
+                      >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
                             <Label className="text-xs text-muted-foreground">Certification Name</Label>
@@ -1547,7 +1597,7 @@ export default function ProfilePage() {
                             />
                           </div>
                         </div>
-                      </div>
+                      </CollapsibleEditableBlock>
                     ))
                   )}
                 </div>

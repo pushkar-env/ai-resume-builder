@@ -39,6 +39,11 @@ import {
 } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
 import { TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
+import {
+  CollapsibleEditableBlock,
+  BlockPreview,
+} from "@/components/resume/CollapsibleEditableBlock";
+import { useCollapsibleList } from "@/hooks/use-collapsible-list";
 
 function aiErrorToast(
   toast: ReturnType<typeof useToast>["toast"],
@@ -97,27 +102,6 @@ function Field({
       <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>
-  );
-}
-
-/* ─── Tiny icon-only delete button used inside item cards ─── */
-function DeleteIconButton({
-  onClick,
-  label,
-}: {
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={`Delete ${label}`}
-      aria-label={`Delete ${label}`}
-      className="absolute top-2 right-2 h-6 w-6 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-white hover:bg-destructive border border-transparent hover:border-destructive transition-colors"
-    >
-      <Trash2 className="h-3.5 w-3.5" />
-    </button>
   );
 }
 
@@ -479,6 +463,7 @@ function ExperienceEditor({
   onShowPaywall: () => void;
 }) {
   const { toast } = useToast();
+  const collapse = useCollapsibleList();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
 
@@ -489,6 +474,7 @@ function ExperienceEditor({
   };
 
   const addItem = () => {
+    collapse.handleAdd(items.length);
     onChange({
       ...content,
       items: [
@@ -507,6 +493,7 @@ function ExperienceEditor({
 
   const removeItem = (i: number) => {
     onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
+    collapse.handleRemove(i);
   };
 
   const [pendingBullet, setPendingBullet] = useState<{
@@ -572,15 +559,22 @@ function ExperienceEditor({
             rawBullets.filter((_, idx) => idx !== bi),
           );
         return (
-          <div
+          <CollapsibleEditableBlock
             key={i}
-            className="rounded-lg border border-border p-3 space-y-2.5 relative"
+            expanded={collapse.isExpanded(i)}
+            onToggle={() => collapse.toggle(i)}
+            onSave={() => collapse.collapse(i)}
+            onDelete={() => removeItem(i)}
+            preview={
+              <BlockPreview
+                title={(item.title as string) || ""}
+                subtitle={(item.company as string) || ""}
+                meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
+                placeholder={`Experience #${i + 1}`}
+              />
+            }
           >
-            <DeleteIconButton
-              onClick={() => removeItem(i)}
-              label={`experience #${i + 1}`}
-            />
-            <div className="grid grid-cols-2 gap-2 items-end pr-7">
+            <div className="grid grid-cols-2 gap-2 items-end">
               <Field label="Job Title">
                 <Input
                   size={1}
@@ -705,7 +699,7 @@ function ExperienceEditor({
                 Add bullet
               </Button>
             </div>
-          </div>
+          </CollapsibleEditableBlock>
         );
       })}
       <Button
@@ -728,6 +722,7 @@ function EducationEditor({
   content: SectionContent;
   onChange: (c: SectionContent) => void;
 }) {
+  const collapse = useCollapsibleList();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
 
@@ -737,23 +732,30 @@ function EducationEditor({
     onChange({ ...content, items: updated });
   };
 
+  const removeItem = (i: number) => {
+    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
+    collapse.handleRemove(i);
+  };
+
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div
+        <CollapsibleEditableBlock
           key={i}
-          className="rounded-lg border border-border p-3 space-y-2 relative"
+          expanded={collapse.isExpanded(i)}
+          onToggle={() => collapse.toggle(i)}
+          onSave={() => collapse.collapse(i)}
+          onDelete={() => removeItem(i)}
+          preview={
+            <BlockPreview
+              title={[item.degree, item.field].filter(Boolean).join(" ")}
+              subtitle={(item.school as string) || ""}
+              meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
+              placeholder={`Education #${i + 1}`}
+            />
+          }
         >
-          <DeleteIconButton
-            onClick={() =>
-              onChange({
-                ...content,
-                items: items.filter((_, idx) => idx !== i),
-              })
-            }
-            label={`education #${i + 1}`}
-          />
-          <div className="pr-7">
+          <div>
             <Field label="School / University">
               <Input
                 size={1}
@@ -833,12 +835,13 @@ function EducationEditor({
               />
             </Field>
           </div>
-        </div>
+        </CollapsibleEditableBlock>
       ))}
       <Button
         variant="outline"
         size="sm"
-        onClick={() =>
+        onClick={() => {
+          collapse.handleAdd(items.length);
           onChange({
             ...content,
             items: [
@@ -853,8 +856,8 @@ function EducationEditor({
                 gpaMode: "gpa",
               },
             ],
-          })
-        }
+          });
+        }}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
@@ -1242,6 +1245,7 @@ function ProjectsEditor({
   onShowPaywall: () => void;
 }) {
   const { toast } = useToast();
+  const collapse = useCollapsibleList();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
 
@@ -1249,6 +1253,11 @@ function ProjectsEditor({
     const updated = [...items];
     updated[i] = { ...updated[i], [key]: val };
     onChange({ ...content, items: updated });
+  };
+
+  const removeItem = (i: number) => {
+    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
+    collapse.handleRemove(i);
   };
 
   const [pendingProject, setPendingProject] = useState<number | null>(null);
@@ -1293,20 +1302,21 @@ function ProjectsEditor({
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div
+        <CollapsibleEditableBlock
           key={i}
-          className="rounded-lg border border-border p-3 space-y-2 relative"
+          expanded={collapse.isExpanded(i)}
+          onToggle={() => collapse.toggle(i)}
+          onSave={() => collapse.collapse(i)}
+          onDelete={() => removeItem(i)}
+          preview={
+            <BlockPreview
+              title={(item.name as string) || ""}
+              meta={(item.url as string) || ""}
+              placeholder={`Project #${i + 1}`}
+            />
+          }
         >
-          <DeleteIconButton
-            onClick={() =>
-              onChange({
-                ...content,
-                items: items.filter((_, idx) => idx !== i),
-              })
-            }
-            label={`project #${i + 1}`}
-          />
-          <div className="space-y-2 pr-7">
+          <div className="space-y-2">
             <Field label="Project Name">
               <Input
                 size={1}
@@ -1373,17 +1383,18 @@ function ProjectsEditor({
               }
             />
           </Field>
-        </div>
+        </CollapsibleEditableBlock>
       ))}
       <Button
         variant="outline"
         size="sm"
-        onClick={() =>
+        onClick={() => {
+          collapse.handleAdd(items.length);
           onChange({
             ...content,
             items: [...items, { name: "", url: "", description: "" }],
-          })
-        }
+          });
+        }}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
@@ -1400,6 +1411,7 @@ function CertificationsEditor({
   content: SectionContent;
   onChange: (c: SectionContent) => void;
 }) {
+  const collapse = useCollapsibleList();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
 
@@ -1409,23 +1421,30 @@ function CertificationsEditor({
     onChange({ ...content, items: updated });
   };
 
+  const removeItem = (i: number) => {
+    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
+    collapse.handleRemove(i);
+  };
+
   return (
     <div className="space-y-3">
       {items.map((item, i) => (
-        <div
+        <CollapsibleEditableBlock
           key={i}
-          className="rounded-lg border border-border p-3 space-y-2 relative"
+          expanded={collapse.isExpanded(i)}
+          onToggle={() => collapse.toggle(i)}
+          onSave={() => collapse.collapse(i)}
+          onDelete={() => removeItem(i)}
+          preview={
+            <BlockPreview
+              title={(item.name as string) || ""}
+              subtitle={(item.issuer as string) || ""}
+              meta={(item.date as string) || ""}
+              placeholder={`Certification #${i + 1}`}
+            />
+          }
         >
-          <DeleteIconButton
-            onClick={() =>
-              onChange({
-                ...content,
-                items: items.filter((_, idx) => idx !== i),
-              })
-            }
-            label={`certification #${i + 1}`}
-          />
-          <div className="pr-7">
+          <div>
             <Field label="Certification Name">
               <Input
                 size={1}
@@ -1467,20 +1486,21 @@ function CertificationsEditor({
               className="h-10 lg:h-8 text-sm"
             />
           </Field>
-        </div>
+        </CollapsibleEditableBlock>
       ))}
       <Button
         variant="outline"
         size="sm"
-        onClick={() =>
+        onClick={() => {
+          collapse.handleAdd(items.length);
           onChange({
             ...content,
             items: [
               ...items,
               { name: "", issuer: "", date: "", credentialUrl: "" },
             ],
-          })
-        }
+          });
+        }}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
