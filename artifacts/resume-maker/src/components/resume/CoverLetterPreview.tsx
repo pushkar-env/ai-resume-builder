@@ -554,14 +554,16 @@ export const CoverLetterPreview: React.FC<CoverLetterPreviewProps> = ({
             {/* Footer / Sign-off */}
             <div className={`${scale.footerMargin} border-slate-100`}>
               <p className="text-slate-500 text-xs mb-1">{parsed.signOff}</p>
-              <div className="py-1">
-                <p 
-                  className="text-2xl font-normal tracking-wide select-none pointer-events-none leading-none" 
-                  style={{ fontFamily: "'Caveat', cursive", color: accentColor }}
-                >
-                  {parsed.senderName}
-                </p>
-              </div>
+              {parsed.showSignatureDesign !== false && (
+                <div className="py-1">
+                  <p
+                    className="text-2xl font-normal tracking-wide select-none pointer-events-none leading-none"
+                    style={{ fontFamily: "'Caveat', cursive", color: accentColor }}
+                  >
+                    {parsed.senderName}
+                  </p>
+                </div>
+              )}
               <p className="font-bold text-slate-800 text-sm mt-0.5">{parsed.senderName}</p>
             </div>
           </div>
