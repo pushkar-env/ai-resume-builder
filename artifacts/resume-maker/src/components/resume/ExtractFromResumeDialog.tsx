@@ -62,12 +62,12 @@ export function ExtractFromResumeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 overflow-hidden [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
+      <DialogContent className="flex flex-col w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 overflow-hidden [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
         {/* Ambient glow */}
         <div className="absolute -top-12 -left-10 w-44 h-44 rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none" />
         <div className="absolute -bottom-12 -right-10 w-40 h-40 rounded-full bg-purple-500/10 blur-[70px] pointer-events-none" />
 
-        <div className="relative z-10 p-6 pb-2">
+        <div className="relative z-10 shrink-0 p-6 pb-2">
           <DialogHeader className="space-y-3">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
               <Sparkles className="h-6 w-6" />
@@ -83,7 +83,7 @@ export function ExtractFromResumeDialog({
           </DialogHeader>
         </div>
 
-        <div className="relative z-10 px-6 py-4">
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto px-6 py-4">
           <div className="max-h-[300px] overflow-y-auto pr-1 space-y-2">
             {resumes.map((resume) => {
               const isActive = selectedId === resume.id;
@@ -137,7 +137,7 @@ export function ExtractFromResumeDialog({
           </div>
         </div>
 
-        <DialogFooter className="relative z-10 flex-col sm:flex-col gap-2 border-t border-border/60 p-6 pt-4">
+        <DialogFooter className="relative z-10 shrink-0 flex-col sm:flex-col gap-2 border-t border-border/60 p-6 pt-4">
           <Button
             onClick={() => selectedId != null && onConfirm(selectedId)}
             disabled={!canConfirm}
