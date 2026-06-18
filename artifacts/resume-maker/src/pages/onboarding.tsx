@@ -543,8 +543,8 @@ export default function OnboardingPage() {
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/60 px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-3">
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-              Resumesensei
+            <span className="text-lg sm:text-xl font-extrabold tracking-tight">
+              Resume<span className="text-primary font-black">sensei</span>
             </span>
             <span className="hidden sm:inline-flex text-xs bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded-full">
               Onboarding
