@@ -136,6 +136,8 @@ Rules:
 - "summary" section: 3-4 sentences in content.text (plain text, no HTML)
 - "skills": keep content.style; items as {"name":"..."}
 - "experience"/"projects": strong action verbs and metrics in bullets
+- PRESERVE every item: return the SAME number of experience/project items you were given, in the same order. Never drop, merge, or omit an item, and never return an item with an empty title/company or empty bullets.
+- PRESERVE every bullet: return at least as many bullets per item as the original. Rewrite or strengthen bullets, but never delete one.
 - Do not add sections or remove ids
 
 Sections:
@@ -367,6 +369,169 @@ export function sanitizeSectionContent(type: string, content: any): any {
   return content;
 }
 
+/* ------------------------------------------------------------------ *
+ * Content-preservation reconciliation.
+ *
+ * The optimizer occasionally drops an experience/project item, drops all
+ * the bullets of an item, or blanks out a field. These helpers diff the
+ * optimized content against the (sanitized) original and guarantee that
+ * optimization can only *rewrite* content, never lose it:
+ *   - no item is ever dropped (count never decreases),
+ *   - an item's bullet count never decreases,
+ *   - any field the model blanked is restored from the original,
+ *   - genuinely-empty items are stripped so they don't render as empty
+ *     timeline markers in the preview.
+ * ------------------------------------------------------------------ */
+
+const norm = (v: unknown): string => (typeof v === "string" ? v.trim().toLowerCase() : "");
+
+/** Prefer a non-empty optimized string, otherwise fall back to the original. */
+function preferred(optValue: unknown, origValue: unknown): string {
+  const opt = typeof optValue === "string" ? optValue.trim() : "";
+  if (opt) return opt;
+  return typeof origValue === "string" ? origValue.trim() : "";
+}
+
+function experienceItemHasContent(item: any): boolean {
+  if (!item || typeof item !== "object") return false;
+  const hasIdentity = [item.title, item.company, item.location, item.startDate, item.endDate].some(
+    (v) => typeof v === "string" && v.trim() !== "",
+  );
+  const hasBullets = Array.isArray(item.bullets) && item.bullets.some((b: any) => bulletText(b) !== "");
+  return hasIdentity || hasBullets;
+}
+
+function projectItemHasContent(item: any): boolean {
+  if (!item || typeof item !== "object") return false;
+  return [item.name, item.description, item.url].some(
+    (v) => typeof v === "string" && v.trim() !== "",
+  );
+}
+
+function bulletList(item: any): string[] {
+  return Array.isArray(item?.bullets) ? item.bullets.map(bulletText).filter(Boolean) : [];
+}
+
+function mergeExperienceItem(orig: any, opt: any): any {
+  // No usable optimized counterpart -> keep the original verbatim.
+  if (!opt || !experienceItemHasContent(opt)) return orig;
+
+  const optBullets = bulletList(opt);
+  const origBullets = bulletList(orig);
+  // Never let optimization reduce the number of bullets. If the model
+  // returned fewer non-empty bullets than the original, keep the originals.
+  const bullets = optBullets.length >= origBullets.length ? optBullets : origBullets;
+
+  return {
+    title: preferred(opt.title, orig.title),
+    company: preferred(opt.company, orig.company),
+    location: preferred(opt.location, orig.location),
+    startDate: preferred(opt.startDate, orig.startDate),
+    endDate: preferred(opt.endDate, orig.endDate),
+    bullets,
+  };
+}
+
+function mergeProjectItem(orig: any, opt: any): any {
+  if (!opt || !projectItemHasContent(opt)) return orig;
+  return {
+    name: preferred(opt.name, orig.name),
+    description: preferred(opt.description, orig.description),
+    url: preferred(opt.url, orig.url),
+  };
+}
+
+/**
+ * Pair each original item with its best optimized counterpart. The optimizer
+ * keeps employers/titles stable, so we match on company/title (resilient to a
+ * dropped or reordered item), then fill any leftovers positionally.
+ */
+function pairItems(
+  origItems: any[],
+  optItems: any[],
+  keyOf: (item: any) => string[],
+): Array<{ orig: any; opt: any | null }> {
+  const usedOpt = new Set<number>();
+  const pairs: Array<{ orig: any; opt: any | null }> = origItems.map((orig) => {
+    const origKeys = keyOf(orig).filter(Boolean);
+    const matchIdx = optItems.findIndex(
+      (opt, idx) =>
+        !usedOpt.has(idx) &&
+        opt &&
+        keyOf(opt).filter(Boolean).some((k) => origKeys.includes(k)),
+    );
+    if (matchIdx !== -1) {
+      usedOpt.add(matchIdx);
+      return { orig, opt: optItems[matchIdx] };
+    }
+    return { orig, opt: null };
+  });
+
+  // Assign remaining unmatched optimized items to still-unpaired originals, in order.
+  let cursor = 0;
+  for (let i = 0; i < optItems.length; i++) {
+    if (usedOpt.has(i)) continue;
+    while (cursor < pairs.length && pairs[cursor].opt) cursor++;
+    if (cursor >= pairs.length) break;
+    pairs[cursor].opt = optItems[i];
+    usedOpt.add(i);
+    cursor++;
+  }
+
+  return pairs;
+}
+
+/**
+ * Reconcile a single optimized section against its sanitized original so that
+ * optimization never loses content. Both inputs must already be sanitized.
+ */
+export function reconcileSectionContent(type: string, original: any, optimized: any): any {
+  if (type === "summary") {
+    const optText = typeof optimized?.text === "string" ? optimized.text.trim() : "";
+    const origText = typeof original?.text === "string" ? original.text.trim() : "";
+    return { text: optText || origText };
+  }
+
+  if (type === "skills") {
+    const optItems = Array.isArray(optimized?.items) ? optimized.items : [];
+    const origItems = Array.isArray(original?.items) ? original.items : [];
+    // Only guard against a total wipe-out; otherwise trust the optimized list.
+    if (optItems.length === 0 && origItems.length > 0) {
+      return { style: optimized?.style ?? original?.style ?? "chips", items: origItems };
+    }
+    return optimized;
+  }
+
+  if (type === "experience") {
+    const origItems = Array.isArray(original?.items) ? original.items : [];
+    const optItems = Array.isArray(optimized?.items) ? optimized.items : [];
+    const expKey = (it: any) => `${norm(it?.company)}|${norm(it?.title)}`;
+    const merged = pairItems(origItems, optItems, (it) => [norm(it?.company), norm(it?.title)]).map(
+      ({ orig, opt }) => mergeExperienceItem(orig, opt),
+    );
+    // Append any genuinely new, meaningful optimized item not already represented.
+    const mergedKeys = new Set(merged.map(expKey));
+    for (const opt of optItems) {
+      if (experienceItemHasContent(opt) && !mergedKeys.has(expKey(opt))) {
+        merged.push(opt);
+        mergedKeys.add(expKey(opt));
+      }
+    }
+    return { items: merged.filter(experienceItemHasContent) };
+  }
+
+  if (type === "projects") {
+    const origItems = Array.isArray(original?.items) ? original.items : [];
+    const optItems = Array.isArray(optimized?.items) ? optimized.items : [];
+    const merged = pairItems(origItems, optItems, (it) => [norm(it?.name)]).map(({ orig, opt }) =>
+      mergeProjectItem(orig, opt),
+    );
+    return { items: merged.filter(projectItemHasContent) };
+  }
+
+  return optimized;
+}
+
 /**
  * Optimize resume in parallel section groups — faster and more reliable than one huge completion.
  */
@@ -430,12 +595,25 @@ export async function optimizeResumeWithAi(
     });
   }
 
+  // Content-preservation pass: guarantee optimization never drops items,
+  // bullets, or fields relative to the original (and never emits empty items).
+  const originalById = new Map(sections.map((s) => [s.id, s]));
+  const reconciledSections = mergedSections.map((opt) => {
+    const original = originalById.get(opt.id);
+    if (!original) return opt;
+    const originalSanitized = sanitizeSectionContent(original.type, original.content);
+    return {
+      ...opt,
+      content: reconcileSectionContent(opt.type, originalSanitized, opt.content),
+    };
+  });
+
   const summary = results
     .map((r) => r.summary?.trim())
     .filter(Boolean)
     .join("\n");
 
-  return { sections: mergedSections, summary };
+  return { sections: reconciledSections, summary };
 }
 
 /**
