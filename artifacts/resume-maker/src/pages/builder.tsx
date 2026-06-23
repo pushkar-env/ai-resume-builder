@@ -2233,27 +2233,48 @@ export default function BuilderPage() {
                   </h2>
                 </div>
                 
-                {/* Visibility Toggle directly in the header for sections */}
-                {activeSidebarMode === "content" && activeSection && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => handleVisibilityToggle(activeSection.id)}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Save status — surfaced in the header on mobile/tablet since the
+                      bottom footer strip is hidden below lg to reclaim edit space. */}
+                  <div
+                    className="flex lg:hidden items-center gap-1.5"
+                    aria-live="polite"
                   >
-                    {activeSection.isVisible !== false ? (
+                    {updateResume.isPending ? (
                       <>
-                        <Eye className="h-4 w-4 text-primary" />
-                        <span className="hidden sm:inline">Visible</span>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                        <span className="text-[10px] font-medium text-muted-foreground">Saving</span>
                       </>
                     ) : (
                       <>
-                        <EyeOff className="h-4 w-4 text-muted-foreground/60" />
-                        <span className="hidden sm:inline text-muted-foreground/60">Hidden</span>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-[10px] font-medium text-muted-foreground">Saved</span>
                       </>
                     )}
-                  </Button>
-                )}
+                  </div>
+
+                  {/* Visibility Toggle directly in the header for sections */}
+                  {activeSidebarMode === "content" && activeSection && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => handleVisibilityToggle(activeSection.id)}
+                    >
+                      {activeSection.isVisible !== false ? (
+                        <>
+                          <Eye className="h-4 w-4 text-primary" />
+                          <span className="hidden sm:inline">Visible</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-4 w-4 text-muted-foreground/60" />
+                          <span className="hidden sm:inline text-muted-foreground/60">Hidden</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -3096,20 +3117,16 @@ export default function BuilderPage() {
               )}
             </ScrollArea>
 
-            {/* Pinned Footer (only shown if not in Mobile Dashboard view) */}
+            {/* Pinned Footer — desktop only. On mobile/tablet the back action lives in
+                the header and the save status is surfaced there too, so this strip is
+                hidden below lg to give the edit panel more vertical room. */}
             {!(mobileTab === "sections" && window.innerWidth < 1024) && (
-              <div className="border-t border-border p-3 lg:p-3.5 shrink-0 bg-background flex flex-row items-center justify-between">
+              <div className="hidden border-t border-border p-3 lg:p-3.5 shrink-0 bg-background lg:flex flex-row items-center justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
                   className="gap-1.5 h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                  onClick={() => {
-                    if (window.innerWidth < 1024) {
-                      setMobileTabRaw("sections");
-                    } else {
-                      navigate("/dashboard");
-                    }
-                  }}
+                  onClick={() => navigate("/dashboard")}
                 >
                   <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
                   <span>Back</span>
