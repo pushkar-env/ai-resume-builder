@@ -1719,7 +1719,7 @@ export default function ProfilePage() {
 
       {/* Unsaved Changes Confirmation Dialog */}
       <Dialog open={showConfirmClose} onOpenChange={setShowConfirmClose}>
-        <DialogContent className="max-w-[420px] bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
+        <DialogContent className="max-w-[420px] bg-card border border-border/80 shadow-2xl shadow-black/10 rounded-2xl text-foreground p-0 gap-0 [&>button]:text-muted-foreground [&>button]:hover:text-foreground [&>button]:z-50">
           {/* Ambient glow — sits behind content */}
           <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-amber-500/8 blur-[80px] pointer-events-none" />
           <div className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full bg-indigo-500/8 blur-[60px] pointer-events-none" />
