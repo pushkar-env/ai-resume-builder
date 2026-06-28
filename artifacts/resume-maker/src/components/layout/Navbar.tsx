@@ -50,7 +50,7 @@ const appNavLinks = [
 /** Routes that work without signing in — never show dashboard/templates/billing here when signed out. */
 const publicNavLinks = [
   { href: "/pricing", label: "Pricing", icon: Tags },
-  { href: "/contact", label: "Contact", icon: Mail },
+  { href: "/contact", label: "Contact Us", icon: Mail },
 ] as const;
 
 export function Navbar() {
