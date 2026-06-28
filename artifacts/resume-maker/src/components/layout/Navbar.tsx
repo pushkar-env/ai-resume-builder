@@ -44,7 +44,7 @@ const appNavLinks = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/contact", label: "Contact", icon: Mail },
+  { href: "/contact", label: "Contact Us", icon: Mail },
 ] as const;
 
 /** Routes that work without signing in — never show dashboard/templates/billing here when signed out. */
@@ -90,7 +90,7 @@ export function Navbar() {
                 <Link
                   key={href}
                   href={href}
-                  className={`px-2 lg:px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-2 lg:px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                     location === href
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
