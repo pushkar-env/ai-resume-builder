@@ -2127,13 +2127,16 @@ export default function BuilderPage() {
           }`}
         >
           {/* 1. Far-left navigation rail (desktop only) */}
-          <div className="hidden lg:flex w-[76px] border-r border-border bg-muted/10 flex-col items-center py-4 shrink-0 justify-between select-none">
-            <div className="flex flex-col items-center gap-4 w-full">
+          <div className="hidden lg:flex w-[76px] border-r border-border bg-muted/10 flex-col items-center shrink-0 select-none min-h-0">
+            {/* Scrollable top group (Design + sortable sections). It scrolls on
+                its own so the ATS tab below stays pinned and never clips on
+                short viewports such as tablets in landscape. */}
+            <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center gap-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {/* Design Tab */}
               <button
                 type="button"
                 onClick={() => setActiveSidebarMode("design")}
-                className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
+                className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
                   activeSidebarMode === "design"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
@@ -2146,7 +2149,7 @@ export default function BuilderPage() {
                 </span>
               </button>
 
-              <div className="w-8 h-px bg-border/60" />
+              <div className="w-8 h-px bg-border/60 shrink-0" />
 
               {/* Sortable Content Sections */}
               <DndContext
@@ -2158,7 +2161,7 @@ export default function BuilderPage() {
                   items={localSections.map((s) => s.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div className="space-y-2.5 w-full flex flex-col items-center">
+                  <div className="space-y-2.5 w-full flex flex-col items-center shrink-0">
                     {localSections.map((s) => (
                       <SortableRailItem
                         key={s.id}
@@ -2175,8 +2178,9 @@ export default function BuilderPage() {
               </DndContext>
             </div>
 
-            {/* ATS Audit Tab at bottom */}
-            <div className="w-full flex flex-col items-center">
+            {/* ATS Audit Tab — pinned to the bottom of the rail, always
+                reachable even when the section list above overflows. */}
+            <div className="w-full flex flex-col items-center shrink-0 pt-2 pb-4 bg-muted/10 border-t border-border/40">
               <div className="w-8 h-px bg-border/60 mb-4" />
               <button
                 type="button"
@@ -2187,7 +2191,7 @@ export default function BuilderPage() {
                   }
                   setActiveSidebarMode("ats");
                 }}
-                className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative ${
+                className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative ${
                   activeSidebarMode === "ats"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
