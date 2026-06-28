@@ -8,61 +8,58 @@ import { useCallback, useState } from "react";
  * it must never leak into what gets serialized to the API, nor into change
  * detection (e.g. profile's `hasUnsavedChanges()` JSON diff).
  *
- * Indices are used as the identity key. Existing blocks start collapsed; newly
- * added blocks open expanded. Deletions shift the tracked indices so expansion
- * stays aligned with the (now shorter) list.
+ * Unique keys (string | number) are used as the identity key. Existing blocks start collapsed;
+ * newly added blocks open expanded.
  */
 export function useCollapsibleList() {
-  const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
+  const [expanded, setExpanded] = useState<Set<string | number>>(() => new Set());
 
-  const isExpanded = useCallback((i: number) => expanded.has(i), [expanded]);
+  const isExpanded = useCallback((key: string | number) => expanded.has(key), [expanded]);
 
-  const expand = useCallback((i: number) => {
+  const expand = useCallback((key: string | number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.add(i);
+      next.add(key);
       return next;
     });
   }, []);
 
-  const collapse = useCallback((i: number) => {
+  const collapse = useCallback((key: string | number) => {
     setExpanded((prev) => {
-      if (!prev.has(i)) return prev;
+      if (!prev.has(key)) return prev;
       const next = new Set(prev);
-      next.delete(i);
+      next.delete(key);
       return next;
     });
   }, []);
 
-  const toggle = useCallback((i: number) => {
+  const toggle = useCallback((key: string | number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }, []);
 
   /**
-   * Call when appending a new block. Pass the list length *before* the append;
-   * the new block lives at that index and is opened for editing.
+   * Call when appending a new block. Pass the unique key of the new block
+   * so it is opened for editing.
    */
-  const handleAdd = useCallback((prevLength: number) => {
+  const handleAdd = useCallback((key: string | number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.add(prevLength);
+      next.add(key);
       return next;
     });
   }, []);
 
-  /** Call after removing the block at `removedIndex`; shifts higher indices down by one. */
-  const handleRemove = useCallback((removedIndex: number) => {
+  /** Call after removing the block with the given unique key. */
+  const handleRemove = useCallback((key: string | number) => {
     setExpanded((prev) => {
-      const next = new Set<number>();
-      prev.forEach((i) => {
-        if (i < removedIndex) next.add(i);
-        else if (i > removedIndex) next.add(i - 1);
-      });
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
       return next;
     });
   }, []);

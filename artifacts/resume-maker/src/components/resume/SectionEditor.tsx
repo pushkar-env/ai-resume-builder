@@ -1,4 +1,5 @@
-import { useState, useRef, startTransition } from "react";
+import { useState, useRef, startTransition, useMemo } from "react";
+import { SortableBlockList } from "@/components/shared/SortableBlockList";
 import {
   Sparkles,
   Loader2,
@@ -464,8 +465,14 @@ function ExperienceEditor({
 }) {
   const { toast } = useToast();
   const collapse = useCollapsibleList();
-  const items: Array<Record<string, unknown>> =
-    (content.items as Array<Record<string, unknown>>) ?? [];
+  const rawItems = (content.items as Array<Record<string, unknown>>) ?? [];
+
+  const items = useMemo<any[]>(() => {
+    return rawItems.map((item, idx) => ({
+      ...item,
+      id: (item.id as string | number) ?? `exp-${idx}-${item.company || ""}-${item.title || ""}`,
+    }));
+  }, [rawItems]);
 
   const updateItem = (i: number, key: string, val: unknown) => {
     const updated = [...items];
@@ -474,12 +481,14 @@ function ExperienceEditor({
   };
 
   const addItem = () => {
-    collapse.handleAdd(items.length);
+    const newId = Math.random().toString(36).substr(2, 9);
+    collapse.handleAdd(newId);
     onChange({
       ...content,
       items: [
-        ...items,
+        ...rawItems,
         {
+          id: newId,
           company: "",
           title: "",
           startDate: "",
@@ -491,9 +500,9 @@ function ExperienceEditor({
     });
   };
 
-  const removeItem = (i: number) => {
-    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
-    collapse.handleRemove(i);
+  const removeItem = (id: string | number) => {
+    onChange({ ...content, items: rawItems.filter((item) => (item.id || "") !== id) });
+    collapse.handleRemove(id);
   };
 
   const [pendingBullet, setPendingBullet] = useState<{
@@ -544,164 +553,173 @@ function ExperienceEditor({
 
   return (
     <div className="space-y-4">
-      {items.map((item, i) => {
-        const rawBullets = (item.bullets as unknown[]) ?? [];
-        const updateBulletAt = (bi: number, patch: Partial<BulletObj>) => {
-          const next = rawBullets.map((x, idx) =>
-            idx === bi ? { ...toBulletObj(x), ...patch } : x,
-          );
-          updateItem(i, "bullets", next);
-        };
-        const removeBullet = (bi: number) =>
-          updateItem(
-            i,
-            "bullets",
-            rawBullets.filter((_, idx) => idx !== bi),
-          );
-        return (
-          <CollapsibleEditableBlock
-            key={i}
-            expanded={collapse.isExpanded(i)}
-            onToggle={() => collapse.toggle(i)}
-            onSave={() => collapse.collapse(i)}
-            onDelete={() => removeItem(i)}
-            preview={
-              <BlockPreview
-                title={(item.title as string) || ""}
-                subtitle={(item.company as string) || ""}
-                meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
-                placeholder={`Experience #${i + 1}`}
-              />
-            }
-          >
-            <div className="grid grid-cols-2 gap-2 items-end">
-              <Field label="Job Title">
-                <Input
-                  size={1}
-                  value={(item.title as string) ?? ""}
-                  onChange={(e) => updateItem(i, "title", e.target.value)}
-                  placeholder="Software Engineer"
-                  className="h-10 lg:h-8 text-sm"
+      <SortableBlockList
+        items={items}
+        onReorder={(newItems) => onChange({ ...content, items: newItems })}
+        renderItem={(item, i, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => {
+          const rawBullets = (item.bullets as unknown[]) ?? [];
+          const updateBulletAt = (bi: number, patch: Partial<BulletObj>) => {
+            const next = rawBullets.map((x, idx) =>
+              idx === bi ? { ...toBulletObj(x), ...patch } : x,
+            );
+            updateItem(i, "bullets", next);
+          };
+          const removeBullet = (bi: number) =>
+            updateItem(
+              i,
+              "bullets",
+              rawBullets.filter((_, idx) => idx !== bi),
+            );
+          return (
+            <CollapsibleEditableBlock
+              key={item.id}
+              setNodeRef={ref}
+              style={style}
+              dragHandleProps={dragHandleProps}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
+              expanded={collapse.isExpanded(item.id)}
+              onToggle={() => collapse.toggle(item.id)}
+              onSave={() => collapse.collapse(item.id)}
+              onDelete={() => removeItem(item.id)}
+              preview={
+                <BlockPreview
+                  title={(item.title as string) || ""}
+                  subtitle={(item.company as string) || ""}
+                  meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
+                  placeholder={`Experience #${i + 1}`}
                 />
-              </Field>
-              <Field label="Company">
-                <Input
-                  size={1}
-                  value={(item.company as string) ?? ""}
-                  onChange={(e) => updateItem(i, "company", e.target.value)}
-                  placeholder="Acme Corp"
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <Field label="Start">
-                <Input
-                  size={1}
-                  value={(item.startDate as string) ?? ""}
-                  onChange={(e) => updateItem(i, "startDate", e.target.value)}
-                  placeholder="Jan 2020"
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-              <Field label="End">
-                <Input
-                  size={1}
-                  value={(item.endDate as string) ?? ""}
-                  onChange={(e) => updateItem(i, "endDate", e.target.value)}
-                  placeholder="Present"
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-              <Field label="Location">
-                <Input
-                  size={1}
-                  value={(item.location as string) ?? ""}
-                  onChange={(e) => updateItem(i, "location", e.target.value)}
-                  placeholder="SF, CA"
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-            </div>
+              }
+            >
+              <div className="grid grid-cols-2 gap-2 items-end">
+                <Field label="Job Title">
+                  <Input
+                    size={1}
+                    value={(item.title as string) ?? ""}
+                    onChange={(e) => updateItem(i, "title", e.target.value)}
+                    placeholder="Software Engineer"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+                <Field label="Company">
+                  <Input
+                    size={1}
+                    value={(item.company as string) ?? ""}
+                    onChange={(e) => updateItem(i, "company", e.target.value)}
+                    placeholder="Acme Corp"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Field label="Start">
+                  <Input
+                    size={1}
+                    value={(item.startDate as string) ?? ""}
+                    onChange={(e) => updateItem(i, "startDate", e.target.value)}
+                    placeholder="Jan 2020"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+                <Field label="End">
+                  <Input
+                    size={1}
+                    value={(item.endDate as string) ?? ""}
+                    onChange={(e) => updateItem(i, "endDate", e.target.value)}
+                    placeholder="Present"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+                <Field label="Location">
+                  <Input
+                    size={1}
+                    value={(item.location as string) ?? ""}
+                    onChange={(e) => updateItem(i, "location", e.target.value)}
+                    placeholder="SF, CA"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+              </div>
 
-            {/* Bullets — text + optional work-sample label & link */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Bullet Points
-              </Label>
-              {rawBullets.map((raw, bi) => {
-                const b = toBulletObj(raw);
-                const isImproving =
-                  improveBullet.isPending &&
-                  pendingBullet?.itemIndex === i &&
-                  pendingBullet?.bulletIndex === bi;
-                return (
-                  <div
-                    key={bi}
-                    className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2"
-                  >
-                    <RichTextEditor
-                      value={b.text}
-                      onChange={(val) => updateBulletAt(bi, { text: val })}
-                      placeholder="• Led ..."
-                      actionCount={2}
-                      rightElement={
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
-                            title="Improve with AI"
-                            onClick={() => {
-                              setPendingBullet({ itemIndex: i, bulletIndex: bi });
-                              improveBullet.mutate({
-                                data: {
-                                  bullet: richHtmlToPlainText(b.text),
-                                  context: `${item.title ?? ""} at ${item.company ?? ""}`,
-                                },
-                              });
-                            }}
-                            disabled={isImproving}
-                          >
-                            {isImproving ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Sparkles className="h-3.5 w-3.5 text-primary" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 min-h-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            title="Delete bullet"
-                            onClick={() => removeBullet(bi)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
-                      }
-                    />
-                  </div>
-                );
-              })}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 h-7 text-xs"
-                onClick={() =>
-                  updateItem(i, "bullets", [
-                    ...rawBullets,
-                    { text: "", label: "", link: "" },
-                  ])
-                }
-              >
-                <Plus className="h-3 w-3" />
-                Add bullet
-              </Button>
-            </div>
-          </CollapsibleEditableBlock>
-        );
-      })}
+              {/* Bullets — text + optional work-sample label & link */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  Bullet Points
+                </Label>
+                {rawBullets.map((raw, bi) => {
+                  const b = toBulletObj(raw);
+                  const isImproving =
+                    improveBullet.isPending &&
+                    pendingBullet?.itemIndex === i &&
+                    pendingBullet?.bulletIndex === bi;
+                  return (
+                    <div
+                      key={bi}
+                      className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2"
+                    >
+                      <RichTextEditor
+                        value={b.text}
+                        onChange={(val) => updateBulletAt(bi, { text: val })}
+                        placeholder="• Led ..."
+                        actionCount={2}
+                        rightElement={
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                              title="Improve with AI"
+                              onClick={() => {
+                                setPendingBullet({ itemIndex: i, bulletIndex: bi });
+                                improveBullet.mutate({
+                                  data: {
+                                    bullet: richHtmlToPlainText(b.text),
+                                    context: `${item.title ?? ""} at ${item.company ?? ""}`,
+                                  },
+                                });
+                              }}
+                              disabled={isImproving}
+                            >
+                              {isImproving ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 min-h-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              title="Delete bullet"
+                              onClick={() => removeBullet(bi)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        }
+                      />
+                    </div>
+                  );
+                })}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 h-7 text-xs"
+                  onClick={() =>
+                    updateItem(i, "bullets", [
+                      ...rawBullets,
+                      { text: "", label: "", link: "" },
+                    ])
+                  }
+                >
+                  <Plus className="h-3 w-3" />
+                  Add bullet
+                </Button>
+              </div>
+            </CollapsibleEditableBlock>
+          );
+        }}
+      />
       <Button
         variant="outline"
         size="sm"
@@ -723,8 +741,14 @@ function EducationEditor({
   onChange: (c: SectionContent) => void;
 }) {
   const collapse = useCollapsibleList();
-  const items: Array<Record<string, unknown>> =
-    (content.items as Array<Record<string, unknown>>) ?? [];
+  const rawItems = (content.items as Array<Record<string, unknown>>) ?? [];
+
+  const items = useMemo<any[]>(() => {
+    return rawItems.map((item, idx) => ({
+      ...item,
+      id: (item.id as string | number) ?? `edu-${idx}-${item.school || ""}-${item.degree || ""}`,
+    }));
+  }, [rawItems]);
 
   const updateItem = (i: number, key: string, val: string) => {
     const updated = [...items];
@@ -732,132 +756,145 @@ function EducationEditor({
     onChange({ ...content, items: updated });
   };
 
-  const removeItem = (i: number) => {
-    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
-    collapse.handleRemove(i);
+  const addItem = () => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    collapse.handleAdd(newId);
+    onChange({
+      ...content,
+      items: [
+        ...rawItems,
+        {
+          id: newId,
+          school: "",
+          degree: "",
+          field: "",
+          startDate: "",
+          endDate: "",
+          gpa: "",
+          gpaMode: "gpa",
+        },
+      ],
+    });
+  };
+
+  const removeItem = (id: string | number) => {
+    onChange({ ...content, items: rawItems.filter((item) => (item.id || "") !== id) });
+    collapse.handleRemove(id);
   };
 
   return (
     <div className="space-y-3">
-      {items.map((item, i) => (
-        <CollapsibleEditableBlock
-          key={i}
-          expanded={collapse.isExpanded(i)}
-          onToggle={() => collapse.toggle(i)}
-          onSave={() => collapse.collapse(i)}
-          onDelete={() => removeItem(i)}
-          preview={
-            <BlockPreview
-              title={[item.degree, item.field].filter(Boolean).join(" ")}
-              subtitle={(item.school as string) || ""}
-              meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
-              placeholder={`Education #${i + 1}`}
-            />
-          }
-        >
-          <div>
-            <Field label="School / University">
-              <Input
-                size={1}
-                value={(item.school as string) ?? ""}
-                onChange={(e) => updateItem(i, "school", e.target.value)}
-                placeholder="MIT"
-                className="h-10 lg:h-8 text-sm"
+      <SortableBlockList
+        items={items}
+        onReorder={(newItems) => onChange({ ...content, items: newItems })}
+        renderItem={(item, i, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+          <CollapsibleEditableBlock
+            key={item.id}
+            setNodeRef={ref}
+            style={style}
+            dragHandleProps={dragHandleProps}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
+            expanded={collapse.isExpanded(item.id)}
+            onToggle={() => collapse.toggle(item.id)}
+            onSave={() => collapse.collapse(item.id)}
+            onDelete={() => removeItem(item.id)}
+            preview={
+              <BlockPreview
+                title={[item.degree, item.field].filter(Boolean).join(" ")}
+                subtitle={(item.school as string) || ""}
+                meta={[item.startDate, item.endDate].filter(Boolean).join(" – ")}
+                placeholder={`Education #${i + 1}`}
               />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-2 items-end">
-            <Field label="Degree">
-              <Input
-                size={1}
-                value={(item.degree as string) ?? ""}
-                onChange={(e) => updateItem(i, "degree", e.target.value)}
-                placeholder="B.S. Computer Science"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-            <Field label="Field">
-              <Input
-                size={1}
-                value={(item.field as string) ?? ""}
-                onChange={(e) => updateItem(i, "field", e.target.value)}
-                placeholder="AI/ML"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="Start">
-              <Input
-                size={1}
-                value={(item.startDate as string) ?? ""}
-                onChange={(e) => updateItem(i, "startDate", e.target.value)}
-                placeholder="2018"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-            <Field label="End">
-              <Input
-                size={1}
-                value={(item.endDate as string) ?? ""}
-                onChange={(e) => updateItem(i, "endDate", e.target.value)}
-                placeholder="2022"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Field label="Grade System">
-              <Select
-                value={(item.gpaMode as string) ?? "gpa"}
-                onValueChange={(val) => updateItem(i, "gpaMode", val)}
+            }
+          >
+            <div>
+              <Field label="School / University">
+                <Input
+                  size={1}
+                  value={(item.school as string) ?? ""}
+                  onChange={(e) => updateItem(i, "school", e.target.value)}
+                  placeholder="MIT"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2 items-end">
+              <Field label="Degree">
+                <Input
+                  size={1}
+                  value={(item.degree as string) ?? ""}
+                  onChange={(e) => updateItem(i, "degree", e.target.value)}
+                  placeholder="B.S. Computer Science"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+              <Field label="Field">
+                <Input
+                  size={1}
+                  value={(item.field as string) ?? ""}
+                  onChange={(e) => updateItem(i, "field", e.target.value)}
+                  placeholder="AI/ML"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Start">
+                <Input
+                  size={1}
+                  value={(item.startDate as string) ?? ""}
+                  onChange={(e) => updateItem(i, "startDate", e.target.value)}
+                  placeholder="2018"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+              <Field label="End">
+                <Input
+                  size={1}
+                  value={(item.endDate as string) ?? ""}
+                  onChange={(e) => updateItem(i, "endDate", e.target.value)}
+                  placeholder="2022"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Grade System">
+                <Select
+                  value={(item.gpaMode as string) ?? "gpa"}
+                  onValueChange={(val) => updateItem(i, "gpaMode", val)}
+                >
+                  <SelectTrigger className="h-10 lg:h-8 text-sm">
+                    <SelectValue placeholder="GPA" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpa">GPA</SelectItem>
+                    <SelectItem value="percentage">%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field
+                label={(item.gpaMode as string) === "percentage" ? "%" : "GPA"}
               >
-                <SelectTrigger className="h-10 lg:h-8 text-sm">
-                  <SelectValue placeholder="GPA" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpa">GPA</SelectItem>
-                  <SelectItem value="percentage">%</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field
-              label={(item.gpaMode as string) === "percentage" ? "%" : "GPA"}
-            >
-              <Input
-                size={1}
-                value={(item.gpa as string) ?? ""}
-                onChange={(e) => updateItem(i, "gpa", e.target.value)}
-                placeholder={
-                  (item.gpaMode as string) === "percentage" ? "98.5" : "3.9"
-                }
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-          </div>
-        </CollapsibleEditableBlock>
-      ))}
+                <Input
+                  size={1}
+                  value={(item.gpa as string) ?? ""}
+                  onChange={(e) => updateItem(i, "gpa", e.target.value)}
+                  placeholder={
+                    (item.gpaMode as string) === "percentage" ? "98.5" : "3.9"
+                  }
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+          </CollapsibleEditableBlock>
+        )}
+      />
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
-          collapse.handleAdd(items.length);
-          onChange({
-            ...content,
-            items: [
-              ...items,
-              {
-                school: "",
-                degree: "",
-                field: "",
-                startDate: "",
-                endDate: "",
-                gpa: "",
-                gpaMode: "gpa",
-              },
-            ],
-          });
-        }}
+        onClick={addItem}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
@@ -1246,8 +1283,14 @@ function ProjectsEditor({
 }) {
   const { toast } = useToast();
   const collapse = useCollapsibleList();
-  const items: Array<Record<string, unknown>> =
-    (content.items as Array<Record<string, unknown>>) ?? [];
+  const rawItems = (content.items as Array<Record<string, unknown>>) ?? [];
+
+  const items = useMemo<any[]>(() => {
+    return rawItems.map((item, idx) => ({
+      ...item,
+      id: (item.id as string | number) ?? `proj-${idx}-${item.name || ""}`,
+    }));
+  }, [rawItems]);
 
   const updateItem = (i: number, key: string, val: unknown) => {
     const updated = [...items];
@@ -1255,9 +1298,18 @@ function ProjectsEditor({
     onChange({ ...content, items: updated });
   };
 
-  const removeItem = (i: number) => {
-    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
-    collapse.handleRemove(i);
+  const addItem = () => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    collapse.handleAdd(newId);
+    onChange({
+      ...content,
+      items: [...rawItems, { id: newId, name: "", url: "", description: "" }],
+    });
+  };
+
+  const removeItem = (id: string | number) => {
+    onChange({ ...content, items: rawItems.filter((item) => (item.id || "") !== id) });
+    collapse.handleRemove(id);
   };
 
   const [pendingProject, setPendingProject] = useState<number | null>(null);
@@ -1301,100 +1353,103 @@ function ProjectsEditor({
 
   return (
     <div className="space-y-3">
-      {items.map((item, i) => (
-        <CollapsibleEditableBlock
-          key={i}
-          expanded={collapse.isExpanded(i)}
-          onToggle={() => collapse.toggle(i)}
-          onSave={() => collapse.collapse(i)}
-          onDelete={() => removeItem(i)}
-          preview={
-            <BlockPreview
-              title={(item.name as string) || ""}
-              meta={(item.url as string) || ""}
-              placeholder={`Project #${i + 1}`}
-            />
-          }
-        >
-          <div className="space-y-2">
-            <Field label="Project Name">
-              <Input
-                size={1}
-                value={(item.name as string) ?? ""}
-                onChange={(e) => updateItem(i, "name", e.target.value)}
-                placeholder="My Project"
-                className="h-10 lg:h-8 text-sm"
+      <SortableBlockList
+        items={items}
+        onReorder={(newItems) => onChange({ ...content, items: newItems })}
+        renderItem={(item, i, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+          <CollapsibleEditableBlock
+            key={item.id}
+            setNodeRef={ref}
+            style={style}
+            dragHandleProps={dragHandleProps}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
+            expanded={collapse.isExpanded(item.id)}
+            onToggle={() => collapse.toggle(item.id)}
+            onSave={() => collapse.collapse(item.id)}
+            onDelete={() => removeItem(item.id as string | number)}
+            preview={
+              <BlockPreview
+                title={(item.name as string) || ""}
+                meta={(item.url as string) || ""}
+                placeholder={`Project #${i + 1}`}
+              />
+            }
+          >
+            <div className="space-y-2">
+              <Field label="Project Name">
+                <Input
+                  size={1}
+                  value={(item.name as string) ?? ""}
+                  onChange={(e) => updateItem(i, "name", e.target.value)}
+                  placeholder="My Project"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-2 items-end">
+                <Field label="Link Label">
+                  <Input
+                    size={1}
+                    value={(item.label as string) ?? ""}
+                    onChange={(e) => updateItem(i, "label", e.target.value)}
+                    placeholder="e.g. View Live"
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+                <Field label="URL">
+                  <Input
+                    size={1}
+                    value={(item.url as string) ?? ""}
+                    onChange={(e) => updateItem(i, "url", e.target.value)}
+                    placeholder="github.com/..."
+                    className="h-10 lg:h-8 text-sm"
+                  />
+                </Field>
+              </div>
+            </div>
+            <Field label="Description">
+              <RichTextEditor
+                value={(item.description as string) ?? ""}
+                onChange={(val) => updateItem(i, "description", val)}
+                placeholder="Brief description..."
+                actionCount={1}
+                rightElement={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                    title="Improve with AI"
+                    onClick={() => {
+                      setPendingProject(i);
+                      improveDescription.mutate({
+                        data: {
+                          bullet: richHtmlToPlainText(
+                            (item.description as string) ?? "",
+                          ),
+                          context: `Project: ${item.name ?? ""}`,
+                        },
+                      });
+                    }}
+                    disabled={
+                      improveDescription.isPending && pendingProject === i
+                    }
+                  >
+                    {improveDescription.isPending && pendingProject === i ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    )}
+                  </Button>
+                }
               />
             </Field>
-            <div className="grid grid-cols-2 gap-2 items-end">
-              <Field label="Link Label">
-                <Input
-                  size={1}
-                  value={(item.label as string) ?? ""}
-                  onChange={(e) => updateItem(i, "label", e.target.value)}
-                  placeholder="e.g. View Live"
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-              <Field label="URL">
-                <Input
-                  size={1}
-                  value={(item.url as string) ?? ""}
-                  onChange={(e) => updateItem(i, "url", e.target.value)}
-                  placeholder="github.com/..."
-                  className="h-10 lg:h-8 text-sm"
-                />
-              </Field>
-            </div>
-          </div>
-          <Field label="Description">
-            <RichTextEditor
-              value={(item.description as string) ?? ""}
-              onChange={(val) => updateItem(i, "description", val)}
-              placeholder="Brief description..."
-              actionCount={1}
-              rightElement={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
-                  title="Improve with AI"
-                  onClick={() => {
-                    setPendingProject(i);
-                    improveDescription.mutate({
-                      data: {
-                        bullet: richHtmlToPlainText(
-                          (item.description as string) ?? "",
-                        ),
-                        context: `Project named ${item.name ?? ""}`,
-                      },
-                    });
-                  }}
-                  disabled={
-                    improveDescription.isPending && pendingProject === i
-                  }
-                >
-                  {improveDescription.isPending && pendingProject === i ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  )}
-                </Button>
-              }
-            />
-          </Field>
-        </CollapsibleEditableBlock>
-      ))}
+          </CollapsibleEditableBlock>
+        )}
+      />
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
-          collapse.handleAdd(items.length);
-          onChange({
-            ...content,
-            items: [...items, { name: "", url: "", description: "" }],
-          });
-        }}
+        onClick={addItem}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />
@@ -1412,8 +1467,14 @@ function CertificationsEditor({
   onChange: (c: SectionContent) => void;
 }) {
   const collapse = useCollapsibleList();
-  const items: Array<Record<string, unknown>> =
-    (content.items as Array<Record<string, unknown>>) ?? [];
+  const rawItems = (content.items as Array<Record<string, unknown>>) ?? [];
+
+  const items = useMemo<any[]>(() => {
+    return rawItems.map((item, idx) => ({
+      ...item,
+      id: (item.id as string | number) ?? `cert-${idx}-${item.name || ""}`,
+    }));
+  }, [rawItems]);
 
   const updateItem = (i: number, key: string, val: string) => {
     const updated = [...items];
@@ -1421,86 +1482,98 @@ function CertificationsEditor({
     onChange({ ...content, items: updated });
   };
 
-  const removeItem = (i: number) => {
-    onChange({ ...content, items: items.filter((_, idx) => idx !== i) });
-    collapse.handleRemove(i);
+  const addItem = () => {
+    const newId = Math.random().toString(36).substr(2, 9);
+    collapse.handleAdd(newId);
+    onChange({
+      ...content,
+      items: [
+        ...rawItems,
+        { id: newId, name: "", issuer: "", date: "", credentialUrl: "" },
+      ],
+    });
+  };
+
+  const removeItem = (id: string | number) => {
+    onChange({ ...content, items: rawItems.filter((item) => (item.id || "") !== id) });
+    collapse.handleRemove(id);
   };
 
   return (
     <div className="space-y-3">
-      {items.map((item, i) => (
-        <CollapsibleEditableBlock
-          key={i}
-          expanded={collapse.isExpanded(i)}
-          onToggle={() => collapse.toggle(i)}
-          onSave={() => collapse.collapse(i)}
-          onDelete={() => removeItem(i)}
-          preview={
-            <BlockPreview
-              title={(item.name as string) || ""}
-              subtitle={(item.issuer as string) || ""}
-              meta={(item.date as string) || ""}
-              placeholder={`Certification #${i + 1}`}
-            />
-          }
-        >
-          <div>
-            <Field label="Certification Name">
+      <SortableBlockList
+        items={items}
+        onReorder={(newItems) => onChange({ ...content, items: newItems })}
+        renderItem={(item, i, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+          <CollapsibleEditableBlock
+            key={item.id}
+            setNodeRef={ref}
+            style={style}
+            dragHandleProps={dragHandleProps}
+            onMoveUp={onMoveUp}
+            onMoveDown={onMoveDown}
+            expanded={collapse.isExpanded(item.id)}
+            onToggle={() => collapse.toggle(item.id)}
+            onSave={() => collapse.collapse(item.id)}
+            onDelete={() => removeItem(item.id)}
+            preview={
+              <BlockPreview
+                title={(item.name as string) || ""}
+                subtitle={(item.issuer as string) || ""}
+                meta={(item.date as string) || ""}
+                placeholder={`Certification #${i + 1}`}
+              />
+            }
+          >
+            <div>
+              <Field label="Certification Name">
+                <Input
+                  size={1}
+                  value={(item.name as string) ?? ""}
+                  onChange={(e) => updateItem(i, "name", e.target.value)}
+                  placeholder="AWS Solutions Architect"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-2 items-end">
+              <Field label="Issuer">
+                <Input
+                  size={1}
+                  value={(item.issuer as string) ?? ""}
+                  onChange={(e) => updateItem(i, "issuer", e.target.value)}
+                  placeholder="Amazon"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+              <Field label="Date">
+                <Input
+                  size={1}
+                  value={(item.date as string) ?? ""}
+                  onChange={(e) => updateItem(i, "date", e.target.value)}
+                  placeholder="Mar 2024"
+                  className="h-10 lg:h-8 text-sm"
+                />
+              </Field>
+            </div>
+            <Field label="Credential Link">
               <Input
                 size={1}
-                value={(item.name as string) ?? ""}
-                onChange={(e) => updateItem(i, "name", e.target.value)}
-                placeholder="AWS Solutions Architect"
+                value={
+                  (item.credentialUrl as string) ?? (item.url as string) ?? ""
+                }
+                onChange={(e) => updateItem(i, "credentialUrl", e.target.value)}
+                placeholder="https://verify.example.com/abc"
                 className="h-10 lg:h-8 text-sm"
               />
             </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-2 items-end">
-            <Field label="Issuer">
-              <Input
-                size={1}
-                value={(item.issuer as string) ?? ""}
-                onChange={(e) => updateItem(i, "issuer", e.target.value)}
-                placeholder="Amazon"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-            <Field label="Date">
-              <Input
-                size={1}
-                value={(item.date as string) ?? ""}
-                onChange={(e) => updateItem(i, "date", e.target.value)}
-                placeholder="Mar 2024"
-                className="h-10 lg:h-8 text-sm"
-              />
-            </Field>
-          </div>
-          <Field label="Credential Link">
-            <Input
-              size={1}
-              value={
-                (item.credentialUrl as string) ?? (item.url as string) ?? ""
-              }
-              onChange={(e) => updateItem(i, "credentialUrl", e.target.value)}
-              placeholder="https://verify.example.com/abc"
-              className="h-10 lg:h-8 text-sm"
-            />
-          </Field>
-        </CollapsibleEditableBlock>
-      ))}
+          </CollapsibleEditableBlock>
+        )}
+      />
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
-          collapse.handleAdd(items.length);
-          onChange({
-            ...content,
-            items: [
-              ...items,
-              { name: "", issuer: "", date: "", credentialUrl: "" },
-            ],
-          });
-        }}
+        onClick={addItem}
         className="gap-1.5 h-10 lg:h-8 text-xs font-medium w-full"
       >
         <Plus className="h-3.5 w-3.5" />

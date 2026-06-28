@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from "react";
-import { ChevronDown, Check, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CollapsibleEditableBlockProps {
@@ -15,6 +15,13 @@ interface CollapsibleEditableBlockProps {
   children: ReactNode;
   saveLabel?: string;
   className?: string;
+  // Drag and drop support
+  dragHandleProps?: any;
+  setNodeRef?: (node: HTMLElement | null) => void;
+  style?: React.CSSProperties;
+  // Reorder buttons for accessibility / mobile
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
 /**
@@ -35,19 +42,36 @@ export function CollapsibleEditableBlock({
   children,
   saveLabel = "Save",
   className,
+  dragHandleProps,
+  setNodeRef,
+  style,
+  onMoveUp,
+  onMoveDown,
 }: CollapsibleEditableBlockProps) {
   const bodyId = useId();
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
         "rounded-xl border bg-card/40 transition-colors",
         expanded ? "border-indigo-500/40" : "border-border hover:border-border/80",
         className,
       )}
     >
-      {/* Header — always visible. Click anywhere (except delete) toggles. */}
+      {/* Header — always visible. Click anywhere (except delete/move) toggles. */}
       <div className="flex items-center gap-2 p-3">
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className="cursor-grab active:cursor-grabbing p-2.5 lg:p-1 text-muted-foreground/45 hover:text-foreground shrink-0 flex items-center justify-center touch-none select-none"
+            title="Drag to reorder"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onToggle}
@@ -64,12 +88,42 @@ export function CollapsibleEditableBlock({
           <div className="min-w-0 flex-1">{preview}</div>
         </button>
 
+        {onMoveUp && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveUp();
+            }}
+            title="Move Up"
+            aria-label="Move Up"
+            className="h-8.5 w-8.5 lg:h-7 lg:w-7 shrink-0 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </button>
+        )}
+
+        {onMoveDown && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveDown();
+            }}
+            title="Move Down"
+            aria-label="Move Down"
+            className="h-8.5 w-8.5 lg:h-7 lg:w-7 shrink-0 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onDelete}
           title="Delete"
           aria-label="Delete"
-          className="h-7 w-7 shrink-0 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-white hover:bg-destructive border border-transparent hover:border-destructive transition-colors"
+          className="h-8.5 w-8.5 lg:h-7 lg:w-7 shrink-0 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-white hover:bg-destructive border border-transparent hover:border-destructive transition-colors"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

@@ -1295,7 +1295,21 @@ export default function BuilderPage() {
         queryClient.setQueryData(getGetResumeQueryKey(resumeId), resumeData);
         
         // Update local states
-        const nextSections = (resumeData.sections ?? []).map((s) => ({ ...s }));
+        const nextSections = (resumeData.sections ?? []).map((s) => {
+          const nextContent = { ...s.content };
+          if (Array.isArray(nextContent.items)) {
+            nextContent.items = nextContent.items.map((item, idx) => {
+              if (item && typeof item === "object") {
+                return {
+                  id: (item as any).id || Math.random().toString(36).substr(2, 9),
+                  ...item,
+                };
+              }
+              return item;
+            });
+          }
+          return { ...s, content: nextContent };
+        });
         setLocalSections(nextSections);
         
         if (resumeData.accentColor) setAccentColor(resumeData.accentColor);
@@ -1421,7 +1435,21 @@ export default function BuilderPage() {
   useEffect(() => {
     if (resume && resume.id !== initializedResumeIdRef.current) {
       initializedResumeIdRef.current = resume.id;
-      const nextSections = (resume.sections ?? []).map((s) => ({ ...s }));
+      const nextSections = (resume.sections ?? []).map((s) => {
+        const nextContent = { ...s.content };
+        if (Array.isArray(nextContent.items)) {
+          nextContent.items = nextContent.items.map((item, idx) => {
+            if (item && typeof item === "object") {
+              return {
+                id: (item as any).id || Math.random().toString(36).substr(2, 9),
+                ...item,
+              };
+            }
+            return item;
+          });
+        }
+        return { ...s, content: nextContent };
+      });
       setLocalSections(nextSections);
       setAccentColor(
         resume.accentColor ?? getDefaultAccentColor(resume.templateId),

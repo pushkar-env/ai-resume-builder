@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useTransition } from "react";
+import { SortableBlockList } from "@/components/shared/SortableBlockList";
 import { useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -112,6 +113,7 @@ export default function OnboardingPage() {
 
   const [experience, setExperience] = useState<
     {
+      id: string | number;
       company: string;
       title: string;
       startDate: string;
@@ -125,6 +127,7 @@ export default function OnboardingPage() {
 
   const [education, setEducation] = useState<
     {
+      id: string | number;
       school: string;
       degree: string;
       field: string;
@@ -140,6 +143,7 @@ export default function OnboardingPage() {
 
   const [projects, setProjects] = useState<
     {
+      id: string | number;
       name: string;
       description: string;
       technologiesUsed?: string;
@@ -151,6 +155,7 @@ export default function OnboardingPage() {
 
   const [certifications, setCertifications] = useState<
     {
+      id: string | number;
       name: string;
       issuer: string;
       date: string;
@@ -195,7 +200,8 @@ export default function OnboardingPage() {
       setAboutMe(profile.aboutMe || "");
 
       setExperience(
-        ((profile.experience as any[]) || []).map(exp => ({
+        ((profile.experience as any[]) || []).map((exp, idx) => ({
+          id: exp.id || Math.random().toString(36).substr(2, 9),
           company: exp.company || "",
           title: exp.title || "",
           startDate: exp.startDate || "",
@@ -207,7 +213,8 @@ export default function OnboardingPage() {
         }))
       );
       setEducation(
-        ((profile.education as any[]) || []).map(edu => ({
+        ((profile.education as any[]) || []).map((edu, idx) => ({
+          id: edu.id || Math.random().toString(36).substr(2, 9),
           school: edu.school || "",
           degree: edu.degree || "",
           field: edu.field || "",
@@ -219,7 +226,8 @@ export default function OnboardingPage() {
       );
       setSkills(profile.skills || []);
       setProjects(
-        ((profile.projects as any[]) || []).map(proj => ({
+        ((profile.projects as any[]) || []).map((proj, idx) => ({
+          id: proj.id || Math.random().toString(36).substr(2, 9),
           name: proj.name || "",
           description: proj.description || "",
           technologiesUsed: proj.technologiesUsed || "",
@@ -229,12 +237,13 @@ export default function OnboardingPage() {
         }))
       );
       setCertifications(
-        (profile.certifications as {
-          name: string;
-          issuer: string;
-          date: string;
-          credentialUrl?: string;
-        }[]) || []
+        ((profile.certifications as any[]) || []).map((cert, idx) => ({
+          id: cert.id || Math.random().toString(36).substr(2, 9),
+          name: cert.name || "",
+          issuer: cert.issuer || "",
+          date: cert.date || "",
+          credentialUrl: cert.credentialUrl || "",
+        }))
       );
 
       if (profile.onboardingProgress && profile.onboardingProgress > 0) {
@@ -816,10 +825,12 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
-                        expCollapse.handleAdd(experience.length);
+                        const newId = Math.random().toString(36).substr(2, 9);
+                        expCollapse.handleAdd(newId);
                         const newExp = [
                           ...experience,
                           {
+                            id: newId,
                             company: "",
                             title: "",
                             startDate: "",
@@ -846,9 +857,11 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
-                            expCollapse.handleAdd(0);
+                            const newId = Math.random().toString(36).substr(2, 9);
+                            expCollapse.handleAdd(newId);
                             setExperience([
                               {
+                                id: newId,
                                 company: "",
                                 title: "",
                                 startDate: "",
@@ -864,121 +877,130 @@ export default function OnboardingPage() {
                         </Button>
                       </div>
                     ) : (
-                      experience.map((exp, idx) => (
-                        <CollapsibleEditableBlock
-                          key={idx}
-                          expanded={expCollapse.isExpanded(idx)}
-                          onToggle={() => expCollapse.toggle(idx)}
-                          onSave={() => expCollapse.collapse(idx)}
-                          onDelete={() => {
-                            const updated = experience.filter((_, i) => i !== idx);
-                            handleFieldChange(setExperience, "experience", updated);
-                            expCollapse.handleRemove(idx);
-                          }}
-                          preview={
-                            <BlockPreview
-                              title={exp.title}
-                              subtitle={exp.company}
-                              meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
-                              placeholder="Untitled role"
-                            />
-                          }
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Job Title</Label>
-                              <Input
-                                value={exp.title}
-                                onChange={(e) => {
-                                  const updated = [...experience];
-                                  updated[idx].title = e.target.value;
-                                  handleFieldChange(setExperience, "experience", updated);
-                                }}
-                                placeholder="Software Engineer"
-                                className="bg-background border-input"
+                      <SortableBlockList
+                        items={experience}
+                        onReorder={(newItems) => handleFieldChange(setExperience, "experience", newItems)}
+                        renderItem={(exp, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                          <CollapsibleEditableBlock
+                            key={exp.id}
+                            setNodeRef={ref}
+                            style={style}
+                            dragHandleProps={dragHandleProps}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                            expanded={expCollapse.isExpanded(exp.id)}
+                            onToggle={() => expCollapse.toggle(exp.id)}
+                            onSave={() => expCollapse.collapse(exp.id)}
+                            onDelete={() => {
+                              const updated = experience.filter((e) => e.id !== exp.id);
+                              handleFieldChange(setExperience, "experience", updated);
+                              expCollapse.handleRemove(exp.id);
+                            }}
+                            preview={
+                              <BlockPreview
+                                title={exp.title}
+                                subtitle={exp.company}
+                                meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
+                                placeholder="Untitled role"
                               />
+                            }
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Job Title</Label>
+                                <Input
+                                  value={exp.title}
+                                  onChange={(e) => {
+                                    const updated = [...experience];
+                                    updated[idx].title = e.target.value;
+                                    handleFieldChange(setExperience, "experience", updated);
+                                  }}
+                                  placeholder="Software Engineer"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Company Name</Label>
+                                <Input
+                                  value={exp.company}
+                                  onChange={(e) => {
+                                    const updated = [...experience];
+                                    updated[idx].company = e.target.value;
+                                    handleFieldChange(setExperience, "experience", updated);
+                                  }}
+                                  placeholder="Acme Corp"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Start Date</Label>
+                                <Input
+                                  value={exp.startDate}
+                                  onChange={(e) => {
+                                    const updated = [...experience];
+                                    updated[idx].startDate = e.target.value;
+                                    handleFieldChange(setExperience, "experience", updated);
+                                  }}
+                                  placeholder="Jan 2021"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">End Date</Label>
+                                <Input
+                                  value={exp.endDate}
+                                  disabled={exp.currentlyWorking}
+                                  onChange={(e) => {
+                                    const updated = [...experience];
+                                    updated[idx].endDate = e.target.value;
+                                    handleFieldChange(setExperience, "experience", updated);
+                                  }}
+                                  placeholder={exp.currentlyWorking ? "Present" : "Dec 2023"}
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-2 md:mt-5">
+                                <Checkbox
+                                  id={`curr-${idx}`}
+                                  checked={exp.currentlyWorking}
+                                  onCheckedChange={(checked) => {
+                                    const updated = [...experience];
+                                    updated[idx].currentlyWorking = !!checked;
+                                    if (checked) {
+                                      updated[idx].endDate = "Present";
+                                    }
+                                    handleFieldChange(setExperience, "experience", updated);
+                                  }}
+                                />
+                                <Label htmlFor={`curr-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
+                                  I currently work here
+                                </Label>
+                              </div>
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Company Name</Label>
-                              <Input
-                                value={exp.company}
-                                onChange={(e) => {
+                              <BulletListEditor
+                                bullets={exp.bullets || []}
+                                onChange={(newBullets) => {
                                   const updated = [...experience];
-                                  updated[idx].company = e.target.value;
+                                  updated[idx].bullets = newBullets;
+                                  updated[idx].description = syncBulletsToDescription(newBullets);
                                   handleFieldChange(setExperience, "experience", updated);
                                 }}
-                                placeholder="Acme Corp"
-                                className="bg-background border-input"
+                                context={`${exp.title || "Role"} at ${exp.company || "Company"}`}
+                                placeholder="e.g. Led redesign of customer checkout flow, boosting conversion by 15%"
+                                label="Description / Key Achievements"
                               />
                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Start Date</Label>
-                              <Input
-                                value={exp.startDate}
-                                onChange={(e) => {
-                                  const updated = [...experience];
-                                  updated[idx].startDate = e.target.value;
-                                  handleFieldChange(setExperience, "experience", updated);
-                                }}
-                                placeholder="Jan 2021"
-                                className="bg-background border-input"
-                              />
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">End Date</Label>
-                              <Input
-                                value={exp.endDate}
-                                disabled={exp.currentlyWorking}
-                                onChange={(e) => {
-                                  const updated = [...experience];
-                                  updated[idx].endDate = e.target.value;
-                                  handleFieldChange(setExperience, "experience", updated);
-                                }}
-                                placeholder={exp.currentlyWorking ? "Present" : "Dec 2023"}
-                                className="bg-background border-input"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-2 mt-2 md:mt-5">
-                              <Checkbox
-                                id={`curr-${idx}`}
-                                checked={exp.currentlyWorking}
-                                onCheckedChange={(checked) => {
-                                  const updated = [...experience];
-                                  updated[idx].currentlyWorking = !!checked;
-                                  if (checked) {
-                                    updated[idx].endDate = "Present";
-                                  }
-                                  handleFieldChange(setExperience, "experience", updated);
-                                }}
-                              />
-                              <Label htmlFor={`curr-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
-                                I currently work here
-                              </Label>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <BulletListEditor
-                              bullets={exp.bullets || []}
-                              onChange={(newBullets) => {
-                                const updated = [...experience];
-                                updated[idx].bullets = newBullets;
-                                updated[idx].description = syncBulletsToDescription(newBullets);
-                                handleFieldChange(setExperience, "experience", updated);
-                              }}
-                              context={`${exp.title || "Role"} at ${exp.company || "Company"}`}
-                              placeholder="e.g. Led redesign of customer checkout flow, boosting conversion by 15%"
-                              label="Description / Key Achievements"
-                            />
-                          </div>
-                        </CollapsibleEditableBlock>
-                      ))
+                          </CollapsibleEditableBlock>
+                        )}
+                      />
                     )}
                   </div>
                 </div>
@@ -997,10 +1019,12 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
-                        eduCollapse.handleAdd(education.length);
+                        const newId = Math.random().toString(36).substr(2, 9);
+                        eduCollapse.handleAdd(newId);
                         const newEdu = [
                           ...education,
                           {
+                            id: newId,
                             school: "",
                             degree: "",
                             field: "",
@@ -1026,9 +1050,11 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
-                            eduCollapse.handleAdd(0);
+                            const newId = Math.random().toString(36).substr(2, 9);
+                            eduCollapse.handleAdd(newId);
                             setEducation([
                               {
+                                id: newId,
                                 school: "",
                                 degree: "",
                                 field: "",
@@ -1044,135 +1070,144 @@ export default function OnboardingPage() {
                         </Button>
                       </div>
                     ) : (
-                      education.map((edu, idx) => (
-                        <CollapsibleEditableBlock
-                          key={idx}
-                          expanded={eduCollapse.isExpanded(idx)}
-                          onToggle={() => eduCollapse.toggle(idx)}
-                          onSave={() => eduCollapse.collapse(idx)}
-                          onDelete={() => {
-                            const updated = education.filter((_, i) => i !== idx);
-                            handleFieldChange(setEducation, "education", updated);
-                            eduCollapse.handleRemove(idx);
-                          }}
-                          preview={
-                            <BlockPreview
-                              title={[edu.degree, edu.field].filter(Boolean).join(" ")}
-                              subtitle={edu.school}
-                              meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
-                              placeholder="Untitled education"
-                            />
-                          }
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">School / University</Label>
-                              <Input
-                                value={edu.school}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].school = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder="MIT"
-                                className="bg-background border-input"
+                      <SortableBlockList
+                        items={education}
+                        onReorder={(newItems) => handleFieldChange(setEducation, "education", newItems)}
+                        renderItem={(edu, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                          <CollapsibleEditableBlock
+                            key={edu.id}
+                            setNodeRef={ref}
+                            style={style}
+                            dragHandleProps={dragHandleProps}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                            expanded={eduCollapse.isExpanded(edu.id)}
+                            onToggle={() => eduCollapse.toggle(edu.id)}
+                            onSave={() => eduCollapse.collapse(edu.id)}
+                            onDelete={() => {
+                              const updated = education.filter((e) => e.id !== edu.id);
+                              handleFieldChange(setEducation, "education", updated);
+                              eduCollapse.handleRemove(edu.id);
+                            }}
+                            preview={
+                              <BlockPreview
+                                title={[edu.degree, edu.field].filter(Boolean).join(" ")}
+                                subtitle={edu.school}
+                                meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
+                                placeholder="Untitled education"
                               />
+                            }
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">School / University</Label>
+                                <Input
+                                  value={edu.school}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].school = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder="MIT"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Degree</Label>
+                                <Input
+                                  value={edu.degree}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].degree = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder="B.S. Computer Science"
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Degree</Label>
-                              <Input
-                                value={edu.degree}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].degree = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder="B.S. Computer Science"
-                                className="bg-background border-input"
-                              />
-                            </div>
-                          </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Field of Study</Label>
+                                <Input
+                                  value={edu.field}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].field = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder="Artificial Intelligence"
+                                  className="bg-background border-input"
+                                />
+                              </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Field of Study</Label>
-                              <Input
-                                value={edu.field}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].field = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder="Artificial Intelligence"
-                                className="bg-background border-input"
-                              />
-                            </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Start Date</Label>
+                                <Input
+                                  value={edu.startDate}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].startDate = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder="2018"
+                                  className="bg-background border-input"
+                                />
+                              </div>
 
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Start Date</Label>
-                              <Input
-                                value={edu.startDate}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].startDate = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder="2018"
-                                className="bg-background border-input"
-                              />
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">End Date (or Expected)</Label>
-                              <Input
-                                value={edu.endDate}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].endDate = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder="2022"
-                                className="bg-background border-input"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Grade System</Label>
-                              <select
-                                value={edu.gpaMode || "gpa"}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].gpaMode = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm text-foreground focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                              >
-                                <option value="gpa">GPA</option>
-                                <option value="percentage">Percentage (%)</option>
-                              </select>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">End Date (or Expected)</Label>
+                                <Input
+                                  value={edu.endDate}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].endDate = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder="2022"
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">
-                                {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
-                              </Label>
-                              <Input
-                                value={edu.gpa}
-                                onChange={(e) => {
-                                  const updated = [...education];
-                                  updated[idx].gpa = e.target.value;
-                                  handleFieldChange(setEducation, "education", updated);
-                                }}
-                                placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
-                                className="bg-background border-input"
-                              />
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Grade System</Label>
+                                <select
+                                  value={edu.gpaMode || "gpa"}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].gpaMode = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm text-foreground focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                                >
+                                  <option value="gpa">GPA</option>
+                                  <option value="percentage">Percentage (%)</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">
+                                  {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
+                                </Label>
+                                <Input
+                                  value={edu.gpa}
+                                  onChange={(e) => {
+                                    const updated = [...education];
+                                    updated[idx].gpa = e.target.value;
+                                    handleFieldChange(setEducation, "education", updated);
+                                  }}
+                                  placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </CollapsibleEditableBlock>
-                      ))
+                          </CollapsibleEditableBlock>
+                        )}
+                      />
                     )}
                   </div>
                 </div>
@@ -1288,10 +1323,11 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
-                        projCollapse.handleAdd(projects.length);
+                        const newId = Math.random().toString(36).substr(2, 9);
+                        projCollapse.handleAdd(newId);
                         const newProjs = [
                           ...projects,
-                          { name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
+                          { id: newId, name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
                         ];
                         handleFieldChange(setProjects, "projects", newProjs);
                       }}
@@ -1309,79 +1345,89 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
-                            projCollapse.handleAdd(0);
-                            setProjects([{ name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] }]);
+                            const newId = Math.random().toString(36).substr(2, 9);
+                            projCollapse.handleAdd(newId);
+                            setProjects([{ id: newId, name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] }]);
                           }}
                         >
                           Add your first project
                         </Button>
                       </div>
                     ) : (
-                      projects.map((proj, idx) => (
-                        <CollapsibleEditableBlock
-                          key={idx}
-                          expanded={projCollapse.isExpanded(idx)}
-                          onToggle={() => projCollapse.toggle(idx)}
-                          onSave={() => projCollapse.collapse(idx)}
-                          onDelete={() => {
-                            const updated = projects.filter((_, i) => i !== idx);
-                            handleFieldChange(setProjects, "projects", updated);
-                            projCollapse.handleRemove(idx);
-                          }}
-                          preview={
-                            <BlockPreview
-                              title={proj.name}
-                              meta={proj.technologiesUsed || proj.url}
-                              placeholder="Untitled project"
-                            />
-                          }
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Project Name</Label>
-                              <Input
-                                value={proj.name}
-                                onChange={(e) => {
-                                  const updated = [...projects];
-                                  updated[idx].name = e.target.value;
-                                  handleFieldChange(setProjects, "projects", updated);
-                                }}
-                                placeholder="E-Commerce API Service"
-                                className="bg-background border-input"
+                      <SortableBlockList
+                        items={projects}
+                        onReorder={(newItems) => handleFieldChange(setProjects, "projects", newItems)}
+                        renderItem={(proj, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                          <CollapsibleEditableBlock
+                            key={proj.id}
+                            setNodeRef={ref}
+                            style={style}
+                            dragHandleProps={dragHandleProps}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                            expanded={projCollapse.isExpanded(proj.id)}
+                            onToggle={() => projCollapse.toggle(proj.id)}
+                            onSave={() => projCollapse.collapse(proj.id)}
+                            onDelete={() => {
+                              const updated = projects.filter((p) => p.id !== proj.id);
+                              handleFieldChange(setProjects, "projects", updated);
+                              projCollapse.handleRemove(proj.id);
+                            }}
+                            preview={
+                              <BlockPreview
+                                title={proj.name}
+                                meta={proj.technologiesUsed || proj.url}
+                                placeholder="Untitled project"
                               />
+                            }
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Project Name</Label>
+                                <Input
+                                  value={proj.name}
+                                  onChange={(e) => {
+                                    const updated = [...projects];
+                                    updated[idx].name = e.target.value;
+                                    handleFieldChange(setProjects, "projects", updated);
+                                  }}
+                                  placeholder="E-Commerce API Service"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Project URL (optional)</Label>
+                                <Input
+                                  value={proj.url}
+                                  onChange={(e) => {
+                                    const updated = [...projects];
+                                    updated[idx].url = e.target.value;
+                                    handleFieldChange(setProjects, "projects", updated);
+                                  }}
+                                  placeholder="my-app.com"
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
 
                             <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Project URL (optional)</Label>
-                              <Input
-                                value={proj.url}
-                                onChange={(e) => {
+                              <BulletListEditor
+                                bullets={proj.bullets || []}
+                                onChange={(newBullets) => {
                                   const updated = [...projects];
-                                  updated[idx].url = e.target.value;
+                                  updated[idx].bullets = newBullets;
+                                  updated[idx].description = syncBulletsToDescription(newBullets);
                                   handleFieldChange(setProjects, "projects", updated);
                                 }}
-                                placeholder="my-app.com"
-                                className="bg-background border-input"
+                                context={`Project named ${proj.name || "Project"}`}
+                                placeholder="e.g. Developed real-time analytics dashboard rendering 10k data points/sec"
+                                label="Project Description / Key Accomplishments"
                               />
                             </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <BulletListEditor
-                              bullets={proj.bullets || []}
-                              onChange={(newBullets) => {
-                                const updated = [...projects];
-                                updated[idx].bullets = newBullets;
-                                updated[idx].description = syncBulletsToDescription(newBullets);
-                                handleFieldChange(setProjects, "projects", updated);
-                              }}
-                              context={`Project named ${proj.name || "Project"}`}
-                              placeholder="e.g. Developed real-time analytics dashboard rendering 10k data points/sec"
-                              label="Project Description / Key Accomplishments"
-                            />
-                          </div>
-                        </CollapsibleEditableBlock>
-                      ))
+                          </CollapsibleEditableBlock>
+                        )}
+                      />
                     )}
                   </div>
                 </div>
@@ -1400,10 +1446,11 @@ export default function OnboardingPage() {
                       size="sm"
                       className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                       onClick={() => {
-                        certCollapse.handleAdd(certifications.length);
+                        const newId = Math.random().toString(36).substr(2, 9);
+                        certCollapse.handleAdd(newId);
                         const newCerts = [
                           ...certifications,
-                          { name: "", issuer: "", date: "", credentialUrl: "" },
+                          { id: newId, name: "", issuer: "", date: "", credentialUrl: "" },
                         ];
                         handleFieldChange(setCertifications, "certifications", newCerts);
                       }}
@@ -1421,95 +1468,105 @@ export default function OnboardingPage() {
                           variant="link"
                           className="text-indigo-650 dark:text-indigo-400 mt-1"
                           onClick={() => {
-                            certCollapse.handleAdd(0);
-                            setCertifications([{ name: "", issuer: "", date: "", credentialUrl: "" }]);
+                            const newId = Math.random().toString(36).substr(2, 9);
+                            certCollapse.handleAdd(newId);
+                            setCertifications([{ id: newId, name: "", issuer: "", date: "", credentialUrl: "" }]);
                           }}
                         >
                           Add your first certification
                         </Button>
                       </div>
                     ) : (
-                      certifications.map((cert, idx) => (
-                        <CollapsibleEditableBlock
-                          key={idx}
-                          expanded={certCollapse.isExpanded(idx)}
-                          onToggle={() => certCollapse.toggle(idx)}
-                          onSave={() => certCollapse.collapse(idx)}
-                          onDelete={() => {
-                            const updated = certifications.filter((_, i) => i !== idx);
-                            handleFieldChange(setCertifications, "certifications", updated);
-                            certCollapse.handleRemove(idx);
-                          }}
-                          preview={
-                            <BlockPreview
-                              title={cert.name}
-                              subtitle={cert.issuer}
-                              meta={cert.date}
-                              placeholder="Untitled certification"
-                            />
-                          }
-                        >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Certification Name</Label>
-                              <Input
-                                value={cert.name}
-                                onChange={(e) => {
-                                  const updated = [...certifications];
-                                  updated[idx].name = e.target.value;
-                                  handleFieldChange(setCertifications, "certifications", updated);
-                                }}
-                                placeholder="AWS Certified Solutions Architect"
-                                className="bg-background border-input"
+                      <SortableBlockList
+                        items={certifications}
+                        onReorder={(newItems) => handleFieldChange(setCertifications, "certifications", newItems)}
+                        renderItem={(cert, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                          <CollapsibleEditableBlock
+                            key={cert.id}
+                            setNodeRef={ref}
+                            style={style}
+                            dragHandleProps={dragHandleProps}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                            expanded={certCollapse.isExpanded(cert.id)}
+                            onToggle={() => certCollapse.toggle(cert.id)}
+                            onSave={() => certCollapse.collapse(cert.id)}
+                            onDelete={() => {
+                              const updated = certifications.filter((c) => c.id !== cert.id);
+                              handleFieldChange(setCertifications, "certifications", updated);
+                              certCollapse.handleRemove(cert.id);
+                            }}
+                            preview={
+                              <BlockPreview
+                                title={cert.name}
+                                subtitle={cert.issuer}
+                                meta={cert.date}
+                                placeholder="Untitled certification"
                               />
+                            }
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Certification Name</Label>
+                                <Input
+                                  value={cert.name}
+                                  onChange={(e) => {
+                                    const updated = [...certifications];
+                                    updated[idx].name = e.target.value;
+                                    handleFieldChange(setCertifications, "certifications", updated);
+                                  }}
+                                  placeholder="AWS Certified Solutions Architect"
+                                  className="bg-background border-input"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Issuing Organization</Label>
+                                <Input
+                                  value={cert.issuer}
+                                  onChange={(e) => {
+                                    const updated = [...certifications];
+                                    updated[idx].issuer = e.target.value;
+                                    handleFieldChange(setCertifications, "certifications", updated);
+                                  }}
+                                  placeholder="Amazon Web Services"
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
 
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Issuing Organization</Label>
-                              <Input
-                                value={cert.issuer}
-                                onChange={(e) => {
-                                  const updated = [...certifications];
-                                  updated[idx].issuer = e.target.value;
-                                  handleFieldChange(setCertifications, "certifications", updated);
-                                }}
-                                placeholder="Amazon Web Services"
-                                className="bg-background border-input"
-                              />
-                            </div>
-                          </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Issue Date</Label>
+                                <Input
+                                  value={cert.date}
+                                  onChange={(e) => {
+                                    const updated = [...certifications];
+                                    updated[idx].date = e.target.value;
+                                    handleFieldChange(setCertifications, "certifications", updated);
+                                  }}
+                                  placeholder="August 2023"
+                                  className="bg-background border-input"
+                                />
+                              </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Issue Date</Label>
-                              <Input
-                                value={cert.date}
-                                onChange={(e) => {
-                                  const updated = [...certifications];
-                                  updated[idx].date = e.target.value;
-                                  handleFieldChange(setCertifications, "certifications", updated);
-                                }}
-                                placeholder="August 2023"
-                                className="bg-background border-input"
-                              />
+                              <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Credential URL (optional)</Label>
+                                <Input
+                                  value={cert.credentialUrl}
+                                  onChange={(e) => {
+                                    const updated = [...certifications];
+                                    updated[idx].credentialUrl = e.target.value;
+                                    handleFieldChange(setCertifications, "certifications", updated);
+                                  }}
+                                  placeholder="aws.amazon.com/verify/..."
+                                  className="bg-background border-input"
+                                />
+                              </div>
                             </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-xs text-muted-foreground">Credential URL (optional)</Label>
-                              <Input
-                                value={cert.credentialUrl}
-                                onChange={(e) => {
-                                  const updated = [...certifications];
-                                  updated[idx].credentialUrl = e.target.value;
-                                  handleFieldChange(setCertifications, "certifications", updated);
-                                }}
-                                placeholder="aws.amazon.com/verify/..."
-                                className="bg-background border-input"
-                              />
-                            </div>
-                          </div>
-                        </CollapsibleEditableBlock>
-                      ))
+                          </CollapsibleEditableBlock>
+                        )}
+                      />
                     )}
                   </div>
                 </div>

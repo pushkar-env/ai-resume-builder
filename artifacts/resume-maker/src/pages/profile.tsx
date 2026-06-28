@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { SortableBlockList } from "@/components/shared/SortableBlockList";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -128,6 +129,7 @@ export default function ProfilePage() {
 
   const [experience, setExperience] = useState<
     {
+      id: string | number;
       company: string;
       title: string;
       startDate: string;
@@ -144,6 +146,7 @@ export default function ProfilePage() {
 
   const [projects, setProjects] = useState<
     {
+      id: string | number;
       name: string;
       description: string;
       technologiesUsed?: string;
@@ -155,6 +158,7 @@ export default function ProfilePage() {
 
   const [certifications, setCertifications] = useState<
     {
+      id: string | number;
       name: string;
       issuer: string;
       date: string;
@@ -164,6 +168,7 @@ export default function ProfilePage() {
 
   const [education, setEducation] = useState<
     {
+      id: string | number;
       school: string;
       degree: string;
       field: string;
@@ -197,7 +202,8 @@ export default function ProfilePage() {
       const initialJobTitle = profile.jobTitle || "";
       const initialYears = profile.yearsOfExperience ?? "";
       const initialAbout = profile.aboutMe || "";
-      const initialExperience = ((profile.experience as any[]) || []).map(exp => ({
+      const initialExperience = ((profile.experience as any[]) || []).map((exp, idx) => ({
+        id: exp.id || Math.random().toString(36).substr(2, 9),
         company: exp.company || "",
         title: exp.title || "",
         startDate: exp.startDate || "",
@@ -208,7 +214,8 @@ export default function ProfilePage() {
         bullets: resolveProfileBullets(exp.bullets, exp.description),
       }));
       const initialSkills = profile.skills || [];
-      const initialProjects = ((profile.projects as any[]) || []).map(proj => ({
+      const initialProjects = ((profile.projects as any[]) || []).map((proj, idx) => ({
+        id: proj.id || Math.random().toString(36).substr(2, 9),
         name: proj.name || "",
         description: proj.description || "",
         technologiesUsed: proj.technologiesUsed || "",
@@ -216,8 +223,15 @@ export default function ProfilePage() {
         github: proj.github || "",
         bullets: resolveProfileBullets(proj.bullets, proj.description),
       }));
-      const initialCertifications = (profile.certifications as any[]) || [];
-      const initialEducation = ((profile.education as any[]) || []).map(edu => ({
+      const initialCertifications = ((profile.certifications as any[]) || []).map((cert, idx) => ({
+        id: cert.id || Math.random().toString(36).substr(2, 9),
+        name: cert.name || "",
+        issuer: cert.issuer || "",
+        date: cert.date || "",
+        credentialUrl: cert.credentialUrl || "",
+      }));
+      const initialEducation = ((profile.education as any[]) || []).map((edu, idx) => ({
+        id: edu.id || Math.random().toString(36).substr(2, 9),
         school: edu.school || "",
         degree: edu.degree || "",
         field: edu.field || "",
@@ -425,6 +439,7 @@ export default function ProfilePage() {
           setAboutMe(data.aboutMe || "");
           setExperience(
             ((data.experience as any[]) || []).map((exp) => ({
+              id: exp.id || Math.random().toString(36).substr(2, 9),
               company: exp.company || "",
               title: exp.title || "",
               startDate: exp.startDate || "",
@@ -437,6 +452,7 @@ export default function ProfilePage() {
           );
           setEducation(
             ((data.education as any[]) || []).map((edu) => ({
+              id: edu.id || Math.random().toString(36).substr(2, 9),
               school: edu.school || "",
               degree: edu.degree || "",
               field: edu.field || "",
@@ -449,6 +465,7 @@ export default function ProfilePage() {
           setSkills((data.skills as string[]) || []);
           setProjects(
             ((data.projects as any[]) || []).map((proj) => ({
+              id: proj.id || Math.random().toString(36).substr(2, 9),
               name: proj.name || "",
               description: proj.description || "",
               technologiesUsed: proj.technologiesUsed || "",
@@ -459,6 +476,7 @@ export default function ProfilePage() {
           );
           setCertifications(
             ((data.certifications as any[]) || []).map((cert) => ({
+              id: cert.id || Math.random().toString(36).substr(2, 9),
               name: cert.name || "",
               issuer: cert.issuer || "",
               date: cert.date || "",
@@ -995,10 +1013,12 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
-                      expCollapse.handleAdd(experience.length);
+                      const newId = Math.random().toString(36).substr(2, 9);
+                      expCollapse.handleAdd(newId);
                       setExperience([
                         ...experience,
                         {
+                          id: newId,
                           company: "",
                           title: "",
                           startDate: "",
@@ -1022,124 +1042,133 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground text-sm">No experience added yet.</p>
                     </div>
                   ) : (
-                    experience.map((exp, idx) => (
-                      <CollapsibleEditableBlock
-                        key={idx}
-                        expanded={expCollapse.isExpanded(idx)}
-                        onToggle={() => expCollapse.toggle(idx)}
-                        onSave={() => expCollapse.collapse(idx)}
-                        onDelete={() => {
-                          setExperience(experience.filter((_, i) => i !== idx));
-                          expCollapse.handleRemove(idx);
-                        }}
-                        preview={
-                          <BlockPreview
-                            title={exp.title}
-                            subtitle={exp.company}
-                            meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
-                            placeholder="Untitled role"
-                          />
-                        }
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Job Title</Label>
-                            <Input
-                              value={exp.title}
-                              onChange={(e) => {
-                                const updated = [...experience];
-                                updated[idx] = { ...updated[idx], title: e.target.value };
-                                setExperience(updated);
-                              }}
-                              placeholder="Software Engineer"
-                              className="bg-background border-input"
+                    <SortableBlockList
+                      items={experience}
+                      onReorder={setExperience}
+                      renderItem={(exp, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                        <CollapsibleEditableBlock
+                          key={exp.id}
+                          setNodeRef={ref}
+                          style={style}
+                          dragHandleProps={dragHandleProps}
+                          onMoveUp={onMoveUp}
+                          onMoveDown={onMoveDown}
+                          expanded={expCollapse.isExpanded(exp.id)}
+                          onToggle={() => expCollapse.toggle(exp.id)}
+                          onSave={() => expCollapse.collapse(exp.id)}
+                          onDelete={() => {
+                            setExperience(experience.filter((e) => e.id !== exp.id));
+                            expCollapse.handleRemove(exp.id);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={exp.title}
+                              subtitle={exp.company}
+                              meta={[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
+                              placeholder="Untitled role"
                             />
+                          }
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Job Title</Label>
+                              <Input
+                                value={exp.title}
+                                onChange={(e) => {
+                                  const updated = [...experience];
+                                  updated[idx] = { ...updated[idx], title: e.target.value };
+                                  setExperience(updated);
+                                }}
+                                placeholder="Software Engineer"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Company</Label>
+                              <Input
+                                value={exp.company}
+                                onChange={(e) => {
+                                  const updated = [...experience];
+                                  updated[idx] = { ...updated[idx], company: e.target.value };
+                                  setExperience(updated);
+                                }}
+                                placeholder="Google"
+                                className="bg-background border-input"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Start Date</Label>
+                              <Input
+                                value={exp.startDate}
+                                onChange={(e) => {
+                                  const updated = [...experience];
+                                  updated[idx] = { ...updated[idx], startDate: e.target.value };
+                                  setExperience(updated);
+                                }}
+                                placeholder="Jan 2018"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">End Date</Label>
+                              <Input
+                                value={exp.endDate}
+                                disabled={exp.currentlyWorking}
+                                onChange={(e) => {
+                                  const updated = [...experience];
+                                  updated[idx] = { ...updated[idx], endDate: e.target.value };
+                                  setExperience(updated);
+                                }}
+                                placeholder="Present"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-2 md:mt-5">
+                              <Checkbox
+                                id={`p-curr-${idx}`}
+                                checked={exp.currentlyWorking}
+                                onCheckedChange={(checked) => {
+                                  const updated = [...experience];
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    currentlyWorking: !!checked,
+                                    endDate: checked ? "Present" : updated[idx].endDate === "Present" ? "" : updated[idx].endDate
+                                  };
+                                  setExperience(updated);
+                                }}
+                              />
+                              <Label htmlFor={`p-curr-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
+                                Current Role
+                              </Label>
+                            </div>
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Company</Label>
-                            <Input
-                              value={exp.company}
-                              onChange={(e) => {
-                                const updated = [...experience];
-                                updated[idx] = { ...updated[idx], company: e.target.value };
-                                setExperience(updated);
+                            <BulletListEditor
+                              bullets={exp.bullets || []}
+                              onChange={(newBullets) => {
+                                  const updated = [...experience];
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    bullets: newBullets,
+                                    description: syncBulletsToDescription(newBullets)
+                                  };
+                                  setExperience(updated);
                               }}
-                              placeholder="Google"
-                              className="bg-background border-input"
+                              context={`${exp.title || "Role"} at ${exp.company || "Company"}`}
+                              placeholder="e.g. Optimized database performance, decreasing query latency by 30%"
+                              label="Description / Key Achievements"
                             />
                           </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Start Date</Label>
-                            <Input
-                              value={exp.startDate}
-                              onChange={(e) => {
-                                const updated = [...experience];
-                                updated[idx] = { ...updated[idx], startDate: e.target.value };
-                                setExperience(updated);
-                              }}
-                              placeholder="Jan 2018"
-                              className="bg-background border-input"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">End Date</Label>
-                            <Input
-                              value={exp.endDate}
-                              disabled={exp.currentlyWorking}
-                              onChange={(e) => {
-                                const updated = [...experience];
-                                updated[idx] = { ...updated[idx], endDate: e.target.value };
-                                setExperience(updated);
-                              }}
-                              placeholder="Present"
-                              className="bg-background border-input"
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-2 md:mt-5">
-                            <Checkbox
-                              id={`p-curr-${idx}`}
-                              checked={exp.currentlyWorking}
-                              onCheckedChange={(checked) => {
-                                const updated = [...experience];
-                                updated[idx] = {
-                                  ...updated[idx],
-                                  currentlyWorking: !!checked,
-                                  endDate: checked ? "Present" : updated[idx].endDate === "Present" ? "" : updated[idx].endDate
-                                };
-                                setExperience(updated);
-                              }}
-                            />
-                            <Label htmlFor={`p-curr-${idx}`} className="text-xs text-muted-foreground cursor-pointer">
-                              Current Role
-                            </Label>
-                          </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <BulletListEditor
-                            bullets={exp.bullets || []}
-                            onChange={(newBullets) => {
-                                const updated = [...experience];
-                                updated[idx] = {
-                                  ...updated[idx],
-                                  bullets: newBullets,
-                                  description: syncBulletsToDescription(newBullets)
-                                };
-                                setExperience(updated);
-                            }}
-                            context={`${exp.title || "Role"} at ${exp.company || "Company"}`}
-                            placeholder="e.g. Optimized database performance, decreasing query latency by 30%"
-                            label="Description / Key Achievements"
-                          />
-                        </div>
-                      </CollapsibleEditableBlock>
-                    ))
+                        </CollapsibleEditableBlock>
+                      )}
+                    />
                   )}
                 </div>
               </div>
@@ -1158,10 +1187,12 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
-                      eduCollapse.handleAdd(education.length);
+                      const newId = Math.random().toString(36).substr(2, 9);
+                      eduCollapse.handleAdd(newId);
                       setEducation([
                         ...education,
                         {
+                          id: newId,
                           school: "",
                           degree: "",
                           field: "",
@@ -1184,134 +1215,143 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground text-sm">No education items added yet.</p>
                     </div>
                   ) : (
-                    education.map((edu, idx) => (
-                      <CollapsibleEditableBlock
-                        key={idx}
-                        expanded={eduCollapse.isExpanded(idx)}
-                        onToggle={() => eduCollapse.toggle(idx)}
-                        onSave={() => eduCollapse.collapse(idx)}
-                        onDelete={() => {
-                          setEducation(education.filter((_, i) => i !== idx));
-                          eduCollapse.handleRemove(idx);
-                        }}
-                        preview={
-                          <BlockPreview
-                            title={[edu.degree, edu.field].filter(Boolean).join(" ")}
-                            subtitle={edu.school}
-                            meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
-                            placeholder="Untitled education"
-                          />
-                        }
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">School / University</Label>
-                            <Input
-                              value={edu.school}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], school: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder="MIT"
-                              className="bg-background border-input"
+                    <SortableBlockList
+                      items={education}
+                      onReorder={setEducation}
+                      renderItem={(edu, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                        <CollapsibleEditableBlock
+                          key={edu.id}
+                          setNodeRef={ref}
+                          style={style}
+                          dragHandleProps={dragHandleProps}
+                          onMoveUp={onMoveUp}
+                          onMoveDown={onMoveDown}
+                          expanded={eduCollapse.isExpanded(edu.id)}
+                          onToggle={() => eduCollapse.toggle(edu.id)}
+                          onSave={() => eduCollapse.collapse(edu.id)}
+                          onDelete={() => {
+                            setEducation(education.filter((e) => e.id !== edu.id));
+                            eduCollapse.handleRemove(edu.id);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={[edu.degree, edu.field].filter(Boolean).join(" ")}
+                              subtitle={edu.school}
+                              meta={[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
+                              placeholder="Untitled education"
                             />
+                          }
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">School / University</Label>
+                              <Input
+                                value={edu.school}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], school: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder="MIT"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Degree</Label>
+                              <Input
+                                value={edu.degree}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], degree: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder="B.S. Computer Science"
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Degree</Label>
-                            <Input
-                              value={edu.degree}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], degree: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder="B.S. Computer Science"
-                              className="bg-background border-input"
-                            />
-                          </div>
-                        </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Field of Study</Label>
+                              <Input
+                                value={edu.field}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], field: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder="Artificial Intelligence"
+                                className="bg-background border-input"
+                              />
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Field of Study</Label>
-                            <Input
-                              value={edu.field}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], field: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder="Artificial Intelligence"
-                              className="bg-background border-input"
-                            />
-                          </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Start Date</Label>
+                              <Input
+                                value={edu.startDate}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], startDate: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder="2018"
+                                className="bg-background border-input"
+                              />
+                            </div>
 
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Start Date</Label>
-                            <Input
-                              value={edu.startDate}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], startDate: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder="2018"
-                              className="bg-background border-input"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">End Date (or Expected)</Label>
-                            <Input
-                              value={edu.endDate}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], endDate: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder="2022"
-                              className="bg-background border-input"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Grade System</Label>
-                            <select
-                              value={edu.gpaMode || "gpa"}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], gpaMode: e.target.value };
-                                setEducation(updated);
-                              }}
-                              className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm text-foreground focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                            >
-                              <option value="gpa">GPA</option>
-                              <option value="percentage">Percentage (%)</option>
-                            </select>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">End Date (or Expected)</Label>
+                              <Input
+                                value={edu.endDate}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], endDate: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder="2022"
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">
-                              {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
-                            </Label>
-                            <Input
-                              value={edu.gpa}
-                              onChange={(e) => {
-                                const updated = [...education];
-                                updated[idx] = { ...updated[idx], gpa: e.target.value };
-                                setEducation(updated);
-                              }}
-                              placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
-                              className="bg-background border-input"
-                            />
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Grade System</Label>
+                              <select
+                                value={edu.gpaMode || "gpa"}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], gpaMode: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                className="w-full bg-background border border-input rounded-xl px-3 h-10 text-sm text-foreground focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                              >
+                                <option value="gpa">GPA</option>
+                                <option value="percentage">Percentage (%)</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">
+                                {edu.gpaMode === "percentage" ? "Percentage" : "GPA"}
+                              </Label>
+                              <Input
+                                value={edu.gpa}
+                                onChange={(e) => {
+                                  const updated = [...education];
+                                  updated[idx] = { ...updated[idx], gpa: e.target.value };
+                                  setEducation(updated);
+                                }}
+                                placeholder={edu.gpaMode === "percentage" ? "95.5" : "3.9"}
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </CollapsibleEditableBlock>
-                    ))
+                        </CollapsibleEditableBlock>
+                      )}
+                    />
                   )}
                 </div>
               </div>
@@ -1398,10 +1438,11 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
-                      projCollapse.handleAdd(projects.length);
+                      const newId = Math.random().toString(36).substr(2, 9);
+                      projCollapse.handleAdd(newId);
                       setProjects([
                         ...projects,
-                        { name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
+                        { id: newId, name: "", description: "", technologiesUsed: "", url: "", github: "", bullets: [] },
                       ]);
                     }}
                   >
@@ -1416,73 +1457,82 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground text-sm">No projects added yet.</p>
                     </div>
                   ) : (
-                    projects.map((proj, idx) => (
-                      <CollapsibleEditableBlock
-                        key={idx}
-                        expanded={projCollapse.isExpanded(idx)}
-                        onToggle={() => projCollapse.toggle(idx)}
-                        onSave={() => projCollapse.collapse(idx)}
-                        onDelete={() => {
-                          setProjects(projects.filter((_, i) => i !== idx));
-                          projCollapse.handleRemove(idx);
-                        }}
-                        preview={
-                          <BlockPreview
-                            title={proj.name}
-                            meta={proj.technologiesUsed || proj.url}
-                            placeholder="Untitled project"
-                          />
-                        }
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Project Name</Label>
-                            <Input
-                              value={proj.name}
-                              onChange={(e) => {
-                                const updated = [...projects];
-                                updated[idx] = { ...updated[idx], name: e.target.value };
-                                setProjects(updated);
-                              }}
-                              placeholder="My Project"
-                              className="bg-background border-input"
+                    <SortableBlockList
+                      items={projects}
+                      onReorder={setProjects}
+                      renderItem={(proj, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                        <CollapsibleEditableBlock
+                          key={proj.id}
+                          setNodeRef={ref}
+                          style={style}
+                          dragHandleProps={dragHandleProps}
+                          onMoveUp={onMoveUp}
+                          onMoveDown={onMoveDown}
+                          expanded={projCollapse.isExpanded(proj.id)}
+                          onToggle={() => projCollapse.toggle(proj.id)}
+                          onSave={() => projCollapse.collapse(proj.id)}
+                          onDelete={() => {
+                            setProjects(projects.filter((p) => p.id !== proj.id));
+                            projCollapse.handleRemove(proj.id);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={proj.name}
+                              meta={proj.technologiesUsed || proj.url}
+                              placeholder="Untitled project"
                             />
+                          }
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Project Name</Label>
+                              <Input
+                                value={proj.name}
+                                onChange={(e) => {
+                                  const updated = [...projects];
+                                  updated[idx] = { ...updated[idx], name: e.target.value };
+                                  setProjects(updated);
+                                }}
+                                placeholder="My Project"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Project URL</Label>
+                              <Input
+                                value={proj.url}
+                                onChange={(e) => {
+                                  const updated = [...projects];
+                                  updated[idx] = { ...updated[idx], url: e.target.value };
+                                  setProjects(updated);
+                                }}
+                                placeholder="https://..."
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Project URL</Label>
-                            <Input
-                              value={proj.url}
-                              onChange={(e) => {
+                            <BulletListEditor
+                              bullets={proj.bullets || []}
+                              onChange={(newBullets) => {
                                 const updated = [...projects];
-                                updated[idx] = { ...updated[idx], url: e.target.value };
+                                updated[idx] = {
+                                  ...updated[idx],
+                                  bullets: newBullets,
+                                  description: syncBulletsToDescription(newBullets)
+                                };
                                 setProjects(updated);
                               }}
-                              placeholder="https://..."
-                              className="bg-background border-input"
+                              context={`Project named ${proj.name || "Project"}`}
+                              placeholder="e.g. Built a custom rendering engine using WebGL, improving rendering speed by 2x"
+                              label="Project Description"
                             />
                           </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <BulletListEditor
-                            bullets={proj.bullets || []}
-                            onChange={(newBullets) => {
-                              const updated = [...projects];
-                              updated[idx] = {
-                                ...updated[idx],
-                                bullets: newBullets,
-                                description: syncBulletsToDescription(newBullets)
-                              };
-                              setProjects(updated);
-                            }}
-                            context={`Project named ${proj.name || "Project"}`}
-                            placeholder="e.g. Built a custom rendering engine using WebGL, improving rendering speed by 2x"
-                            label="Project Description"
-                          />
-                        </div>
-                      </CollapsibleEditableBlock>
-                    ))
+                        </CollapsibleEditableBlock>
+                      )}
+                    />
                   )}
                 </div>
               </div>
@@ -1501,10 +1551,11 @@ export default function ProfilePage() {
                     size="sm"
                     className="gap-1.5 border-border hover:bg-muted text-foreground w-full sm:w-auto"
                     onClick={() => {
-                      certCollapse.handleAdd(certifications.length);
+                      const newId = Math.random().toString(36).substr(2, 9);
+                      certCollapse.handleAdd(newId);
                       setCertifications([
                         ...certifications,
-                        { name: "", issuer: "", date: "", credentialUrl: "" },
+                        { id: newId, name: "", issuer: "", date: "", credentialUrl: "" },
                       ]);
                     }}
                   >
@@ -1519,86 +1570,95 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground text-sm">No certifications added yet.</p>
                     </div>
                   ) : (
-                    certifications.map((cert, idx) => (
-                      <CollapsibleEditableBlock
-                        key={idx}
-                        expanded={certCollapse.isExpanded(idx)}
-                        onToggle={() => certCollapse.toggle(idx)}
-                        onSave={() => certCollapse.collapse(idx)}
-                        onDelete={() => {
-                          setCertifications(certifications.filter((_, i) => i !== idx));
-                          certCollapse.handleRemove(idx);
-                        }}
-                        preview={
-                          <BlockPreview
-                            title={cert.name}
-                            subtitle={cert.issuer}
-                            meta={cert.date}
-                            placeholder="Untitled certification"
-                          />
-                        }
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Certification Name</Label>
-                            <Input
-                              value={cert.name}
-                              onChange={(e) => {
-                                const updated = [...certifications];
-                                updated[idx] = { ...updated[idx], name: e.target.value };
-                                setCertifications(updated);
-                              }}
-                              placeholder="AWS Cloud Practitioner"
-                              className="bg-background border-input"
+                    <SortableBlockList
+                      items={certifications}
+                      onReorder={setCertifications}
+                      renderItem={(cert, idx, { ref, style, dragHandleProps, onMoveUp, onMoveDown }) => (
+                        <CollapsibleEditableBlock
+                          key={cert.id}
+                          setNodeRef={ref}
+                          style={style}
+                          dragHandleProps={dragHandleProps}
+                          onMoveUp={onMoveUp}
+                          onMoveDown={onMoveDown}
+                          expanded={certCollapse.isExpanded(cert.id)}
+                          onToggle={() => certCollapse.toggle(cert.id)}
+                          onSave={() => certCollapse.collapse(cert.id)}
+                          onDelete={() => {
+                            setCertifications(certifications.filter((c) => c.id !== cert.id));
+                            certCollapse.handleRemove(cert.id);
+                          }}
+                          preview={
+                            <BlockPreview
+                              title={cert.name}
+                              subtitle={cert.issuer}
+                              meta={cert.date}
+                              placeholder="Untitled certification"
                             />
+                          }
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Certification Name</Label>
+                              <Input
+                                value={cert.name}
+                                onChange={(e) => {
+                                  const updated = [...certifications];
+                                  updated[idx] = { ...updated[idx], name: e.target.value };
+                                  setCertifications(updated);
+                                }}
+                                placeholder="AWS Cloud Practitioner"
+                                className="bg-background border-input"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Issuer</Label>
+                              <Input
+                                value={cert.issuer}
+                                onChange={(e) => {
+                                  const updated = [...certifications];
+                                  updated[idx] = { ...updated[idx], issuer: e.target.value };
+                                  setCertifications(updated);
+                                }}
+                                placeholder="Amazon"
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Issuer</Label>
-                            <Input
-                              value={cert.issuer}
-                              onChange={(e) => {
-                                const updated = [...certifications];
-                                updated[idx] = { ...updated[idx], issuer: e.target.value };
-                                setCertifications(updated);
-                              }}
-                              placeholder="Amazon"
-                              className="bg-background border-input"
-                            />
-                          </div>
-                        </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">Date</Label>
+                              <Input
+                                value={cert.date}
+                                onChange={(e) => {
+                                  const updated = [...certifications];
+                                  updated[idx] = { ...updated[idx], date: e.target.value };
+                                  setCertifications(updated);
+                                }}
+                                placeholder="Aug 2022"
+                                className="bg-background border-input"
+                              />
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Date</Label>
-                            <Input
-                              value={cert.date}
-                              onChange={(e) => {
-                                const updated = [...certifications];
-                                updated[idx] = { ...updated[idx], date: e.target.value };
-                                setCertifications(updated);
-                              }}
-                              placeholder="Aug 2022"
-                              className="bg-background border-input"
-                            />
+                            <div className="space-y-1.5">
+                              <Label className="text-xs text-muted-foreground">URL</Label>
+                              <Input
+                                value={cert.credentialUrl}
+                                onChange={(e) => {
+                                  const updated = [...certifications];
+                                  updated[idx] = { ...updated[idx], credentialUrl: e.target.value };
+                                  setCertifications(updated);
+                                }}
+                                placeholder="https://..."
+                                className="bg-background border-input"
+                              />
+                            </div>
                           </div>
-
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">URL</Label>
-                            <Input
-                              value={cert.credentialUrl}
-                              onChange={(e) => {
-                                const updated = [...certifications];
-                                updated[idx] = { ...updated[idx], credentialUrl: e.target.value };
-                                setCertifications(updated);
-                              }}
-                              placeholder="https://..."
-                              className="bg-background border-input"
-                            />
-                          </div>
-                        </div>
-                      </CollapsibleEditableBlock>
-                    ))
+                        </CollapsibleEditableBlock>
+                      )}
+                    />
                   )}
                 </div>
               </div>
