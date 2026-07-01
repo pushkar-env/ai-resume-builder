@@ -34,7 +34,10 @@
       "Bash(pnpm --dir artifacts/api-server run typecheck)",
       "Bash(pnpm --dir artifacts/resume-maker run typecheck)",
       "PowerShell(npx tsc -p tsconfig.json --noEmit 2>&1 | Select-Object -First 40; Write-Output \"exit: $LASTEXITCODE\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(grep -iE \"^jsdom$|^happy-dom$|linkedom\")",
+      "Bash(cd \"D:/Projects/backend/AI-Resume-Builder\" && rm -f artifacts/resume-maker/src/pages/preview-debug.tsx artifacts/resume-maker/.claude/launch.json .claude/launch.json && echo \"removed debug files\")",
+      "Bash(cp \"C:/Users/user/Downloads/My_Resume.json\" \"D:/Projects/backend/AI-Resume-Builder/artifacts/resume-maker/src/lib/_debug_resume.json\" && echo copied)"
     ]
   }
 }

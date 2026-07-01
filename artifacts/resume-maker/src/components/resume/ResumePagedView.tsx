@@ -394,7 +394,14 @@ export function ResumePagedView({
                   // baseFs in run() so measurement never depends on the browser
                   // reflecting CSS `zoom` in getBoundingClientRect (iOS Safari does
                   // not, which truncated content instead of paginating it).
-                  width: "100%",
+                  //
+                  // Width MUST equal the display's effective layout width, not the
+                  // full page width. The displayed content uses `zoom: baseFs` +
+                  // `width: 100%`, which lays out at PAGE_WIDTH_PX / baseFs and then
+                  // scales up. If we measured at the full PAGE_WIDTH_PX, text would
+                  // wrap less than the display, under-measuring the height and
+                  // clipping content onto one page instead of paginating.
+                  width: PAGE_WIDTH_PX / baseFs,
                   "--resume-margin-scale": measureComp.marginScale,
                   "--resume-spacing-scale": measureComp.spacingScale,
                   "--resume-header-scale": measureComp.headerScale,
