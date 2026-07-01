@@ -121,12 +121,22 @@ export function ResumePagedView({
     const run = () => {
       if (cancelled) return;
       const rootRect = el.getBoundingClientRect();
-      const totalHeight = Math.max(
+      // The measure mount is rendered at natural (un-zoomed) size; the displayed
+      // pages apply `zoom: baseFs`. We must NOT read geometry from a zoomed element:
+      // iOS Safari/WebKit (pre-17.4) applies `zoom` visually but reports un-zoomed
+      // layout pixels from getBoundingClientRect/scrollHeight, so the measured height
+      // came out ~1/baseFs of what was actually rendered. Pagination then thought
+      // content fit on one page and the overflow:hidden window truncated it instead
+      // of adding a page. Measuring un-zoomed and scaling by baseFs ourselves is
+      // engine-independent (every engine renders `zoom` visually the same way).
+      const renderScale = baseFs;
+      const layoutHeight = Math.max(
         el.scrollHeight,
         el.offsetHeight,
         el.getBoundingClientRect().height,
         Math.ceil(rootRect.height),
       );
+      const totalHeight = layoutHeight * renderScale;
       if (!Number.isFinite(totalHeight) || totalHeight <= 0) {
         setMeasuredHeight(0);
         setPageStarts([0]);
@@ -175,10 +185,15 @@ export function ResumePagedView({
       )
         .map((node) => {
           const r = node.getBoundingClientRect();
-          const top = Math.max(0, Math.floor(r.top - rootRect.top));
+          // Same un-zoomed → rendered conversion as totalHeight: block offsets are
+          // read from the natural-size measure mount, so scale into rendered px.
+          const top = Math.max(
+            0,
+            Math.floor((r.top - rootRect.top) * renderScale),
+          );
           const bottom = Math.min(
             totalHeight,
-            Math.ceil(r.bottom - rootRect.top),
+            Math.ceil((r.bottom - rootRect.top) * renderScale),
           );
           return { top, bottom, height: bottom - top };
         })
@@ -375,7 +390,10 @@ export function ResumePagedView({
               ref={measureZoomRef}
               style={
                 {
-                  zoom: baseFs,
+                  // Intentionally NOT zoomed — geometry is read here and scaled by
+                  // baseFs in run() so measurement never depends on the browser
+                  // reflecting CSS `zoom` in getBoundingClientRect (iOS Safari does
+                  // not, which truncated content instead of paginating it).
                   width: "100%",
                   "--resume-margin-scale": measureComp.marginScale,
                   "--resume-spacing-scale": measureComp.spacingScale,
