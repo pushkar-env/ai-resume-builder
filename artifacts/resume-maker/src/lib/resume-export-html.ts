@@ -1,4 +1,7 @@
-import { RESUME_PDF_EXPORT_CSS } from "@/lib/resume-export-styles";
+import {
+  RESUME_PDF_CONTINUOUS_CSS,
+  RESUME_PDF_EXPORT_CSS,
+} from "@/lib/resume-export-styles";
 
 const MAX_INLINE_STYLESHEET_BYTES = 2 * 1024 * 1024;
 const MAX_INLINE_ASSET_BYTES = 3 * 1024 * 1024;
@@ -162,6 +165,91 @@ async function inlinePreviewImages(
 }
 
 /**
+ * The PDF is rendered by the server's Chromium (Blink). The on-screen preview
+ * paginates by slicing one tall layout into fixed A4 windows using pixel offsets
+ * measured by the *client's* browser. Those offsets are only valid on the server
+ * when the client renders text with the same metrics — i.e. the client is also
+ * Blink (desktop/Android Chrome, Edge). Every iOS browser is WebKit (Apple
+ * mandates it), and desktop Safari/Firefox are WebKit/Gecko, so their slice
+ * offsets don't line up with the server and content gets clipped.
+ *
+ * Returns false for those clients so the export flattens to a continuous flow and
+ * lets the server repaginate. Android Chrome and desktop Chrome/Edge keep the
+ * proven windowed path (bit-for-bit unchanged).
+ */
+function clientLayoutMatchesServer(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  // iOS/iPadOS is always WebKit even for "Chrome" (CriOS) / "Edge" (EdgiOS).
+  const isAppleMobile =
+    /iP(hone|ad|od)/.test(ua) ||
+    (/Macintosh/.test(ua) &&
+      typeof document !== "undefined" &&
+      "ontouchend" in document);
+  if (isAppleMobile) return false;
+  // Blink desktop/Android reports a real "Chrome/"/"Chromium/"/"Edg/" token;
+  // Safari and Firefox do not.
+  return /(Chrome|Chromium|Edg)\/\d/.test(ua);
+}
+
+/**
+ * Collapse ResumePagedView's client-sliced A4 windows into a single continuous
+ * flow so the server's Chromium can paginate it natively (see
+ * RESUME_PDF_CONTINUOUS_CSS). No-op when the preview isn't the paginated resume
+ * view (e.g. cover letters, thumbnails), so it's safe to call unconditionally.
+ *
+ * Returns the presentation baked onto the pages so the caller can reproduce a
+ * full-page background and per-page watermark spacing in print.
+ */
+function flattenPaginatedPreviewForPrint(clone: HTMLElement): {
+  flattened: boolean;
+  watermarked: boolean;
+  backgroundColor: string;
+} {
+  const empty = { flattened: false, watermarked: false, backgroundColor: "" };
+  const paged = clone.querySelector<HTMLElement>(".resume-paged-view");
+  if (!paged) return empty;
+
+  const firstPage = paged.querySelector<HTMLElement>(".a4-page");
+  if (!firstPage) return empty;
+
+  // Every page window holds an identical full-resume copy inside the zoom wrapper;
+  // keep the first and drop the rest.
+  const contentWrapper = firstPage.querySelector<HTMLElement>(
+    'div[style*="zoom"]',
+  );
+  if (!contentWrapper) return empty;
+
+  const backgroundColor = firstPage.style.backgroundColor || "";
+  const fontColor = firstPage.getAttribute("data-font-color");
+  const watermark = firstPage.querySelector<HTMLElement>(
+    ".resume-page-watermark",
+  );
+  const watermarked = Boolean(watermark);
+
+  // Rebuild the continuous canvas ResumePreview uses for non-paginated layouts so
+  // its existing `.resume-continuous-canvas`-scoped rules (font color, word wrap,
+  // two-column stretch) keep applying to the cloned content.
+  const canvas = clone.ownerDocument.createElement("div");
+  canvas.className = "resume-continuous-canvas resume-print-canvas relative w-full";
+  canvas.style.width = "794px";
+  if (backgroundColor) canvas.style.backgroundColor = backgroundColor;
+  if (fontColor) canvas.setAttribute("data-font-color", fontColor);
+
+  if (watermark) {
+    watermark.classList.add("resume-print-watermark");
+    canvas.appendChild(watermark);
+  }
+
+  contentWrapper.classList.add("resume-print-content");
+  contentWrapper.style.width = "100%";
+  canvas.appendChild(contentWrapper);
+
+  paged.replaceWith(canvas);
+  return { flattened: true, watermarked, backgroundColor };
+}
+
+/**
  * Build a self-contained HTML document for server-side PDF rendering.
  * Stylesheets, used font files, and preview images are embedded so Puppeteer
  * can render the same typography and artwork without external network access.
@@ -178,6 +266,13 @@ export async function buildSelfContainedExportHtml(
 
   const clonedPreview = previewEl.cloneNode(true) as HTMLElement;
   const inlineBudget = { used: 0 };
+
+  // Non-Blink clients (all iOS browsers, desktop Safari/Firefox) measure page
+  // slices that won't match the server's Chromium and get truncated PDFs. Hand
+  // those a continuous flow the server paginates itself.
+  const print = clientLayoutMatchesServer()
+    ? { flattened: false, watermarked: false, backgroundColor: "" }
+    : flattenPaginatedPreviewForPrint(clonedPreview);
 
   const styleBlocks: string[] = [];
   const usedFontFamilies = fontFamiliesUsedBy(previewEl);
@@ -227,6 +322,18 @@ export async function buildSelfContainedExportHtml(
   const safeTitle = escapeHtmlText(resumeTitle);
   const combinedCss = styleBlocks.join("\n");
 
+  // For the flattened (server-paginated) path only: paint the resume background
+  // across every printed page, and reserve a bottom band so the fixed watermark
+  // never overlaps content. Both are no-ops for the windowed (Blink) path.
+  const continuousCss = print.flattened ? RESUME_PDF_CONTINUOUS_CSS : "";
+  const pageBackgroundCss =
+    print.flattened && print.backgroundColor
+      ? `html, body { background: ${print.backgroundColor} !important; }`
+      : "";
+  const watermarkPageCss = print.flattened && print.watermarked
+    ? `@page { size: A4; margin: 0 0 34px 0; }`
+    : "";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -236,6 +343,9 @@ export async function buildSelfContainedExportHtml(
   <style>
     ${combinedCss}
     ${RESUME_PDF_EXPORT_CSS}
+    ${continuousCss}
+    ${pageBackgroundCss}
+    ${watermarkPageCss}
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
