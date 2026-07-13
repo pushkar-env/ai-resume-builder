@@ -151,12 +151,18 @@ export const SAMPLE_RESUME = {
         items: [
           {
             name: "OpenSource SDK",
-            description: "TypeScript SDK with 50k+ monthly downloads",
             url: "github.com/alex/sdk",
+            bullets: [
+              "Authored a TypeScript SDK with 50k+ monthly downloads across 400+ dependent projects",
+              "Cut cold-start latency 60% by lazy-loading modules and tree-shaking the public API",
+            ],
           },
           {
             name: "ML Trading Bot",
-            description: "Reinforcement learning algorithmic trading platform",
+            bullets: [
+              "Built a reinforcement-learning trading platform backtested on 10 years of market data",
+              "Shipped a real-time execution engine sustaining sub-50ms order round-trips",
+            ],
           },
         ],
       },

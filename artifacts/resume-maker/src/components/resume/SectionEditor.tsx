@@ -45,6 +45,8 @@ import {
   BlockPreview,
 } from "@/components/resume/CollapsibleEditableBlock";
 import { useCollapsibleList } from "@/hooks/use-collapsible-list";
+import { BulletListEditor } from "@/components/ui/BulletListEditor";
+import { syncBulletsToDescription } from "@/lib/profile-bullets";
 
 function aiErrorToast(
   toast: ReturnType<typeof useToast>["toast"],
@@ -178,6 +180,37 @@ function toBulletObj(b: unknown): BulletObj {
     };
   }
   return { text: "", label: "", link: "" };
+}
+
+/* ─── Project bullet helpers — projects support multiple bullets (like experience) ─── */
+/**
+ * Resolve the editable bullet list for a project. Prefers the structured `bullets` array;
+ * migrates a legacy single `description` (which may be an HTML `<ul>` list from older data or
+ * the profile import, or a plain paragraph) into discrete bullets so nothing is lost.
+ */
+function deriveProjectBullets(item: Record<string, unknown>): string[] {
+  const b = item.bullets;
+  if (Array.isArray(b)) {
+    // Already structured: return verbatim. Do NOT trim or filter here — this value is fed
+    // straight back into the controlled textareas every render, so trimming would strip a
+    // trailing space the moment it's typed and filtering would delete a momentarily-empty
+    // bullet mid-edit. (This mirrors how the Experience editor passes item.bullets raw.)
+    return b.map((x) =>
+      typeof x === "string" ? x : String((x as { text?: unknown })?.text ?? x ?? ""),
+    );
+  }
+  const desc = (item.description as string) ?? "";
+  if (!desc.trim()) return [];
+  if (typeof DOMParser !== "undefined") {
+    const doc = new DOMParser().parseFromString(desc, "text/html");
+    const lis = Array.from(doc.querySelectorAll("li"))
+      .map((li) => (li.textContent ?? "").trim())
+      .filter(Boolean);
+    if (lis.length > 0) return lis;
+    const text = (doc.body.textContent ?? "").trim();
+    return text ? [text] : [];
+  }
+  return desc.trim() ? [desc.trim()] : [];
 }
 
 /* ─── Social link helpers — supports legacy github/linkedin/twitter or new socials[] array ─── */
@@ -1314,15 +1347,10 @@ function SkillsEditor({
 function ProjectsEditor({
   content,
   onChange,
-  isPremium,
-  onShowPaywall,
 }: {
   content: SectionContent;
   onChange: (c: SectionContent) => void;
-  isPremium: boolean;
-  onShowPaywall: () => void;
 }) {
-  const { toast } = useToast();
   const collapse = useCollapsibleList();
   const rawItems = (content.items as Array<Record<string, unknown>>) ?? [];
 
@@ -1339,12 +1367,22 @@ function ProjectsEditor({
     onChange({ ...content, items: updated });
   };
 
+  /** Update several fields of a project at once (used to keep bullets + description in sync). */
+  const updateItemFields = (i: number, patch: Record<string, unknown>) => {
+    const updated = [...items];
+    updated[i] = { ...updated[i], ...patch };
+    onChange({ ...content, items: updated });
+  };
+
   const addItem = () => {
     const newId = Math.random().toString(36).substr(2, 9);
     collapse.handleAdd(newId);
     onChange({
       ...content,
-      items: [...rawItems, { id: newId, name: "", url: "", description: "" }],
+      items: [
+        ...rawItems,
+        { id: newId, name: "", label: "", url: "", bullets: [] },
+      ],
     });
   };
 
@@ -1352,45 +1390,6 @@ function ProjectsEditor({
     onChange({ ...content, items: rawItems.filter((item) => (item.id || "") !== id) });
     collapse.handleRemove(id);
   };
-
-  const [pendingProject, setPendingProject] = useState<number | null>(null);
-
-  const contentRef = useRef(content);
-  contentRef.current = content;
-
-  const improveDescription = useImproveBullet({
-    request: createAiQuickRequestOptions(),
-    mutation: {
-      onSuccess: (data) => {
-        if (pendingProject === null) return;
-        if (!data?.text?.trim()) {
-          setPendingProject(null);
-          toast({
-            title: "AI returned no content — try again",
-            variant: "destructive",
-          });
-          return;
-        }
-        const idx = pendingProject;
-        const latestItems =
-          (contentRef.current.items as Array<Record<string, unknown>>) ?? [];
-        const updatedItems = [...latestItems];
-        updatedItems[idx] = {
-          ...updatedItems[idx],
-          description: plainTextToRichHtml(data.text),
-        };
-        startTransition(() => {
-          onChange({ ...contentRef.current, items: updatedItems });
-        });
-        setPendingProject(null);
-        toast({ title: "Description improved" });
-      },
-      onError: (err) => {
-        setPendingProject(null);
-        aiErrorToast(toast, err, "Failed to improve description");
-      },
-    },
-  });
 
   return (
     <div className="space-y-3">
@@ -1448,42 +1447,19 @@ function ProjectsEditor({
                 </Field>
               </div>
             </div>
-            <Field label="Description">
-              <RichTextEditor
-                value={(item.description as string) ?? ""}
-                onChange={(val) => updateItem(i, "description", val)}
-                placeholder="Brief description..."
-                actionCount={1}
-                rightElement={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
-                    title="Improve with AI"
-                    onClick={() => {
-                      setPendingProject(i);
-                      improveDescription.mutate({
-                        data: {
-                          bullet: richHtmlToPlainText(
-                            (item.description as string) ?? "",
-                          ),
-                          context: `Project: ${item.name ?? ""}`,
-                        },
-                      });
-                    }}
-                    disabled={
-                      improveDescription.isPending && pendingProject === i
-                    }
-                  >
-                    {improveDescription.isPending && pendingProject === i ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    )}
-                  </Button>
-                }
-              />
-            </Field>
+            <BulletListEditor
+              bullets={deriveProjectBullets(item)}
+              onChange={(newBullets) =>
+                updateItemFields(i, {
+                  bullets: newBullets,
+                  // Keep a plain-text description in sync for legacy/ATS consumers.
+                  description: syncBulletsToDescription(newBullets),
+                })
+              }
+              context={`Project named ${(item.name as string) || "Project"}`}
+              placeholder="e.g. Built a real-time collaboration engine handling 10k concurrent users"
+              label="Bullet Points"
+            />
           </CollapsibleEditableBlock>
         )}
       />
@@ -1707,8 +1683,6 @@ export function SectionEditor({
             <ProjectsEditor
               content={section.content}
               onChange={onChange}
-              isPremium={isPremium}
-              onShowPaywall={() => setShowPaywall(true)}
             />
           )}
           {section.type === "certifications" && (

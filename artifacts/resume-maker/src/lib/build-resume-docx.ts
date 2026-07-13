@@ -94,6 +94,18 @@ function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
   return (sc?.[key] ?? []) as T[];
 }
 
+/** Plain-text project bullet points (new). Empty when a project only has the legacy description. */
+function projectBulletTexts(pr: SC): string[] {
+  const bl = pr.bullets;
+  if (!Array.isArray(bl)) return [];
+  return bl
+    .map((b) =>
+      typeof b === "string" ? b : str((b as { text?: unknown })?.text),
+    )
+    .map((s) => htmlToPlainText(s).trim())
+    .filter(Boolean);
+}
+
 function roleOf(p: SC): string {
   return ((p.jobTitle as string) || (p.title as string) || "").trim();
 }
@@ -653,7 +665,20 @@ export async function buildResumeDocxBlob(
           }),
         );
       }
-      body.push(...htmlToPlainParagraphs(str(pr.description), 22, font));
+      const projBullets = projectBulletTexts(pr);
+      if (projBullets.length > 0) {
+        for (const bt of projBullets) {
+          body.push(
+            new Paragraph({
+              numbering: { reference: BULLET_REF, level: 0 },
+              spacing: { after: 40 },
+              children: [new TextRun({ text: bt, size: 22, font })],
+            }),
+          );
+        }
+      } else {
+        body.push(...htmlToPlainParagraphs(str(pr.description), 22, font));
+      }
     }
   };
 

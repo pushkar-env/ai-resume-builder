@@ -426,6 +426,66 @@ function BulletContent({ b, color }: { b: unknown; color: string }) {
   );
 }
 
+/**
+ * Structured project bullet points (new). Returns the non-empty bullets, or `[]` when a project
+ * still only has the legacy single `description`. Bullets may be plain strings or {text,label,link}.
+ */
+function projectBullets(pr: Item): unknown[] {
+  const bl = (pr.bullets as unknown[]) ?? [];
+  return bl.filter((b) => {
+    const p = bulletParts(b);
+    return p.text || p.label || p.link;
+  });
+}
+
+/**
+ * Renders a project's body: multiple structured bullets styled to match the template's own
+ * Experience bullets, or the legacy single `description` HTML as a fallback. Each template passes
+ * its bullet `marker`, `rowClassName`, and text classes so projects and experience look identical.
+ */
+function ProjectDetail({
+  pr,
+  color,
+  marker,
+  rowClassName,
+  textClassName,
+  containerClassName = "mt-1 space-y-1",
+  descClassName,
+}: {
+  pr: Item;
+  color: string;
+  marker: React.ReactNode;
+  rowClassName: string;
+  textClassName: string;
+  containerClassName?: string;
+  descClassName: string;
+}) {
+  const bl = projectBullets(pr);
+  if (bl.length > 0) {
+    return (
+      <div className={containerClassName}>
+        {bl.map((b, j) => (
+          <div key={j} className={rowClassName}>
+            {marker}
+            <div className={`flex-1 min-w-0 ${textClassName}`}>
+              <BulletContent b={b} color={color} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (str(pr.description)) {
+    return (
+      <div
+        className={descClassName}
+        dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
+      />
+    );
+  }
+  return null;
+}
+
 /* ─── Certification line with optional credential link ─── */
 function CertLine({
   c,
@@ -903,14 +963,19 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
                   className="text-[10.5px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-600 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span
+                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                    style={{ background: color }}
+                  />
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.55]"
+                descClassName="resume-text text-[11px] text-gray-600 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -1098,14 +1163,25 @@ export function FaangTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-600 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span className="shrink-0 mt-[6px] text-gray-400">
+                    <svg
+                      viewBox="0 0 10 10"
+                      width="4.5"
+                      height="4.5"
+                      fill="currentColor"
+                    >
+                      <path d="M0,0 L10,5 L0,10 Z" />
+                    </svg>
+                  </span>
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.55]"
+                descClassName="resume-text text-[11px] text-gray-600 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -1390,10 +1466,22 @@ export function NovaTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              <div
-                className="resume-text text-[11px] text-gray-500 flex-1"
-                dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-              />
+              <div className="flex-1 min-w-0">
+                <ProjectDetail
+                  pr={pr}
+                  color={color}
+                  marker={
+                    <span
+                      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                      style={{ background: color }}
+                    />
+                  }
+                  rowClassName="flex gap-1.5"
+                  textClassName="text-[11px] text-gray-500 leading-[1.6]"
+                  containerClassName="space-y-1"
+                  descClassName="resume-text text-[11px] text-gray-500"
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -1628,16 +1716,38 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
                   />
                 </span>
               )}
-              {str(pr.description) && (
-                <span className="resume-text text-[11px] text-gray-600 ml-2">
-                  —{" "}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: richHtml(pr.description),
-                    }}
-                  />
-                </span>
-              )}
+              {(() => {
+                const pbs = projectBullets(pr);
+                if (pbs.length > 0) {
+                  return (
+                    <div className="mt-1.5 space-y-1">
+                      {pbs.map((b, j) => (
+                        <div key={j} className="flex gap-2">
+                          <span
+                            className="text-[10px] shrink-0 mt-0.5"
+                            style={{ color }}
+                          >
+                            —
+                          </span>
+                          <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.6]">
+                            <BulletContent b={b} color={color} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return str(pr.description) ? (
+                  <span className="resume-text text-[11px] text-gray-600 ml-2">
+                    —{" "}
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: richHtml(pr.description),
+                      }}
+                    />
+                  </span>
+                ) : null;
+              })()}
             </div>
           ))}
         </div>
@@ -1875,14 +1985,19 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-500 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span
+                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                    style={{ background: color }}
+                  />
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.5]"
+                descClassName="resume-text text-[11px] text-gray-500 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -2123,14 +2238,19 @@ export function MidnightTemplate({ sections, color, font }: TP) {
                 color={gold}
                 className="text-[10px]"
               />
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-600 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={gold}
+                marker={
+                  <span
+                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                    style={{ background: gold }}
+                  />
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.5]"
+                descClassName="resume-text text-[11px] text-gray-600 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -2345,12 +2465,15 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-700 mt-0.5 [&_p]:m-0"
-                  dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={<span className="shrink-0 font-bold">•</span>}
+                rowClassName="flex gap-1.5 ml-3"
+                textClassName="text-[11px] text-gray-700 leading-relaxed"
+                containerClassName="mt-0.5 space-y-0.5"
+                descClassName="resume-text text-[11px] text-gray-700 mt-0.5 [&_p]:m-0"
+              />
             </div>
           ))}
         </div>
@@ -2541,12 +2664,15 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                   />
                 </span>
               </p>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-600 mt-0.5"
-                  dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={<span className="shrink-0">•</span>}
+                rowClassName="flex gap-1.5 ml-3"
+                textClassName="text-[11px] text-gray-700"
+                containerClassName="mt-1 space-y-1"
+                descClassName="resume-text text-[11px] text-gray-600 mt-0.5"
+              />
             </div>
           ))}
         </div>
@@ -2778,14 +2904,21 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-500 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span
+                    className="text-[9px] shrink-0 mt-0.5 font-bold"
+                    style={{ color: navy }}
+                  >
+                    ›
+                  </span>
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.55]"
+                descClassName="resume-text text-[11px] text-gray-500 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -2984,12 +3117,15 @@ export function CompactTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-500 mt-0.5"
-                  dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={<span className="shrink-0 font-bold">·</span>}
+                rowClassName="flex gap-1.5 ml-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.5]"
+                containerClassName="mt-0.5 space-y-0.5"
+                descClassName="resume-text text-[11px] text-gray-500 mt-0.5"
+              />
             </div>
           ))}
         </div>
@@ -3275,14 +3411,19 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
                   className="text-[10px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-600 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span
+                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                    style={{ background: color }}
+                  />
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.5]"
+                descClassName="resume-text text-[11px] text-gray-600 mt-1"
+              />
             </div>
           ))}
         </div>
@@ -3598,14 +3739,19 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
                   className="text-[10.5px]"
                 />
               </div>
-              {str(pr.description) && (
-                <div
-                  className="resume-text text-[11px] text-gray-500 mt-1"
-                  dangerouslySetInnerHTML={{
-                    __html: richHtml(pr.description),
-                  }}
-                />
-              )}
+              <ProjectDetail
+                pr={pr}
+                color={color}
+                marker={
+                  <span
+                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                    style={{ background: color }}
+                  />
+                }
+                rowClassName="flex gap-1.5"
+                textClassName="text-[11px] text-gray-600 leading-[1.55]"
+                descClassName="resume-text text-[11px] text-gray-500 mt-1"
+              />
             </div>
           ))}
         </div>

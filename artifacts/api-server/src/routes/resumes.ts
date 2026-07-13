@@ -467,12 +467,17 @@ router.post(
           }
           if (s.type === "projects") {
             const mappedProjects = (profile.projects || []).map((proj: any) => {
+              const bullets = Array.isArray(proj.bullets)
+                ? proj.bullets.map((b: any) => String(b ?? "")).filter((b: string) => b.trim())
+                : [];
               let description = proj.description || "";
-              if (Array.isArray(proj.bullets) && proj.bullets.length > 0) {
-                description = "<ul>" + proj.bullets.map((b: string) => `<li>${b}</li>`).join("") + "</ul>";
+              if (bullets.length > 0) {
+                description = "<ul>" + bullets.map((b: string) => `<li>${b}</li>`).join("") + "</ul>";
               }
               return {
                 name: proj.name || "",
+                // Structured bullets render as a bullet list in every template; description is the legacy fallback.
+                bullets,
                 description: description,
                 url: proj.url || proj.github || "",
               };
