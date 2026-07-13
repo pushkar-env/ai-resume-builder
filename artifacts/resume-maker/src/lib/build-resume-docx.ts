@@ -74,6 +74,17 @@ function contentByType(ordered: ResumeSection[], type: string): SC | undefined {
   return sec?.content as SC | undefined;
 }
 
+/** Resolve a section heading: the user override (content.heading) or the DOCX default label. */
+function headingFor(
+  ordered: ResumeSection[],
+  type: string,
+  fallback: string,
+): string {
+  const c = contentByType(ordered, type);
+  const h = ((c?.heading as string) ?? "").trim();
+  return h || fallback;
+}
+
 function skillsStyleFromOrdered(ordered: ResumeSection[]): string | undefined {
   const sec = ordered.find((s) => s.type === "skills");
   return (sec?.content as SC | undefined)?.style as string | undefined;
@@ -389,13 +400,29 @@ export async function buildResumeDocxBlob(
     );
   }
 
-  if (str(summary.text).trim()) {
-    body.push(sectionHeading("Professional summary", accent, font));
-    body.push(...htmlToPlainParagraphs(str(summary.text), 22, font));
-  }
+  const renderers: Record<string, () => void> = {};
 
-  if (experience.length > 0) {
-    body.push(sectionHeading("Experience", accent, font));
+  renderers.summary = () => {
+    if (!str(summary.text).trim()) return;
+    body.push(
+      sectionHeading(
+        headingFor(ordered, "summary", "Professional summary"),
+        accent,
+        font,
+      ),
+    );
+    body.push(...htmlToPlainParagraphs(str(summary.text), 22, font));
+  };
+
+  renderers.experience = () => {
+    if (experience.length === 0) return;
+    body.push(
+      sectionHeading(
+        headingFor(ordered, "experience", "Experience"),
+        accent,
+        font,
+      ),
+    );
     for (const e of experience) {
       const dates = `${str(e.startDate)}${e.endDate ? ` – ${str(e.endDate)}` : str(e.startDate) ? " – Present" : ""}`;
       body.push(
@@ -474,10 +501,13 @@ export async function buildResumeDocxBlob(
         }
       }
     }
-  }
+  };
 
-  if (education.length > 0) {
-    body.push(sectionHeading("Education", accent, font));
+  renderers.education = () => {
+    if (education.length === 0) return;
+    body.push(
+      sectionHeading(headingFor(ordered, "education", "Education"), accent, font),
+    );
     for (const e of education) {
       body.push(
         new Paragraph({
@@ -544,16 +574,17 @@ export async function buildResumeDocxBlob(
         );
       }
     }
-  }
+  };
 
-  if (skills.length > 0) {
+  renderers.skills = () => {
+    if (skills.length === 0) return;
     const defaultStyle = resume.templateId
       ? (TEMPLATE_DEFAULT_SKILL_STYLES[resume.templateId] ?? "chips")
       : "chips";
     const style = skillsStyleFromOrdered(ordered) ?? defaultStyle;
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {
-      body.push(sectionHeading("Skills", accent, font));
+      body.push(sectionHeading(headingFor(ordered, "skills", "Skills"), accent, font));
       if (style === "text" || (style !== "bars" && style !== "radial")) {
         const line = sanitizeWordText(
           skills
@@ -587,10 +618,13 @@ export async function buildResumeDocxBlob(
         }
       }
     }
-  }
+  };
 
-  if (projects.length > 0) {
-    body.push(sectionHeading("Projects", accent, font));
+  renderers.projects = () => {
+    if (projects.length === 0) return;
+    body.push(
+      sectionHeading(headingFor(ordered, "projects", "Projects"), accent, font),
+    );
     for (const pr of projects) {
       body.push(
         new Paragraph({
@@ -621,10 +655,17 @@ export async function buildResumeDocxBlob(
       }
       body.push(...htmlToPlainParagraphs(str(pr.description), 22, font));
     }
-  }
+  };
 
-  if (certs.length > 0) {
-    body.push(sectionHeading("Certifications", accent, font));
+  renderers.certifications = () => {
+    if (certs.length === 0) return;
+    body.push(
+      sectionHeading(
+        headingFor(ordered, "certifications", "Certifications"),
+        accent,
+        font,
+      ),
+    );
     for (const c of certs) {
       let line = str(c.name);
       if (str(c.issuer)) line += ` — ${str(c.issuer)}`;
@@ -649,6 +690,12 @@ export async function buildResumeDocxBlob(
         );
       }
     }
+  };
+
+  // Render body sections in the user's chosen display order (personal is the header above).
+  for (const section of ordered) {
+    if (section.type === "personal") continue;
+    renderers[section.type]?.();
   }
 
   if (includeWatermark) {

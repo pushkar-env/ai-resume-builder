@@ -75,6 +75,47 @@ function aiErrorToast(
 
 type SectionContent = Record<string, unknown>;
 
+/** Generic default heading per section type — shown as placeholder so users know what renders by default. */
+const DEFAULT_HEADINGS: Record<string, string> = {
+  summary: "Professional Summary",
+  experience: "Work Experience",
+  education: "Education",
+  skills: "Skills",
+  projects: "Projects",
+  certifications: "Certifications",
+};
+
+/**
+ * Editable section heading. Stored in `content.heading`; an empty value falls back to the
+ * template's own default label. Available for every non-personal section.
+ */
+function SectionHeadingField({
+  type,
+  content,
+  onChange,
+}: {
+  type: string;
+  content: SectionContent;
+  onChange: (c: SectionContent) => void;
+}) {
+  const value = (content.heading as string) ?? "";
+  return (
+    <Field label="Section heading">
+      <Input
+        value={value}
+        onChange={(e) => onChange({ ...content, heading: e.target.value })}
+        placeholder={DEFAULT_HEADINGS[type] ?? "Section heading"}
+        className="h-10 lg:h-8 text-sm"
+        aria-label="Section heading"
+      />
+      <p className="text-[10px] text-muted-foreground">
+        Shown as this section's title on your resume. Leave blank to use the
+        template default.
+      </p>
+    </Field>
+  );
+}
+
 interface SectionEditorProps {
   section: {
     id: number;
@@ -1598,7 +1639,9 @@ export function SectionEditor({
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">{section.title}</h3>
+        <h3 className="text-sm font-semibold">
+          {((section.content.heading as string) ?? "").trim() || section.title}
+        </h3>
         <Button
           variant="ghost"
           size="sm"
@@ -1618,6 +1661,15 @@ export function SectionEditor({
         </p>
       ) : (
         <>
+          {section.type !== "personal" && (
+            <div className="mb-4 pb-4 border-b border-border">
+              <SectionHeadingField
+                type={section.type}
+                content={section.content}
+                onChange={onChange}
+              />
+            </div>
+          )}
           {section.type === "personal" && (
             <PersonalEditor content={section.content} onChange={onChange} />
           )}

@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useMemo, memo } from "react";
+import { useMemo, memo, cloneElement, isValidElement } from "react";
 import type { ResumeDetail } from "@workspace/api-client-react";
 import { sanitizeResumeRichHtml } from "@/lib/sanitize-resume-rich-html";
 import { RESUME_EXPORT_CSS } from "@/lib/resume-export-styles";
@@ -34,6 +34,47 @@ function getter(s: ResumeDetail["sections"]) {
 }
 function items<T = Item>(sc: SC | undefined, key = "items"): T[] {
   return (sc?.[key] ?? []) as T[];
+}
+/**
+ * Body section types (personal excluded) in the user's chosen display order.
+ * Templates iterate this so drag-reordering in the builder is reflected everywhere.
+ */
+function orderedBodyTypes(sections: ResumeDetail["sections"]): string[] {
+  return sorted(sections)
+    .map((s) => s.type)
+    .filter((t) => t !== "personal");
+}
+/**
+ * Resolve a section's heading: the user override (`content.heading`) wins, otherwise
+ * the template's own default label. Keeps each template's bespoke wording until edited.
+ */
+function headingOf(
+  get: (type: string) => SC | undefined,
+  type: string,
+  fallback: string,
+): string {
+  const h = ((get(type)?.heading as string) ?? "").trim();
+  return h || fallback;
+}
+/**
+ * Render section blocks in display order. `blocks` maps a section type to its rendered
+ * node (only present when it has content). `only` restricts to a subset of types while
+ * preserving their relative order — used by two-column templates to order within a column.
+ */
+function orderedBlocks(
+  sections: ResumeDetail["sections"],
+  blocks: Partial<Record<string, React.ReactNode>>,
+  only?: readonly string[],
+): React.ReactNode[] {
+  const allow = only ? new Set(only) : null;
+  const out: React.ReactNode[] = [];
+  for (const t of orderedBodyTypes(sections)) {
+    if (allow && !allow.has(t)) continue;
+    const node = blocks[t];
+    if (node == null || node === false) continue;
+    out.push(isValidElement(node) ? cloneElement(node, { key: t }) : node);
+  }
+  return out;
 }
 function str(v: unknown): string {
   return (v as string) ?? "";
@@ -659,6 +700,223 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
   const sidebar = alpha(color, 0.05);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+  const sideDivider = { borderBottom: `1px solid rgba(0,0,0,0.06)` };
+
+  const MainHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-2 mb-3.5 resume-section-header">
+      <p
+        className="text-[14px] font-bold uppercase tracking-[0.13em]"
+        style={{ color }}
+      >
+        {label}
+      </p>
+      <div className="flex-1 h-px" style={{ background: alpha(color, 0.25) }} />
+    </div>
+  );
+
+  const sidebarBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (skills.length > 0) {
+    sidebarBlocks.skills = (
+      <div className="resume-export-block px-5 py-5" style={sideDivider}>
+        <p
+          className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
+          style={{ color }}
+        >
+          {H("skills", "Skills")}
+        </p>
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    sidebarBlocks.education = (
+      <div className="px-5 py-5" style={sideDivider}>
+        <div className="resume-export-block">
+          <p
+            className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
+            style={{ color }}
+          >
+            {H("education", "Education")}
+          </p>
+          <div>
+            <p className="text-[12px] font-bold text-gray-900">
+              {str(edu[0].school)}
+            </p>
+            <p className="text-[11px] text-gray-600">
+              {str(edu[0].degree)}
+              {edu[0].field ? `, ${str(edu[0].field)}` : ""}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              {str(edu[0].startDate)}
+              {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
+              {edu[0].gpa ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}` : ""}
+            </p>
+          </div>
+        </div>
+        {edu.length > 1 && (
+          <div className="space-y-3.5 mt-3.5">
+            {edu.slice(1).map((e, i) => (
+              <div key={i} className="resume-export-block">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(e.school)}
+                </p>
+                <p className="text-[11px] text-gray-600">
+                  {str(e.degree)}
+                  {e.field ? `, ${str(e.field)}` : ""}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {str(e.startDate)}
+                  {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                  {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    sidebarBlocks.certifications = (
+      <div className="px-5 py-5" style={sideDivider}>
+        <div className="resume-export-block">
+          <p
+            className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
+            style={{ color }}
+          >
+            {H("certifications", "Certifications")}
+          </p>
+          <div>
+            <CertLine
+              c={certs[0]}
+              className="text-[11px] text-gray-600 mb-1"
+              color={color}
+            />
+          </div>
+        </div>
+        {certs.length > 1 && (
+          <div className="space-y-1 mt-1">
+            {certs.slice(1).map((c, i) => (
+              <div key={i} className="resume-export-block">
+                <CertLine
+                  c={c}
+                  className="text-[11px] text-gray-600 mb-1"
+                  color={color}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const mainBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    mainBlocks.summary = (
+      <div className="resume-export-block mb-7">
+        <MainHead label={H("summary", "About")} />
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.65]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    mainBlocks.experience = (
+      <div className="mb-7">
+        <MainHead label={H("experience", "Experience")} />
+        <div className="relative pl-5 border-l-2 border-transparent">
+          <div
+            className="absolute w-[2px] bg-gray-100"
+            style={{
+              top: "8px",
+              bottom: "-4px",
+              left: "-1px",
+              transform: "translateX(-50%)",
+              zIndex: 0,
+            }}
+          />
+          <div className="space-y-4">
+            {exp.map((e, i) => (
+              <div key={i} className="resume-export-block relative">
+                <TimelineDot color={color} />
+                <div className="flex justify-between items-start mb-0.5">
+                  <div>
+                    <p className="text-[12.5px] font-bold text-gray-900">
+                      {str(e.title)}
+                    </p>
+                    <p className="text-[11.5px] font-semibold text-gray-500">
+                      {str(e.company)}
+                      {e.location ? ` · ${str(e.location)}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5">
+                    {str(e.startDate)}
+                    {e.endDate
+                      ? ` – ${str(e.endDate)}`
+                      : e.startDate
+                        ? " – Present"
+                        : ""}
+                  </p>
+                </div>
+                {items<unknown>(e as SC, "bullets")
+                  .filter((b) => {
+                    const p = bulletParts(b);
+                    return p.text || p.label || p.link;
+                  })
+                  .map((b, j) => (
+                    <div key={j} className="flex gap-1.5 mt-1">
+                      <span
+                        className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                        style={{ background: color }}
+                      />
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
+                        <BulletContent b={b} color={color} />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    mainBlocks.projects = (
+      <div className="mb-7">
+        <MainHead label={H("projects", "Projects")} />
+        <div className="space-y-4">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12.5px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10.5px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-600 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -694,10 +952,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Contact */}
-        <div
-          className="resume-export-block px-5 py-5"
-          style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-        >
+        <div className="resume-export-block px-5 py-5" style={sideDivider}>
           <p
             className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3"
             style={{ color }}
@@ -714,245 +969,20 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
           ))}
         </div>
 
-        {/* Skills */}
-        {skills.length > 0 && (
-          <div
-            className="resume-export-block px-5 py-5"
-            style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-          >
-            <p
-              className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
-              style={{ color }}
-            >
-              Skills
-            </p>
-            {renderSkills(skills, skillsStyle, color, false)}
-          </div>
-        )}
-
-        {/* Education */}
-        {edu.length > 0 && (
-          <div
-            className="px-5 py-5"
-            style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-          >
-            <div className="resume-export-block">
-              <p
-                className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
-                style={{ color }}
-              >
-                Education
-              </p>
-              <div>
-                <p className="text-[12px] font-bold text-gray-900">
-                  {str(edu[0].school)}
-                </p>
-                <p className="text-[11px] text-gray-600">
-                  {str(edu[0].degree)}
-                  {edu[0].field ? `, ${str(edu[0].field)}` : ""}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
-                  {str(edu[0].startDate)}
-                  {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
-                  {edu[0].gpa
-                    ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}`
-                    : ""}
-                </p>
-              </div>
-            </div>
-            {edu.length > 1 && (
-              <div className="space-y-3.5 mt-3.5">
-                {edu.slice(1).map((e, i) => (
-                  <div key={i} className="resume-export-block">
-                    <p className="text-[12px] font-bold text-gray-900">
-                      {str(e.school)}
-                    </p>
-                    <p className="text-[11px] text-gray-600">
-                      {str(e.degree)}
-                      {e.field ? `, ${str(e.field)}` : ""}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      {str(e.startDate)}
-                      {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                      {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Certifications */}
-        {certs.length > 0 && (
-          <div className="px-5 py-5">
-            <div className="resume-export-block">
-              <p
-                className="text-[13px] font-bold uppercase tracking-[0.12em] mb-3.5"
-                style={{ color }}
-              >
-                Certifications
-              </p>
-              <div>
-                <CertLine
-                  c={certs[0]}
-                  className="text-[11px] text-gray-600 mb-1"
-                  color={color}
-                />
-              </div>
-            </div>
-            {certs.length > 1 && (
-              <div className="space-y-1 mt-1">
-                {certs.slice(1).map((c, i) => (
-                  <div key={i} className="resume-export-block">
-                    <CertLine
-                      c={c}
-                      className="text-[11px] text-gray-600 mb-1"
-                      color={color}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {orderedBlocks(sections, sidebarBlocks, [
+          "skills",
+          "education",
+          "certifications",
+        ])}
       </div>
 
       {/* Main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
-        {str(summary.text) && (
-          <div className="resume-export-block mb-7">
-            <div className="flex items-center gap-2 mb-2.5 resume-section-header">
-              <p
-                className="text-[14px] font-bold uppercase tracking-[0.13em]"
-                style={{ color }}
-              >
-                About
-              </p>
-              <div
-                className="flex-1 h-px"
-                style={{ background: alpha(color, 0.25) }}
-              />
-            </div>
-            <div
-              className="resume-text text-[11px] text-gray-600 leading-[1.65]"
-              dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-            />
-          </div>
-        )}
-
-        {exp.length > 0 && (
-          <div className="mb-7">
-            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
-              <p
-                className="text-[14px] font-bold uppercase tracking-[0.13em]"
-                style={{ color }}
-              >
-                Experience
-              </p>
-              <div
-                className="flex-1 h-px"
-                style={{ background: alpha(color, 0.25) }}
-              />
-            </div>
-            <div className="relative pl-5 border-l-2 border-transparent">
-              <div
-                className="absolute w-[2px] bg-gray-100"
-                style={{
-                  top: "8px",
-                  bottom: "-4px",
-                  left: "-1px",
-                  transform: "translateX(-50%)",
-                  zIndex: 0,
-                }}
-              />
-              <div className="space-y-4">
-                {exp.map((e, i) => (
-                  <div key={i} className="resume-export-block relative">
-                    <TimelineDot color={color} />
-                    <div className="flex justify-between items-start mb-0.5">
-                      <div>
-                        <p className="text-[12.5px] font-bold text-gray-900">
-                          {str(e.title)}
-                        </p>
-                        <p className="text-[11.5px] font-semibold text-gray-500">
-                          {str(e.company)}
-                          {e.location ? ` · ${str(e.location)}` : ""}
-                        </p>
-                      </div>
-                      <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5">
-                        {str(e.startDate)}
-                        {e.endDate
-                          ? ` – ${str(e.endDate)}`
-                          : e.startDate
-                            ? " – Present"
-                            : ""}
-                      </p>
-                    </div>
-                    {items<unknown>(e as SC, "bullets")
-                      .filter((b) => {
-                        const p = bulletParts(b);
-                        return p.text || p.label || p.link;
-                      })
-                      .map((b, j) => (
-                        <div key={j} className="flex gap-1.5 mt-1">
-                          <span
-                            className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                            style={{ background: color }}
-                          />
-                          <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
-                            <BulletContent b={b} color={color} />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {projects.length > 0 && (
-          <div className="mb-7">
-            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
-              <p
-                className="text-[14px] font-bold uppercase tracking-[0.13em]"
-                style={{ color }}
-              >
-                Projects
-              </p>
-              <div
-                className="flex-1 h-px"
-                style={{ background: alpha(color, 0.25) }}
-              />
-            </div>
-            <div className="space-y-4">
-              {projects.map((pr, i) => (
-                <div key={i} className="resume-export-block">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12.5px] font-bold text-gray-900">
-                      {str(pr.name)}
-                    </p>
-                    <ProjectLink
-                      url={pr.url}
-                      label={pr.label}
-                      color={color}
-                      className="text-[10.5px]"
-                    />
-                  </div>
-                  {str(pr.description) && (
-                    <div
-                      className="resume-text text-[11px] text-gray-600 mt-1"
-                      dangerouslySetInnerHTML={{
-                        __html: richHtml(pr.description),
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {orderedBlocks(sections, mainBlocks, [
+          "summary",
+          "experience",
+          "projects",
+        ])}
       </div>
     </div>
   );
@@ -971,6 +1001,206 @@ export function FaangTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+
+  const MainHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-2 mb-3">
+      <div className="h-4 w-[3px] rounded-full" style={{ background: color }} />
+      <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">
+        {label}
+      </p>
+    </div>
+  );
+
+  const mainBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    mainBlocks.summary = (
+      <div className="resume-export-block mb-6">
+        <MainHead label={H("summary", "Summary")} />
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.65]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    mainBlocks.experience = (
+      <div className="mb-6">
+        <MainHead label={H("experience", "Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block pl-3"
+              style={{ borderLeft: `2px solid ${alpha(color, 0.2)}` }}
+            >
+              <div className="flex justify-between items-baseline">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(e.title)}
+                </p>
+                <p className="text-[10px] text-gray-400 shrink-0 ml-2">
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Present"
+                      : ""}
+                </p>
+              </div>
+              <p className="text-[11px] font-bold" style={{ color }}>
+                {str(e.company)}
+                {e.location ? ` · ${str(e.location)}` : ""}
+              </p>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-1.5 mt-1.5">
+                    <span className="shrink-0 mt-[6px] text-gray-400">
+                      <svg
+                        viewBox="0 0 10 10"
+                        width="4.5"
+                        height="4.5"
+                        fill="currentColor"
+                      >
+                        <path d="M0,0 L10,5 L0,10 Z" />
+                      </svg>
+                    </span>
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    mainBlocks.projects = (
+      <div className="mb-6">
+        <MainHead label={H("projects", "Projects")} />
+        <div className="space-y-4">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-600 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    mainBlocks.education = (
+      <div className="mb-6">
+        <MainHead label={H("education", "Education")} />
+        <div className="space-y-3.5">
+          {edu.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block flex justify-between items-start"
+            >
+              <div>
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(e.school)}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  {str(e.degree)}
+                  {e.field ? `, ${str(e.field)}` : ""}
+                  {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+                </p>
+              </div>
+              <p className="text-[10px] text-gray-400 shrink-0 ml-2 mt-0.5">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const sideBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (skills.length > 0) {
+    sideBlocks.skills = (
+      <div className="resume-export-block mb-6">
+        <p
+          className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3"
+          style={{ color }}
+        >
+          {H("skills", "Skills")}
+        </p>
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    sideBlocks.certifications = (
+      <div>
+        <p
+          className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3"
+          style={{ color }}
+        >
+          {H("certifications", "Certs")}
+        </p>
+        <div className="space-y-2">
+          {certs.map((c, i) => {
+            const url = (str(c.credentialUrl) || str(c.url)).trim();
+            return (
+              <div
+                key={i}
+                className="resume-export-block p-2 rounded"
+                style={{ background: alpha(color, 0.06) }}
+              >
+                <p className="text-[11px] font-semibold text-gray-800">
+                  {str(c.name)}
+                </p>
+                {str(c.issuer) && (
+                  <p className="text-[9.5px] text-gray-500 mt-0.5">
+                    {str(c.issuer)}
+                  </p>
+                )}
+                {url && (
+                  <a
+                    href={ensureProto(url)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-[9.5px] underline mt-0.5 block"
+                    style={{ color }}
+                  >
+                    verify
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-10 py-8" style={{ fontFamily: font }}>
@@ -1002,220 +1232,18 @@ export function FaangTemplate({ sections, color, font }: TP) {
       <div className="flex gap-8">
         {/* Main column */}
         <div className="flex-1 min-w-0">
-          {str(summary.text) && (
-            <div className="resume-export-block mb-6">
-              <div className="flex items-center gap-2 mb-2.5">
-                <div
-                  className="h-4 w-[3px] rounded-full"
-                  style={{ background: color }}
-                />
-                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">
-                  Summary
-                </p>
-              </div>
-              <div
-                className="resume-text text-[11px] text-gray-600 leading-[1.65]"
-                dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-              />
-            </div>
-          )}
-
-          {exp.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="h-4 w-[3px] rounded-full"
-                  style={{ background: color }}
-                />
-                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">
-                  Experience
-                </p>
-              </div>
-              <div className="space-y-4">
-                {exp.map((e, i) => (
-                  <div
-                    key={i}
-                    className="resume-export-block pl-3"
-                    style={{ borderLeft: `2px solid ${alpha(color, 0.2)}` }}
-                  >
-                    <div className="flex justify-between items-baseline">
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(e.title)}
-                      </p>
-                      <p className="text-[10px] text-gray-400 shrink-0 ml-2">
-                        {str(e.startDate)}
-                        {e.endDate
-                          ? ` – ${str(e.endDate)}`
-                          : e.startDate
-                            ? " – Present"
-                            : ""}
-                      </p>
-                    </div>
-                    <p className="text-[11px] font-bold" style={{ color }}>
-                      {str(e.company)}
-                      {e.location ? ` · ${str(e.location)}` : ""}
-                    </p>
-                    {items<unknown>(e as SC, "bullets")
-                      .filter((b) => {
-                        const p = bulletParts(b);
-                        return p.text || p.label || p.link;
-                      })
-                      .map((b, j) => (
-                        <div key={j} className="flex gap-1.5 mt-1.5">
-                          <span className="shrink-0 mt-[6px] text-gray-400">
-                            <svg
-                              viewBox="0 0 10 10"
-                              width="4.5"
-                              height="4.5"
-                              fill="currentColor"
-                            >
-                              <path d="M0,0 L10,5 L0,10 Z" />
-                            </svg>
-                          </span>
-                          <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
-                            <BulletContent b={b} color={color} />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {projects.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="h-4 w-[3px] rounded-full"
-                  style={{ background: color }}
-                />
-                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">
-                  Projects
-                </p>
-              </div>
-              <div className="space-y-4">
-                {projects.map((pr, i) => (
-                  <div key={i} className="resume-export-block">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(pr.name)}
-                      </p>
-                      <ProjectLink
-                        url={pr.url}
-                        label={pr.label}
-                        color={color}
-                        className="text-[10px]"
-                      />
-                    </div>
-                    {str(pr.description) && (
-                      <div
-                        className="resume-text text-[11px] text-gray-600 mt-1"
-                        dangerouslySetInnerHTML={{
-                          __html: richHtml(pr.description),
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {edu.length > 0 && (
-            <div className="mb-6 last:mb-0">
-              <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="h-4 w-[3px] rounded-full"
-                  style={{ background: color }}
-                />
-                <p className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800">
-                  Education
-                </p>
-              </div>
-              <div className="space-y-3.5">
-                {edu.map((e, i) => (
-                  <div
-                    key={i}
-                    className="resume-export-block flex justify-between items-start"
-                  >
-                    <div>
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(e.school)}
-                      </p>
-                      <p className="text-[11px] text-gray-500">
-                        {str(e.degree)}
-                        {e.field ? `, ${str(e.field)}` : ""}
-                        {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                      </p>
-                    </div>
-                    <p className="text-[10px] text-gray-400 shrink-0 ml-2 mt-0.5">
-                      {str(e.startDate)}
-                      {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {orderedBlocks(sections, mainBlocks, [
+            "summary",
+            "experience",
+            "projects",
+            "education",
+          ])}
         </div>
 
         {/* Right skills column */}
         {(skills.length > 0 || certs.length > 0) && (
           <div className="w-[170px] shrink-0">
-            {skills.length > 0 && (
-              <div className="resume-export-block mb-6">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3"
-                  style={{ color }}
-                >
-                  Skills
-                </p>
-                {renderSkills(skills, skillsStyle, color, false)}
-              </div>
-            )}
-            {certs.length > 0 && (
-              <div>
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.14em] text-gray-800 mb-3"
-                  style={{ color }}
-                >
-                  Certs
-                </p>
-                <div className="space-y-2">
-                  {certs.map((c, i) => {
-                    const url = (str(c.credentialUrl) || str(c.url)).trim();
-                    return (
-                      <div
-                        key={i}
-                        className="resume-export-block p-2 rounded"
-                        style={{ background: alpha(color, 0.06) }}
-                      >
-                        <p className="text-[11px] font-semibold text-gray-800">
-                          {str(c.name)}
-                        </p>
-                        {str(c.issuer) && (
-                          <p className="text-[9.5px] text-gray-500 mt-0.5">
-                            {str(c.issuer)}
-                          </p>
-                        )}
-                        {url && (
-                          <a
-                            href={ensureProto(url)}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            className="text-[9.5px] underline mt-0.5 block"
-                            style={{ color }}
-                          >
-                            verify
-                          </a>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            {orderedBlocks(sections, sideBlocks, ["skills", "certifications"])}
           </div>
         )}
       </div>
@@ -1236,6 +1264,159 @@ export function NovaTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+
+  const NovaHead = ({
+    label,
+    className = "",
+  }: {
+    label: string;
+    className?: string;
+  }) => (
+    <p
+      className={`text-[13.5px] font-bold uppercase tracking-[0.2em] ${className}`}
+      style={{ color }}
+    >
+      {label}
+    </p>
+  );
+
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    blocks.summary = (
+      <div className="resume-export-block mb-6">
+        <NovaHead label={H("summary", "Profile")} className="mb-2 text-center" />
+        <div
+          className="resume-text text-[11px] text-gray-500 leading-[1.7] text-center max-w-[480px] mx-auto"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div className="mb-6">
+        <NovaHead label={H("experience", "Experience")} className="mb-3.5" />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div key={i} className="resume-export-block flex gap-5">
+              <div className="w-[115px] shrink-0 text-right">
+                <p className="text-[10px] text-gray-400 leading-relaxed">
+                  {str(e.startDate)}
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  {str(e.endDate) || (e.startDate ? "Present" : "")}
+                </p>
+              </div>
+              <div className="flex-1 border-l border-gray-100 pl-5">
+                <p className="text-[12px] font-bold text-gray-800">
+                  {str(e.title)}
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  {str(e.company)}
+                  {e.location ? `, ${str(e.location)}` : ""}
+                </p>
+                {items<unknown>(e as SC, "bullets")
+                  .filter((b) => {
+                    const p = bulletParts(b);
+                    return p.text || p.label || p.link;
+                  })
+                  .map((b, j) => (
+                    <div
+                      key={j}
+                      className="flex-1 min-w-0 text-[11px] text-gray-500 leading-[1.6] mt-1"
+                    >
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div className="mb-6">
+        <NovaHead label={H("education", "Education")} className="mb-3.5" />
+        <div className="space-y-3">
+          {edu.map((e, i) => (
+            <div key={i} className="resume-export-block">
+              <p className="text-[12px] font-bold text-gray-800">
+                {str(e.school)}
+              </p>
+              <p className="text-[11px] text-gray-400">
+                {str(e.degree)}
+                {e.field ? `, ${str(e.field)}` : ""}
+              </p>
+              <p className="text-[10px] text-gray-300 mt-0.5">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block mb-6">
+        <NovaHead label={H("skills", "Expertise")} className="mb-3.5" />
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div className="mb-6">
+        <NovaHead
+          label={H("projects", "Selected Projects")}
+          className="mb-3.5"
+        />
+        <div className="space-y-3">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block flex gap-4">
+              <div className="w-[150px] shrink-0">
+                <p className="text-[12px] font-bold text-gray-700">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10px]"
+                />
+              </div>
+              <div
+                className="resume-text text-[11px] text-gray-500 flex-1"
+                dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div className="resume-export-block mb-6">
+        <NovaHead label={H("certifications", "Certifications")} className="mb-3.5" />
+        <div className="flex flex-wrap gap-3">
+          {certs.map((c, i) => (
+            <CertLine
+              key={i}
+              c={c}
+              className="text-[11px] text-gray-500"
+              color={color}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-12 py-10" style={{ fontFamily: font }}>
@@ -1269,162 +1450,7 @@ export function NovaTemplate({ sections, color, font }: TP) {
         </div>
       </div>
 
-      {str(summary.text) && (
-        <div className="resume-export-block mb-6">
-          <p
-            className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-2 text-center"
-            style={{ color }}
-          >
-            Profile
-          </p>
-          <div
-            className="resume-text text-[11px] text-gray-500 leading-[1.7] text-center max-w-[480px] mx-auto"
-            dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-          />
-        </div>
-      )}
-
-      {exp.length > 0 && (
-        <div className="mb-6">
-          <p
-            className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5"
-            style={{ color }}
-          >
-            Experience
-          </p>
-          <div className="space-y-4">
-            {exp.map((e, i) => (
-              <div key={i} className="resume-export-block flex gap-5">
-                <div className="w-[115px] shrink-0 text-right">
-                  <p className="text-[10px] text-gray-400 leading-relaxed">
-                    {str(e.startDate)}
-                  </p>
-                  <p className="text-[10px] text-gray-400">
-                    {str(e.endDate) || (e.startDate ? "Present" : "")}
-                  </p>
-                </div>
-                <div className="flex-1 border-l border-gray-100 pl-5">
-                  <p className="text-[12px] font-bold text-gray-800">
-                    {str(e.title)}
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    {str(e.company)}
-                    {e.location ? `, ${str(e.location)}` : ""}
-                  </p>
-                  {items<unknown>(e as SC, "bullets")
-                    .filter((b) => {
-                      const p = bulletParts(b);
-                      return p.text || p.label || p.link;
-                    })
-                    .map((b, j) => (
-                      <div
-                        key={j}
-                        className="flex-1 min-w-0 text-[11px] text-gray-500 leading-[1.6] mt-1"
-                      >
-                        <BulletContent b={b} color={color} />
-                      </div>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-7 mb-6">
-        {edu.length > 0 && (
-          <div>
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5"
-              style={{ color }}
-            >
-              Education
-            </p>
-            <div className="space-y-3">
-              {edu.map((e, i) => (
-                <div key={i} className="resume-export-block">
-                  <p className="text-[12px] font-bold text-gray-800">
-                    {str(e.school)}
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    {str(e.degree)}
-                    {e.field ? `, ${str(e.field)}` : ""}
-                  </p>
-                  <p className="text-[10px] text-gray-300 mt-0.5">
-                    {str(e.startDate)}
-                    {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                    {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {skills.length > 0 && (
-          <div className="resume-export-block">
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5"
-              style={{ color }}
-            >
-              Expertise
-            </p>
-            {renderSkills(skills, skillsStyle, color, false)}
-          </div>
-        )}
-      </div>
-
-      {projects.length > 0 && (
-        <div className="mb-6">
-          <p
-            className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5"
-            style={{ color }}
-          >
-            Selected Projects
-          </p>
-          <div className="space-y-3">
-            {projects.map((pr, i) => (
-              <div key={i} className="resume-export-block flex gap-4">
-                <div className="w-[150px] shrink-0">
-                  <p className="text-[12px] font-bold text-gray-700">
-                    {str(pr.name)}
-                  </p>
-                  <ProjectLink
-                    url={pr.url}
-                    label={pr.label}
-                    color={color}
-                    className="text-[10px]"
-                  />
-                </div>
-                <div
-                  className="resume-text text-[11px] text-gray-500 flex-1"
-                  dangerouslySetInnerHTML={{ __html: richHtml(pr.description) }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {certs.length > 0 && (
-        <div className="resume-export-block mb-6 last:mb-0">
-          <p
-            className="text-[13.5px] font-bold uppercase tracking-[0.2em] mb-3.5"
-            style={{ color }}
-          >
-            Certifications
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {certs.map((c, i) => (
-              <CertLine
-                key={i}
-                c={c}
-                className="text-[11px] text-gray-500"
-                color={color}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {orderedBlocks(sections, blocks)}
     </div>
   );
 }
@@ -1442,6 +1468,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
 
   const rule = (
     <div className="flex items-center gap-3 my-4">
@@ -1453,6 +1480,170 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
       <div className="flex-1 h-px" style={{ background: alpha(color, 0.2) }} />
     </div>
   );
+
+  const ExecHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-3 mb-3.5 resume-section-header">
+      <div className="flex-1 h-px bg-gray-200" />
+      <p
+        className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400 shrink-0"
+        style={{ color }}
+      >
+        {label}
+      </p>
+      <div className="flex-1 h-px bg-gray-200" />
+    </div>
+  );
+
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    const customSummaryHeading = ((summary.heading as string) ?? "").trim();
+    blocks.summary = (
+      <div className="resume-export-block mb-6 text-center">
+        {customSummaryHeading && <ExecHead label={customSummaryHeading} />}
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.8] max-w-[480px] mx-auto"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div className="mb-6">
+        <ExecHead label={H("experience", "Professional Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex justify-between items-baseline">
+                <div>
+                  <span className="text-[12px] font-bold text-gray-900">
+                    {str(e.title)}
+                  </span>
+                  <span className="text-[10px] text-gray-500 ml-2">·</span>
+                  <span className="text-[11px] text-gray-600 ml-2 italic">
+                    {str(e.company)}
+                  </span>
+                </div>
+                <p className="text-[10px] text-gray-400 shrink-0 ml-3">
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Present"
+                      : ""}
+                </p>
+              </div>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-2 mt-1.5">
+                    <span
+                      className="text-[10px] shrink-0 mt-0.5"
+                      style={{ color }}
+                    >
+                      —
+                    </span>
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.6]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div className="mb-6">
+        <ExecHead label={H("education", "Education")} />
+        <div className="space-y-3.5">
+          {edu.map((e, i) => (
+            <div key={i} className="resume-export-block">
+              <p className="text-[12px] font-bold text-gray-900">
+                {str(e.school)}
+              </p>
+              <p className="text-[11px] italic text-gray-600">
+                {str(e.degree)}
+                {e.field ? `, ${str(e.field)}` : ""}
+              </p>
+              <p className="text-[10px] text-gray-400">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block mb-6">
+        <ExecHead label={H("skills", "Core Competencies")} />
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div className="resume-export-block mb-6">
+        <ExecHead label={H("certifications", "Certifications")} />
+        <div className="space-y-1">
+          {certs.map((c, i) => (
+            <div key={i}>
+              <CertLine
+                c={c}
+                className="text-[11px] italic text-gray-600"
+                color={color}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div className="mb-6">
+        <ExecHead label={H("projects", "Notable Projects")} />
+        <div className="space-y-2">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <span className="text-[12px] font-bold text-gray-900">
+                {str(pr.name)}
+              </span>
+              {(str(pr.url) || str(pr.label)) && (
+                <span className="ml-2">
+                  <ProjectLink
+                    url={pr.url}
+                    label={pr.label}
+                    color={color}
+                    className="text-[10px] italic"
+                  />
+                </span>
+              )}
+              {str(pr.description) && (
+                <span className="resume-text text-[11px] text-gray-600 ml-2">
+                  —{" "}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: richHtml(pr.description),
+                    }}
+                  />
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-12 py-10" style={{ fontFamily: font }}>
@@ -1483,197 +1674,7 @@ export function ExecutiveProTemplate({ sections, color, font }: TP) {
 
       {rule}
 
-      {str(summary.text) && (
-        <div className="resume-export-block mb-6 text-center">
-          <div
-            className="resume-text text-[11px] text-gray-600 leading-[1.8] max-w-[480px] mx-auto"
-            dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-          />
-        </div>
-      )}
-
-      {exp.length > 0 && (
-        <div className="mb-6">
-          <div className="space-y-4">
-            {exp.map((e, i) => (
-              <div key={i} className="resume-export-block">
-                {i === 0 && (
-                  <div className="flex items-center gap-3 mb-3.5 resume-section-header">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <p
-                      className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400 shrink-0"
-                      style={{ color }}
-                    >
-                      Professional Experience
-                    </p>
-                    <div className="flex-1 h-px bg-gray-200" />
-                  </div>
-                )}
-                <div className="flex justify-between items-baseline">
-                  <div>
-                    <span className="text-[12px] font-bold text-gray-900">
-                      {str(e.title)}
-                    </span>
-                    <span className="text-[10px] text-gray-500 ml-2">·</span>
-                    <span className="text-[11px] text-gray-600 ml-2 italic">
-                      {str(e.company)}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400 shrink-0 ml-3">
-                    {str(e.startDate)}
-                    {e.endDate
-                      ? ` – ${str(e.endDate)}`
-                      : e.startDate
-                        ? " – Present"
-                        : ""}
-                  </p>
-                </div>
-                {items<unknown>(e as SC, "bullets")
-                  .filter((b) => {
-                    const p = bulletParts(b);
-                    return p.text || p.label || p.link;
-                  })
-                  .map((b, j) => (
-                    <div key={j} className="flex gap-2 mt-1.5">
-                      <span
-                        className="text-[10px] shrink-0 mt-0.5"
-                        style={{ color }}
-                      >
-                        —
-                      </span>
-                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.6]">
-                        <BulletContent b={b} color={color} />
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-8 mt-4 mb-6">
-        {edu.length > 0 && (
-          <div className="space-y-3.5">
-            {edu.map((e, i) => (
-              <div key={i} className="resume-export-block">
-                {i === 0 && (
-                  <div className="flex items-center gap-3 mb-3 resume-section-header">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <p
-                      className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400 shrink-0"
-                      style={{ color }}
-                    >
-                      Education
-                    </p>
-                    <div className="flex-1 h-px bg-gray-200" />
-                  </div>
-                )}
-                <p className="text-[12px] font-bold text-gray-900">
-                  {str(e.school)}
-                </p>
-                <p className="text-[11px] italic text-gray-600">
-                  {str(e.degree)}
-                  {e.field ? `, ${str(e.field)}` : ""}
-                </p>
-                <p className="text-[10px] text-gray-400">
-                  {str(e.startDate)}
-                  {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                  {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {(skills.length > 0 || certs.length > 0) && (
-          <div>
-            {skills.length > 0 && (
-              <div className="resume-export-block">
-                <div className="flex items-center gap-3 mb-3 resume-section-header">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <p
-                    className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400 shrink-0"
-                    style={{ color }}
-                  >
-                    Core Competencies
-                  </p>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-                {renderSkills(skills, skillsStyle, color, false)}
-              </div>
-            )}
-            {certs.length > 0 && (
-              <div className="resume-export-block mt-4">
-                <p
-                  className="text-[11px] uppercase tracking-[0.15em] text-gray-400 mb-2 resume-section-header"
-                  style={{ color }}
-                >
-                  Certifications
-                </p>
-                <div className="space-y-1">
-                  {certs.map((c, i) => (
-                    <div key={i}>
-                      <CertLine
-                        key={i}
-                        c={c}
-                        className="text-[11px] italic text-gray-600"
-                        color={color}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {projects.length > 0 && (
-        <div className="mt-6">
-          <div className="space-y-2">
-            {projects.map((pr, i) => (
-              <div key={i} className="resume-export-block">
-                {i === 0 && (
-                  <div className="flex items-center gap-3 mb-3 resume-section-header">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <p
-                      className="text-[13.5px] uppercase tracking-[0.18em] text-gray-400 shrink-0"
-                      style={{ color }}
-                    >
-                      Notable Projects
-                    </p>
-                    <div className="flex-1 h-px bg-gray-200" />
-                  </div>
-                )}
-                <span className="text-[12px] font-bold text-gray-900">
-                  {str(pr.name)}
-                </span>
-                {(str(pr.url) || str(pr.label)) && (
-                  <span className="ml-2">
-                    <ProjectLink
-                      url={pr.url}
-                      label={pr.label}
-                      color={color}
-                      className="text-[10px] italic"
-                    />
-                  </span>
-                )}
-                {str(pr.description) && (
-                  <span className="resume-text text-[11px] text-gray-600 ml-2">
-                    —{" "}
-                    <span
-                      dangerouslySetInnerHTML={{
-                        __html: richHtml(pr.description),
-                      }}
-                    />
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {orderedBlocks(sections, blocks)}
     </div>
   );
 }
@@ -1691,6 +1692,203 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+
+  const MainHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-2 mb-3.5">
+      <div className="h-3.5 w-[3px] rounded-full" style={{ background: color }} />
+      <p
+        className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800"
+        style={{ color }}
+      >
+        {label}
+      </p>
+    </div>
+  );
+
+  const sidebarBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (skills.length > 0) {
+    sidebarBlocks.skills = (
+      <div
+        className="resume-export-block px-5 py-4"
+        style={{ background: alpha(color, 0.02) }}
+      >
+        <p
+          className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
+          style={{ color }}
+        >
+          {H("skills", "Skills")}
+        </p>
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    sidebarBlocks.education = (
+      <div className="resume-export-block px-5 py-4">
+        <p
+          className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
+          style={{ color }}
+        >
+          {H("education", "Education")}
+        </p>
+        <div className="space-y-3.5">
+          {edu.map((e, i) => (
+            <div key={i} className="resume-export-block">
+              <p className="text-[12px] font-bold text-gray-900">
+                {str(e.school)}
+              </p>
+              <p className="text-[11px] text-gray-600 mt-0.5">
+                {str(e.degree)}
+              </p>
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    sidebarBlocks.certifications = (
+      <div className="resume-export-block px-5 py-4">
+        <p
+          className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
+          style={{ color }}
+        >
+          {H("certifications", "Certifications")}
+        </p>
+        <div className="space-y-1">
+          {certs.map((c, i) => (
+            <div key={i} className="resume-export-block">
+              <CertLine
+                c={c}
+                className="text-[11px] text-gray-600 mb-1 last:mb-0"
+                color={color}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const mainBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    mainBlocks.summary = (
+      <div
+        className="resume-export-block mb-6 p-4 rounded-xl"
+        style={{ background: alpha(color, 0.06) }}
+      >
+        <p
+          className="text-[13.5px] font-bold uppercase tracking-[0.15em] mb-2"
+          style={{ color }}
+        >
+          {H("summary", "About Me")}
+        </p>
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.7]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    mainBlocks.experience = (
+      <div className="mb-6">
+        <MainHead label={H("experience", "Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block rounded-xl p-3.5"
+              style={{ border: `1px solid ${alpha(color, 0.15)}` }}
+            >
+              <div className="flex justify-between items-start gap-4 flex-wrap mb-1">
+                <div>
+                  <p className="text-[12px] font-black text-gray-900">
+                    {str(e.title)}
+                  </p>
+                  <p
+                    className="text-[11px] font-semibold mt-0.5"
+                    style={{ color }}
+                  >
+                    {str(e.company)}
+                  </p>
+                </div>
+                <span
+                  className="text-[10px] text-white px-2.5 py-0.5 rounded-full shrink-0"
+                  style={{ background: color }}
+                >
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Now"
+                      : ""}
+                </span>
+              </div>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-1.5 mt-1.5">
+                    <span
+                      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                      style={{ background: color }}
+                    />
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    mainBlocks.projects = (
+      <div className="mb-6">
+        <MainHead label={H("projects", "Projects")} />
+        <div className="space-y-4">
+          {projects.map((pr, i) => (
+            <div
+              key={i}
+              className="resume-export-block rounded-xl p-3.5"
+              style={{ border: `1px solid ${alpha(color, 0.15)}` }}
+            >
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-500 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -1752,207 +1950,20 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
           ))}
         </div>
 
-        {/* Skills */}
-        {skills.length > 0 && (
-          <div
-            className="resume-export-block px-5 py-4"
-            style={{ background: alpha(color, 0.02) }}
-          >
-            <p
-              className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
-              style={{ color }}
-            >
-              Skills
-            </p>
-            {renderSkills(skills, skillsStyle, color, false)}
-          </div>
-        )}
-
-        {/* Education */}
-        {edu.length > 0 && (
-          <div className="resume-export-block px-5 py-4">
-            <p
-              className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
-              style={{ color }}
-            >
-              Education
-            </p>
-            <div className="space-y-3.5">
-              {edu.map((e, i) => (
-                <div key={i} className="resume-export-block">
-                  <p className="text-[12px] font-bold text-gray-900">
-                    {str(e.school)}
-                  </p>
-                  <p className="text-[11px] text-gray-600 mt-0.5">
-                    {str(e.degree)}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {str(e.startDate)}
-                    {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                    {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {certs.length > 0 && (
-          <div className="resume-export-block px-5 py-4">
-            <p
-              className="text-[13px] font-bold uppercase tracking-[0.14em] mb-2.5"
-              style={{ color }}
-            >
-              Certifications
-            </p>
-            <div className="space-y-1">
-              {certs.map((c, i) => (
-                <div key={i} className="resume-export-block">
-                  <CertLine
-                    key={i}
-                    c={c}
-                    className="text-[11px] text-gray-600 mb-1 last:mb-0"
-                    color={color}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {orderedBlocks(sections, sidebarBlocks, [
+          "skills",
+          "education",
+          "certifications",
+        ])}
       </div>
 
       {/* Main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
-        {str(summary.text) && (
-          <div
-            className="resume-export-block mb-6 p-4 rounded-xl"
-            style={{ background: alpha(color, 0.06) }}
-          >
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.15em] mb-2"
-              style={{ color }}
-            >
-              About Me
-            </p>
-            <div
-              className="resume-text text-[11px] text-gray-600 leading-[1.7]"
-              dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-            />
-          </div>
-        )}
-
-        {exp.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3.5">
-              <div
-                className="h-3.5 w-[3px] rounded-full"
-                style={{ background: color }}
-              />
-              <p
-                className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800"
-                style={{ color }}
-              >
-                Experience
-              </p>
-            </div>
-            <div className="space-y-4">
-              {exp.map((e, i) => (
-                <div
-                  key={i}
-                  className="resume-export-block rounded-xl p-3.5"
-                  style={{ border: `1px solid ${alpha(color, 0.15)}` }}
-                >
-                  <div className="flex justify-between items-start gap-4 flex-wrap mb-1">
-                    <div>
-                      <p className="text-[12px] font-black text-gray-900">
-                        {str(e.title)}
-                      </p>
-                      <p
-                        className="text-[11px] font-semibold mt-0.5"
-                        style={{ color }}
-                      >
-                        {str(e.company)}
-                      </p>
-                    </div>
-                    <span
-                      className="text-[10px] text-white px-2.5 py-0.5 rounded-full shrink-0"
-                      style={{ background: color }}
-                    >
-                      {str(e.startDate)}
-                      {e.endDate
-                        ? ` – ${str(e.endDate)}`
-                        : e.startDate
-                          ? " – Now"
-                          : ""}
-                    </span>
-                  </div>
-                  {items<unknown>(e as SC, "bullets")
-                    .filter((b) => {
-                      const p = bulletParts(b);
-                      return p.text || p.label || p.link;
-                    })
-                    .map((b, j) => (
-                      <div key={j} className="flex gap-1.5 mt-1.5">
-                        <span
-                          className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                          style={{ background: color }}
-                        />
-                        <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
-                          <BulletContent b={b} color={color} />
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {projects.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-3.5">
-              <div
-                className="h-3.5 w-[3px] rounded-full"
-                style={{ background: color }}
-              />
-              <p
-                className="text-[13.5px] font-black uppercase tracking-[0.15em] text-gray-800"
-                style={{ color }}
-              >
-                Projects
-              </p>
-            </div>
-            <div className="space-y-4">
-              {projects.map((pr, i) => (
-                <div
-                  key={i}
-                  className="resume-export-block rounded-xl p-3.5"
-                  style={{ border: `1px solid ${alpha(color, 0.15)}` }}
-                >
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12px] font-bold text-gray-900">
-                      {str(pr.name)}
-                    </p>
-                    <ProjectLink
-                      url={pr.url}
-                      label={pr.label}
-                      color={color}
-                      className="text-[10px]"
-                    />
-                  </div>
-                  {str(pr.description) && (
-                    <div
-                      className="resume-text text-[11px] text-gray-500 mt-1"
-                      dangerouslySetInnerHTML={{
-                        __html: richHtml(pr.description),
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {orderedBlocks(sections, mainBlocks, [
+          "summary",
+          "experience",
+          "projects",
+        ])}
       </div>
     </div>
   );
@@ -1974,6 +1985,176 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   const gold = color;
   const card = alpha(color, 0.04);
   const border = alpha(color, 0.15);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+
+  const MidHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-3 mb-3.5">
+      <p
+        className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
+        style={{ color: gold }}
+      >
+        {label}
+      </p>
+      <div className="flex-1 h-px" style={{ background: border }} />
+    </div>
+  );
+
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    blocks.summary = (
+      <div className="resume-export-block mb-6">
+        <p
+          className="text-[13.5px] font-bold uppercase tracking-[0.18em] mb-2"
+          style={{ color: gold }}
+        >
+          {H("summary", "Profile")}
+        </p>
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.75]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div className="mb-6">
+        <MidHead label={H("experience", "Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block rounded-lg p-3.5"
+              style={{ background: card, border: `1px solid ${border}` }}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-[12px] font-bold text-gray-900">
+                    {str(e.title)}
+                  </p>
+                  <p
+                    className="text-[11.5px] font-medium mt-0.5"
+                    style={{ color: gold }}
+                  >
+                    {str(e.company)}
+                    {e.location ? ` · ${str(e.location)}` : ""}
+                  </p>
+                </div>
+                <p className="text-[10px] text-gray-500 shrink-0 ml-3">
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Present"
+                      : ""}
+                </p>
+              </div>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-1.5 mt-1.5">
+                    <span
+                      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                      style={{ background: gold }}
+                    />
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div className="mb-6">
+        <MidHead label={H("education", "Education")} />
+        <div className="space-y-3">
+          {edu.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block rounded-lg p-3"
+              style={{ background: card, border: `1px solid ${border}` }}
+            >
+              <p className="text-[12px] font-semibold text-gray-900">
+                {str(e.school)}
+              </p>
+              <p className="text-[11px] text-gray-600 mt-0.5">
+                {str(e.degree)}
+              </p>
+              <p className="text-[10px] text-gray-500 mt-0.5">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block mb-6">
+        <MidHead label={H("skills", "Skills")} />
+        {renderSkills(skills, skillsStyle, gold, false)}
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div className="mb-6">
+        <MidHead label={H("projects", "Projects")} />
+        <div className="space-y-3">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <p className="text-[12px] font-semibold text-gray-900">
+                {str(pr.name)}
+              </p>
+              <ProjectLink
+                url={pr.url}
+                label={pr.label}
+                color={gold}
+                className="text-[10px]"
+              />
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-600 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div className="mb-6">
+        <MidHead label={H("certifications", "Certs")} />
+        <div className="space-y-1">
+          {certs.map((c, i) => (
+            <div key={i} className="resume-export-block">
+              <CertLine
+                c={c}
+                className="text-[11px] text-gray-600"
+                color={gold}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-9 py-8" style={{ fontFamily: font, minHeight: "100%" }}>
@@ -2012,198 +2193,7 @@ export function MidnightTemplate({ sections, color, font }: TP) {
         </div>
       </div>
 
-      {str(summary.text) && (
-        <div className="resume-export-block mb-6">
-          <p
-            className="text-[13.5px] font-bold uppercase tracking-[0.18em] mb-2"
-            style={{ color: gold }}
-          >
-            Profile
-          </p>
-          <div
-            className="resume-text text-[11px] text-gray-600 leading-[1.75]"
-            dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-          />
-        </div>
-      )}
-
-      {exp.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-3.5">
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-              style={{ color: gold }}
-            >
-              Experience
-            </p>
-            <div className="flex-1 h-px" style={{ background: border }} />
-          </div>
-          <div className="space-y-4">
-            {exp.map((e, i) => (
-              <div
-                key={i}
-                className="resume-export-block rounded-lg p-3.5"
-                style={{ background: card, border: `1px solid ${border}` }}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[12px] font-bold text-gray-900">
-                      {str(e.title)}
-                    </p>
-                    <p
-                      className="text-[11.5px] font-medium mt-0.5"
-                      style={{ color: gold }}
-                    >
-                      {str(e.company)}
-                      {e.location ? ` · ${str(e.location)}` : ""}
-                    </p>
-                  </div>
-                  <p className="text-[10px] text-gray-500 shrink-0 ml-3">
-                    {str(e.startDate)}
-                    {e.endDate
-                      ? ` – ${str(e.endDate)}`
-                      : e.startDate
-                        ? " – Present"
-                        : ""}
-                  </p>
-                </div>
-                {items<unknown>(e as SC, "bullets")
-                  .filter((b) => {
-                    const p = bulletParts(b);
-                    return p.text || p.label || p.link;
-                  })
-                  .map((b, j) => (
-                    <div key={j} className="flex gap-1.5 mt-1.5">
-                      <span
-                        className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                        style={{ background: gold }}
-                      />
-                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
-                        <BulletContent b={b} color={color} />
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          {edu.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3.5">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-                  style={{ color: gold }}
-                >
-                  Education
-                </p>
-                <div className="flex-1 h-px" style={{ background: border }} />
-              </div>
-              <div className="space-y-3">
-                {edu.map((e, i) => (
-                  <div
-                    key={i}
-                    className="resume-export-block rounded-lg p-3"
-                    style={{ background: card, border: `1px solid ${border}` }}
-                  >
-                    <p className="text-[12px] font-semibold text-gray-900">
-                      {str(e.school)}
-                    </p>
-                    <p className="text-[11px] text-gray-600 mt-0.5">
-                      {str(e.degree)}
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">
-                      {str(e.startDate)}
-                      {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                      {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {certs.length > 0 && (
-            <div>
-              <div className="flex items-center gap-3 mb-3.5">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-                  style={{ color: gold }}
-                >
-                  Certs
-                </p>
-                <div className="flex-1 h-px" style={{ background: border }} />
-              </div>
-              <div className="space-y-1">
-                {certs.map((c, i) => (
-                  <div key={i} className="resume-export-block">
-                    <CertLine
-                      key={i}
-                      c={c}
-                      className="text-[11px] text-gray-600"
-                      color={gold}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        <div>
-          {skills.length > 0 && (
-            <div className="resume-export-block mb-6">
-              <div className="flex items-center gap-3 mb-3.5">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-                  style={{ color: gold }}
-                >
-                  Skills
-                </p>
-                <div className="flex-1 h-px" style={{ background: border }} />
-              </div>
-              {renderSkills(skills, skillsStyle, gold, false)}
-            </div>
-          )}
-          {projects.length > 0 && (
-            <div>
-              <div className="flex items-center gap-3 mb-3.5">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-                  style={{ color: gold }}
-                >
-                  Projects
-                </p>
-                <div className="flex-1 h-px" style={{ background: border }} />
-              </div>
-              <div className="space-y-3">
-                {projects.map((pr, i) => (
-                  <div key={i} className="resume-export-block">
-                    <p className="text-[12px] font-semibold text-gray-900">
-                      {str(pr.name)}
-                    </p>
-                    <ProjectLink
-                      url={pr.url}
-                      label={pr.label}
-                      color={gold}
-                      className="text-[10px]"
-                    />
-                    {str(pr.description) && (
-                      <div
-                        className="resume-text text-[11px] text-gray-600 mt-1"
-                        dangerouslySetInnerHTML={{
-                          __html: richHtml(pr.description),
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      {orderedBlocks(sections, blocks)}
     </div>
   );
 }
@@ -2233,43 +2223,27 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
     </div>
   );
 
-  return (
-    <div className="px-8 py-7" style={{ fontFamily: font }}>
-      <div className="text-center mb-3">
-        <h1 className="text-[28px] font-black text-gray-950 leading-tight">
-          {str(p.name) || "Your Name"}
-        </h1>
-        {roleOf(p) && (
-          <p
-            className="text-[12.5px] font-bold tracking-wider uppercase mt-0.5"
-            style={{ color }}
-          >
-            {roleOf(p)}
-          </p>
-        )}
-        <p className="text-[10px] text-gray-600 mt-1">
-          {contactValues(p, color).map((v, i) => (
-            <span key={i}>
-              {i > 0 && "  |  "}
-              {v}
-            </span>
-          ))}
-        </p>
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+
+  if (str(summary.text)) {
+    blocks.summary = (
+      <div className="resume-export-block">
+        <SH label={H("summary", "Professional Summary")} />
+        <div
+          className="resume-text text-[11px] text-gray-700 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
       </div>
-      {str(summary.text) && (
-        <div className="resume-export-block">
-          <SH label="Professional Summary" />
-          <div
-            className="resume-text text-[11px] text-gray-700 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-          />
-        </div>
-      )}
-      {exp.length > 0 && (
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div>
+        <SH label={H("experience", "Work Experience")} />
         <div className="space-y-3.5">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Work Experience" />}
               <div className="flex justify-between items-baseline mb-0.5">
                 <p className="text-[12px] font-bold text-gray-900">
                   {str(e.title)}, {str(e.company)}
@@ -2303,12 +2277,16 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
-      {edu.length > 0 && (
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div>
+        <SH label={H("education", "Education")} />
         <div className="space-y-2">
           {edu.map((e, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Education" />}
               <div className="flex justify-between items-baseline">
                 <p className="text-[11.5px] font-bold text-gray-900">
                   {str(e.school)} — {str(e.degree)}
@@ -2323,33 +2301,39 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
-      {skills.length > 0 && (
-        <div className="resume-export-block">
-          <SH label="Skills" />
-          {(() => {
-            const style = skillsStyleOf(sections);
-            return style && style !== "text" ? (
-              renderSkills(skills, style, color, false)
-            ) : (
-              <p className="text-[11px] text-gray-700">
-                {skills
-                  .map((s) => str(s.name))
-                  .filter(Boolean)
-                  .join(" | ")}
-              </p>
-            );
-          })()}
-        </div>
-      )}
-      {projects.length > 0 && (
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block">
+        <SH label={H("skills", "Skills")} />
+        {(() => {
+          const style = skillsStyleOf(sections);
+          return style && style !== "text" ? (
+            renderSkills(skills, style, color, false)
+          ) : (
+            <p className="text-[11px] text-gray-700">
+              {skills
+                .map((s) => str(s.name))
+                .filter(Boolean)
+                .join(" | ")}
+            </p>
+          );
+        })()}
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div>
+        <SH label={H("projects", "Projects")} />
         <div className="space-y-2.5">
           {projects.map((pr, i) => (
             <div
               key={i}
               className="resume-export-block text-[11px] text-gray-700"
             >
-              {i === 0 && <SH label="Projects" />}
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-[12px] font-bold text-gray-900">
                   {str(pr.name)}
@@ -2370,14 +2354,17 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
-      {certs.length > 0 && (
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div>
+        <SH label={H("certifications", "Certifications")} />
         <div className="space-y-1.5">
           {certs.map((c, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Certifications" />}
               <CertLine
-                key={i}
                 c={c}
                 className="text-[11px] text-gray-700"
                 color={color}
@@ -2385,7 +2372,34 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-8 py-7" style={{ fontFamily: font }}>
+      <div className="text-center mb-3">
+        <h1 className="text-[28px] font-black text-gray-950 leading-tight">
+          {str(p.name) || "Your Name"}
+        </h1>
+        {roleOf(p) && (
+          <p
+            className="text-[12.5px] font-bold tracking-wider uppercase mt-0.5"
+            style={{ color }}
+          >
+            {roleOf(p)}
+          </p>
+        )}
+        <p className="text-[10px] text-gray-600 mt-1">
+          {contactValues(p, color).map((v, i) => (
+            <span key={i}>
+              {i > 0 && "  |  "}
+              {v}
+            </span>
+          ))}
+        </p>
+      </div>
+      {orderedBlocks(sections, blocks)}
     </div>
   );
 }
@@ -2403,8 +2417,9 @@ export function AcademicTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
 
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mt-6 first:mt-0 mb-3 resume-section-header">
+    <div className="flex items-center gap-2 mt-6 mb-3 resume-section-header">
       <h2
         className="text-[13.5px] font-bold uppercase tracking-[0.1em]"
         style={{ color }}
@@ -2415,42 +2430,25 @@ export function AcademicTemplate({ sections, color, font }: TP) {
     </div>
   );
 
-  return (
-    <div className="px-10 py-8" style={{ fontFamily: font }}>
-      <div
-        className="text-center mb-4 pb-3.5"
-        style={{ borderBottom: `2px solid ${color}` }}
-      >
-        <h1 className="text-[30px] font-bold text-gray-900 tracking-wide">
-          {str(p.name) || "Your Name"}
-        </h1>
-        {roleOf(p) && (
-          <p className="text-[12px] text-gray-600 italic mt-1">{roleOf(p)}</p>
-        )}
-        <div className="flex justify-center gap-4 mt-2.5 flex-wrap">
-          {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[10px] text-gray-500">
-              {v}
-            </span>
-          ))}
-        </div>
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    blocks.summary = (
+      <div className="resume-export-block">
+        <SH label={H("summary", "Research Interests / Summary")} />
+        <div
+          className="resume-text text-[11px] text-gray-700 leading-[1.7]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
       </div>
-
-      {str(summary.text) && (
-        <div className="resume-export-block">
-          <SH label="Research Interests / Summary" />
-          <div
-            className="resume-text text-[11px] text-gray-700 leading-[1.7]"
-            dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-          />
-        </div>
-      )}
-
-      {edu.length > 0 && (
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div>
+        <SH label={H("education", "Education")} />
         <div className="space-y-3">
           {edu.map((e, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Education" />}
               <div className="flex justify-between items-baseline">
                 <div>
                   <p className="text-[12px] font-bold text-gray-900">
@@ -2474,13 +2472,16 @@ export function AcademicTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
-
-      {exp.length > 0 && (
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div>
+        <SH label={H("experience", "Academic & Professional Experience")} />
         <div className="space-y-4">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Academic & Professional Experience" />}
               <div className="flex justify-between items-baseline mb-0.5">
                 <div>
                   <p className="text-[12px] font-bold text-gray-900">
@@ -2519,13 +2520,16 @@ export function AcademicTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
-
-      {projects.length > 0 && (
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div>
+        <SH label={H("projects", "Publications & Research Projects")} />
         <div className="space-y-3.5">
           {projects.map((pr, i) => (
             <div key={i} className="resume-export-block">
-              {i === 0 && <SH label="Publications & Research Projects" />}
               <p className="text-[12px] font-bold text-gray-900">
                 {str(pr.name)}
                 <span className="ml-2 font-normal not-italic">
@@ -2546,42 +2550,70 @@ export function AcademicTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      )}
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block">
+        <SH label={H("skills", "Skills & Methods")} />
+        {(() => {
+          const style = skillsStyleOf(sections);
+          return style && style !== "text" ? (
+            renderSkills(skills, style, color, false)
+          ) : (
+            <p className="text-[11px] text-gray-700 leading-[1.7]">
+              {skills
+                .map((s) => str(s.name))
+                .filter(Boolean)
+                .join(", ")}
+            </p>
+          );
+        })()}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div className="resume-export-block">
+        <SH label={H("certifications", "Certifications")} />
+        <div className="space-y-1.5 mt-3.5">
+          {certs.map((c, i) => (
+            <CertLine
+              key={i}
+              c={c}
+              className="text-[11px] text-gray-700"
+              color={color}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-      <div className="resume-export-grid grid grid-cols-2 gap-6 mt-2">
-        {skills.length > 0 && (
-          <div className="resume-export-block">
-            <SH label="Skills & Methods" />
-            {(() => {
-              const style = skillsStyleOf(sections);
-              return style && style !== "text" ? (
-                renderSkills(skills, style, color, false)
-              ) : (
-                <p className="text-[11px] text-gray-700 leading-[1.7]">
-                  {skills
-                    .map((s) => str(s.name))
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-              );
-            })()}
-          </div>
+  return (
+    <div className="px-10 py-8" style={{ fontFamily: font }}>
+      <div
+        className="text-center mb-4 pb-3.5"
+        style={{ borderBottom: `2px solid ${color}` }}
+      >
+        <h1 className="text-[30px] font-bold text-gray-900 tracking-wide">
+          {str(p.name) || "Your Name"}
+        </h1>
+        {roleOf(p) && (
+          <p className="text-[12px] text-gray-600 italic mt-1">{roleOf(p)}</p>
         )}
-        {certs.length > 0 && (
-          <div className="resume-export-block">
-            <SH label="Certifications" />
-            <div className="space-y-1.5 mt-3.5">
-              {certs.map((c, i) => (
-                <CertLine
-                  key={i}
-                  c={c}
-                  className="text-[11px] text-gray-700"
-                  color={color}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="flex justify-center gap-4 mt-2.5 flex-wrap">
+          {contactValues(p, color).map((v, i) => (
+            <span key={i} className="text-[10px] text-gray-500">
+              {v}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="[&>*:first-child_.resume-section-header]:mt-0">
+        {orderedBlocks(sections, blocks)}
       </div>
     </div>
   );
@@ -2602,6 +2634,182 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
   const skillsStyle = skillsStyleOf(sections);
   const navy = color;
   const headerContactLinkColor = readableAccentOnBackground(navy, color);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+
+  const NavyHead = ({
+    label,
+    className = "mb-3.5",
+  }: {
+    label: string;
+    className?: string;
+  }) => (
+    <p
+      className={`text-[13.5px] font-bold uppercase tracking-[0.16em] ${className}`}
+      style={{ color: navy }}
+    >
+      {label}
+    </p>
+  );
+
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    blocks.summary = (
+      <div
+        className="resume-export-block mb-6 pb-5"
+        style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}
+      >
+        <NavyHead label={H("summary", "Professional Summary")} className="mb-2" />
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.7]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    blocks.experience = (
+      <div className="mb-6">
+        <NavyHead label={H("experience", "Work Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block pl-3"
+              style={{ borderLeft: `3px solid ${alpha(navy, 0.2)}` }}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-[12.5px] font-bold text-gray-900">
+                    {str(e.title)}
+                  </p>
+                  <p
+                    className="text-[11.5px] font-semibold"
+                    style={{ color: navy }}
+                  >
+                    {str(e.company)}
+                    {e.location ? ` — ${str(e.location)}` : ""}
+                  </p>
+                </div>
+                <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 font-medium">
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Present"
+                      : ""}
+                </p>
+              </div>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-1.5 mt-1.5">
+                    <span
+                      className="text-[9px] shrink-0 mt-0.5 font-bold"
+                      style={{ color: navy }}
+                    >
+                      ›
+                    </span>
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    blocks.education = (
+      <div className="mb-6">
+        <NavyHead label={H("education", "Education")} />
+        <div className="space-y-2.5">
+          {edu.map((e, i) => (
+            <div
+              key={i}
+              className="resume-export-block p-2 rounded"
+              style={{ background: alpha(navy, 0.04) }}
+            >
+              <p className="text-[12px] font-bold text-gray-900">
+                {str(e.school)}
+              </p>
+              <p className="text-[11px] text-gray-600 mt-0.5">
+                {str(e.degree)}
+                {e.field ? `, ${str(e.field)}` : ""}
+              </p>
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                {str(e.startDate)}
+                {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (skills.length > 0) {
+    blocks.skills = (
+      <div className="resume-export-block mb-6">
+        <NavyHead label={H("skills", "Core Skills")} />
+        {renderSkills(skills, skillsStyle, navy, false)}
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    blocks.projects = (
+      <div className="mb-6">
+        <NavyHead label={H("projects", "Key Projects")} />
+        <div className="space-y-2">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-500 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    blocks.certifications = (
+      <div className="mb-6">
+        <NavyHead label={H("certifications", "Certifications")} />
+        <div className="space-y-1">
+          {certs.map((c, i) => (
+            <div key={i} className="resume-export-block">
+              <CertLine
+                c={c}
+                className="text-[11px] text-gray-600"
+                color={navy}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: font, minHeight: "100%" }}>
@@ -2632,193 +2840,7 @@ export function CorporateNavyTemplate({ sections, color, font }: TP) {
         }}
       />
 
-      <div className="px-8 py-6">
-        {str(summary.text) && (
-          <div
-            className="resume-export-block mb-6 pb-5"
-            style={{ borderBottom: `1px solid ${alpha(navy, 0.12)}` }}
-          >
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-2"
-              style={{ color: navy }}
-            >
-              Professional Summary
-            </p>
-            <div
-              className="resume-text text-[11px] text-gray-600 leading-[1.7]"
-              dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-            />
-          </div>
-        )}
-
-        {exp.length > 0 && (
-          <div className="mb-6">
-            <p
-              className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3.5"
-              style={{ color: navy }}
-            >
-              Work Experience
-            </p>
-            <div className="space-y-4">
-              {exp.map((e, i) => (
-                <div
-                  key={i}
-                  className="resume-export-block pl-3"
-                  style={{ borderLeft: `3px solid ${alpha(navy, 0.2)}` }}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-[12.5px] font-bold text-gray-900">
-                        {str(e.title)}
-                      </p>
-                      <p
-                        className="text-[11.5px] font-semibold"
-                        style={{ color: navy }}
-                      >
-                        {str(e.company)}
-                        {e.location ? ` — ${str(e.location)}` : ""}
-                      </p>
-                    </div>
-                    <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 font-medium">
-                      {str(e.startDate)}
-                      {e.endDate
-                        ? ` – ${str(e.endDate)}`
-                        : e.startDate
-                          ? " – Present"
-                          : ""}
-                    </p>
-                  </div>
-                  {items<unknown>(e as SC, "bullets")
-                    .filter((b) => {
-                      const p = bulletParts(b);
-                      return p.text || p.label || p.link;
-                    })
-                    .map((b, j) => (
-                      <div key={j} className="flex gap-1.5 mt-1.5">
-                        <span
-                          className="text-[9px] shrink-0 mt-0.5 font-bold"
-                          style={{ color: navy }}
-                        >
-                          ›
-                        </span>
-                        <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
-                          <BulletContent b={b} color={color} />
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="resume-export-grid grid grid-cols-2 gap-6">
-          <div>
-            {edu.length > 0 && (
-              <div className="mb-4">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3"
-                  style={{ color: navy }}
-                >
-                  Education
-                </p>
-                <div className="space-y-2.5">
-                  {edu.map((e, i) => (
-                    <div
-                      key={i}
-                      className="resume-export-block p-2 rounded"
-                      style={{ background: alpha(navy, 0.04) }}
-                    >
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(e.school)}
-                      </p>
-                      <p className="text-[11px] text-gray-600 mt-0.5">
-                        {str(e.degree)}
-                        {e.field ? `, ${str(e.field)}` : ""}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
-                        {str(e.startDate)}
-                        {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                        {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {certs.length > 0 && (
-              <div>
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3"
-                  style={{ color: navy }}
-                >
-                  Certifications
-                </p>
-                <div className="space-y-1">
-                  {certs.map((c, i) => (
-                    <div key={i} className="resume-export-block">
-                      <CertLine
-                        key={i}
-                        c={c}
-                        className="text-[11px] text-gray-600"
-                        color={navy}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          <div>
-            {skills.length > 0 && (
-              <div className="resume-export-block mb-4">
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3"
-                  style={{ color: navy }}
-                >
-                  Core Skills
-                </p>
-                {renderSkills(skills, skillsStyle, navy, false)}
-              </div>
-            )}
-            {projects.length > 0 && (
-              <div>
-                <p
-                  className="text-[13.5px] font-bold uppercase tracking-[0.16em] mb-3"
-                  style={{ color: navy }}
-                >
-                  Key Projects
-                </p>
-                <div className="space-y-2">
-                  {projects.map((pr, i) => (
-                    <div key={i} className="resume-export-block">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-[12px] font-bold text-gray-900">
-                          {str(pr.name)}
-                        </p>
-                        <ProjectLink
-                          url={pr.url}
-                          label={pr.label}
-                          color={color}
-                          className="text-[10px]"
-                        />
-                      </div>
-                      {str(pr.description) && (
-                        <div
-                          className="resume-text text-[11px] text-gray-500 mt-1"
-                          dangerouslySetInnerHTML={{
-                            __html: richHtml(pr.description),
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <div className="px-8 py-6">{orderedBlocks(sections, blocks)}</div>
     </div>
   );
 }
@@ -2836,39 +2858,53 @@ export function CompactTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
 
-  const renderedSections: React.ReactNode[] = [];
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+  const CompactHead = ({ label }: { label: string }) => (
+    <p
+      className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2"
+      style={{ color }}
+    >
+      {label}
+    </p>
+  );
+
+  const blocks: Partial<Record<string, React.ReactNode>> = {};
 
   if (str(summary.text)) {
-    renderedSections.push(
-      <div
-        className="resume-export-block resume-text text-[11px] text-gray-600 leading-[1.6]"
-        dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-      />,
+    const customSummaryHeading = ((summary.heading as string) ?? "").trim();
+    blocks.summary = (
+      <div className="resume-export-block">
+        {customSummaryHeading && <CompactHead label={customSummaryHeading} />}
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.6]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
     );
   }
 
   if (skills.length > 0) {
     const style = skillsStyleOf(sections);
     if (style && style !== "text") {
-      renderedSections.push(
+      blocks.skills = (
         <div className="resume-export-block">
           <p
             className="text-[12.5px] font-bold uppercase tracking-wide mb-2"
             style={{ color }}
           >
-            Skills
+            {H("skills", "Skills")}
           </p>
           {renderSkills(skills, style, color, false)}
-        </div>,
+        </div>
       );
     } else {
-      renderedSections.push(
+      blocks.skills = (
         <div className="resume-export-block">
           <span
             className="text-[12.5px] font-bold uppercase tracking-wide mr-2"
             style={{ color }}
           >
-            Skills:
+            {H("skills", "Skills")}:
           </span>
           <span className="text-[11px] text-gray-700">
             {skills
@@ -2876,20 +2912,15 @@ export function CompactTemplate({ sections, color, font }: TP) {
               .filter(Boolean)
               .join("  ·  ")}
           </span>
-        </div>,
+        </div>
       );
     }
   }
 
   if (exp.length > 0) {
-    renderedSections.push(
+    blocks.experience = (
       <div>
-        <p
-          className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2"
-          style={{ color }}
-        >
-          Experience
-        </p>
+        <CompactHead label={H("experience", "Experience")} />
         <div className="space-y-3.5">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
@@ -2931,19 +2962,14 @@ export function CompactTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      </div>,
+      </div>
     );
   }
 
   if (projects.length > 0) {
-    renderedSections.push(
+    blocks.projects = (
       <div>
-        <p
-          className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2"
-          style={{ color }}
-        >
-          Projects
-        </p>
+        <CompactHead label={H("projects", "Projects")} />
         <div className="space-y-2">
           {projects.map((pr, i) => (
             <div key={i} className="resume-export-block mb-2 last:mb-0">
@@ -2967,19 +2993,14 @@ export function CompactTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      </div>,
+      </div>
     );
   }
 
   if (edu.length > 0) {
-    renderedSections.push(
+    blocks.education = (
       <div>
-        <p
-          className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2"
-          style={{ color }}
-        >
-          Education
-        </p>
+        <CompactHead label={H("education", "Education")} />
         <div className="space-y-2">
           {edu.map((e, i) => (
             <div
@@ -3003,24 +3024,18 @@ export function CompactTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      </div>,
+      </div>
     );
   }
 
   if (certs.length > 0) {
-    renderedSections.push(
+    blocks.certifications = (
       <div>
-        <p
-          className="text-[12.5px] font-bold uppercase tracking-[0.14em] mb-2"
-          style={{ color }}
-        >
-          Certifications
-        </p>
+        <CompactHead label={H("certifications", "Certifications")} />
         <div className="space-y-1">
           {certs.map((c, i) => (
             <div key={i} className="resume-export-block mb-1 last:mb-0">
               <CertLine
-                key={i}
                 c={c}
                 className="text-[11px] text-gray-600"
                 color={color}
@@ -3028,9 +3043,11 @@ export function CompactTemplate({ sections, color, font }: TP) {
             </div>
           ))}
         </div>
-      </div>,
+      </div>
     );
   }
+
+  const renderedSections = orderedBlocks(sections, blocks);
 
   return (
     <div className="px-7 py-5" style={{ fontFamily: font }}>
@@ -3088,8 +3105,9 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
   const skillsStyle = skillsStyleOf(sections);
   const photo = (p.photo as string) ?? "";
 
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
   const SH = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-2 mb-3 mt-4 first:mt-0 resume-section-header">
+    <div className="flex items-center gap-2 mb-3 mt-4 resume-section-header">
       <div className="h-3 w-[3px] rounded-full" style={{ background: color }} />
       <p
         className="text-[13.5px] font-bold uppercase tracking-[0.14em]"
@@ -3100,6 +3118,177 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
       <div className="flex-1 h-px bg-gray-100" />
     </div>
   );
+
+  const sidebarBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (skills.length > 0) {
+    sidebarBlocks.skills = (
+      <div className="resume-export-block mb-4">
+        <SH label={H("skills", "Skills")} />
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    sidebarBlocks.education = (
+      <div className="mb-4">
+        <div className="resume-export-block">
+          <SH label={H("education", "Education")} />
+          <div>
+            <p className="text-[12px] font-semibold text-gray-800">
+              {str(edu[0].school)}
+            </p>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {str(edu[0].degree)}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              {str(edu[0].startDate)}
+              {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
+              {edu[0].gpa ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}` : ""}
+            </p>
+          </div>
+        </div>
+        {edu.length > 1 && (
+          <div className="space-y-3.5 mt-3.5">
+            {edu.slice(1).map((e, i) => (
+              <div key={i} className="resume-export-block">
+                <p className="text-[12px] font-semibold text-gray-800">
+                  {str(e.school)}
+                </p>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  {str(e.degree)}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {str(e.startDate)}
+                  {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                  {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    sidebarBlocks.certifications = (
+      <div className="mb-4">
+        <div className="resume-export-block">
+          <SH label={H("certifications", "Certifications")} />
+          <div>
+            <CertLine
+              c={certs[0]}
+              className="text-[11px] text-gray-600"
+              color={color}
+            />
+          </div>
+        </div>
+        {certs.length > 1 && (
+          <div className="space-y-1 mt-1">
+            {certs.slice(1).map((c, i) => (
+              <div key={i} className="resume-export-block">
+                <CertLine
+                  c={c}
+                  className="text-[11px] text-gray-600"
+                  color={color}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const mainBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    mainBlocks.summary = (
+      <div className="resume-export-block mb-6">
+        <SH label={H("summary", "Profile")} />
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.7]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    mainBlocks.experience = (
+      <div className="mb-6">
+        <SH label={H("experience", "Work Experience")} />
+        <div className="space-y-4">
+          {exp.map((e, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex justify-between items-baseline mb-0.5">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(e.title)}
+                </p>
+                <p className="text-[10px] text-gray-400 shrink-0 ml-2">
+                  {str(e.startDate)}
+                  {e.endDate
+                    ? ` – ${str(e.endDate)}`
+                    : e.startDate
+                      ? " – Present"
+                      : ""}
+                </p>
+              </div>
+              <p className="text-[11.5px] font-semibold" style={{ color }}>
+                {str(e.company)}
+                {e.location ? `, ${str(e.location)}` : ""}
+              </p>
+              {items<unknown>(e as SC, "bullets")
+                .filter((b) => {
+                  const p = bulletParts(b);
+                  return p.text || p.label || p.link;
+                })
+                .map((b, j) => (
+                  <div key={j} className="flex gap-1.5 mt-1.5">
+                    <span
+                      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                      style={{ background: color }}
+                    />
+                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
+                      <BulletContent b={b} color={color} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    mainBlocks.projects = (
+      <div className="mb-6">
+        <SH label={H("projects", "Projects")} />
+        <div className="space-y-3.5">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-600 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -3154,181 +3343,27 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
       <div className="flex flex-1 flex-row" data-resume-two-col-root>
         {/* Left */}
         <div
-          className="w-[230px] shrink-0 px-5 py-5"
+          className="w-[230px] shrink-0 px-5 py-5 [&>*:first-child_.resume-section-header]:mt-0"
           data-resume-sidebar
           style={{
             background: alpha(color, 0.03),
             borderRight: `1px solid ${alpha(color, 0.1)}`,
           }}
         >
-          {skills.length > 0 && (
-            <div className="resume-export-block mb-4">
-              <SH label="Skills" />
-              {renderSkills(skills, skillsStyle, color, false)}
-            </div>
-          )}
-
-          {edu.length > 0 && (
-            <div className="mb-4">
-              <div className="resume-export-block">
-                <SH label="Education" />
-                <div>
-                  <p className="text-[12px] font-semibold text-gray-800">
-                    {str(edu[0].school)}
-                  </p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
-                    {str(edu[0].degree)}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    {str(edu[0].startDate)}
-                    {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
-                    {edu[0].gpa
-                      ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}`
-                      : ""}
-                  </p>
-                </div>
-              </div>
-              {edu.length > 1 && (
-                <div className="space-y-3.5 mt-3.5">
-                  {edu.slice(1).map((e, i) => (
-                    <div key={i} className="resume-export-block">
-                      <p className="text-[12px] font-semibold text-gray-800">
-                        {str(e.school)}
-                      </p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
-                        {str(e.degree)}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
-                        {str(e.startDate)}
-                        {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                        {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {certs.length > 0 && (
-            <div className="mb-4">
-              <div className="resume-export-block">
-                <SH label="Certifications" />
-                <div>
-                  <CertLine
-                    c={certs[0]}
-                    className="text-[11px] text-gray-600"
-                    color={color}
-                  />
-                </div>
-              </div>
-              {certs.length > 1 && (
-                <div className="space-y-1 mt-1">
-                  {certs.slice(1).map((c, i) => (
-                    <div key={i} className="resume-export-block">
-                      <CertLine
-                        c={c}
-                        className="text-[11px] text-gray-600"
-                        color={color}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {orderedBlocks(sections, sidebarBlocks, [
+            "skills",
+            "education",
+            "certifications",
+          ])}
         </div>
 
         {/* Right */}
-        <div className="flex-1 min-w-0 px-7 py-5">
-          {str(summary.text) && (
-            <div className="resume-export-block mb-6">
-              <SH label="Profile" />
-              <div
-                className="resume-text text-[11px] text-gray-600 leading-[1.7]"
-                dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-              />
-            </div>
-          )}
-
-          {exp.length > 0 && (
-            <div className="mb-6">
-              <SH label="Work Experience" />
-              <div className="space-y-4">
-                {exp.map((e, i) => (
-                  <div key={i} className="resume-export-block">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(e.title)}
-                      </p>
-                      <p className="text-[10px] text-gray-400 shrink-0 ml-2">
-                        {str(e.startDate)}
-                        {e.endDate
-                          ? ` – ${str(e.endDate)}`
-                          : e.startDate
-                            ? " – Present"
-                            : ""}
-                      </p>
-                    </div>
-                    <p
-                      className="text-[11.5px] font-semibold"
-                      style={{ color }}
-                    >
-                      {str(e.company)}
-                      {e.location ? `, ${str(e.location)}` : ""}
-                    </p>
-                    {items<unknown>(e as SC, "bullets")
-                      .filter((b) => {
-                        const p = bulletParts(b);
-                        return p.text || p.label || p.link;
-                      })
-                      .map((b, j) => (
-                        <div key={j} className="flex gap-1.5 mt-1.5">
-                          <span
-                            className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                            style={{ background: color }}
-                          />
-                          <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
-                            <BulletContent b={b} color={color} />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {projects.length > 0 && (
-            <div>
-              <SH label="Projects" />
-              <div className="space-y-3.5">
-                {projects.map((pr, i) => (
-                  <div key={i} className="resume-export-block">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-[12px] font-bold text-gray-900">
-                        {str(pr.name)}
-                      </p>
-                      <ProjectLink
-                        url={pr.url}
-                        label={pr.label}
-                        color={color}
-                        className="text-[10px]"
-                      />
-                    </div>
-                    {str(pr.description) && (
-                      <div
-                        className="resume-text text-[11px] text-gray-600 mt-1"
-                        dangerouslySetInnerHTML={{
-                          __html: richHtml(pr.description),
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="flex-1 min-w-0 px-7 py-5 [&>*:first-child_.resume-section-header]:mt-0">
+          {orderedBlocks(sections, mainBlocks, [
+            "summary",
+            "experience",
+            "projects",
+          ])}
         </div>
       </div>
     </div>
@@ -3348,6 +3383,235 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
   const sidebarBg = alpha(color, 0.05);
+  const H = (t: string, fb: string) => headingOf(get, t, fb);
+  const sideDivider = { borderBottom: `1px solid rgba(0,0,0,0.06)` };
+
+  const MainHead = ({ label }: { label: string }) => (
+    <div className="flex items-center gap-2 mb-3.5 resume-section-header">
+      <div className="h-0.5 w-5 rounded" style={{ background: color }} />
+      <p
+        className="text-[13.5px] font-bold uppercase tracking-[0.14em]"
+        style={{ color }}
+      >
+        {label}
+      </p>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
+
+  const sidebarBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (skills.length > 0) {
+    sidebarBlocks.skills = (
+      <div className="resume-export-block px-6 py-4.5" style={sideDivider}>
+        <p
+          className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3"
+          style={{ color }}
+        >
+          {H("skills", "Skills")}
+        </p>
+        {renderSkills(skills, skillsStyle, color, false)}
+      </div>
+    );
+  }
+  if (edu.length > 0) {
+    sidebarBlocks.education = (
+      <div className="px-6 py-4.5" style={sideDivider}>
+        <div className="resume-export-block">
+          <p
+            className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3"
+            style={{ color }}
+          >
+            {H("education", "Education")}
+          </p>
+          <div>
+            <p className="text-[12px] font-bold text-gray-900">
+              {str(edu[0].school)}
+            </p>
+            <p className="text-[11px] text-gray-600 mt-0.5">
+              {str(edu[0].degree)}
+              {edu[0].field ? `, ${str(edu[0].field)}` : ""}
+            </p>
+            <p className="text-[10px] text-gray-500 mt-0.5">
+              {str(edu[0].startDate)}
+              {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
+              {edu[0].gpa ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}` : ""}
+            </p>
+          </div>
+        </div>
+        {edu.length > 1 && (
+          <div className="space-y-3 mt-3">
+            {edu.slice(1).map((e, i) => (
+              <div key={i} className="resume-export-block">
+                <p className="text-[12px] font-bold text-gray-900">
+                  {str(e.school)}
+                </p>
+                <p className="text-[11px] text-gray-600 mt-0.5">
+                  {str(e.degree)}
+                  {e.field ? `, ${str(e.field)}` : ""}
+                </p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  {str(e.startDate)}
+                  {e.endDate ? ` – ${str(e.endDate)}` : ""}
+                  {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (certs.length > 0) {
+    sidebarBlocks.certifications = (
+      <div className="px-6 py-4.5" style={sideDivider}>
+        <div className="resume-export-block">
+          <p
+            className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3.5"
+            style={{ color }}
+          >
+            {H("certifications", "Certifications")}
+          </p>
+          <div>
+            <CertLine
+              c={certs[0]}
+              className="text-[11px] text-gray-600"
+              color={color}
+            />
+          </div>
+        </div>
+        {certs.length > 1 && (
+          <div className="space-y-1 mt-1">
+            {certs.slice(1).map((c, i) => (
+              <div key={i} className="resume-export-block">
+                <CertLine
+                  c={c}
+                  className="text-[11px] text-gray-600"
+                  color={color}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const mainBlocks: Partial<Record<string, React.ReactNode>> = {};
+  if (str(summary.text)) {
+    mainBlocks.summary = (
+      <div className="resume-export-block mb-6">
+        <MainHead label={H("summary", "Profile")} />
+        <div
+          className="resume-text text-[11px] text-gray-600 leading-[1.7]"
+          dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
+        />
+      </div>
+    );
+  }
+  if (exp.length > 0) {
+    mainBlocks.experience = (
+      <div className="mb-6">
+        <MainHead label={H("experience", "Experience")} />
+        <div className="relative border-l-2 border-transparent">
+          <div
+            className="absolute w-[2px]"
+            style={{
+              top: "8px",
+              bottom: "-4px",
+              left: "-1px",
+              transform: "translateX(-50%)",
+              background: alpha(color, 0.2),
+              zIndex: 0,
+            }}
+          />
+          <div className="space-y-5">
+            {exp.map((e, i) => (
+              <div key={i} className="resume-export-block relative pl-4">
+                <div
+                  className="absolute top-[6px] h-2 w-2 rounded-full"
+                  style={{
+                    left: "-1px",
+                    transform: "translateX(-50%)",
+                    background: color,
+                  }}
+                />
+                <div className="flex justify-between items-start mb-1 flex-wrap gap-2">
+                  <div>
+                    <p className="text-[12.5px] font-bold text-gray-900">
+                      {str(e.title)}
+                    </p>
+                    <p
+                      className="text-[11.5px] font-semibold mt-0.5"
+                      style={{ color }}
+                    >
+                      {str(e.company)}
+                      {e.location ? ` · ${str(e.location)}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 bg-gray-50 px-1.5 py-0.5 rounded">
+                    {str(e.startDate)}
+                    {e.endDate
+                      ? ` – ${str(e.endDate)}`
+                      : e.startDate
+                        ? " – Present"
+                        : ""}
+                  </p>
+                </div>
+                {items<unknown>(e as SC, "bullets")
+                  .filter((b) => {
+                    const p = bulletParts(b);
+                    return p.text || p.label || p.link;
+                  })
+                  .map((b, j) => (
+                    <div key={j} className="flex gap-1.5 mt-1.5">
+                      <span
+                        className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+                        style={{ background: color }}
+                      />
+                      <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
+                        <BulletContent b={b} color={color} />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (projects.length > 0) {
+    mainBlocks.projects = (
+      <div className="mb-6">
+        <MainHead label={H("projects", "Projects")} />
+        <div className="space-y-3">
+          {projects.map((pr, i) => (
+            <div key={i} className="resume-export-block">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-[12.5px] font-bold text-gray-900">
+                  {str(pr.name)}
+                </p>
+                <ProjectLink
+                  url={pr.url}
+                  label={pr.label}
+                  color={color}
+                  className="text-[10.5px]"
+                />
+              </div>
+              {str(pr.description) && (
+                <div
+                  className="resume-text text-[11px] text-gray-500 mt-1"
+                  dangerouslySetInnerHTML={{
+                    __html: richHtml(pr.description),
+                  }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -3362,10 +3626,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
         style={{ background: sidebarBg, minHeight: "100%" }}
       >
         {/* Avatar + name */}
-        <div
-          className="px-6 pt-7 pb-5"
-          style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-        >
+        <div className="px-6 pt-7 pb-5" style={sideDivider}>
           <div className="mb-3.5">
             <Avatar p={p} bg={color} sizeClass="h-16 w-16 text-[22px]" />
           </div>
@@ -3389,10 +3650,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
         </div>
 
         {/* Contact */}
-        <div
-          className="resume-export-block px-6 py-4.5"
-          style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-        >
+        <div className="resume-export-block px-6 py-4.5" style={sideDivider}>
           <p
             className="text-[13px] font-bold uppercase tracking-[0.15em] mb-2.5"
             style={{ color }}
@@ -3409,259 +3667,20 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
           ))}
         </div>
 
-        {/* Skills */}
-        {skills.length > 0 && (
-          <div
-            className="resume-export-block px-6 py-4.5"
-            style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-          >
-            <p
-              className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3"
-              style={{ color }}
-            >
-              Skills
-            </p>
-            {renderSkills(skills, skillsStyle, color, false)}
-          </div>
-        )}
-
-        {/* Education */}
-        {edu.length > 0 && (
-          <div
-            className="px-6 py-4.5"
-            style={{ borderBottom: `1px solid rgba(0,0,0,0.06)` }}
-          >
-            <div className="resume-export-block">
-              <p
-                className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3"
-                style={{ color }}
-              >
-                Education
-              </p>
-              <div>
-                <p className="text-[12px] font-bold text-gray-900">
-                  {str(edu[0].school)}
-                </p>
-                <p className="text-[11px] text-gray-600 mt-0.5">
-                  {str(edu[0].degree)}
-                  {edu[0].field ? `, ${str(edu[0].field)}` : ""}
-                </p>
-                <p className="text-[10px] text-gray-500 mt-0.5">
-                  {str(edu[0].startDate)}
-                  {edu[0].endDate ? ` – ${str(edu[0].endDate)}` : ""}
-                  {edu[0].gpa
-                    ? ` · ${renderGpa(edu[0].gpa, edu[0].gpaMode)}`
-                    : ""}
-                </p>
-              </div>
-            </div>
-            {edu.length > 1 && (
-              <div className="space-y-3 mt-3">
-                {edu.slice(1).map((e, i) => (
-                  <div key={i} className="resume-export-block">
-                    <p className="text-[12px] font-bold text-gray-900">
-                      {str(e.school)}
-                    </p>
-                    <p className="text-[11px] text-gray-600 mt-0.5">
-                      {str(e.degree)}
-                      {e.field ? `, ${str(e.field)}` : ""}
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">
-                      {str(e.startDate)}
-                      {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                      {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Certifications */}
-        {certs.length > 0 && (
-          <div className="px-6 py-4.5">
-            <div className="resume-export-block">
-              <p
-                className="text-[13px] font-bold uppercase tracking-[0.15em] mb-3.5"
-                style={{ color }}
-              >
-                Certifications
-              </p>
-              <div>
-                <CertLine
-                  c={certs[0]}
-                  className="text-[11px] text-gray-600"
-                  color={color}
-                />
-              </div>
-            </div>
-            {certs.length > 1 && (
-              <div className="space-y-1 mt-1">
-                {certs.slice(1).map((c, i) => (
-                  <div key={i} className="resume-export-block">
-                    <CertLine
-                      c={c}
-                      className="text-[11px] text-gray-600"
-                      color={color}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {orderedBlocks(sections, sidebarBlocks, [
+          "skills",
+          "education",
+          "certifications",
+        ])}
       </div>
 
       {/* Right 65% main */}
       <div className="resume-template-columns-main flex-1 px-8 py-7">
-        {str(summary.text) && (
-          <div className="resume-export-block mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div
-                className="h-0.5 w-5 rounded"
-                style={{ background: color }}
-              />
-              <p
-                className="text-[13.5px] font-bold uppercase tracking-[0.14em]"
-                style={{ color }}
-              >
-                Profile
-              </p>
-              <div className="flex-1 h-px bg-gray-100" />
-            </div>
-            <div
-              className="resume-text text-[11px] text-gray-600 leading-[1.7]"
-              dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
-            />
-          </div>
-        )}
-
-        {exp.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-4 resume-section-header">
-              <div
-                className="h-0.5 w-5 rounded"
-                style={{ background: color }}
-              />
-              <p
-                className="text-[13.5px] font-bold uppercase tracking-[0.14em]"
-                style={{ color }}
-              >
-                Experience
-              </p>
-              <div className="flex-1 h-px bg-gray-100" />
-            </div>
-            <div className="relative border-l-2 border-transparent">
-              <div
-                className="absolute w-[2px]"
-                style={{
-                  top: "8px",
-                  bottom: "-4px",
-                  left: "-1px",
-                  transform: "translateX(-50%)",
-                  background: alpha(color, 0.2),
-                  zIndex: 0,
-                }}
-              />
-              <div className="space-y-5">
-                {exp.map((e, i) => (
-                  <div key={i} className="resume-export-block relative pl-4">
-                    <div
-                      className="absolute top-[6px] h-2 w-2 rounded-full"
-                      style={{
-                        left: "-1px",
-                        transform: "translateX(-50%)",
-                        background: color,
-                      }}
-                    />
-                    <div className="flex justify-between items-start mb-1 flex-wrap gap-2">
-                      <div>
-                        <p className="text-[12.5px] font-bold text-gray-900">
-                          {str(e.title)}
-                        </p>
-                        <p
-                          className="text-[11.5px] font-semibold mt-0.5"
-                          style={{ color }}
-                        >
-                          {str(e.company)}
-                          {e.location ? ` · ${str(e.location)}` : ""}
-                        </p>
-                      </div>
-                      <p className="text-[10px] text-gray-400 shrink-0 ml-3 mt-0.5 bg-gray-50 px-1.5 py-0.5 rounded">
-                        {str(e.startDate)}
-                        {e.endDate
-                          ? ` – ${str(e.endDate)}`
-                          : e.startDate
-                            ? " – Present"
-                            : ""}
-                      </p>
-                    </div>
-                    {items<unknown>(e as SC, "bullets")
-                      .filter((b) => {
-                        const p = bulletParts(b);
-                        return p.text || p.label || p.link;
-                      })
-                      .map((b, j) => (
-                        <div key={j} className="flex gap-1.5 mt-1.5">
-                          <span
-                            className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                            style={{ background: color }}
-                          />
-                          <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.55]">
-                            <BulletContent b={b} color={color} />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {projects.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-3.5 resume-section-header">
-              <div
-                className="h-0.5 w-5 rounded"
-                style={{ background: color }}
-              />
-              <p
-                className="text-[13.5px] font-bold uppercase tracking-[0.14em]"
-                style={{ color }}
-              >
-                Projects
-              </p>
-              <div className="flex-1 h-px bg-gray-100" />
-            </div>
-            <div className="space-y-3">
-              {projects.map((pr, i) => (
-                <div key={i} className="resume-export-block">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-[12.5px] font-bold text-gray-900">
-                      {str(pr.name)}
-                    </p>
-                    <ProjectLink
-                      url={pr.url}
-                      label={pr.label}
-                      color={color}
-                      className="text-[10.5px]"
-                    />
-                  </div>
-                  {str(pr.description) && (
-                    <div
-                      className="resume-text text-[11px] text-gray-500 mt-1"
-                      dangerouslySetInnerHTML={{
-                        __html: richHtml(pr.description),
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {orderedBlocks(sections, mainBlocks, [
+          "summary",
+          "experience",
+          "projects",
+        ])}
       </div>
     </div>
   );

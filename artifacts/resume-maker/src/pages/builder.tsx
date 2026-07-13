@@ -27,6 +27,10 @@ import {
   verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
@@ -786,6 +790,13 @@ function getSectionShortLabel(type: string, title: string) {
   }
 }
 
+/** Full display label for a section: the user's custom heading (content.heading) or its title. */
+function sectionDisplayLabel(section: Section): string {
+  const h = ((section.content as Record<string, unknown> | undefined)
+    ?.heading as string) ?? "";
+  return h.trim() || section.title;
+}
+
 function SortableRailItem({
   section,
   isActive,
@@ -805,7 +816,9 @@ function SortableRailItem({
   } = useSortable({ id: section.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform
+      ? CSS.Transform.toString({ ...transform, x: 0 })
+      : undefined,
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
@@ -873,7 +886,9 @@ function SortableSectionMobileItem({
   } = useSortable({ id: section.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: transform
+      ? CSS.Transform.toString({ ...transform, x: 0 })
+      : undefined,
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
@@ -906,7 +921,7 @@ function SortableSectionMobileItem({
 
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-foreground truncate">
-          {section.title}
+          {sectionDisplayLabel(section)}
         </p>
       </div>
 
@@ -2184,6 +2199,7 @@ export default function BuilderPage() {
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
+                modifiers={[restrictToVerticalAxis, restrictToParentElement]}
               >
                 <SortableContext
                   items={localSections.map((s) => s.id)}
@@ -2261,7 +2277,9 @@ export default function BuilderPage() {
                       ? "Design & Style"
                       : activeSidebarMode === "ats"
                         ? "ATS Auditor"
-                        : activeSection?.title ?? "Select a section"}
+                        : activeSection
+                          ? sectionDisplayLabel(activeSection)
+                          : "Select a section"}
                   </h2>
                 </div>
                 
@@ -2403,6 +2421,7 @@ export default function BuilderPage() {
                       sensors={sensors}
                       collisionDetection={closestCenter}
                       onDragEnd={handleDragEnd}
+                      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                     >
                       <SortableContext
                         items={localSections.map((s) => s.id)}
