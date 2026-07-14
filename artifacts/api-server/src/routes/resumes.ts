@@ -1410,6 +1410,22 @@ router.post(
         }
       }
 
+      // Preserve the user's custom section heading — the optimizer rebuilds `content` and would
+      // otherwise drop `content.heading`, reverting the section's title to the template default.
+      const originalForHeading = sections.find((s) => s.id === sectionId);
+      const preservedHeading = (
+        originalForHeading?.content as Record<string, unknown> | null
+      )?.heading;
+      if (
+        typeof preservedHeading === "string" &&
+        preservedHeading.trim() &&
+        sanitizedContent &&
+        typeof sanitizedContent === "object" &&
+        !Array.isArray(sanitizedContent)
+      ) {
+        sanitizedContent = { ...sanitizedContent, heading: preservedHeading };
+      }
+
       await db
         .update(resumeSectionsTable)
         .set({

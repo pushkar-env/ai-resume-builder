@@ -835,7 +835,7 @@ function SortableRailItem({
       <span
         {...attributes}
         {...listeners}
-        className="absolute left-0.5 top-5 cursor-grab active:cursor-grabbing p-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/60 hover:text-foreground z-20"
+        className="absolute left-0.5 top-5 cursor-grab active:cursor-grabbing p-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/60 hover:text-foreground z-20 touch-none select-none"
         onClick={(e) => e.stopPropagation()}
         title="Drag to reorder"
       >
@@ -907,7 +907,7 @@ function SortableSectionMobileItem({
       <span
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1.5 text-muted-foreground/60 hover:text-foreground transition-colors"
+        className="cursor-grab active:cursor-grabbing p-2 -m-0.5 text-muted-foreground/60 hover:text-foreground transition-colors touch-none select-none"
         onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="h-4 w-4" />

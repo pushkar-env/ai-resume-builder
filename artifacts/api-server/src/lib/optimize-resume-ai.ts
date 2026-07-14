@@ -366,10 +366,23 @@ export function sanitizeSectionContent(type: string, content: any): any {
       .map((item: any) => {
         if (!item || typeof item !== "object") return null;
 
+        // Projects now support multiple bullet points (like experience). Preserve them so
+        // optimization strengthens each bullet instead of collapsing them into one description.
+        let bullets: string[] = [];
+        if (Array.isArray(item.bullets)) {
+          bullets = item.bullets
+            .map((b: any) => typeof b === "string" ? b.trim() : (b && typeof b === "object" && "text" in b ? String(b.text).trim() : ""))
+            .filter(Boolean);
+        } else if (typeof item.bullets === "string") {
+          bullets = [item.bullets.trim()].filter(Boolean);
+        }
+
         return {
           name: typeof item.name === "string" ? item.name.trim() : (item.title && typeof item.title === "string" ? item.title.trim() : ""),
+          label: typeof item.label === "string" ? item.label.trim() : "",
           description: typeof item.description === "string" ? item.description.trim() : "",
           url: typeof item.url === "string" ? item.url.trim() : "",
+          bullets,
         };
       })
       .filter(Boolean);
@@ -414,9 +427,11 @@ function experienceItemHasContent(item: any): boolean {
 
 function projectItemHasContent(item: any): boolean {
   if (!item || typeof item !== "object") return false;
-  return [item.name, item.description, item.url].some(
+  const hasIdentity = [item.name, item.description, item.url].some(
     (v) => typeof v === "string" && v.trim() !== "",
   );
+  const hasBullets = Array.isArray(item.bullets) && item.bullets.some((b: any) => bulletText(b) !== "");
+  return hasIdentity || hasBullets;
 }
 
 function bulletList(item: any): string[] {
@@ -445,10 +460,18 @@ function mergeExperienceItem(orig: any, opt: any): any {
 
 function mergeProjectItem(orig: any, opt: any): any {
   if (!opt || !projectItemHasContent(opt)) return orig;
+
+  // Never let optimization reduce the number of project bullets (mirrors experience).
+  const optBullets = bulletList(opt);
+  const origBullets = bulletList(orig);
+  const bullets = optBullets.length >= origBullets.length ? optBullets : origBullets;
+
   return {
     name: preferred(opt.name, orig.name),
+    label: preferred(opt.label, orig.label),
     description: preferred(opt.description, orig.description),
     url: preferred(opt.url, orig.url),
+    bullets,
   };
 }
 
