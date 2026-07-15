@@ -192,6 +192,66 @@ function htmlToPlainText(html: string): string {
   return sanitizeWordText(plain.replace(/\s+/g, " ").trim());
 }
 
+function htmlToInlineRuns(
+  html: string,
+  runSize: number,
+  font: string,
+): TextRun[] {
+  const fallback = htmlToPlainText(html);
+  if (!fallback) return [];
+  if (typeof DOMParser === "undefined") {
+    return [new TextRun({ text: fallback, size: runSize, font })];
+  }
+
+  try {
+    const parsed = new DOMParser().parseFromString(
+      `<div>${html.replace(/<br\s*\/?>/gi, " ")}</div>`,
+      "text/html",
+    );
+    if (parsed.querySelector("parsererror")) {
+      return [new TextRun({ text: fallback, size: runSize, font })];
+    }
+
+    const root = parsed.body.firstElementChild;
+    if (!root) return [new TextRun({ text: fallback, size: runSize, font })];
+
+    const runs: TextRun[] = [];
+    const pushText = (text: string, bold: boolean, italics: boolean) => {
+      const cleaned = sanitizeWordText(text.replace(/\s+/g, " "));
+      if (!cleaned) return;
+      runs.push(new TextRun({ text: cleaned, bold, italics, size: runSize, font }));
+    };
+    const walk = (node: Node, bold = false, italics = false) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        pushText(node.textContent ?? "", bold, italics);
+        return;
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const el = node as Element;
+      const tag = el.tagName.toLowerCase();
+      const nextBold = bold || tag === "strong" || tag === "b";
+      const nextItalics = italics || tag === "em" || tag === "i";
+      if (tag === "br" && runs.length > 0) {
+        runs.push(new TextRun({ text: " ", size: runSize, font }));
+        return;
+      }
+      for (const child of Array.from(el.childNodes)) {
+        walk(child, nextBold, nextItalics);
+      }
+      if (/^(p|div|li)$/i.test(tag) && runs.length > 0) {
+        runs.push(new TextRun({ text: " ", size: runSize, font }));
+      }
+    };
+
+    walk(root);
+    return runs.length > 0
+      ? runs
+      : [new TextRun({ text: fallback, size: runSize, font })];
+  } catch {
+    return [new TextRun({ text: fallback, size: runSize, font })];
+  }
+}
+
 function bulletParts(b: unknown): {
   text: string;
   label: string;
@@ -480,7 +540,7 @@ export async function buildResumeDocxBlob(
             new Paragraph({
               numbering: { reference: BULLET_REF, level: 0 },
               spacing: { after: 40 },
-              children: [new TextRun({ text: main, size: 22, font })],
+              children: htmlToInlineRuns(text || label || "", 22, font),
             }),
           );
         }
@@ -665,14 +725,18 @@ export async function buildResumeDocxBlob(
           }),
         );
       }
-      const projBullets = projectBulletTexts(pr);
+      const projBullets = items<unknown>(pr as SC, "bullets")
+        .map((b) => bulletParts(b))
+        .filter(({ text, label, link }) => text || label || link);
       if (projBullets.length > 0) {
-        for (const bt of projBullets) {
+        for (const { text, label } of projBullets) {
+          const main = htmlToPlainText(text || label || "");
+          if (!main) continue;
           body.push(
             new Paragraph({
               numbering: { reference: BULLET_REF, level: 0 },
               spacing: { after: 40 },
-              children: [new TextRun({ text: bt, size: 22, font })],
+              children: htmlToInlineRuns(text || label || "", 22, font),
             }),
           );
         }

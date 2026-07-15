@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "resume-maker",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "artifacts/resume-maker", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import { richHtmlToPlainText } from "@/lib/ai-rich-text";
+
 /**
  * Resolves bullet points for profile experience/project entries.
  * Prefers the structured bullets array; falls back to legacy newline-split description.
@@ -18,5 +20,5 @@ export function resolveProfileBullets(
 
 /** Keeps description in sync for legacy consumers that read the text field. */
 export function syncBulletsToDescription(bullets: string[]): string {
-  return bullets.join("\n");
+  return bullets.map((bullet) => richHtmlToPlainText(bullet)).join("\n");
 }
