@@ -127,6 +127,24 @@ function skillPct(v: unknown): number {
   return 75;
 }
 
+function groupedSkills(skills: Item[]): Array<{ category: string; skills: Item[] }> {
+  const groups: Array<{ category: string; skills: Item[] }> = [];
+  const byCategory = new Map<string, { category: string; skills: Item[] }>();
+  for (const skill of skills) {
+    if (!str(skill.name).trim()) continue;
+    const raw = str(skill.category).trim() || "Core";
+    const key = raw.toLowerCase();
+    let group = byCategory.get(key);
+    if (!group) {
+      group = { category: raw, skills: [] };
+      byCategory.set(key, group);
+      groups.push(group);
+    }
+    group.skills.push(skill);
+  }
+  return groups;
+}
+
 function htmlToPlainParagraphs(
   html: string,
   runSize: number,
@@ -657,7 +675,34 @@ export async function buildResumeDocxBlob(
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {
       body.push(sectionHeading(headingFor(ordered, "skills", "Skills"), accent, font));
-      if (style === "text" || (style !== "bars" && style !== "radial")) {
+      if (style === "grouped") {
+        for (const group of groupedSkills(skills)) {
+          const line = sanitizeWordText(
+            group.skills
+              .map((s) => str(s.name))
+              .filter(Boolean)
+              .join(", "),
+          );
+          if (line) {
+            body.push(
+              new Paragraph({
+                spacing: { after: 80 },
+                children: [
+                  new TextRun({
+                    text: sanitizeWordText(group.category),
+                    bold: true,
+                    size: 22,
+                    color: accentHex,
+                    font,
+                  }),
+                  new TextRun({ text: " - ", size: 22, font }),
+                  new TextRun({ text: line, size: 22, font }),
+                ],
+              }),
+            );
+          }
+        }
+      } else if (style === "text" || (style !== "bars" && style !== "radial")) {
         const line = sanitizeWordText(
           skills
             .map((s) => str(s.name))

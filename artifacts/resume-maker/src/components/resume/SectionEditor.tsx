@@ -5,10 +5,13 @@ import {
   Loader2,
   Plus,
   Trash2,
+  ArrowUp,
+  ArrowDown,
   Eye,
   EyeOff,
   Upload,
   X,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -992,6 +995,11 @@ const SKILL_STYLES: Array<{ value: string; label: string; hint: string }> = [
     hint: "Bulleted list with accent color",
   },
   {
+    value: "grouped",
+    label: "Categorized groups",
+    hint: "Bold group labels with related skills",
+  },
+  {
     value: "text",
     label: "Plain text list",
     hint: "Comma-separated minimal style",
@@ -1014,6 +1022,8 @@ function SkillsEditor({
   templateId?: string;
 }) {
   const [newSkill, setNewSkill] = useState("");
+  const [newGroupLabel, setNewGroupLabel] = useState("");
+  const [newGroupSkills, setNewGroupSkills] = useState("");
   const { toast } = useToast();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
@@ -1022,9 +1032,178 @@ function SkillsEditor({
     : "chips";
   const style = (content.style as string) ?? defaultStyle;
   const showLevel = style === "bars" || style === "radial";
+  const showGroups = style === "grouped";
 
   const [suggested, setSuggested] = useState<string[]>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+
+  // Editor-only UI state: which grouped-skill categories are collapsed. Keyed by the
+  // group key (lowercased category). Default is expanded (absent from the set) so the
+  // initial view is unchanged and, critically, renaming an expanded group — which changes
+  // its key on every keystroke — never toggles it shut. This is purely visual; it does not
+  // touch content.items, so PDF/DOCX/JSON exports and the preview are unaffected.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(),
+  );
+  const toggleGroupCollapsed = (groupKey: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+  };
+
+  const groupedSkillItems = useMemo(() => {
+    const groups: Array<{
+      key: string;
+      category: string;
+      entries: Array<{ item: Record<string, unknown>; index: number }>;
+    }> = [];
+    const byKey = new Map<string, (typeof groups)[number]>();
+    items.forEach((item, index) => {
+      const category = ((item.category as string) ?? "").trim() || "Core";
+      const key = category.toLowerCase();
+      let group = byKey.get(key);
+      if (!group) {
+        group = { key, category, entries: [] };
+        byKey.set(key, group);
+        groups.push(group);
+      }
+      group.entries.push({ item, index });
+    });
+    return groups;
+  }, [items]);
+
+  const categoryForSuggestedSkill = (skill: string): string => {
+    if (!showGroups) return "";
+    const skillText = skill.toLowerCase();
+    const keywordGroups: Array<{ label: string; aliases: string[]; skills: string[] }> = [
+      {
+        label: "Frontend",
+        aliases: ["frontend", "front end", "ui", "web", "client"],
+        skills: ["react", "vue", "angular", "javascript", "typescript", "html", "css", "tailwind", "next", "redux"],
+      },
+      {
+        label: "Backend",
+        aliases: ["backend", "back end", "api", "server"],
+        skills: ["node", "express", "django", "flask", "fastapi", "spring", "java", "go", "graphql", "rest", "microservice"],
+      },
+      {
+        label: "Data",
+        aliases: ["database", "data", "storage"],
+        skills: ["sql", "postgres", "mysql", "mongodb", "redis", "elastic", "snowflake", "warehouse"],
+      },
+      {
+        label: "Cloud & DevOps",
+        aliases: ["cloud", "devops", "infrastructure", "platform"],
+        skills: ["aws", "azure", "gcp", "docker", "kubernetes", "terraform", "jenkins", "ci", "cd", "linux"],
+      },
+      {
+        label: "Testing",
+        aliases: ["testing", "qa", "quality"],
+        skills: ["jest", "cypress", "playwright", "selenium", "testing", "junit", "pytest"],
+      },
+      {
+        label: "AI / ML",
+        aliases: ["ai", "ml", "machine learning"],
+        skills: ["machine learning", "tensorflow", "pytorch", "llm", "openai", "nlp", "computer vision"],
+      },
+      {
+        label: "Design",
+        aliases: ["design", "product"],
+        skills: ["figma", "adobe", "photoshop", "illustrator", "wireframe", "prototype"],
+      },
+      {
+        label: "Leadership",
+        aliases: ["leadership", "soft", "management"],
+        skills: ["leadership", "communication", "mentoring", "stakeholder", "planning", "strategy"],
+      },
+    ];
+
+    const match = keywordGroups.find((group) =>
+      group.skills.some((term) => skillText.includes(term)),
+    );
+    const canonicalLabel = match?.label ?? "Core";
+    const canonicalAliases = match
+      ? [match.label.toLowerCase(), ...match.aliases]
+      : ["core"];
+    const existingLabel = groupedSkillItems.find((group) => {
+      const labelText = group.category.toLowerCase();
+      return canonicalAliases.some((alias) => labelText.includes(alias));
+    })?.category;
+    return existingLabel || canonicalLabel;
+  };
+
+  const parseGroupSkills = (value: string): string[] =>
+    value
+      .split(/[\n,]/)
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+
+  const addGroup = () => {
+    const label = newGroupLabel.trim() || "Core";
+    const skills = parseGroupSkills(newGroupSkills);
+    const nextItems =
+      skills.length > 0
+        ? skills.map((skill) => ({ name: skill, level: 70, category: label }))
+        : [{ name: "", level: 70, category: label }];
+    onChange({ ...content, items: [...items, ...nextItems] });
+    setNewGroupLabel("");
+    setNewGroupSkills("");
+  };
+
+  const renameGroup = (groupKey: string, category: string) => {
+    const nextCategory = category.trimStart();
+    const next = items.map((item) => {
+      const current = (((item.category as string) ?? "").trim() || "Core").toLowerCase();
+      return current === groupKey ? { ...item, category: nextCategory } : item;
+    });
+    onChange({ ...content, items: next });
+  };
+
+  const removeGroup = (groupKey: string) => {
+    onChange({
+      ...content,
+      items: items.filter((item) => {
+        const current = (((item.category as string) ?? "").trim() || "Core").toLowerCase();
+        return current !== groupKey;
+      }),
+    });
+  };
+
+  const addSkillToGroup = (category: string) => {
+    onChange({
+      ...content,
+      items: [...items, { name: "", level: 70, category }],
+    });
+  };
+
+  const moveSkillBetweenIndexes = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
+      return;
+    }
+    const next = [...items];
+    const current = next[from];
+    next[from] = next[to];
+    next[to] = current;
+    onChange({ ...content, items: next });
+  };
+
+  const moveGroup = (groupIndex: number, direction: -1 | 1) => {
+    const targetIndex = groupIndex + direction;
+    if (targetIndex < 0 || targetIndex >= groupedSkillItems.length) return;
+    const groups = [...groupedSkillItems];
+    const current = groups[groupIndex];
+    groups[groupIndex] = groups[targetIndex];
+    groups[targetIndex] = current;
+    onChange({
+      ...content,
+      items: groups.flatMap((group) =>
+        group.entries.map((entry) => items[entry.index]),
+      ),
+    });
+  };
 
   const suggestSkills = useSuggestSkills({
     request: createAiStandardRequestOptions(),
@@ -1061,7 +1240,11 @@ function SkillsEditor({
   const addPicked = () => {
     const newItems = suggested
       .filter((s) => picked.has(s))
-      .map((s) => ({ name: s, level: 70 }));
+      .map((s) => ({
+        name: s,
+        level: 70,
+        category: categoryForSuggestedSkill(s),
+      }));
     if (newItems.length > 0) {
       onChange({ ...content, items: [...items, ...newItems] });
       toast({
@@ -1080,14 +1263,42 @@ function SkillsEditor({
     if (!newSkill.trim()) return;
     onChange({
       ...content,
-      items: [...items, { name: newSkill.trim(), level: 70 }],
+      items: [
+        ...items,
+        {
+          name: newSkill.trim(),
+          level: 70,
+          category: showGroups ? "Core" : "",
+        },
+      ],
     });
     setNewSkill("");
   };
 
-  const updateLevel = (i: number, lvl: number) => {
+  const updateSkill = (i: number, patch: Record<string, unknown>) => {
     const next = [...items];
-    next[i] = { ...next[i], level: lvl };
+    next[i] = { ...next[i], ...patch };
+    onChange({ ...content, items: next });
+  };
+
+  const updateLevel = (i: number, lvl: number) => {
+    updateSkill(i, { level: lvl });
+  };
+
+  const removeSkill = (i: number) => {
+    onChange({
+      ...content,
+      items: items.filter((_, idx) => idx !== i),
+    });
+  };
+
+  const moveSkill = (i: number, direction: -1 | 1) => {
+    const target = i + direction;
+    if (target < 0 || target >= items.length) return;
+    const next = [...items];
+    const current = next[i];
+    next[i] = next[target];
+    next[target] = current;
     onChange({ ...content, items: next });
   };
 
@@ -1165,11 +1376,7 @@ function SkillsEditor({
                   <div className="flex items-center gap-2">
                     <Input
                       value={(item.name as string) ?? ""}
-                      onChange={(e) => {
-                        const next = [...items];
-                        next[i] = { ...next[i], name: e.target.value };
-                        onChange({ ...content, items: next });
-                      }}
+                      onChange={(e) => updateSkill(i, { name: e.target.value })}
                       placeholder="Skill name"
                       className="h-9 lg:h-7 text-sm"
                     />
@@ -1178,12 +1385,25 @@ function SkillsEditor({
                     </span>
                     <button
                       type="button"
-                      onClick={() =>
-                        onChange({
-                          ...content,
-                          items: items.filter((_, idx) => idx !== i),
-                        })
-                      }
+                      onClick={() => moveSkill(i, -1)}
+                      disabled={i === 0}
+                      className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 shrink-0"
+                      title="Move skill up"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSkill(i, 1)}
+                      disabled={i === items.length - 1}
+                      className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 shrink-0"
+                      title="Move skill down"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(i)}
                       className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
                       title="Delete skill"
                     >
@@ -1232,18 +1452,179 @@ function SkillsEditor({
             })}
           </div>
         </div>
+      ) : showGroups ? (
+        <div className="space-y-2">
+          {groupedSkillItems.map((group, groupIndex) => {
+            const isCollapsed = collapsedGroups.has(group.key);
+            const skillCount = group.entries.length;
+            const collapsedPreview = group.entries
+              .map((entry) => ((entry.item.name as string) ?? "").trim())
+              .filter(Boolean)
+              .join(", ");
+            return (
+            <div
+              key={group.entries.map((entry) => entry.index).join("-")}
+              className="rounded-md border border-border p-2.5 space-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleGroupCollapsed(group.key)}
+                  className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
+                  title={isCollapsed ? "Expand group" : "Collapse group"}
+                  aria-expanded={!isCollapsed}
+                >
+                  <ChevronRight
+                    className={`h-4 w-4 transition-transform ${isCollapsed ? "" : "rotate-90"}`}
+                  />
+                </button>
+                <Input
+                  value={group.category}
+                  onChange={(e) => renameGroup(group.key, e.target.value)}
+                  placeholder="Group label"
+                  className="h-9 lg:h-8 text-sm font-semibold"
+                />
+                <span className="text-[10px] tabular-nums text-muted-foreground shrink-0 select-none min-w-[1.25rem] text-center">
+                  {skillCount}
+                </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => moveGroup(groupIndex, -1)}
+                    disabled={groupIndex === 0}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30"
+                    title="Move group up"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveGroup(groupIndex, 1)}
+                    disabled={groupIndex === groupedSkillItems.length - 1}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30"
+                    title="Move group down"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeGroup(group.key)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive"
+                    title="Delete group"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+              {isCollapsed ? (
+                collapsedPreview ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroupCollapsed(group.key)}
+                    className="block w-full text-left text-[11px] text-muted-foreground truncate pl-10 pr-1"
+                    title={collapsedPreview}
+                  >
+                    {collapsedPreview}
+                  </button>
+                ) : null
+              ) : (
+                <>
+              <div className="space-y-1.5">
+                {group.entries.map((entry, entryIndex) => (
+                  <div key={entry.index} className="flex items-center gap-2">
+                    <Input
+                      value={(entry.item.name as string) ?? ""}
+                      onChange={(e) =>
+                        updateSkill(entry.index, { name: e.target.value })
+                      }
+                      placeholder="Skill name"
+                      className="h-9 lg:h-8 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        moveSkillBetweenIndexes(
+                          entry.index,
+                          group.entries[entryIndex - 1]?.index ?? entry.index,
+                        )
+                      }
+                      disabled={entryIndex === 0}
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 shrink-0"
+                      title="Move skill up"
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        moveSkillBetweenIndexes(
+                          entry.index,
+                          group.entries[entryIndex + 1]?.index ?? entry.index,
+                        )
+                      }
+                      disabled={entryIndex === group.entries.length - 1}
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 shrink-0"
+                      title="Move skill down"
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(entry.index)}
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive shrink-0"
+                      title="Delete skill"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addSkillToGroup(group.category)}
+                className="h-8 text-xs gap-1.5"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add skill to group
+              </Button>
+                </>
+              )}
+            </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (
-            <Badge key={i} variant="secondary" className="gap-1 pr-1">
-              {item.name as string}
+            <Badge
+              key={i}
+              variant="secondary"
+              className="gap-1 pr-1 pl-1.5 py-1 max-w-full"
+            >
+              <span className="truncate max-w-[12rem]">{item.name as string}</span>
               <button
-                onClick={() =>
-                  onChange({
-                    ...content,
-                    items: items.filter((_, idx) => idx !== i),
-                  })
-                }
+                type="button"
+                onClick={() => moveSkill(i, -1)}
+                disabled={i === 0}
+                className="hover:text-foreground transition-colors disabled:opacity-30"
+                title="Move skill up"
+              >
+                <ArrowUp className="h-2.5 w-2.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveSkill(i, 1)}
+                disabled={i === items.length - 1}
+                className="hover:text-foreground transition-colors disabled:opacity-30"
+                title="Move skill down"
+              >
+                <ArrowDown className="h-2.5 w-2.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => removeSkill(i)}
                 className="hover:text-destructive transition-colors ml-0.5"
                 title="Remove"
               >
@@ -1254,28 +1635,60 @@ function SkillsEditor({
         </div>
       )}
 
-      <div className="flex gap-2">
-        <Input
-          value={newSkill}
-          onChange={(e) => setNewSkill(e.target.value)}
-          placeholder="Add a skill..."
-          className="h-10 lg:h-8 text-sm"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addSkill();
-            }
-          }}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={addSkill}
-          className="h-10 lg:h-8 text-xs shrink-0"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      {showGroups ? (
+        <div className="grid gap-2 sm:grid-cols-[minmax(7rem,0.35fr)_minmax(10rem,1fr)_auto]">
+          <Input
+            value={newGroupLabel}
+            onChange={(e) => setNewGroupLabel(e.target.value)}
+            placeholder="Group label"
+            className="h-10 lg:h-8 text-sm font-semibold"
+          />
+          <Input
+            value={newGroupSkills}
+            onChange={(e) => setNewGroupSkills(e.target.value)}
+            placeholder="Skills, separated by commas"
+            className="h-10 lg:h-8 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addGroup();
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={addGroup}
+            className="h-10 lg:h-8 text-xs shrink-0 gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add group
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Input
+            value={newSkill}
+            onChange={(e) => setNewSkill(e.target.value)}
+            placeholder="Add a skill..."
+            className="h-10 lg:h-8 text-sm"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSkill();
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={addSkill}
+            className="h-10 lg:h-8 text-xs shrink-0"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
       <Button
         variant="outline"
         size="sm"

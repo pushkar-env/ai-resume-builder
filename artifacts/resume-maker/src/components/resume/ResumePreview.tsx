@@ -127,6 +127,24 @@ function alpha(hex: string, a: number) {
   return hex.startsWith("#") ? hex + v : hex;
 }
 
+function groupedSkills(skills: Item[]): Array<{ category: string; skills: Item[] }> {
+  const groups: Array<{ category: string; skills: Item[] }> = [];
+  const byCategory = new Map<string, { category: string; skills: Item[] }>();
+  for (const skill of skills) {
+    if (!str(skill.name).trim()) continue;
+    const raw = str(skill.category).trim() || "Core";
+    const key = raw.toLowerCase();
+    let group = byCategory.get(key);
+    if (!group) {
+      group = { category: raw, skills: [] };
+      byCategory.set(key, group);
+      groups.push(group);
+    }
+    group.skills.push(skill);
+  }
+  return groups;
+}
+
 function getSidebarNameFontSize(name: string, maxDefaultSize = 24): string {
   const nameStr = str(name).trim();
   if (!nameStr) return `calc(var(--resume-header-scale) * ${maxDefaultSize}px)`;
@@ -570,9 +588,65 @@ function renderSkills(
   style: string | undefined,
   color: string,
   dark: boolean,
+  groupedLayout: "inline" | "stacked" = "inline",
 ): React.ReactElement | null {
   if (!skills || skills.length === 0) return null;
   const effective = style ?? "chips";
+
+  if (effective === "grouped") {
+    const groups = groupedSkills(skills);
+    if (groups.length === 0) return null;
+    if (groupedLayout === "inline") {
+      return (
+        <div className="space-y-1.5">
+          {groups.map((group) => (
+            <div
+              key={group.category}
+              className={`flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-[10.8px] leading-[1.55] ${dark ? "text-white/82" : "text-gray-700"}`}
+            >
+              <span
+                className={`font-bold ${dark ? "text-white" : "text-gray-800"}`}
+                style={{ color }}
+              >
+                {group.category}
+              </span>
+              <span className={dark ? "text-white/55" : "text-gray-400"}>-</span>
+              {group.skills.map((s, i) => (
+                <span key={`${group.category}-${i}-${str(s.name)}`}>
+                  {str(s.name)}
+                  {i < group.skills.length - 1 ? "," : ""}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-2">
+        {groups.map((group) => (
+          <div key={group.category} className="min-w-0">
+            <p
+              className={`text-[10px] font-bold uppercase tracking-wide leading-snug mb-1 ${dark ? "text-white" : "text-gray-800"}`}
+              style={{ color }}
+            >
+              {group.category}
+            </p>
+            <div className="flex flex-wrap gap-x-2 gap-y-1">
+              {group.skills.map((s, i) => (
+                <span
+                  key={`${group.category}-${i}-${str(s.name)}`}
+                  className={`text-[10.5px] leading-snug ${dark ? "text-white/82" : "text-gray-700"}`}
+                >
+                  {str(s.name)}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (effective === "bars") {
     return (
@@ -785,7 +859,7 @@ export function SiliconValleyTemplate({ sections, color, font }: TP) {
         >
           {H("skills", "Skills")}
         </p>
-        {renderSkills(skills, skillsStyle, color, false)}
+        {renderSkills(skills, skillsStyle, color, false, "stacked")}
       </div>
     );
   }
@@ -1229,7 +1303,7 @@ export function FaangTemplate({ sections, color, font }: TP) {
         >
           {H("skills", "Skills")}
         </p>
-        {renderSkills(skills, skillsStyle, color, false)}
+        {renderSkills(skills, skillsStyle, color, false, "stacked")}
       </div>
     );
   }
@@ -1829,7 +1903,7 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
         >
           {H("skills", "Skills")}
         </p>
-        {renderSkills(skills, skillsStyle, color, false)}
+        {renderSkills(skills, skillsStyle, color, false, "stacked")}
       </div>
     );
   }
@@ -3260,7 +3334,7 @@ export function EuropeanTemplate({ sections, color, font }: TP) {
     sidebarBlocks.skills = (
       <div className="resume-export-block mb-4">
         <SH label={H("skills", "Skills")} />
-        {renderSkills(skills, skillsStyle, color, false)}
+        {renderSkills(skills, skillsStyle, color, false, "stacked")}
       </div>
     );
   }
@@ -3550,7 +3624,7 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
         >
           {H("skills", "Skills")}
         </p>
-        {renderSkills(skills, skillsStyle, color, false)}
+        {renderSkills(skills, skillsStyle, color, false, "stacked")}
       </div>
     );
   }

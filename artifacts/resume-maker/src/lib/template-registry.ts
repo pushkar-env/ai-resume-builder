@@ -11,7 +11,7 @@
  * in a different package and stays its own list; ids must match what's here.
  */
 
-export type SkillStyle = "bars" | "chips" | "radial" | "bullets" | "text";
+export type SkillStyle = "bars" | "chips" | "radial" | "bullets" | "text" | "grouped";
 
 export interface ResumeTemplateDef {
   id: string;
