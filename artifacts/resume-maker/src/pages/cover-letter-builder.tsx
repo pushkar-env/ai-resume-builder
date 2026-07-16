@@ -73,6 +73,7 @@ import { SEO } from "@/components/shared/SEO";
 import { CoverLetterPreview, parseCoverLetterContent } from "@/components/resume/CoverLetterPreview";
 import { buildCoverLetterDocx } from "@/lib/build-cover-letter-docx";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
+import { downloadFileBlob, safeFileBaseName } from "@/lib/download";
 import { PremiumLoadingScreen } from "@/components/shared/PremiumLoadingScreen";
 import { PaywallDialog } from "@/components/shared/PaywallDialog";
 
@@ -1007,14 +1008,8 @@ export default function CoverLetterBuilder() {
       if (!html) throw new Error("Could not construct preview HTML structure.");
 
       const blob = await exportPdf({ data: { html } });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${coverLetter?.title || "cover-letter"}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      const base = safeFileBaseName(coverLetter?.title ?? "", "cover-letter");
+      downloadFileBlob(blob, `${base}.pdf`);
 
       toast({
         title: "PDF Downloaded",
@@ -1054,14 +1049,8 @@ export default function CoverLetterBuilder() {
         includeWatermark: showWatermark,
       });
 
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${coverLetter.title || "cover-letter"}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      const base = safeFileBaseName(coverLetter.title ?? "", "cover-letter");
+      downloadFileBlob(blob, `${base}.docx`);
 
       toast({
         title: "DOCX Exported",

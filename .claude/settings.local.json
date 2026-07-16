@@ -37,7 +37,13 @@
       "Bash(npm run *)",
       "Bash(grep -iE \"^jsdom$|^happy-dom$|linkedom\")",
       "Bash(cd \"D:/Projects/backend/AI-Resume-Builder\" && rm -f artifacts/resume-maker/src/pages/preview-debug.tsx artifacts/resume-maker/.claude/launch.json .claude/launch.json && echo \"removed debug files\")",
-      "Bash(cp \"C:/Users/user/Downloads/My_Resume.json\" \"D:/Projects/backend/AI-Resume-Builder/artifacts/resume-maker/src/lib/_debug_resume.json\" && echo copied)"
+      "Bash(cp \"C:/Users/user/Downloads/My_Resume.json\" \"D:/Projects/backend/AI-Resume-Builder/artifacts/resume-maker/src/lib/_debug_resume.json\" && echo copied)",
+      "Bash(grep -iE \"^tsx$|esbuild|vitest\")",
+      "Bash(node_modules/.bin/tsx \"C:/Users/user/AppData/Local/Temp/claude/D--Projects-backend-AI-Resume-Builder/f750127a-e6d3-4919-8604-28c41f665f64/scratchpad/test-docx.mjs\")",
+      "Bash(../../../../node_modules/.bin/tsx __test-docx.mjs)",
+      "Bash(grep -E '\\\\\\\\0|037')",
+      "Bash(../../../../node_modules/.bin/tsx __t.mjs)",
+      "Bash(rm -f __t.mjs)"
     ]
   }
 }

@@ -149,6 +149,11 @@ import {
   createPdfExportSignal,
   resumeOperationErrorMessage,
 } from "@/lib/resume-api-request";
+import {
+  downloadBlob,
+  downloadFileBlob,
+  safeFileBaseName,
+} from "@/lib/download";
 
 const ACCENT_COLORS = [
   { label: "Black", value: "#000000" },
@@ -346,32 +351,6 @@ const FONT_OPTIONS = [
 
 type Section = NonNullable<ResumeDetail["sections"]>[number];
 type SectionContent = Record<string, unknown>;
-
-/* ─── Helpers ─── */
-
-function downloadBlob(content: string, filename: string, type: string) {
-  const blob = new Blob([content], { type });
-  downloadFileBlob(blob, filename);
-}
-
-/** Safe for Windows/macOS/Linux and mobile download APIs. */
-function safeFileBaseName(title: string): string {
-  const base = title.trim().replace(/\s+/g, "_") || "resume";
-  return base.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_").slice(0, 120);
-}
-
-function downloadFileBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  // Delay revoke so Safari / mobile WebKit can start the download before the blob URL disappears.
-  window.setTimeout(() => URL.revokeObjectURL(url), 2_000);
-}
 
 /* ─── SortableSectionItem ─── */
 
