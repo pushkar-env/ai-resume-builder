@@ -43,7 +43,15 @@
       "Bash(../../../../node_modules/.bin/tsx __test-docx.mjs)",
       "Bash(grep -E '\\\\\\\\0|037')",
       "Bash(../../../../node_modules/.bin/tsx __t.mjs)",
-      "Bash(rm -f __t.mjs)"
+      "Bash(rm -f __t.mjs)",
+      "Bash(node -e \"const p=require\\('D:/AI/ai-resume-builder/package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(node -e \"const p=require\\('D:/AI/ai-resume-builder/artifacts/resume-maker/package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "Bash(grep -o \"resume-paged-view .text-.10\\\\\\\\\\\\\\\\.5px.[^}]*}\" dist/assets/*.css)",
+      "Bash(grep -c \"10\\\\\\\\\\\\\\\\.5px\" dist/assets/*.css)",
+      "Bash(grep -o \".\\\\{160\\\\}10\\\\\\\\\\\\\\\\.5px.\\\\{120\\\\}\" dist/assets/index-B77aEUuf.css)",
+      "Bash(grep -n \"\\\\.ml-1\\\\|\\\\.ml-\\\\\\\\\\\\\\\\\" \"D:/AI/ai-resume-builder/artifacts/resume-maker/src/index.css\")",
+      "Bash(python -c ' *)",
+      "Bash(python -)"
     ]
   }
 }

@@ -2439,9 +2439,27 @@ export function AtsCleanTemplate({ sections, color, font }: TP) {
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
               <div className="flex justify-between items-baseline mb-0.5">
-                <p className="text-[12px] font-bold text-gray-900">
-                  {str(e.title)}, {str(e.company)}
-                  {e.location ? `, ${str(e.location)}` : ""}
+                {/* "Title · Company, Location". The middot is a real character
+                    in the text node (not a border or pseudo-element), so it
+                    survives PDF text extraction and copy-paste and still gives
+                    parsers a delimiter between title and company. The typography
+                    carries the hierarchy: bold full-strength title vs. smaller
+                    muted italics for company/location.
+                    The character before the middot is a literal non-breaking
+                    space (U+00A0), not a plain space — keep it. When a long
+                    title wraps it holds the middot on the title's line instead
+                    of orphaning it to the start of the next one. */}
+                <p className="text-[12px] font-bold text-gray-900 min-w-0">
+                  {str(e.title)}
+                  {e.company || e.location ? (
+                    <span className="text-[10.5px] font-normal italic text-gray-600">
+                      {str(e.title) ? " · " : ""}
+                      {str(e.company)}
+                      {e.location
+                        ? `${str(e.company) ? ", " : ""}${str(e.location)}`
+                        : ""}
+                    </span>
+                  ) : null}
                 </p>
                 <p className="text-[10px] text-gray-700 shrink-0 ml-2">
                   {str(e.startDate)}

@@ -741,6 +741,11 @@
 .resume-paged-view .text-\[10px\] {
   font-size: calc(var(--resume-desc-scale) * 10.5px) !important;
 }
+/* Same rendered size as text-[10px] above; listed so this utility also shrinks
+   with --resume-desc-scale when a page auto-compresses to fit. */
+.resume-paged-view .text-\[10\.5px\] {
+  font-size: calc(var(--resume-desc-scale) * 10.5px) !important;
+}
 .resume-paged-view .text-\[12px\] {
   font-size: calc(var(--resume-desc-scale) * 12px) !important;
 }
