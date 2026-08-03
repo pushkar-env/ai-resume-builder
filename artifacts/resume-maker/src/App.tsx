@@ -456,8 +456,16 @@ function ClerkProviderWithRoutes() {
 function App() {
   if (isE2E) {
     // E2E mode: allow responsive tests to run without Clerk secrets.
+    //
+    // Clerk is the only thing being skipped here — QueryClientProvider and
+    // TooltipProvider must still wrap the tree, exactly as in the signed-in
+    // path above. Public pages render data components (TemplatesCarousel) that
+    // call useQuery, and without a QueryClient they throw "No QueryClient set",
+    // which unmounts the whole tree and renders a blank page.
     return (
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
         <WouterRouter base={basePath}>
           <ScrollToTop />
           <Switch>
@@ -508,6 +516,8 @@ function App() {
           </Switch>
           <Toaster />
         </WouterRouter>
+        </TooltipProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     );
   }

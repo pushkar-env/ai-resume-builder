@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useLayoutEffect } from "react";
-import { useUser } from "@clerk/react";
+// Privacy/terms/contact are public and also render in E2E mode, where there is
+// no ClerkProvider — see lib/clerk-optional.
+import { useOptionalUser as useUser } from "@/lib/clerk-optional";
 import { useLocation } from "wouter";
 import { Navbar, LandingNavbar } from "./Navbar";
 import { SEO } from "@/components/shared/SEO";

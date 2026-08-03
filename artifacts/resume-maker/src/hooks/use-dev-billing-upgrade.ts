@@ -1,4 +1,9 @@
-import { useAuth, useUser } from "@clerk/react";
+// Reached from the public pricing page, which also renders in E2E mode where
+// there is no ClerkProvider — see lib/clerk-optional.
+import {
+  useOptionalAuth as useAuth,
+  useOptionalUser as useUser,
+} from "@/lib/clerk-optional";
 import { useQueryClient } from "@tanstack/react-query";
 import { getListResumesQueryKey } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";

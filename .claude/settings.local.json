@@ -51,7 +51,15 @@
       "Bash(grep -o \".\\\\{160\\\\}10\\\\\\\\\\\\\\\\.5px.\\\\{120\\\\}\" dist/assets/index-B77aEUuf.css)",
       "Bash(grep -n \"\\\\.ml-1\\\\|\\\\.ml-\\\\\\\\\\\\\\\\\" \"D:/AI/ai-resume-builder/artifacts/resume-maker/src/index.css\")",
       "Bash(python -c ' *)",
-      "Bash(python -)"
+      "Bash(python -)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({...p.dependencies}, null, 1\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('tailwind:', p.devDependencies?.tailwindcss||p.dependencies?.tailwindcss\\)\")",
+      "Bash(grep -o \".\\\\{80\\\\}group-hover\\\\\\\\\\\\\\\\:opacity-100.\\\\{0,90\\\\}\" dist/assets/index-*.css)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/tailwindcss/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).version\\)\")",
+      "Read(//dev/**)",
+      "Bash(grep -c \"text-\\\\\\\\\\\\\\\\\\\\[10\\\\\\\\\\\\\\\\.5px\\\\\\\\\\\\\\\\\\\\]\")",
+      "Bash(npx playwright *)"
     ]
   }
 }

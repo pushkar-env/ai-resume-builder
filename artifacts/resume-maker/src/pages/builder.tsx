@@ -14,16 +14,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
@@ -139,6 +133,9 @@ import {
 } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useCompactLayout } from "@/hooks/use-compact-layout";
+import { useCoarsePointer } from "@/hooks/use-coarse-pointer";
+import { useSortableSensors } from "@/hooks/use-sortable-sensors";
 import { emptySectionContentForType } from "@/lib/empty-section-content";
 import { buildSelfContainedExportHtml } from "@/lib/resume-export-html";
 import {
@@ -776,7 +773,8 @@ function sectionDisplayLabel(section: Section): string {
   return h.trim() || section.title;
 }
 
-function SortableRailItem({
+/** Exported for e2e/tablet-dnd.spec.ts (touch reordering regression cover). */
+export function SortableRailItem({
   section,
   isActive,
   onSelect,
@@ -804,6 +802,8 @@ function SortableRailItem({
 
   const Icon = getSectionIcon(section.type);
   const label = getSectionShortLabel(section.type, section.title);
+  const coarse = useCoarsePointer();
+  const dragProps = { ...attributes, ...listeners };
 
   return (
     <div
@@ -811,20 +811,34 @@ function SortableRailItem({
       style={style}
       className="relative group flex flex-col items-center w-full"
     >
+      {/* Fine pointers drag by this grip (revealed on hover). Touch devices have
+          no hover — Tailwind gates `group-hover:` behind `@media (hover: hover)`
+          — so on a tablet it stayed invisible and there was nothing to grab.
+          There the whole tile is the drag surface instead (see the button), and
+          this is a static affordance that lets taps pass through to it. */}
       <span
-        {...attributes}
-        {...listeners}
-        className="absolute left-0.5 top-5 cursor-grab active:cursor-grabbing p-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/60 hover:text-foreground z-20 touch-none select-none"
+        {...(coarse ? {} : dragProps)}
+        className={`absolute left-0.5 top-5 pointer-coarse:top-4 cursor-grab active:cursor-grabbing p-0.5 pointer-coarse:p-1.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 pointer-coarse:pointer-events-none transition-opacity text-muted-foreground/60 hover:text-foreground z-20 touch-none select-none`}
         onClick={(e) => e.stopPropagation()}
         title="Drag to reorder"
+        aria-hidden={coarse || undefined}
       >
-        <GripVertical className="h-3 w-3" />
+        <GripVertical className="h-3 w-3 pointer-coarse:h-3.5 pointer-coarse:w-3.5" />
       </span>
 
       <button
         type="button"
         onClick={onSelect}
+        {...(coarse ? dragProps : {})}
+        /* Touch: press and hold the tile to reorder (TouchSensor's 220ms delay
+           keeps a normal tap selecting and a swipe scrolling). `no-touch-callout`
+           + blocking contextmenu stop iOS/Android from hijacking that same long
+           press with their native share/download/print menu, which used to fire
+           touchcancel and kill the drag before it began. */
+        onContextMenu={coarse ? (e) => e.preventDefault() : undefined}
         className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative select-none ${
+          coarse ? "no-touch-callout" : ""
+        } ${
           isActive
             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
@@ -846,7 +860,8 @@ function SortableRailItem({
   );
 }
 
-function SortableSectionMobileItem({
+/** Exported for e2e/tablet-dnd.spec.ts (touch reordering regression cover). */
+export function SortableSectionMobileItem({
   section,
   isActive,
   onSelect,
@@ -873,21 +888,30 @@ function SortableSectionMobileItem({
   };
 
   const Icon = getSectionIcon(section.type);
+  const coarse = useCoarsePointer();
+  const dragProps = { ...attributes, ...listeners };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
+      /* Touch: press and hold anywhere on the row to reorder — same gesture as
+         the rail tile — with the native long-press menu suppressed so it cannot
+         cancel the drag. A plain tap still opens the section. */
+      {...(coarse ? dragProps : {})}
+      onContextMenu={coarse ? (e) => e.preventDefault() : undefined}
       className={`flex items-center gap-3 rounded-xl border border-border p-3.5 bg-card hover:bg-muted/10 transition-colors ${
-        isActive ? "border-primary/50 bg-primary/[0.01]" : ""
-      }`}
+        coarse ? "no-touch-callout" : ""
+      } ${isActive ? "border-primary/50 bg-primary/[0.01]" : ""}`}
       onClick={onSelect}
     >
       <span
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing p-2 -m-0.5 text-muted-foreground/60 hover:text-foreground transition-colors touch-none select-none"
+        {...(coarse ? {} : dragProps)}
+        className={`cursor-grab active:cursor-grabbing p-2 -m-0.5 text-muted-foreground/60 hover:text-foreground transition-colors touch-none select-none ${
+          coarse ? "pointer-events-none" : ""
+        }`}
         onClick={(e) => e.stopPropagation()}
+        aria-hidden={coarse || undefined}
       >
         <GripVertical className="h-4 w-4" />
       </span>
@@ -982,6 +1006,11 @@ export default function BuilderPage() {
   const [mobileTab, setMobileTabRaw] = useState<"sections" | "edit" | "preview">(
     "sections",
   );
+  /* Tracks the same breakpoint as the `lg:` classes below, and re-renders on
+     rotation — a plain `window.innerWidth` read leaves these branches stale
+     when a tablet turns, hiding the sections list behind a rail CSS already
+     hid. */
+  const compactLayout = useCompactLayout();
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -2035,16 +2064,7 @@ export default function BuilderPage() {
     toast,
   ]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    /* Long-press to drag on touch — avoids fighting vertical scroll in the sections list. */
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 220, tolerance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
+  const sensors = useSortableSensors();
 
   const activeSection = localSections.find((s) => s.id === activeSectionId);
 
@@ -2103,7 +2123,7 @@ export default function BuilderPage() {
         }}
         onAtsScoreClick={() => {
           setActiveSidebarMode("ats");
-          if (window.innerWidth < 1024) setMobileTabRaw("edit");
+          if (compactLayout) setMobileTabRaw("edit");
         }}
         onExport={() => setExportOpen(true)}
         onRename={(newTitle) => {
@@ -2240,7 +2260,7 @@ export default function BuilderPage() {
           {/* 2. Main Edit Panel Content */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
             {/* Header (only shown if not in Mobile Dashboard view) */}
-            {!(mobileTab === "sections" && window.innerWidth < 1024) && (
+            {!(mobileTab === "sections" && compactLayout) && (
               <div className="px-4 py-3 border-b border-border shrink-0 flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <Button
@@ -2310,7 +2330,7 @@ export default function BuilderPage() {
             {/* Scrollable Form Body */}
             <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!block">
               {/* Mobile Dashboard View */}
-              {mobileTab === "sections" && window.innerWidth < 1024 ? (
+              {mobileTab === "sections" && compactLayout ? (
                 <div className="p-4 space-y-4 lg:hidden">
                   {/* Quick Dashboard Navigation & Clear Data Actions */}
                   <div className="grid grid-cols-2 gap-3">
@@ -3150,7 +3170,7 @@ export default function BuilderPage() {
             {/* Pinned Footer — desktop only. On mobile/tablet the back action lives in
                 the header and the save status is surfaced there too, so this strip is
                 hidden below lg to give the edit panel more vertical room. */}
-            {!(mobileTab === "sections" && window.innerWidth < 1024) && (
+            {!(mobileTab === "sections" && compactLayout) && (
               <div className="hidden border-t border-border p-3 lg:p-3.5 shrink-0 bg-background lg:flex flex-row items-center justify-between">
                 <Button
                   variant="ghost"

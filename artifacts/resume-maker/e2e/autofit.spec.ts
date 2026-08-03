@@ -1,73 +1,81 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+/**
+ * Auto-fit compresses a resume to keep it on one page, in phases: page margins
+ * first, then section spacing, then heading type, then body type. Each phase is
+ * exposed as a CSS custom property on `.a4-page`.
+ *
+ * These tests previously targeted a `/e2e-test-autofit` route and
+ * `--resume-*-factor` variables, neither of which exist any more — auto-fit was
+ * rewritten around `--resume-*-scale` and the route was dropped, so every test
+ * here failed on a blank page. They now drive the real ResumePagedView through
+ * e2e/fixtures/autofit.html.
+ */
+
+const FIXTURE = "/e2e/fixtures/autofit.html";
+
+/** The floor each phase reaches at maximum compression (autoFitScale 0.82). */
+const FLOOR = { margin: 0.5, spacing: 0.45, header: 0.78, desc: 0.85 };
+
+async function compressionScales(page: Page) {
+  const body = page.locator(".resume-page-body").first();
+  return body.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    const read = (name: string) => parseFloat(cs.getPropertyValue(name).trim());
+    return {
+      margin: read("--resume-margin-scale"),
+      spacing: read("--resume-spacing-scale"),
+      header: read("--resume-header-scale"),
+      desc: read("--resume-desc-scale"),
+    };
+  });
+}
 
 test.describe("ResumeSensei Auto-Fit Optimization Tests", () => {
   test("Should render single page at scale 1.0 when content fits", async ({ page }) => {
-    // Navigate with a small height of 800px which easily fits in a single A4 page (1123px)
-    await page.goto("/e2e-test-autofit?height=800&testId=fits", { waitUntil: "networkidle" });
+    // Comfortably inside one A4 page, so nothing should compress.
+    await page.goto(`${FIXTURE}?blocks=8&lines=3`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(1500);
 
-    // Assert that we have exactly 1 visible page
-    const pages = page.locator(".resume-paged-view > .a4-page");
-    await expect(pages).toHaveCount(1);
+    await expect(page.locator(".resume-paged-view > .a4-page")).toHaveCount(1);
 
-    // Verify spacing and typography factors are at full scale (1.0)
-    const body = page.locator(".resume-page-body").first();
-    const spacingFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-spacing-factor").trim());
-    const largeTypoFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-large-typo-factor").trim());
-    const bodyFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-body-factor").trim());
-
-    // In CSS, variables are resolved or passed down, since initial values are 1, they should be '1' or close to it
-    expect(parseFloat(spacingFactor)).toBeCloseTo(1.0, 2);
-    expect(parseFloat(largeTypoFactor)).toBeCloseTo(1.0, 2);
-    expect(parseFloat(bodyFactor)).toBeCloseTo(1.0, 2);
+    const scales = await compressionScales(page);
+    expect(scales.margin).toBeCloseTo(1.0, 2);
+    expect(scales.spacing).toBeCloseTo(1.0, 2);
+    expect(scales.header).toBeCloseTo(1.0, 2);
+    expect(scales.desc).toBeCloseTo(1.0, 2);
   });
 
-  test("Should scale down spacing factor to keep content within a single page", async ({ page }) => {
-    // Navigate with dynamic=true. Element height starts at 1150px (exceeds page height 1123px).
-    // It should shrink dynamically to fit exactly on 1 page by scaling spacing down.
-    await page.goto("/e2e-test-autofit?dynamic=true&testId=scale-down", { waitUntil: "networkidle" });
+  test("Should scale down spacing to keep content within a single page", async ({ page }) => {
+    // Just past one page: compression should claw the overflow back rather than
+    // spill onto a second page.
+    await page.goto(`${FIXTURE}?blocks=14&lines=3`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(2500);
 
-    // Wait for the layout system to complete its measurement loop and settle
-    await page.waitForTimeout(2000);
+    await expect(page.locator(".resume-paged-view > .a4-page")).toHaveCount(1);
 
-    // Assert that we still have exactly 1 visible page after scaling down spacing
-    const pages = page.locator(".resume-paged-view > .a4-page");
-    await expect(pages).toHaveCount(1);
-
-    // Verify spacing factor was reduced, but large typography and body remain at 1.0 (Phase 1)
-    const body = page.locator(".resume-page-body").first();
-    const spacingFactor = parseFloat(await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-spacing-factor").trim()));
-    const largeTypoFactor = parseFloat(await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-large-typo-factor").trim()));
-    const bodyFactor = parseFloat(await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-body-factor").trim()));
-
-    // Spacing factor should be scaled down (should be ~0.73)
-    expect(spacingFactor).toBeLessThan(0.85);
-    expect(spacingFactor).toBeGreaterThan(0.68);
-
-    // Typographies should remain at 1.0 (Phase 1 priority: spacing reduced first!)
-    expect(largeTypoFactor).toBeCloseTo(1.0, 2);
-    expect(bodyFactor).toBeCloseTo(1.0, 2);
+    const scales = await compressionScales(page);
+    // Whitespace gave way first (phases 1-2)...
+    expect(scales.margin).toBeLessThan(1.0);
+    expect(scales.spacing).toBeLessThan(1.0);
+    expect(scales.spacing).toBeGreaterThanOrEqual(FLOOR.spacing);
+    // ...and body copy is still full size: legibility is surrendered last.
+    expect(scales.desc).toBeCloseTo(1.0, 2);
   });
 
   test("Should settle at minimum compression limit when content exceeds single page constraints", async ({ page }) => {
-    // Navigate with a height of 1300px which exceeds a single A4 page and cannot be squeezed into 1 page
-    await page.goto("/e2e-test-autofit?height=1300&testId=fallback", { waitUntil: "networkidle" });
+    // Far too much content to squeeze onto one page at any scale: the loop should
+    // bottom out and the overflow should paginate rather than be clipped away.
+    await page.goto(`${FIXTURE}?blocks=20&lines=4`, { waitUntil: "networkidle" });
+    await page.waitForTimeout(2500);
 
-    // Wait for the layout system to complete its measurement loop and settle
-    await page.waitForTimeout(2000);
-
-    // Assert that the page layout splits content into 2 pages but keeps maximum compression applied
     const pages = page.locator(".resume-paged-view > .a4-page");
-    const count = await pages.count();
-    expect(count).toBeGreaterThanOrEqual(2);
+    expect(await pages.count()).toBeGreaterThanOrEqual(2);
 
-    // Verify that the scale factors are settled at their minimum allowed limits
-    const body = page.locator(".resume-page-body").first();
-    const spacingFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-spacing-factor").trim());
-    const largeTypoFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-large-typo-factor").trim());
-    const bodyFactor = await body.evaluate(el => getComputedStyle(el).getPropertyValue("--resume-body-factor").trim());
-
-    expect(parseFloat(spacingFactor)).toBeCloseTo(0.50, 2);
-    expect(parseFloat(largeTypoFactor)).toBeCloseTo(0.70, 2);
-    expect(parseFloat(bodyFactor)).toBeCloseTo(0.85, 2);
+    const scales = await compressionScales(page);
+    expect(scales.margin).toBeCloseTo(FLOOR.margin, 2);
+    expect(scales.spacing).toBeCloseTo(FLOOR.spacing, 2);
+    expect(scales.header).toBeCloseTo(FLOOR.header, 2);
+    expect(scales.desc).toBeCloseTo(FLOOR.desc, 2);
   });
 });

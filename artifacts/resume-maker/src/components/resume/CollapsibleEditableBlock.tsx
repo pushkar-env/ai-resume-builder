@@ -65,7 +65,11 @@ export function CollapsibleEditableBlock({
         {dragHandleProps && (
           <div
             {...dragHandleProps}
-            className="cursor-grab active:cursor-grabbing p-2.5 lg:p-1 text-muted-foreground/45 hover:text-foreground shrink-0 flex items-center justify-center touch-none select-none"
+            /* `no-touch-callout` + blocking contextmenu keep iOS/Android from
+               answering the hold-to-drag gesture with their native
+               share/download menu, which cancels the touch and aborts the drag. */
+            onContextMenu={(e) => e.preventDefault()}
+            className="cursor-grab active:cursor-grabbing p-2.5 lg:p-1 text-muted-foreground/45 hover:text-foreground shrink-0 flex items-center justify-center touch-none select-none no-touch-callout"
             title="Drag to reorder"
           >
             <GripVertical className="h-4 w-4" />

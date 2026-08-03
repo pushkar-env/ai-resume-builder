@@ -2,21 +2,16 @@ import React from "react";
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
+import { useSortableSensors } from "@/hooks/use-sortable-sensors";
 
 interface SortableListProps<T> {
   items: T[];
@@ -39,22 +34,7 @@ export function SortableBlockList<T extends { id: string | number }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Require dragging at least 8px before initiating
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250, // Require 250ms hold time on mobile devices to allow normal scrolling
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const sensors = useSortableSensors({ delay: 250, tolerance: 5 });
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

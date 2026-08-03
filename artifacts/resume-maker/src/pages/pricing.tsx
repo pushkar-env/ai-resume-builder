@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Check, Star, Shield, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUser, useAuth } from "@clerk/react";
+import {
+  useOptionalUser as useUser,
+  useOptionalAuth as useAuth,
+} from "@/lib/clerk-optional";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";

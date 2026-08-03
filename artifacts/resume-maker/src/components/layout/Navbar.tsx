@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { useUser, useClerk, useAuth } from "@clerk/react";
+// Rendered by public pages (pricing, legal) that also run in E2E mode, where
+// there is no ClerkProvider — see lib/clerk-optional.
+import {
+  useOptionalUser as useUser,
+  useOptionalClerk as useClerk,
+  useOptionalAuth as useAuth,
+} from "@/lib/clerk-optional";
 import { Link, useLocation } from "wouter";
 import {
   FileText,
