@@ -49,10 +49,10 @@ const TEMPLATES = [
     isPremium: true,
   },
   {
-    id: "midnight",
-    name: "Midnight Luxe",
+    id: "vanguard",
+    name: "Vanguard Elite",
     description:
-      "Dark background with gold accents — a premium statement for elite roles",
+      "Editorial single-column prestige — premium typography that parses cleanly in any ATS",
     category: "Premium",
     previewImageUrl: "",
     isPremium: true,

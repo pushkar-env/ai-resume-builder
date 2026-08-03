@@ -34,6 +34,13 @@ import { sendAiRouteError } from "../lib/ai-route-error";
 import { optimizeResumeWithAi, rephraseJobTitle } from "../lib/optimize-resume-ai";
 import { scoreResumeAts, computeAtsResult, extractJobKeywords } from "../lib/ats-score";
 import { renderResumePdf } from "../lib/pdf-renderer";
+import {
+  DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_FONT_COLOR,
+  defaultAccentColor,
+  defaultFontFamily,
+  resolveTemplateId,
+} from "../lib/template-defaults";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -321,48 +328,20 @@ router.post(
       return;
     }
 
-    const defaultColors: Record<string, string> = {
-      "silicon-valley": "#000000",
-      faang: "#000000",
-      nova: "#64748b",
-      "executive-pro": "#92400e",
-      "creative-pro": "#0d9488",
-      midnight: "#d4a853",
-      "ats-clean": "#1f2937",
-      academic: "#1e40af",
-      "corporate-navy": "#1e3a5f",
-      compact: "#000000",
-      european: "#000000",
-      "two-column": "#0d9488",
-    };
-    const defaultFonts: Record<string, string> = {
-      "silicon-valley": "Merriweather, serif",
-      faang: "Manrope, sans-serif",
-      nova: "Poppins, sans-serif",
-      "executive-pro": "Merriweather, serif",
-      "creative-pro": "Poppins, sans-serif",
-      midnight: "Manrope, sans-serif",
-      "ats-clean": "Merriweather, serif",
-      academic: "Merriweather, serif",
-      "corporate-navy": "Inter, sans-serif",
-      compact: "Merriweather, serif",
-      european: "Inter, sans-serif",
-      "two-column": "Manrope, sans-serif",
-    };
-    const defaultColor = defaultColors[parsed.data.templateId] ?? "#000000";
-    const defaultFont =
-      defaultFonts[parsed.data.templateId] ?? "Inter, sans-serif";
+    // A client on a stale bundle can still POST a retired id; store the live one.
+    const templateId = resolveTemplateId(parsed.data.templateId);
 
     const [resume] = await db
       .insert(resumesTable)
       .values({
         userId,
         title: parsed.data.title,
-        templateId: parsed.data.templateId,
-        accentColor: parsed.data.accentColor ?? defaultColor,
-        fontFamily: parsed.data.fontFamily ?? defaultFont,
-        fontColor: parsed.data.fontColor ?? "#111827",
-        backgroundColor: parsed.data.backgroundColor ?? "#ffffff",
+        templateId,
+        accentColor: parsed.data.accentColor ?? defaultAccentColor(templateId),
+        fontFamily: parsed.data.fontFamily ?? defaultFontFamily(templateId),
+        fontColor: parsed.data.fontColor ?? DEFAULT_FONT_COLOR,
+        backgroundColor:
+          parsed.data.backgroundColor ?? DEFAULT_BACKGROUND_COLOR,
       })
       .returning();
 
@@ -607,22 +586,8 @@ Resume text:
 
       // Default template configuration
       const templateId = "ats-clean";
-      const accentColor = "#1f2937";
-      const defaultFonts: Record<string, string> = {
-        "silicon-valley": "Merriweather, serif",
-        faang: "Manrope, sans-serif",
-        nova: "Poppins, sans-serif",
-        "executive-pro": "Merriweather, serif",
-        "creative-pro": "Poppins, sans-serif",
-        midnight: "Manrope, sans-serif",
-        "ats-clean": "Merriweather, serif",
-        academic: "Merriweather, serif",
-        "corporate-navy": "Inter, sans-serif",
-        compact: "Merriweather, serif",
-        european: "Inter, sans-serif",
-        "two-column": "Manrope, sans-serif",
-      };
-      const defaultFont = defaultFonts[templateId] ?? "Inter, sans-serif";
+      const accentColor = defaultAccentColor(templateId);
+      const defaultFont = defaultFontFamily(templateId);
       const title =
         parsedData.title ||
         file.originalname.replace(/\.[^/.]+$/, "") ||
@@ -934,7 +899,7 @@ router.patch(
     const updateData: Partial<typeof resumesTable.$inferInsert> = {};
     if (resumeFields.title != null) updateData.title = resumeFields.title;
     if (resumeFields.templateId != null)
-      updateData.templateId = resumeFields.templateId;
+      updateData.templateId = resolveTemplateId(resumeFields.templateId);
     if (resumeFields.accentColor != null)
       updateData.accentColor = resumeFields.accentColor;
     if (resumeFields.fontFamily != null)

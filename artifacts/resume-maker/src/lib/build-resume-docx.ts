@@ -11,7 +11,7 @@ import {
   convertInchesToTwip,
   convertMillimetersToTwip,
 } from "docx";
-import { TEMPLATE_DEFAULT_SKILL_STYLES } from "./template-config";
+import { getDefaultSkillStyle } from "./template-config";
 
 type SC = Record<string, unknown>;
 type Item = Record<string, unknown>;
@@ -668,9 +668,7 @@ export async function buildResumeDocxBlob(
 
   renderers.skills = () => {
     if (skills.length === 0) return;
-    const defaultStyle = resume.templateId
-      ? (TEMPLATE_DEFAULT_SKILL_STYLES[resume.templateId] ?? "chips")
-      : "chips";
+    const defaultStyle = getDefaultSkillStyle(resume.templateId);
     const style = skillsStyleFromOrdered(ordered) ?? defaultStyle;
     const hasNamedSkill = skills.some((s) => str(s.name).trim());
     if (hasNamedSkill) {

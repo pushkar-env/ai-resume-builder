@@ -8,8 +8,10 @@ import { ResumePagedView } from "@/components/resume/ResumePagedView";
 import { ResumeWatermark } from "@/components/resume/ResumeWatermark";
 import {
   getDefaultAccentColor,
-  TEMPLATE_DEFAULT_SKILL_STYLES,
+  getDefaultSkillStyle,
   getDefaultFontFamily,
+  resolveAccentColor,
+  resolveTemplateId,
 } from "@/lib/template-config";
 
 /* ─── Types ─── */
@@ -2159,9 +2161,16 @@ export function CreativeProTemplate({ sections, color, font }: TP) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   6. MIDNIGHT LUXE — Dark bg, gold accents, premium
+   6. VANGUARD ELITE — Editorial single-column premium, ATS-first
 ═══════════════════════════════════════════════════════════ */
-export function MidnightTemplate({ sections, color, font }: TP) {
+/**
+ * Premium look is carried entirely by typography and accent keylines: one
+ * linear column, real text nodes, no tables/columns/text-in-graphics — so the
+ * reading order a parser extracts is exactly the visual order. Every section
+ * heading is a plain uppercase text node preceded by a decorative rule, which
+ * keyword scanners ignore.
+ */
+export function VanguardTemplate({ sections, color, font }: TP) {
   const get = getter(sections);
   const p = get("personal") ?? {};
   const summary = get("summary") ?? {};
@@ -2171,20 +2180,57 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   const projects = items<Item>(get("projects"));
   const certs = items<Item>(get("certifications"));
   const skillsStyle = skillsStyleOf(sections);
-  const gold = color;
-  const card = alpha(color, 0.04);
-  const border = alpha(color, 0.15);
+  const rule = alpha(color, 0.24);
   const H = (t: string, fb: string) => headingOf(get, t, fb);
 
-  const MidHead = ({ label }: { label: string }) => (
-    <div className="flex items-center gap-3 mb-3.5">
+  const SH = ({ label }: { label: string }) => (
+    <div className="resume-section-header flex items-center gap-2.5 mb-2.5">
+      <span
+        aria-hidden
+        className="h-[11px] w-[3px] shrink-0"
+        style={{ background: color }}
+      />
       <p
-        className="text-[13.5px] font-bold uppercase tracking-[0.18em] shrink-0"
-        style={{ color: gold }}
+        className="text-[12px] font-bold uppercase tracking-[0.16em] shrink-0"
+        style={{ color }}
       >
         {label}
       </p>
-      <div className="flex-1 h-px" style={{ background: border }} />
+      <span aria-hidden className="flex-1 h-px" style={{ background: rule }} />
+    </div>
+  );
+
+  const marker = (
+    <span
+      aria-hidden
+      className="mt-[6px] h-[3px] w-[3px] rounded-full shrink-0"
+      style={{ background: color }}
+    />
+  );
+  const dateRange = (start: unknown, end: unknown) =>
+    `${str(start)}${end ? ` – ${str(end)}` : start ? " – Present" : ""}`;
+
+  /**
+   * List section. The heading lives *inside* the first entry's keep-block rather
+   * than beside it: ResumePagedView moves a whole keep-block to the next page
+   * when it crosses a page boundary, so grouping them means a break can never
+   * strand a heading alone at the foot of a page.
+   */
+  const listSection = <T,>(
+    label: string,
+    list: T[],
+    spacing: string,
+    renderEntry: (item: T) => React.ReactNode,
+  ) => (
+    <div className="mb-6">
+      <div className={spacing}>
+        {list.map((item, i) => (
+          <div key={i} className="resume-export-block">
+            {i === 0 ? <SH label={label} /> : null}
+            {renderEntry(item)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -2192,180 +2238,161 @@ export function MidnightTemplate({ sections, color, font }: TP) {
   if (str(summary.text)) {
     blocks.summary = (
       <div className="resume-export-block mb-6">
-        <p
-          className="text-[13.5px] font-bold uppercase tracking-[0.18em] mb-2"
-          style={{ color: gold }}
-        >
-          {H("summary", "Profile")}
-        </p>
+        <SH label={H("summary", "Executive Summary")} />
         <div
-          className="resume-text text-[11px] text-gray-600 leading-[1.75]"
+          className="resume-text text-[11px] text-gray-700 leading-[1.7]"
           dangerouslySetInnerHTML={{ __html: richHtml(summary.text) }}
         />
       </div>
     );
   }
   if (exp.length > 0) {
-    blocks.experience = (
-      <div className="mb-6">
-        <MidHead label={H("experience", "Experience")} />
-        <div className="space-y-4">
-          {exp.map((e, i) => (
-            <div
-              key={i}
-              className="resume-export-block rounded-lg p-3.5"
-              style={{ background: card, border: `1px solid ${border}` }}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-[12px] font-bold text-gray-900">
-                    {str(e.title)}
-                  </p>
-                  <p
-                    className="text-[11.5px] font-medium mt-0.5"
-                    style={{ color: gold }}
-                  >
-                    {str(e.company)}
-                    {e.location ? ` · ${str(e.location)}` : ""}
-                  </p>
+    blocks.experience = listSection(
+      H("experience", "Professional Experience"),
+      exp,
+      "space-y-3.5",
+      (e) => (
+        <>
+          <div className="flex justify-between items-baseline gap-3">
+            <p className="text-[12px] font-bold text-gray-900 min-w-0">
+              {str(e.title)}
+            </p>
+            <p className="text-[10px] font-medium text-gray-600 shrink-0 tracking-wide">
+              {dateRange(e.startDate, e.endDate)}
+            </p>
+          </div>
+          {str(e.company) || str(e.location) ? (
+            <p className="text-[11px] font-semibold mt-0.5" style={{ color }}>
+              {str(e.company)}
+              {str(e.location) ? (
+                <span className="font-normal text-gray-600">
+                  {`${str(e.company) ? " · " : ""}${str(e.location)}`}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+          {items<unknown>(e as SC, "bullets")
+            .filter((b) => {
+              const bp = bulletParts(b);
+              return bp.text || bp.label || bp.link;
+            })
+            .map((b, j) => (
+              <div key={j} className="flex gap-2 mt-1">
+                {marker}
+                <div className="flex-1 min-w-0 text-[11px] text-gray-700 leading-[1.55]">
+                  <BulletContent b={b} color={color} />
                 </div>
-                <p className="text-[10px] text-gray-500 shrink-0 ml-3">
-                  {str(e.startDate)}
-                  {e.endDate
-                    ? ` – ${str(e.endDate)}`
-                    : e.startDate
-                      ? " – Present"
-                      : ""}
-                </p>
               </div>
-              {items<unknown>(e as SC, "bullets")
-                .filter((b) => {
-                  const p = bulletParts(b);
-                  return p.text || p.label || p.link;
-                })
-                .map((b, j) => (
-                  <div key={j} className="flex gap-1.5 mt-1.5">
-                    <span
-                      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                      style={{ background: gold }}
-                    />
-                    <div className="flex-1 min-w-0 text-[11px] text-gray-600 leading-[1.5]">
-                      <BulletContent b={b} color={color} />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+        </>
+      ),
     );
   }
   if (edu.length > 0) {
-    blocks.education = (
-      <div className="mb-6">
-        <MidHead label={H("education", "Education")} />
-        <div className="space-y-3">
-          {edu.map((e, i) => (
-            <div
-              key={i}
-              className="resume-export-block rounded-lg p-3"
-              style={{ background: card, border: `1px solid ${border}` }}
-            >
-              <p className="text-[12px] font-semibold text-gray-900">
-                {str(e.school)}
-              </p>
-              <p className="text-[11px] text-gray-600 mt-0.5">
-                {str(e.degree)}
-              </p>
-              <p className="text-[10px] text-gray-500 mt-0.5">
-                {str(e.startDate)}
-                {e.endDate ? ` – ${str(e.endDate)}` : ""}
-                {e.gpa ? ` · ${renderGpa(e.gpa, e.gpaMode)}` : ""}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+    blocks.education = listSection(
+      H("education", "Education"),
+      edu,
+      "space-y-3",
+      (e) => (
+        <>
+          <div className="flex justify-between items-baseline gap-3">
+            <p className="text-[12px] font-bold text-gray-900 min-w-0">
+              {str(e.school)}
+            </p>
+            <p className="text-[10px] font-medium text-gray-600 shrink-0 tracking-wide">
+              {dateRange(e.startDate, e.endDate)}
+            </p>
+          </div>
+          {str(e.degree) || str(e.field) || str(e.gpa) ? (
+            <p className="text-[11px] text-gray-700 mt-0.5">
+              {str(e.degree)}
+              {str(e.field)
+                ? `${str(e.degree) ? ", " : ""}${str(e.field)}`
+                : ""}
+              {str(e.gpa)
+                ? `${str(e.degree) || str(e.field) ? " · " : ""}${renderGpa(e.gpa, e.gpaMode)}`
+                : ""}
+            </p>
+          ) : null}
+        </>
+      ),
     );
   }
   if (skills.length > 0) {
     blocks.skills = (
       <div className="resume-export-block mb-6">
-        <MidHead label={H("skills", "Skills")} />
-        {renderSkills(skills, skillsStyle, gold, false)}
+        <SH label={H("skills", "Core Competencies")} />
+        {renderSkills(skills, skillsStyle, color, false)}
       </div>
     );
   }
   if (projects.length > 0) {
-    blocks.projects = (
-      <div className="mb-6">
-        <MidHead label={H("projects", "Projects")} />
-        <div className="space-y-3">
-          {projects.map((pr, i) => (
-            <div key={i} className="resume-export-block">
-              <p className="text-[12px] font-semibold text-gray-900">
-                {str(pr.name)}
-              </p>
-              <ProjectLink
-                url={pr.url}
-                label={pr.label}
-                color={gold}
-                className="text-[10px]"
-              />
-              <ProjectDetail
-                pr={pr}
-                color={gold}
-                marker={
-                  <span
-                    className="mt-[6px] h-1 w-1 rounded-full shrink-0"
-                    style={{ background: gold }}
-                  />
-                }
-                rowClassName="flex gap-1.5"
-                textClassName="text-[11px] text-gray-600 leading-[1.5]"
-                descClassName="resume-text text-[11px] text-gray-600 mt-1"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+    blocks.projects = listSection(
+      H("projects", "Selected Projects"),
+      projects,
+      "space-y-3",
+      (pr) => (
+        <>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[12px] font-bold text-gray-900 min-w-0">
+              {str(pr.name)}
+            </p>
+            <ProjectLink
+              url={pr.url}
+              label={pr.label}
+              color={color}
+              className="text-[10px] shrink-0"
+            />
+          </div>
+          <ProjectDetail
+            pr={pr}
+            color={color}
+            marker={marker}
+            rowClassName="flex gap-2"
+            textClassName="text-[11px] text-gray-700 leading-[1.55]"
+            containerClassName="mt-1 space-y-1"
+            descClassName="resume-text text-[11px] text-gray-700 leading-[1.55] mt-1"
+          />
+        </>
+      ),
     );
   }
   if (certs.length > 0) {
-    blocks.certifications = (
-      <div className="mb-6">
-        <MidHead label={H("certifications", "Certs")} />
-        <div className="space-y-1">
-          {certs.map((c, i) => (
-            <div key={i} className="resume-export-block">
-              <CertLine
-                c={c}
-                className="text-[11px] text-gray-600"
-                color={gold}
-              />
-            </div>
-          ))}
+    blocks.certifications = listSection(
+      H("certifications", "Certifications"),
+      certs,
+      "space-y-1.5",
+      (c) => (
+        <div className="flex gap-2">
+          {marker}
+          <CertLine
+            c={c}
+            className="flex-1 min-w-0 text-[11px] text-gray-700 leading-[1.55]"
+            color={color}
+          />
         </div>
-      </div>
+      ),
     );
   }
 
   return (
     <div className="px-9 py-8" style={{ fontFamily: font, minHeight: "100%" }}>
       {/* Header */}
-      <div
-        className="mb-7 pb-5"
-        style={{ borderBottom: `1px solid ${border}` }}
-      >
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-[30px] font-black text-gray-900 tracking-tight leading-none">
+      <div className="mb-6">
+        <div className="flex items-start justify-between gap-5">
+          <div className="min-w-0">
+            <span
+              aria-hidden
+              className="block h-[3px] w-10 mb-2.5"
+              style={{ background: color }}
+            />
+            <h1 className="text-[30px] font-black text-gray-950 tracking-tight leading-[1.05]">
               {str(p.name) || "Your Name"}
             </h1>
             {roleOf(p) && (
               <p
-                className="text-[12px] font-semibold mt-2 tracking-[0.14em] uppercase"
-                style={{ color: gold }}
+                className="text-[11px] font-semibold uppercase tracking-[0.18em] mt-1.5"
+                style={{ color }}
               >
                 {roleOf(p)}
               </p>
@@ -2373,18 +2400,26 @@ export function MidnightTemplate({ sections, color, font }: TP) {
           </div>
           <Avatar
             p={p}
-            bg={gold}
+            bg={color}
             textColor="#ffffff"
-            sizeClass="h-12 w-12 text-lg"
+            sizeClass="h-14 w-14 text-lg"
           />
         </div>
-        <div className="flex gap-5 mt-3.5 flex-wrap">
+        <p
+          className="text-[10px] text-gray-600 leading-[1.7] mt-3.5 pt-3"
+          style={{ borderTop: `1px solid ${rule}` }}
+        >
           {contactValues(p, color).map((v, i) => (
-            <span key={i} className="text-[10px] text-gray-600">
+            <span key={i}>
+              {i > 0 ? (
+                <span aria-hidden className="mx-1.5 text-gray-400">
+                  ·
+                </span>
+              ) : null}
               {v}
             </span>
           ))}
-        </div>
+        </p>
       </div>
 
       {orderedBlocks(sections, blocks)}
@@ -3927,6 +3962,27 @@ export function TwoColumnTemplate({ sections, color, font }: TP) {
 /* ═══════════════════════════════════════════════════════════
    Main ResumePreview — route to correct template
 ═══════════════════════════════════════════════════════════ */
+/**
+ * Ids with a dedicated component below. Anything else (including ids from a
+ * newer server catalog this client hasn't shipped yet) renders the default
+ * template rather than a blank page. Retired ids are mapped to a live id by
+ * `resolveTemplateId` before this list is consulted.
+ */
+const KNOWN_TEMPLATE_IDS = [
+  "silicon-valley",
+  "faang",
+  "nova",
+  "executive-pro",
+  "creative-pro",
+  "vanguard",
+  "ats-clean",
+  "academic",
+  "corporate-navy",
+  "compact",
+  "european",
+  "two-column",
+];
+
 export const ResumePreview = memo(function ResumePreview({
   resume,
   accentColor,
@@ -3951,12 +4007,16 @@ export const ResumePreview = memo(function ResumePreview({
   layout?: "paginated" | "continuous";
   contentRevision?: number;
 }) {
-  const templateId = resume.templateId ?? "silicon-valley";
+  // Saved resumes may still carry a retired id — resolve to its successor so
+  // they keep rendering a real template instead of the generic fallback.
+  const templateId = resolveTemplateId(resume.templateId) ?? "silicon-valley";
   const color =
-    accentColor ?? resume.accentColor ?? getDefaultAccentColor(templateId);
+    accentColor ??
+    resolveAccentColor(resume.templateId, resume.accentColor) ??
+    getDefaultAccentColor(templateId);
   const font = resume.fontFamily ?? getDefaultFontFamily(templateId);
-  const fColor = fontColor ?? resume.fontColor ?? (templateId === "midnight" ? "#f9fafb" : "#111827");
-  const bColor = backgroundColor ?? resume.backgroundColor ?? (templateId === "midnight" ? "#0d1117" : "#ffffff");
+  const fColor = fontColor ?? resume.fontColor ?? "#111827";
+  const bColor = backgroundColor ?? resume.backgroundColor ?? "#ffffff";
   const fs = fontScale > 0 && Number.isFinite(fontScale) ? fontScale : 1;
 
   const sections = useMemo(() => {
@@ -3968,7 +4028,7 @@ export const ResumePreview = memo(function ResumePreview({
             ...s,
             content: {
               ...(content ?? {}),
-              style: TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips",
+              style: getDefaultSkillStyle(templateId),
             },
           };
         }
@@ -4010,7 +4070,7 @@ export const ResumePreview = memo(function ResumePreview({
       {templateId === "nova" && <NovaTemplate {...props} />}
       {templateId === "executive-pro" && <ExecutiveProTemplate {...props} />}
       {templateId === "creative-pro" && <CreativeProTemplate {...props} />}
-      {templateId === "midnight" && <MidnightTemplate {...props} />}
+      {templateId === "vanguard" && <VanguardTemplate {...props} />}
       {templateId === "ats-clean" && (
         <AtsCleanTemplate sections={sections} color={color} font={font} />
       )}
@@ -4019,20 +4079,9 @@ export const ResumePreview = memo(function ResumePreview({
       {templateId === "compact" && <CompactTemplate {...props} />}
       {templateId === "european" && <EuropeanTemplate {...props} />}
       {templateId === "two-column" && <TwoColumnTemplate {...props} />}
-      {![
-        "silicon-valley",
-        "faang",
-        "nova",
-        "executive-pro",
-        "creative-pro",
-        "midnight",
-        "ats-clean",
-        "academic",
-        "corporate-navy",
-        "compact",
-        "european",
-        "two-column",
-      ].includes(templateId) && <SiliconValleyTemplate {...props} />}
+      {!KNOWN_TEMPLATE_IDS.includes(templateId) && (
+        <SiliconValleyTemplate {...props} />
+      )}
     </>
   );
 

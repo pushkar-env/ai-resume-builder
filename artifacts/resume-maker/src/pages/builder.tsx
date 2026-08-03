@@ -111,6 +111,8 @@ import {
   getDefaultAccentColor,
   getDefaultFontFamily,
   getDefaultAtsScore,
+  resolveAccentColor,
+  resolveTemplateId,
   TEMPLATE_CONFIG,
 } from "@/lib/template-config";
 import { ProBadge } from "@/components/shared/ProBadge";
@@ -1475,16 +1477,17 @@ export default function BuilderPage() {
       });
       setLocalSections(nextSections);
       setAccentColor(
-        resume.accentColor ?? getDefaultAccentColor(resume.templateId),
+        resolveAccentColor(resume.templateId, resume.accentColor) ??
+          getDefaultAccentColor(resume.templateId),
       );
       setFontFamily(
         resume.fontFamily ?? getDefaultFontFamily(resume.templateId),
       );
-      const defaultBg = resume.templateId === "midnight" ? "#0d1117" : "#ffffff";
-      const defaultFg = resume.templateId === "midnight" ? "#f9fafb" : "#111827";
-      setFontColor(resume.fontColor ?? defaultFg);
-      setBackgroundColor(resume.backgroundColor ?? defaultBg);
-      setTemplateId(resume.templateId ?? "modern");
+      setFontColor(resume.fontColor ?? "#111827");
+      setBackgroundColor(resume.backgroundColor ?? "#ffffff");
+      // Retired ids resolve to their successor so the template picker still
+      // shows a selection for resumes saved against an older gallery.
+      setTemplateId(resolveTemplateId(resume.templateId) ?? "modern");
       setActiveSectionId((prevActiveId) => {
         if (nextSections.length === 0) return null;
         if (
@@ -1890,8 +1893,8 @@ export default function BuilderPage() {
     setFontFamily(newFont);
     const newAccent = getDefaultAccentColor(t);
     setAccentColor(newAccent);
-    const newBg = t === "midnight" ? "#0d1117" : "#ffffff";
-    const newFg = t === "midnight" ? "#f9fafb" : "#111827";
+    const newBg = "#ffffff";
+    const newFg = "#111827";
     setBackgroundColor(newBg);
     setFontColor(newFg);
     scheduleSave(

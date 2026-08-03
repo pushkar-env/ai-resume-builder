@@ -38,7 +38,7 @@ export interface ResumeTemplateDef {
 }
 
 export const RESUME_TEMPLATES: ResumeTemplateDef[] = [
-  // ─── Existing 12 (values preserved exactly) ───
+  // ─── The 12 shipped templates (values mirror `template-config.ts`) ───
   {
     id: "silicon-valley",
     accent: "#000000",
@@ -58,7 +58,7 @@ export const RESUME_TEMPLATES: ResumeTemplateDef[] = [
     skillStyle: "chips",
     sidebar: { widthPx: 220, alpha: 0.08 },
   },
-  { id: "midnight", accent: "#d4a853", bg: "#0d1117", font: "Manrope, sans-serif", skillStyle: "radial", dark: true },
+  { id: "vanguard", accent: "#7b2d3b", bg: "#ffffff", font: "Manrope, sans-serif", skillStyle: "grouped", atsScore: 94 },
   { id: "ats-clean", accent: "#1f2937", bg: "#f9fafb", font: "Merriweather, serif", skillStyle: "bullets" },
   { id: "academic", accent: "#1e40af", bg: "#eff6ff", font: "Merriweather, serif", skillStyle: "text" },
   { id: "corporate-navy", accent: "#1e3a5f", bg: "#f0f4f8", font: "Inter, sans-serif", skillStyle: "bars" },

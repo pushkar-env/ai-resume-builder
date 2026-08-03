@@ -42,7 +42,7 @@ import {
   isAiTimeoutError,
 } from "@/lib/ai-request";
 import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
-import { TEMPLATE_DEFAULT_SKILL_STYLES } from "@/lib/template-config";
+import { getDefaultSkillStyle } from "@/lib/template-config";
 import {
   CollapsibleEditableBlock,
   BlockPreview,
@@ -1027,9 +1027,7 @@ function SkillsEditor({
   const { toast } = useToast();
   const items: Array<Record<string, unknown>> =
     (content.items as Array<Record<string, unknown>>) ?? [];
-  const defaultStyle = templateId
-    ? (TEMPLATE_DEFAULT_SKILL_STYLES[templateId] ?? "chips")
-    : "chips";
+  const defaultStyle = getDefaultSkillStyle(templateId);
   const style = (content.style as string) ?? defaultStyle;
   const showLevel = style === "bars" || style === "radial";
   const showGroups = style === "grouped";

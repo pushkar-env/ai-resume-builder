@@ -29,7 +29,11 @@ import { ResumePreview } from "@/components/resume/ResumePreview";
 import { ResumeSkeleton } from "@/components/resume/ResumeSkeleton";
 import { ScaledResumeThumbnailShell } from "@/components/resume/ScaledResumeThumbnailShell";
 import { CreateResumeDialog } from "@/components/resume/CreateResumeDialog";
-import { getDefaultAccentColor, TEMPLATE_CONFIG } from "@/lib/template-config";
+import {
+  getDefaultAccentColor,
+  resolveAccentColor,
+  TEMPLATE_CONFIG,
+} from "@/lib/template-config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -233,17 +237,12 @@ export function ResumeThumbnail({
               layout="continuous"
               resume={resume}
               accentColor={
-                resume.accentColor ?? getDefaultAccentColor(resume.templateId)
+                resolveAccentColor(resume.templateId, resume.accentColor) ??
+                getDefaultAccentColor(resume.templateId)
               }
               fontScale={fontScale}
-              fontColor={
-                resume.fontColor ??
-                (resume.templateId === "midnight" ? "#f9fafb" : "#111827")
-              }
-              backgroundColor={
-                resume.backgroundColor ??
-                (resume.templateId === "midnight" ? "#0d1117" : "#ffffff")
-              }
+              fontColor={resume.fontColor ?? "#111827"}
+              backgroundColor={resume.backgroundColor ?? "#ffffff"}
               showWatermark={showWatermark}
             />
           </ScaledResumeThumbnailShell>
