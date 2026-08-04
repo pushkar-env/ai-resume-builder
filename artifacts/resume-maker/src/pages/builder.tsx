@@ -59,6 +59,7 @@ import {
   Eye,
   EyeOff,
   Link,
+  Type,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -72,13 +73,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -325,7 +319,11 @@ function initialPreviewZoomForViewport(): number {
     : 1;
 }
 
-const FONT_OPTIONS = [
+const FONT_OPTIONS: {
+  label: string;
+  value: string;
+  isPremium?: boolean;
+}[] = [
   { label: "Inter", value: "Inter, sans-serif" },
   { label: "Poppins", value: "Poppins, sans-serif" },
   { label: "Manrope", value: "Manrope, sans-serif" },
@@ -347,6 +345,230 @@ const FONT_OPTIONS = [
     isPremium: true,
   },
 ];
+
+/** Text-size presets. `glyph` is the px size of the "A" specimen on each pill. */
+const FONT_SCALE_OPTIONS = [
+  { value: 1, percent: "100%", name: "Normal", glyph: 10 },
+  { value: 1.1, percent: "110%", name: "Large", glyph: 12.5 },
+  { value: 1.2, percent: "120%", name: "Extra Large", glyph: 15 },
+  { value: 1.35, percent: "135%", name: "Huge", glyph: 17.5 },
+  { value: 1.5, percent: "150%", name: "Massive", glyph: 20 },
+];
+
+/* ─── TypographyPanel ─── */
+
+interface TypographyPanelProps {
+  fontFamily: string;
+  onFontFamilyChange: (font: string) => void;
+  fontScale: number;
+  onFontScaleChange: (scale: number) => void;
+  autoFit: boolean;
+  onAutoFitChange: (enabled: boolean) => void;
+  isPremiumUser: boolean;
+  accentColor: string;
+  fontColor: string;
+  backgroundColor: string;
+}
+
+/**
+ * Standalone "Typography" sidebar section — typeface, text size and auto-fit.
+ * Split out of the Design panel so template/color choices and text choices no
+ * longer compete for the same scroll.
+ */
+function TypographyPanel({
+  fontFamily,
+  onFontFamilyChange,
+  fontScale,
+  onFontScaleChange,
+  autoFit,
+  onAutoFitChange,
+  isPremiumUser,
+  accentColor,
+  fontColor,
+  backgroundColor,
+}: TypographyPanelProps) {
+  const activeFont = FONT_OPTIONS.find((f) => f.value === fontFamily);
+  const activeScale = FONT_SCALE_OPTIONS.find((s) => s.value === fontScale);
+
+  return (
+    <div className="space-y-6">
+      {/* Live specimen — mirrors the real sheet colors so the pairing of
+          typeface, size and palette is judged in context, not in the abstract. */}
+      <div className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
+        <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-muted/30 px-3 py-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+            Preview
+          </span>
+          <span className="truncate text-[10px] font-medium text-muted-foreground/80">
+            {activeFont?.label ?? "Custom"} · {activeScale?.percent ?? "Custom"}
+          </span>
+        </div>
+        <div
+          className="px-4 py-4 break-words"
+          style={{
+            background: backgroundColor,
+            fontFamily,
+            color: fontColor,
+          }}
+          aria-hidden
+        >
+          <p
+            className="font-bold leading-tight"
+            style={{ fontSize: `${15 * fontScale}px` }}
+          >
+            Alex Morgan
+          </p>
+          <p
+            className="mt-0.5 font-semibold leading-tight"
+            style={{ fontSize: `${9.5 * fontScale}px`, color: accentColor }}
+          >
+            Senior Product Designer
+          </p>
+          <div
+            className="my-2 h-px w-full"
+            style={{ background: accentColor, opacity: 0.35 }}
+          />
+          <p
+            className="leading-relaxed"
+            style={{ fontSize: `${8.5 * fontScale}px`, opacity: 0.85 }}
+          >
+            Led the redesign of a checkout flow used by 2M monthly customers,
+            lifting completion by 18% in a single quarter.
+          </p>
+        </div>
+      </div>
+
+      {/* Typeface */}
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Typeface
+          </h3>
+          <span className="truncate text-[10px] font-medium text-muted-foreground/70">
+            {FONT_OPTIONS.length} fonts
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          {FONT_OPTIONS.map((f) => {
+            const isSelected = fontFamily === f.value;
+            const isLocked = f.isPremium && !isPremiumUser;
+            return (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => onFontFamilyChange(f.value)}
+                aria-pressed={isSelected}
+                title={`${f.label}${isLocked ? " (Pro)" : ""}`}
+                className={`group relative flex flex-col items-start rounded-xl border-2 bg-card p-3 text-left shadow-sm transition-all duration-200 hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  isSelected
+                    ? "border-primary ring-1 ring-primary/20"
+                    : "border-border"
+                }`}
+              >
+                {isLocked && (
+                  <span className="absolute right-2 top-2 text-amber-500">
+                    <Star className="h-3 w-3 fill-current" />
+                  </span>
+                )}
+                <span
+                  className="block pr-5 text-2xl leading-none text-foreground"
+                  style={{ fontFamily: f.value }}
+                >
+                  Aa
+                </span>
+                <span className="mt-2 flex w-full items-center justify-between gap-1.5">
+                  <span className="truncate text-[11px] font-bold text-foreground">
+                    {f.label}
+                  </span>
+                  {isSelected && (
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="border-t border-border/60" />
+
+      {/* Text size */}
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Text Size
+          </h3>
+          <span className="truncate text-[10px] font-medium text-muted-foreground/70">
+            {activeScale?.name ?? "Custom"}
+          </span>
+        </div>
+
+        <div
+          role="group"
+          aria-label="Text size"
+          className="grid grid-cols-5 gap-1.5 rounded-xl border border-border/70 bg-muted/30 p-1.5"
+        >
+          {FONT_SCALE_OPTIONS.map((opt) => {
+            const isActive = fontScale === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onFontScaleChange(opt.value)}
+                aria-pressed={isActive}
+                aria-label={`${opt.name} (${opt.percent})`}
+                title={`${opt.name} — ${opt.percent}`}
+                className={`flex h-12 flex-col items-center justify-center gap-1 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  isActive
+                    ? "bg-background text-foreground shadow-sm ring-1 ring-primary/30"
+                    : "text-muted-foreground hover:bg-background/70 hover:text-foreground"
+                }`}
+              >
+                <span
+                  className="font-bold leading-none"
+                  style={{ fontSize: `${opt.glyph}px` }}
+                  aria-hidden
+                >
+                  A
+                </span>
+                <span className="text-[9px] font-semibold leading-none tabular-nums">
+                  {opt.percent}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Auto-Fit */}
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 p-3">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <Wand2 className="h-3.5 w-3.5 text-primary" />
+          </span>
+          <div className="min-w-0 space-y-0.5">
+            <Label
+              htmlFor="auto-fit"
+              className="text-xs font-semibold text-foreground cursor-pointer"
+            >
+              Auto-Fit Page
+            </Label>
+            <p className="text-[10px] leading-normal text-muted-foreground">
+              Adjust spacing to fit content on the page perfectly.
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="auto-fit"
+          checked={autoFit}
+          onCheckedChange={onAutoFitChange}
+          className="shrink-0"
+        />
+      </div>
+    </div>
+  );
+}
 
 type Section = NonNullable<ResumeDetail["sections"]>[number];
 type SectionContent = Record<string, unknown>;
@@ -953,7 +1175,9 @@ export default function BuilderPage() {
   const resumeId = parseInt(id ?? "0");
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
-  const [activeSidebarMode, setActiveSidebarMode] = useState<"content" | "design" | "ats">("content");
+  const [activeSidebarMode, setActiveSidebarMode] = useState<
+    "content" | "design" | "typography" | "ats"
+  >("content");
   const [localSections, setLocalSections] = useState<Section[]>([]);
   const personalSection = localSections.find((s) => s.type === "personal");
   const currentJobTitle = (personalSection?.content as any)?.jobTitle || "";
@@ -2177,22 +2401,44 @@ export default function BuilderPage() {
                 its own so the ATS tab below stays pinned and never clips on
                 short viewports such as tablets in landscape. */}
             <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center gap-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {/* Design Tab */}
-              <button
-                type="button"
-                onClick={() => setActiveSidebarMode("design")}
-                className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
-                  activeSidebarMode === "design"
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                }`}
-                title="Design & Template Styles"
-              >
-                <Palette className="h-4.5 w-4.5 mb-1 shrink-0" />
-                <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
-                  Design
-                </span>
-              </button>
+              {/* Design & Typography tabs — a paired group, spaced like the
+                  section tiles below so they read as one "styling" cluster. */}
+              <div className="w-full flex flex-col items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveSidebarMode("design")}
+                  aria-pressed={activeSidebarMode === "design"}
+                  className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
+                    activeSidebarMode === "design"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                  }`}
+                  title="Templates & colors"
+                >
+                  <Palette className="h-4.5 w-4.5 mb-1 shrink-0" />
+                  <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
+                    Design
+                  </span>
+                </button>
+
+                {/* Typography Tab */}
+                <button
+                  type="button"
+                  onClick={() => setActiveSidebarMode("typography")}
+                  aria-pressed={activeSidebarMode === "typography"}
+                  className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
+                    activeSidebarMode === "typography"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                  }`}
+                  title="Fonts, text size & auto-fit"
+                >
+                  <Type className="h-4.5 w-4.5 mb-1 shrink-0" />
+                  <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
+                    Type
+                  </span>
+                </button>
+              </div>
 
               <div className="w-8 h-px bg-border/60 shrink-0" />
 
@@ -2237,6 +2483,7 @@ export default function BuilderPage() {
                   }
                   setActiveSidebarMode("ats");
                 }}
+                aria-pressed={activeSidebarMode === "ats"}
                 className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 relative ${
                   activeSidebarMode === "ats"
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
@@ -2277,11 +2524,13 @@ export default function BuilderPage() {
                   <h2 className="text-sm font-bold text-foreground truncate">
                     {activeSidebarMode === "design"
                       ? "Design & Style"
-                      : activeSidebarMode === "ats"
-                        ? "ATS Auditor"
-                        : activeSection
-                          ? sectionDisplayLabel(activeSection)
-                          : "Select a section"}
+                      : activeSidebarMode === "typography"
+                        ? "Typography"
+                        : activeSidebarMode === "ats"
+                          ? "ATS Auditor"
+                          : activeSection
+                            ? sectionDisplayLabel(activeSection)
+                            : "Select a section"}
                   </h2>
                 </div>
                 
@@ -2358,7 +2607,7 @@ export default function BuilderPage() {
                     </Button>
                   </div>
 
-                  {/* System Quick Cards (Design & ATS Auditor) */}
+                  {/* System Quick Cards (Design, Typography & ATS Auditor) */}
                   <div className="grid grid-cols-2 gap-3">
                     {/* Design Card */}
                     <button
@@ -2366,6 +2615,7 @@ export default function BuilderPage() {
                         setActiveSidebarMode("design");
                         setMobileTabRaw("edit");
                       }}
+                      aria-pressed={activeSidebarMode === "design"}
                       className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
                         activeSidebarMode === "design" ? "border-primary/50 bg-primary/[0.02]" : ""
                       }`}
@@ -2375,11 +2625,32 @@ export default function BuilderPage() {
                       </div>
                       <span className="text-sm font-bold text-foreground">Design & Style</span>
                       <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
-                        Templates, fonts & colors
+                        Templates & colors
                       </span>
                     </button>
 
-                    {/* ATS Auditor Card */}
+                    {/* Typography Card */}
+                    <button
+                      onClick={() => {
+                        setActiveSidebarMode("typography");
+                        setMobileTabRaw("edit");
+                      }}
+                      aria-pressed={activeSidebarMode === "typography"}
+                      className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
+                        activeSidebarMode === "typography" ? "border-primary/50 bg-primary/[0.02]" : ""
+                      }`}
+                    >
+                      <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                        <Type className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-bold text-foreground">Typography</span>
+                      <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                        Fonts, size & auto-fit
+                      </span>
+                    </button>
+
+                    {/* ATS Auditor Card — spans the row so the pair above reads
+                        as the styling group and this as the separate tool. */}
                     <button
                       onClick={() => {
                         if (!isPremiumUser) {
@@ -2389,27 +2660,30 @@ export default function BuilderPage() {
                         setActiveSidebarMode("ats");
                         setMobileTabRaw("edit");
                       }}
-                      className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left relative ${
+                      aria-pressed={activeSidebarMode === "ats"}
+                      className={`col-span-2 flex items-center gap-3 p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
                         activeSidebarMode === "ats" ? "border-primary/50 bg-primary/[0.02]" : ""
                       }`}
                     >
-                      {!isPremiumUser && (
-                        <span className="absolute top-2 right-2 text-amber-500">
-                          <Star className="h-3.5 w-3.5 fill-current" />
-                        </span>
-                      )}
-                      <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                      <div className="h-9 w-9 shrink-0 rounded-lg bg-amber-500/10 flex items-center justify-center">
                         <Zap className="h-5 w-5 text-amber-500 fill-amber-500" />
                       </div>
-                      <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                        ATS Auditor
-                        {isAtsOutdated && isPremiumUser && (
-                          <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                        )}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
-                        Score & keyword matching
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                          ATS Auditor
+                          {isAtsOutdated && isPremiumUser && (
+                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                          )}
+                        </span>
+                        <span className="block text-[10px] text-muted-foreground mt-0.5 leading-normal">
+                          Score & keyword matching
+                        </span>
+                      </div>
+                      {!isPremiumUser ? (
+                        <Star className="h-4 w-4 shrink-0 text-amber-500 fill-current" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60" />
+                      )}
                     </button>
                   </div>
 
@@ -2509,82 +2783,6 @@ export default function BuilderPage() {
 
                       <div className="border-t border-border/60 my-4" />
 
-                      {/* Typography Section */}
-                      <div className="space-y-4">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                          Typography
-                        </h3>
-                        
-                        <div className="grid grid-cols-2 gap-3">
-                          {/* Font Family */}
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Font Family</Label>
-                            <Select value={fontFamily} onValueChange={handleFontChange}>
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {FONT_OPTIONS.map((f) => (
-                                  <SelectItem key={f.value} value={f.value} className="text-xs">
-                                    <div className="flex items-center justify-between w-full">
-                                      <span>{f.label}</span>
-                                      {f.isPremium && !isPremiumUser && (
-                                        <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500 ml-2" />
-                                      )}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Font Size */}
-                          <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">Font Size</Label>
-                            <Select
-                              value={String(fontScale)}
-                              onValueChange={(v) => {
-                                setFontScale(Number(v));
-                                bumpPreviewRevision();
-                              }}
-                            >
-                              <SelectTrigger className="h-9 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="1" className="text-xs">Normal (100%)</SelectItem>
-                                <SelectItem value="1.1" className="text-xs">Large (110%)</SelectItem>
-                                <SelectItem value="1.2" className="text-xs">Extra Large (120%)</SelectItem>
-                                <SelectItem value="1.35" className="text-xs">Huge (135%)</SelectItem>
-                                <SelectItem value="1.5" className="text-xs">Massive (150%)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Auto Fit Switch */}
-                        <div className="flex items-center justify-between bg-muted/30 border border-border/50 rounded-xl p-3">
-                          <div className="space-y-0.5">
-                            <Label htmlFor="auto-fit" className="text-xs font-semibold text-foreground cursor-pointer">
-                              Auto-Fit Page
-                            </Label>
-                            <p className="text-[10px] text-muted-foreground leading-normal">
-                              Adjust spacing to fit content on the page perfectly.
-                            </p>
-                          </div>
-                          <Switch
-                            id="auto-fit"
-                            checked={autoFit}
-                            onCheckedChange={(v) => {
-                              setAutoFit(v);
-                              bumpPreviewRevision();
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="border-t border-border/60 my-4" />
-
                       {/* Color Customization */}
                       <div className="space-y-4">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -2620,6 +2818,57 @@ export default function BuilderPage() {
                           />
                         </div>
                       </div>
+
+                      {/* Signpost to the section fonts moved out to, so the
+                          split doesn't leave anyone hunting for them. */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSidebarMode("typography")}
+                        className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                          <Type className="h-4 w-4 text-primary" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-bold text-foreground">
+                            Typography
+                          </span>
+                          <span className="mt-0.5 block text-[10px] leading-normal text-muted-foreground">
+                            Fonts, text size & auto-fit
+                          </span>
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
+                      </button>
+                      </motion.div>
+                    )}
+
+                    {/* TYPOGRAPHY MODE */}
+                    {activeSidebarMode === "typography" && (
+                      <motion.div
+                        key="typography"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15, ease: "easeInOut" }}
+                      >
+                        <TypographyPanel
+                          fontFamily={fontFamily}
+                          onFontFamilyChange={handleFontChange}
+                          fontScale={fontScale}
+                          onFontScaleChange={(scale) => {
+                            setFontScale(scale);
+                            bumpPreviewRevision();
+                          }}
+                          autoFit={autoFit}
+                          onAutoFitChange={(enabled) => {
+                            setAutoFit(enabled);
+                            bumpPreviewRevision();
+                          }}
+                          isPremiumUser={isPremiumUser}
+                          accentColor={accentColor}
+                          fontColor={fontColor}
+                          backgroundColor={backgroundColor}
+                        />
                       </motion.div>
                     )}
 
