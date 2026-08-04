@@ -2680,6 +2680,20 @@ export function AcademicTemplate({ sections, color, font }: TP) {
     </div>
   );
 
+  /* Bullet marker. A sized dot, not a "•" text glyph: Merriweather draws U+2022
+     at a very small optical size, so at 11px in muted gray it reads as a speck
+     and effectively vanishes once auto-fit compresses the page or the PDF is
+     rasterised. An element is crisp at any scale and prints exactly (the export
+     HTML sets print-color-adjust). `mt-[6px]` optically centers it on the first
+     line of an 11px/1.55 bullet — the same marker the other templates use. */
+  const marker = (
+    <span
+      aria-hidden
+      className="mt-[6px] h-1 w-1 rounded-full shrink-0"
+      style={{ background: color }}
+    />
+  );
+
   const blocks: Partial<Record<string, React.ReactNode>> = {};
   if (str(summary.text)) {
     blocks.summary = (
@@ -2732,8 +2746,8 @@ export function AcademicTemplate({ sections, color, font }: TP) {
         <div className="space-y-4">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
-              <div className="flex justify-between items-baseline mb-0.5">
-                <div>
+              <div className="flex justify-between items-baseline gap-3 mb-0.5">
+                <div className="min-w-0">
                   <p className="text-[12px] font-bold text-gray-900">
                     {str(e.title)}
                   </p>
@@ -2742,7 +2756,7 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                     {e.location ? `, ${str(e.location)}` : ""}
                   </p>
                 </div>
-                <p className="text-[10px] text-gray-500 shrink-0 ml-3">
+                <p className="text-[10px] text-gray-500 shrink-0">
                   {str(e.startDate)}
                   {e.endDate
                     ? ` – ${str(e.endDate)}`
@@ -2751,22 +2765,25 @@ export function AcademicTemplate({ sections, color, font }: TP) {
                       : ""}
                 </p>
               </div>
-              {items<unknown>(e as SC, "bullets")
-                .filter((b) => {
-                  const p = bulletParts(b);
-                  return p.text || p.label || p.link;
-                })
-                .map((b, j) => (
-                  <div
-                    key={j}
-                    className="flex gap-1.5 text-[11px] text-gray-700 ml-3 mt-1 first:mt-0.5"
-                  >
-                    <span className="shrink-0">•</span>
-                    <div className="flex-1 min-w-0">
-                      <BulletContent b={b} color={color} />
-                    </div>
+              {(() => {
+                const bl = items<unknown>(e as SC, "bullets").filter((b) => {
+                  const bp = bulletParts(b);
+                  return bp.text || bp.label || bp.link;
+                });
+                if (bl.length === 0) return null;
+                return (
+                  <div className="ml-3 mt-1.5 space-y-1">
+                    {bl.map((b, j) => (
+                      <div key={j} className="flex gap-2 text-[11px]">
+                        {marker}
+                        <div className="flex-1 min-w-0 text-gray-700 leading-[1.55]">
+                          <BulletContent b={b} color={color} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -2794,11 +2811,11 @@ export function AcademicTemplate({ sections, color, font }: TP) {
               <ProjectDetail
                 pr={pr}
                 color={color}
-                marker={<span className="shrink-0">•</span>}
-                rowClassName="flex gap-1.5 ml-3"
-                textClassName="text-[11px] text-gray-700"
-                containerClassName="mt-1 space-y-1"
-                descClassName="resume-text text-[11px] text-gray-600 mt-0.5"
+                marker={marker}
+                rowClassName="flex gap-2 text-[11px]"
+                textClassName="text-gray-700 leading-[1.55]"
+                containerClassName="ml-3 mt-1.5 space-y-1"
+                descClassName="resume-text text-[11px] text-gray-600 leading-[1.55] mt-1"
               />
             </div>
           ))}
@@ -3128,6 +3145,20 @@ export function CompactTemplate({ sections, color, font }: TP) {
     </p>
   );
 
+  /* Bullet marker. A sized dot, not a "·" text glyph: Merriweather draws U+00B7
+     tiny, so at 11px in muted gray it reads as a speck and effectively vanishes
+     once auto-fit compresses the page or the PDF is rasterised. An element is
+     crisp at any scale and prints exactly (the export HTML sets
+     print-color-adjust). Kept to 3px — this template is the dense one, so the
+     marker stays subordinate to the copy. */
+  const marker = (
+    <span
+      aria-hidden
+      className="mt-[6px] h-[3px] w-[3px] rounded-full shrink-0"
+      style={{ background: color }}
+    />
+  );
+
   const blocks: Partial<Record<string, React.ReactNode>> = {};
 
   if (str(summary.text)) {
@@ -3184,8 +3215,8 @@ export function CompactTemplate({ sections, color, font }: TP) {
         <div className="space-y-3.5">
           {exp.map((e, i) => (
             <div key={i} className="resume-export-block">
-              <div className="flex justify-between items-baseline">
-                <div className="flex items-baseline gap-1.5 flex-wrap">
+              <div className="flex justify-between items-baseline gap-2">
+                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
                   <p className="text-[12px] font-bold text-gray-900">
                     {str(e.title)}
                   </p>
@@ -3194,7 +3225,7 @@ export function CompactTemplate({ sections, color, font }: TP) {
                     {e.location ? `, ${str(e.location)}` : ""}
                   </p>
                 </div>
-                <p className="text-[10px] text-gray-400 shrink-0 ml-2">
+                <p className="text-[10px] text-gray-400 shrink-0">
                   {str(e.startDate)}
                   {e.endDate
                     ? ` – ${str(e.endDate)}`
@@ -3203,22 +3234,25 @@ export function CompactTemplate({ sections, color, font }: TP) {
                       : ""}
                 </p>
               </div>
-              {items<unknown>(e as SC, "bullets")
-                .filter((b) => {
-                  const p = bulletParts(b);
-                  return p.text || p.label || p.link;
-                })
-                .map((b, j) => (
-                  <div
-                    key={j}
-                    className="flex gap-1.5 text-[11px] text-gray-600 leading-[1.5] ml-1.5 mt-1"
-                  >
-                    <span className="shrink-0 font-bold">·</span>
-                    <div className="flex-1 min-w-0">
-                      <BulletContent b={b} color={color} />
-                    </div>
+              {(() => {
+                const bl = items<unknown>(e as SC, "bullets").filter((b) => {
+                  const bp = bulletParts(b);
+                  return bp.text || bp.label || bp.link;
+                });
+                if (bl.length === 0) return null;
+                return (
+                  <div className="ml-1.5 mt-1 space-y-0.5">
+                    {bl.map((b, j) => (
+                      <div key={j} className="flex gap-1.5 text-[11px]">
+                        {marker}
+                        <div className="flex-1 min-w-0 text-gray-600 leading-[1.5]">
+                          <BulletContent b={b} color={color} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -3247,11 +3281,11 @@ export function CompactTemplate({ sections, color, font }: TP) {
               <ProjectDetail
                 pr={pr}
                 color={color}
-                marker={<span className="shrink-0 font-bold">·</span>}
-                rowClassName="flex gap-1.5 ml-1.5"
-                textClassName="text-[11px] text-gray-600 leading-[1.5]"
-                containerClassName="mt-0.5 space-y-0.5"
-                descClassName="resume-text text-[11px] text-gray-500 mt-0.5"
+                marker={marker}
+                rowClassName="flex gap-1.5 text-[11px]"
+                textClassName="text-gray-600 leading-[1.5]"
+                containerClassName="ml-1.5 mt-1 space-y-0.5"
+                descClassName="resume-text text-[11px] text-gray-500 leading-[1.5] mt-0.5"
               />
             </div>
           ))}
