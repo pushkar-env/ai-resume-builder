@@ -12,7 +12,11 @@ import {
   getGetProfileQueryKey,
 } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
-import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+import {
+  plainTextToRichHtml,
+  richHtmlToMultilineText,
+  richHtmlToPlainText,
+} from "@/lib/ai-rich-text";
 import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
 import { ExtractFromResumeDialog } from "@/components/resume/ExtractFromResumeDialog";
 import {
@@ -201,7 +205,8 @@ export default function ProfilePage() {
       const initialSocials = (profile.socials as { label: string; url: string }[]) || [];
       const initialJobTitle = profile.jobTitle || "";
       const initialYears = profile.yearsOfExperience ?? "";
-      const initialAbout = profile.aboutMe || "";
+      // Heals profiles saved before extraction stripped the summary's HTML.
+      const initialAbout = richHtmlToMultilineText(profile.aboutMe || "");
       const initialExperience = ((profile.experience as any[]) || []).map((exp, idx) => ({
         id: exp.id || Math.random().toString(36).substr(2, 9),
         company: exp.company || "",
@@ -436,7 +441,7 @@ export default function ProfilePage() {
           setYearsOfExperience(
             typeof data.yearsOfExperience === "number" ? data.yearsOfExperience : "",
           );
-          setAboutMe(data.aboutMe || "");
+          setAboutMe(richHtmlToMultilineText(data.aboutMe || ""));
           setExperience(
             ((data.experience as any[]) || []).map((exp) => ({
               id: exp.id || Math.random().toString(36).substr(2, 9),

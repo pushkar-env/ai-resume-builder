@@ -34,6 +34,7 @@ import { sendAiRouteError } from "../lib/ai-route-error";
 import { optimizeResumeWithAi, rephraseJobTitle } from "../lib/optimize-resume-ai";
 import { scoreResumeAts, computeAtsResult, extractJobKeywords } from "../lib/ats-score";
 import { renderResumePdf } from "../lib/pdf-renderer";
+import { plainTextToRichHtml } from "../lib/rich-text";
 import {
   DEFAULT_BACKGROUND_COLOR,
   DEFAULT_FONT_COLOR,
@@ -408,7 +409,8 @@ router.post(
           if (s.type === "summary") {
             return {
               ...s,
-              content: { text: profile.aboutMe || "" },
+              // `aboutMe` is plain text; the summary section is rendered as HTML.
+              content: { text: plainTextToRichHtml(profile.aboutMe || "") },
             };
           }
           if (s.type === "experience") {

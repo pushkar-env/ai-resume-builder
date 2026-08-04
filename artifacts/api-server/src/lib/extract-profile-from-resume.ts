@@ -7,6 +7,8 @@
  * the flatter profile model that the profile form / userProfilesTable expect.
  */
 
+import { decodeHtmlEntities, richHtmlToMultilineText } from "./rich-text";
+
 type SectionRow = {
   type: string;
   content: unknown;
@@ -60,16 +62,9 @@ export interface ExtractedProfile {
 
 const str = (v: unknown): string => (v == null ? "" : String(v)).trim();
 
-/** Strip HTML tags + decode the handful of entities our editors emit. */
+/** Strip HTML tags + decode entities, collapsing the result onto a single line. */
 function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+  return decodeHtmlEntities(html.replace(/<[^>]+>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -169,7 +164,9 @@ export function extractProfileFromResumeSections(
       startDate: str(item.startDate),
       endDate,
       location: str(item.location),
-      description: bullets.join("\n"),
+      // `bullets` stay rich (the profile edits them in a rich-text editor);
+      // `description` is the plain-text mirror the AI prompts + legacy UI read.
+      description: bullets.map(stripHtml).join("\n"),
       bullets,
       currentlyWorking: /^present$/i.test(endDate) || item.currentlyWorking === true,
     };
@@ -193,7 +190,7 @@ export function extractProfileFromResumeSections(
     const bullets = itemBullets(item);
     return {
       name: str(item.name),
-      description: bullets.join("\n"),
+      description: bullets.map(stripHtml).join("\n"),
       technologiesUsed: str(item.technologiesUsed),
       url: str(item.url) || str(item.github),
       github: str(item.github),
@@ -231,7 +228,10 @@ export function extractProfileFromResumeSections(
     jobTitle: str(personal.jobTitle) || str(personal.title),
     location: str(personal.location),
     socials,
-    aboutMe: str(summary.text),
+    // The summary section is edited with a rich-text editor, so its text is HTML
+    // (`<p>…</p>`, `<ul><li>…`). The profile form shows `aboutMe` in a plain
+    // <textarea>, so hand it text with the block breaks kept as newlines.
+    aboutMe: richHtmlToMultilineText(str(summary.text)),
     yearsOfExperience: null,
     experience,
     skills,

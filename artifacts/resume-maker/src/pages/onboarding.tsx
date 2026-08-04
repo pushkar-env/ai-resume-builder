@@ -11,7 +11,11 @@ import {
   getGetProfileQueryKey,
 } from "@workspace/api-client-react";
 import { createAiQuickRequestOptions } from "@/lib/ai-request";
-import { plainTextToRichHtml, richHtmlToPlainText } from "@/lib/ai-rich-text";
+import {
+  plainTextToRichHtml,
+  richHtmlToMultilineText,
+  richHtmlToPlainText,
+} from "@/lib/ai-rich-text";
 import { resolveProfileBullets, syncBulletsToDescription } from "@/lib/profile-bullets";
 import {
   CollapsibleEditableBlock,
@@ -197,7 +201,7 @@ export default function OnboardingPage() {
 
       setJobTitle(profile.jobTitle || "");
       setYearsOfExperience(profile.yearsOfExperience ?? "");
-      setAboutMe(profile.aboutMe || "");
+      setAboutMe(richHtmlToMultilineText(profile.aboutMe || ""));
 
       setExperience(
         ((profile.experience as any[]) || []).map((exp, idx) => ({
