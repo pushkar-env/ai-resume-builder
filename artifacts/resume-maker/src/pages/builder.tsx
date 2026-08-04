@@ -59,7 +59,7 @@ import {
   Eye,
   EyeOff,
   Link,
-  Type,
+  Brush,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -266,18 +266,28 @@ const ThrottledColorPicker = ({
     };
   }, []);
 
+  /* Swatch + hex laid out as a flex row rather than absolutely centred: at a
+     320px viewport the centred hex used to overlap the swatch dot. The Pro
+     marker lives on the section heading instead of on each swatch, which keeps
+     the row readable at that width and stops three identical stars stacking up. */
+  const face = (
+    <>
+      <span
+        className="pointer-events-none h-3 w-3 shrink-0 rounded-full border border-border"
+        style={{ background: localValue }}
+      />
+      <span className="pointer-events-none min-w-0 flex-1 truncate text-[10px] font-semibold text-foreground/80">
+        {localValue.toUpperCase()}
+      </span>
+    </>
+  );
+
   return (
     <div className="space-y-1.5">
       <Label className="text-xs text-muted-foreground">{label}</Label>
       {isPremiumUser ? (
-        <div className="relative flex h-9 w-full cursor-pointer touch-manipulation items-stretch rounded-md border border-input bg-background overflow-hidden hover:bg-muted/50 transition-colors">
-          <span className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-            {localValue.toUpperCase()}
-          </span>
-          <span
-            className="pointer-events-none absolute left-2 top-1/2 z-0 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-            style={{ background: localValue }}
-          />
+        <div className="relative flex h-9 w-full cursor-pointer touch-manipulation items-center gap-1.5 rounded-md border border-input bg-background px-2 overflow-hidden hover:bg-muted/50 transition-colors">
+          {face}
           <input
             id={id}
             type="color"
@@ -292,20 +302,11 @@ const ThrottledColorPicker = ({
       ) : (
         <button
           type="button"
-          className="relative flex h-9 w-full touch-manipulation items-stretch rounded-md border border-input bg-background text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
+          className="relative flex h-9 w-full touch-manipulation items-center gap-1.5 rounded-md border border-input bg-background px-2 text-left overflow-hidden hover:bg-muted/50 active:bg-muted/70 transition-colors"
           onClick={onPaywall}
           aria-label={`${label} color is a Pro feature. Tap to learn more.`}
         >
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-foreground/80">
-            {localValue.toUpperCase()}
-          </span>
-          <span
-            className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border"
-            style={{ background: localValue }}
-          />
-          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" aria-hidden>
-            <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-          </span>
+          {face}
         </button>
       )}
     </div>
@@ -355,38 +356,52 @@ const FONT_SCALE_OPTIONS = [
   { value: 1.5, percent: "150%", name: "Massive", glyph: 20 },
 ];
 
-/* ─── TypographyPanel ─── */
+/* ─── StylePanel ─── */
 
-interface TypographyPanelProps {
+interface StylePanelProps {
+  resumeId: number;
+  isPremiumUser: boolean;
   fontFamily: string;
   onFontFamilyChange: (font: string) => void;
   fontScale: number;
   onFontScaleChange: (scale: number) => void;
   autoFit: boolean;
   onAutoFitChange: (enabled: boolean) => void;
-  isPremiumUser: boolean;
   accentColor: string;
+  onAccentColorChange: (color: string) => void;
+  onAccentColorPaywall: () => void;
   fontColor: string;
+  onFontColorChange: (color: string) => void;
+  onFontColorPaywall: () => void;
   backgroundColor: string;
+  onBackgroundColorChange: (color: string) => void;
+  onBackgroundColorPaywall: () => void;
 }
 
 /**
- * Standalone "Typography" sidebar section — typeface, text size and auto-fit.
- * Split out of the Design panel so template/color choices and text choices no
- * longer compete for the same scroll.
+ * Standalone "Style" sidebar section — typeface, text size, palette and
+ * auto-fit. Split out of the Design panel so picking a template and tuning how
+ * it reads no longer compete for the same scroll.
  */
-function TypographyPanel({
+function StylePanel({
+  resumeId,
+  isPremiumUser,
   fontFamily,
   onFontFamilyChange,
   fontScale,
   onFontScaleChange,
   autoFit,
   onAutoFitChange,
-  isPremiumUser,
   accentColor,
+  onAccentColorChange,
+  onAccentColorPaywall,
   fontColor,
+  onFontColorChange,
+  onFontColorPaywall,
   backgroundColor,
-}: TypographyPanelProps) {
+  onBackgroundColorChange,
+  onBackgroundColorPaywall,
+}: StylePanelProps) {
   const activeFont = FONT_OPTIONS.find((f) => f.value === fontFamily);
   const activeScale = FONT_SCALE_OPTIONS.find((s) => s.value === fontScale);
 
@@ -538,6 +553,52 @@ function TypographyPanel({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="border-t border-border/60" />
+
+      {/* Color */}
+      <div className="space-y-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Color
+          </h3>
+          {!isPremiumUser && (
+            <span className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-muted-foreground/70">
+              <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
+              Pro
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+          <ThrottledColorPicker
+            id={`resume-accent-color-${resumeId}`}
+            label="Accent"
+            value={accentColor}
+            onChange={onAccentColorChange}
+            isPremiumUser={isPremiumUser}
+            onPaywall={onAccentColorPaywall}
+          />
+
+          <ThrottledColorPicker
+            id={`resume-font-color-${resumeId}`}
+            label="Text"
+            value={fontColor}
+            onChange={onFontColorChange}
+            isPremiumUser={isPremiumUser}
+            onPaywall={onFontColorPaywall}
+          />
+
+          <ThrottledColorPicker
+            id={`resume-bg-color-${resumeId}`}
+            label="Background"
+            value={backgroundColor}
+            onChange={onBackgroundColorChange}
+            isPremiumUser={isPremiumUser}
+            onPaywall={onBackgroundColorPaywall}
+          />
         </div>
       </div>
 
@@ -1176,7 +1237,7 @@ export default function BuilderPage() {
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [activeSidebarMode, setActiveSidebarMode] = useState<
-    "content" | "design" | "typography" | "ats"
+    "content" | "design" | "style" | "ats"
   >("content");
   const [localSections, setLocalSections] = useState<Section[]>([]);
   const personalSection = localSections.find((s) => s.type === "personal");
@@ -2401,8 +2462,8 @@ export default function BuilderPage() {
                 its own so the ATS tab below stays pinned and never clips on
                 short viewports such as tablets in landscape. */}
             <div className="flex-1 min-h-0 w-full overflow-y-auto overscroll-contain flex flex-col items-center gap-4 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {/* Design & Typography tabs — a paired group, spaced like the
-                  section tiles below so they read as one "styling" cluster. */}
+              {/* Design & Style tabs — a paired group, spaced like the section
+                  tiles below so they read as one "appearance" cluster. */}
               <div className="w-full flex flex-col items-center gap-2.5 shrink-0">
                 <button
                   type="button"
@@ -2413,7 +2474,7 @@ export default function BuilderPage() {
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                   }`}
-                  title="Templates & colors"
+                  title="Choose a template"
                 >
                   <Palette className="h-4.5 w-4.5 mb-1 shrink-0" />
                   <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
@@ -2421,21 +2482,21 @@ export default function BuilderPage() {
                   </span>
                 </button>
 
-                {/* Typography Tab */}
+                {/* Style Tab */}
                 <button
                   type="button"
-                  onClick={() => setActiveSidebarMode("typography")}
-                  aria-pressed={activeSidebarMode === "typography"}
+                  onClick={() => setActiveSidebarMode("style")}
+                  aria-pressed={activeSidebarMode === "style"}
                   className={`w-14 h-14 shrink-0 rounded-xl flex flex-col items-center justify-center transition-all duration-200 ${
-                    activeSidebarMode === "typography"
+                    activeSidebarMode === "style"
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-105"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                   }`}
-                  title="Fonts, text size & auto-fit"
+                  title="Fonts, text size & colors"
                 >
-                  <Type className="h-4.5 w-4.5 mb-1 shrink-0" />
+                  <Brush className="h-4.5 w-4.5 mb-1 shrink-0" />
                   <span className="text-[9px] font-semibold tracking-tight leading-none text-center">
-                    Type
+                    Style
                   </span>
                 </button>
               </div>
@@ -2523,9 +2584,9 @@ export default function BuilderPage() {
                   </Button>
                   <h2 className="text-sm font-bold text-foreground truncate">
                     {activeSidebarMode === "design"
-                      ? "Design & Style"
-                      : activeSidebarMode === "typography"
-                        ? "Typography"
+                      ? "Design"
+                      : activeSidebarMode === "style"
+                        ? "Style"
                         : activeSidebarMode === "ats"
                           ? "ATS Auditor"
                           : activeSection
@@ -2607,7 +2668,7 @@ export default function BuilderPage() {
                     </Button>
                   </div>
 
-                  {/* System Quick Cards (Design, Typography & ATS Auditor) */}
+                  {/* System Quick Cards (Design, Style & ATS Auditor) */}
                   <div className="grid grid-cols-2 gap-3">
                     {/* Design Card */}
                     <button
@@ -2623,29 +2684,29 @@ export default function BuilderPage() {
                       <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
                         <Palette className="h-5 w-5 text-primary" />
                       </div>
-                      <span className="text-sm font-bold text-foreground">Design & Style</span>
+                      <span className="text-sm font-bold text-foreground">Design</span>
                       <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
-                        Templates & colors
+                        Templates & layouts
                       </span>
                     </button>
 
-                    {/* Typography Card */}
+                    {/* Style Card */}
                     <button
                       onClick={() => {
-                        setActiveSidebarMode("typography");
+                        setActiveSidebarMode("style");
                         setMobileTabRaw("edit");
                       }}
-                      aria-pressed={activeSidebarMode === "typography"}
+                      aria-pressed={activeSidebarMode === "style"}
                       className={`flex flex-col items-start p-4 rounded-xl border border-border bg-card shadow-sm hover:bg-muted/30 transition-all text-left ${
-                        activeSidebarMode === "typography" ? "border-primary/50 bg-primary/[0.02]" : ""
+                        activeSidebarMode === "style" ? "border-primary/50 bg-primary/[0.02]" : ""
                       }`}
                     >
                       <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                        <Type className="h-5 w-5 text-primary" />
+                        <Brush className="h-5 w-5 text-primary" />
                       </div>
-                      <span className="text-sm font-bold text-foreground">Typography</span>
+                      <span className="text-sm font-bold text-foreground">Style</span>
                       <span className="text-[10px] text-muted-foreground mt-1 leading-normal">
-                        Fonts, size & auto-fit
+                        Fonts, size & colors
                       </span>
                     </button>
 
@@ -2780,78 +2841,21 @@ export default function BuilderPage() {
                           })}
                         </div>
                       </div>
-
-                      <div className="border-t border-border/60 my-4" />
-
-                      {/* Color Customization */}
-                      <div className="space-y-4">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                          Color Theme
-                        </h3>
-
-                        <div className="grid grid-cols-3 gap-3">
-                          <ThrottledColorPicker
-                            id={`resume-accent-color-${resumeId}`}
-                            label="Accent"
-                            value={accentColor}
-                            onChange={handleAccentChange}
-                            isPremiumUser={isPremiumUser}
-                            onPaywall={showAccentCustomPaywall}
-                          />
-
-                          <ThrottledColorPicker
-                            id={`resume-font-color-${resumeId}`}
-                            label="Text"
-                            value={fontColor}
-                            onChange={handleFontColorChange}
-                            isPremiumUser={isPremiumUser}
-                            onPaywall={showFontColorPaywall}
-                          />
-
-                          <ThrottledColorPicker
-                            id={`resume-bg-color-${resumeId}`}
-                            label="Background"
-                            value={backgroundColor}
-                            onChange={handleBackgroundColorChange}
-                            isPremiumUser={isPremiumUser}
-                            onPaywall={showBackgroundColorPaywall}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Signpost to the section fonts moved out to, so the
-                          split doesn't leave anyone hunting for them. */}
-                      <button
-                        type="button"
-                        onClick={() => setActiveSidebarMode("typography")}
-                        className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <Type className="h-4 w-4 text-primary" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-xs font-bold text-foreground">
-                            Typography
-                          </span>
-                          <span className="mt-0.5 block text-[10px] leading-normal text-muted-foreground">
-                            Fonts, text size & auto-fit
-                          </span>
-                        </span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
-                      </button>
                       </motion.div>
                     )}
 
-                    {/* TYPOGRAPHY MODE */}
-                    {activeSidebarMode === "typography" && (
+                    {/* STYLE MODE */}
+                    {activeSidebarMode === "style" && (
                       <motion.div
-                        key="typography"
+                        key="style"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.15, ease: "easeInOut" }}
                       >
-                        <TypographyPanel
+                        <StylePanel
+                          resumeId={resumeId}
+                          isPremiumUser={isPremiumUser}
                           fontFamily={fontFamily}
                           onFontFamilyChange={handleFontChange}
                           fontScale={fontScale}
@@ -2864,10 +2868,15 @@ export default function BuilderPage() {
                             setAutoFit(enabled);
                             bumpPreviewRevision();
                           }}
-                          isPremiumUser={isPremiumUser}
                           accentColor={accentColor}
+                          onAccentColorChange={handleAccentChange}
+                          onAccentColorPaywall={showAccentCustomPaywall}
                           fontColor={fontColor}
+                          onFontColorChange={handleFontColorChange}
+                          onFontColorPaywall={showFontColorPaywall}
                           backgroundColor={backgroundColor}
+                          onBackgroundColorChange={handleBackgroundColorChange}
+                          onBackgroundColorPaywall={showBackgroundColorPaywall}
                         />
                       </motion.div>
                     )}
