@@ -647,6 +647,14 @@ function ExperienceEditor({
               "bullets",
               rawBullets.filter((_, idx) => idx !== bi),
             );
+          const moveBullet = (bi: number, direction: -1 | 1) => {
+            const target = bi + direction;
+            if (target < 0 || target >= rawBullets.length) return;
+            const next = [...rawBullets];
+            const [moved] = next.splice(bi, 1);
+            next.splice(target, 0, moved);
+            updateItem(i, "bullets", next);
+          };
           return (
             <CollapsibleEditableBlock
               key={item.id}
@@ -718,66 +726,106 @@ function ExperienceEditor({
                 </Field>
               </div>
 
-              {/* Bullets — text + optional work-sample label & link */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  Bullet Points
-                </Label>
-                {rawBullets.map((raw, bi) => {
-                  const b = toBulletObj(raw);
-                  const isImproving =
-                    improveBullet.isPending &&
-                    pendingBullet?.itemIndex === i &&
-                    pendingBullet?.bulletIndex === bi;
-                  return (
-                    <div
-                      key={bi}
-                      className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-2"
-                    >
-                      <RichTextEditor
-                        value={b.text}
-                        onChange={(val) => updateBulletAt(bi, { text: val })}
-                        placeholder="• Led ..."
-                        actionCount={2}
-                        rightElement={
-                          <>
+              {/* Bullets — text + optional work-sample label & link; reorder via ↑↓ like projects */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center gap-3">
+                  <Label className="text-xs text-muted-foreground font-semibold">
+                    Bullet Points
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground/80 shrink-0">
+                    {rawBullets.length} bullet points
+                  </span>
+                </div>
+                {rawBullets.length > 0 && (
+                  <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin">
+                    {rawBullets.map((raw, bi) => {
+                      const b = toBulletObj(raw);
+                      const isImproving =
+                        improveBullet.isPending &&
+                        pendingBullet?.itemIndex === i &&
+                        pendingBullet?.bulletIndex === bi;
+                      return (
+                        <div
+                          key={bi}
+                          className="flex flex-col group bg-muted/15 border border-border/80 rounded-xl p-2.5 transition-all hover:border-border/80 focus-within:border-indigo-500/40 focus-within:bg-background/50"
+                        >
+                          <RichTextEditor
+                            value={b.text}
+                            onChange={(val) => updateBulletAt(bi, { text: val })}
+                            placeholder="• Led ..."
+                            className="rich-text-compact"
+                          />
+
+                          <div className="flex items-center justify-between border-t border-border/30 pt-1.5 mt-1.5 opacity-100 md:opacity-0 group-hover:opacity-100 group-focus-within:md:opacity-100 transition-all duration-200 shrink-0">
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => moveBullet(bi, -1)}
+                                disabled={bi === 0}
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 rounded-lg"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => moveBullet(bi, 1)}
+                                disabled={bi === rawBullets.length - 1}
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 rounded-lg"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              </Button>
+
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setPendingBullet({
+                                    itemIndex: i,
+                                    bulletIndex: bi,
+                                  });
+                                  improveBullet.mutate({
+                                    data: {
+                                      bullet: richHtmlToPlainText(b.text),
+                                      context: `${item.title ?? ""} at ${item.company ?? ""}`,
+                                    },
+                                  });
+                                }}
+                                disabled={isImproving || improveBullet.isPending}
+                                className="h-7 w-7 text-indigo-650 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-350 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 disabled:opacity-50 rounded-lg"
+                                title="Polish bullet with AI"
+                              >
+                                {isImproving ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </div>
+
                             <Button
+                              type="button"
                               variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 min-h-0 p-0 text-primary hover:text-primary hover:bg-primary/10"
-                              title="Improve with AI"
-                              onClick={() => {
-                                setPendingBullet({ itemIndex: i, bulletIndex: bi });
-                                improveBullet.mutate({
-                                  data: {
-                                    bullet: richHtmlToPlainText(b.text),
-                                    context: `${item.title ?? ""} at ${item.company ?? ""}`,
-                                  },
-                                });
-                              }}
-                              disabled={isImproving}
-                            >
-                              {isImproving ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 min-h-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                              title="Delete bullet"
+                              size="icon"
                               onClick={() => removeBullet(bi)}
+                              className="h-7 w-7 text-muted-foreground/80 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
+                              title="Delete Bullet"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
-                          </>
-                        }
-                      />
-                    </div>
-                  );
-                })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
